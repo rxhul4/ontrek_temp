@@ -52,7 +52,10 @@ dependencies:
   app_settings: ^5.1.1
   google_geocoding_api: ^1.4.1
   draggable_bottom_sheet: ^1.0.2
-  location: ^5.0.3
+#  location: ^5.0.3
+  geocoding: ^2.1.1
+  geolocator: ^10.1.0
+  flutter_animate: ^4.4.0
 
 dev_dependencies:
   flutter_test:

@@ -1,7 +1,6 @@
-import 'package:draggable_bottom_sheet/draggable_bottom_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:mapmyindia_gl/mapmyindia_gl.dart';
-import 'package:ontrek/core/common_widgets/app_scaffold.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/widget_utils.dart';
 import 'package:ontrek/features/dashboard/screens/attendance_screen.dart';
@@ -18,6 +17,7 @@ class DashBoard extends StatefulWidget {
 
 class DashBoardState extends State<DashBoard> {
   late MapmyIndiaMapController mapController;
+  LatLng? currentLocation ;
 
   // Location location =  Location();
 
@@ -27,6 +27,55 @@ class DashBoardState extends State<DashBoard> {
     Icons.task,
     Icons.person,
   ];
+
+  Future getCurrentLocation({bool? endLoader}) async {
+    Map<String, dynamic> returnData = {
+      "locationFetchingSuccessful": false,
+      "currentLocation": currentLocation
+    };
+
+    bool isLocationServiceAvailable =
+    await WidgetUtils.checkLocationServiceAvailability();
+    if (isLocationServiceAvailable) {
+      try {
+        // isLoading.value = true;
+        Position position = await Geolocator.getCurrentPosition(
+            // forceAndroidLocationManager: true,
+            desiredAccuracy: LocationAccuracy.low,
+            timeLimit: Duration(seconds: 30));
+        currentLocation = LatLng(position.latitude, position.longitude);
+        mapController.clearSymbols();
+        mapController.animateCamera(CameraUpdate.newCameraPosition(
+            CameraPosition(
+                target: currentLocation ?? LatLng(0,0), zoom: 14, tilt: 2, bearing: 2)));
+        mapController.addSymbol(SymbolOptions(
+          geometry: currentLocation,
+        ));
+        returnData["currentLocation"] = currentLocation;
+        returnData["locationFetchingSuccessful"] = true;
+      } catch (e) {
+        returnData["currentLocation"] = currentLocation;
+        returnData["locationFetchingSuccessful"] = false;
+        print("in catch at get location lat long : ${e}");
+      }
+    } else {
+      // WidgetUtils.showCustomDialog(
+      //     ctx: context,
+      //     dialogMessage: "Location is not enable. Please enable it and try again",
+      //     showCustomWidget: true,
+      //     positiveCustomText: "Open\nSettings",
+      //     customWidgetOnPressed: () {
+      //       openLocationSettings();
+      //     },
+      //     showDefaultBtn: false);
+      returnData["currentLocation"] = currentLocation;
+      returnData["locationFetchingSuccessful"] = false;
+    }
+    // isLoading.value = endLoader ?? false;
+    return returnData;
+  }
+
+
   List<String> lableString = [
     "Attandance",
     "Track",
@@ -90,107 +139,23 @@ class DashBoardState extends State<DashBoard> {
       DraggableScrollableController();
   double minHeight = 0.4;
 
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // bottomSheet: DraggableScrollableSheet(
-      //   shouldCloseOnMinExtent: true,
-      //   snap: true,
-      //   expand: false,
-      //   initialChildSize: 0.4,
-      //   maxChildSize: 0.9,
-      //   minChildSize: 0.4,
-      //   controller: draggableScrollableController,
-      //   builder: (context, scrollController) {
-      //     return SingleChildScrollView(
-      //       controller: scrollController,
-      //       child: Container(
-      //         // height: double.infinity,
-      //         width: double.infinity,
-      //         decoration: WidgetUtils.commonBoxDecoration(
-      //             color: AppConstant.whiteColor,
-      //             borderRadius: WidgetUtils.borderRadiousonly(
-      //                 topright: 30, topleft: 30)),
-      //         child: Column(
-      //           children: [
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //             WidgetUtils.commonTextWidget(
-      //                 text: "text", textColor: Colors.red),
-      //           ],
-      //         ),
-      //       ),
-      //     );
-      //   },
-      // ),
       body: SafeArea(
         child: Stack(
           children: [
             Positioned.fill(
-              bottom: MediaQuery.of(context).size.height *0.30,
+              bottom: MediaQuery.of(context).size.height * 0,
               child: MapmyIndiaMap(
+                  onMapCreated: (controller) {
+                    mapController = controller;
+                  },
+                  onStyleLoadedCallback: () async {
+                    getCurrentLocation();
+                  },
                   initialCameraPosition:
                       CameraPosition(target: LatLng(20.5937, 78.9629))),
             ),
@@ -207,89 +172,16 @@ class DashBoardState extends State<DashBoard> {
             //     minChildSize: 0.4,
             //     controller: draggableScrollableController,
             //     builder: (context, scrollController) {
-            //       return SingleChildScrollView(
+            //       return ListView.builder(
+            //         itemCount: 20,
+            //         shrinkWrap: true,
             //         controller: scrollController,
-            //         child: Container(
-            //
-            //           // height: double.infinity,
-            //           width: double.infinity,
-            //           decoration: WidgetUtils.commonBoxDecoration(
-            //
-            //               color: AppConstant.whiteColor,
-            //               borderRadius: WidgetUtils.borderRadiousonly(
-            //                   topright: 30, topleft: 30)),
-            //           child: Column(
-            //             children: [
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //               WidgetUtils.commonTextWidget(
-            //                   text: "text", textColor: Colors.red),
-            //             ],
-            //           ),
-            //         ),
-            //       );
+            //         itemBuilder: (context, index) {
+            //           return Center(
+            //             child: WidgetUtils.commonTextWidget(
+            //                 text: "text", textColor: Colors.red),
+            //           );
+            //         },);
             //     },
             //   ),
             // ),

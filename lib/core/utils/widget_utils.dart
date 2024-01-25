@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 
 class WidgetUtils {
   static Widget commonTextWidget({
@@ -38,6 +39,11 @@ class WidgetUtils {
       width: width,
       child: child,
     );
+  }
+  static Future<bool> checkLocationServiceAvailability() async {
+    bool isLocationServiceAvailable = false;
+    isLocationServiceAvailable = await Geolocator.isLocationServiceEnabled();
+    return isLocationServiceAvailable;
   }
 
   static EdgeInsets edgeInsetsOnly({
