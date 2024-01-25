@@ -17,7 +17,7 @@ class DashBoard extends StatefulWidget {
 
 class DashBoardState extends State<DashBoard> {
   late MapmyIndiaMapController mapController;
-  LatLng? currentLocation ;
+  LatLng? currentLocation;
 
   // Location location =  Location();
 
@@ -35,19 +35,25 @@ class DashBoardState extends State<DashBoard> {
     };
 
     bool isLocationServiceAvailable =
-    await WidgetUtils.checkLocationServiceAvailability();
+        await WidgetUtils.checkLocationServiceAvailability();
+    print("hhhhhh $isLocationServiceAvailable");
     if (isLocationServiceAvailable) {
       try {
         // isLoading.value = true;
         Position position = await Geolocator.getCurrentPosition(
-            // forceAndroidLocationManager: true,
-            desiredAccuracy: LocationAccuracy.low,
-            timeLimit: Duration(seconds: 30));
+          // forceAndroidLocationManager: true,
+          desiredAccuracy: LocationAccuracy.medium,
+          // timeLimit: Duration(seconds: 30)
+        );
+        print("hhhhhhhhh ${position}");
         currentLocation = LatLng(position.latitude, position.longitude);
         mapController.clearSymbols();
         mapController.animateCamera(CameraUpdate.newCameraPosition(
             CameraPosition(
-                target: currentLocation ?? LatLng(0,0), zoom: 14, tilt: 2, bearing: 2)));
+                target: currentLocation ?? LatLng(0, 0),
+                zoom: 14,
+                tilt: 2,
+                bearing: 2)));
         mapController.addSymbol(SymbolOptions(
           geometry: currentLocation,
         ));
@@ -74,7 +80,6 @@ class DashBoardState extends State<DashBoard> {
     // isLoading.value = endLoader ?? false;
     return returnData;
   }
-
 
   List<String> lableString = [
     "Attandance",
@@ -139,8 +144,6 @@ class DashBoardState extends State<DashBoard> {
       DraggableScrollableController();
   double minHeight = 0.4;
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -148,7 +151,7 @@ class DashBoardState extends State<DashBoard> {
         child: Stack(
           children: [
             Positioned.fill(
-              bottom: MediaQuery.of(context).size.height * 0,
+              bottom: MediaQuery.of(context).size.height * 0.3,
               child: MapmyIndiaMap(
                   onMapCreated: (controller) {
                     mapController = controller;
@@ -160,31 +163,27 @@ class DashBoardState extends State<DashBoard> {
                       CameraPosition(target: LatLng(20.5937, 78.9629))),
             ),
 
-            screens[_selectedIndex],
-            // Positioned.fill(
-            //   child: DraggableScrollableSheet(
-            //     shouldCloseOnMinExtent: true,
-            //     snap: true,
-            //     expand: false,
-            //     snapAnimationDuration: Duration(milliseconds: 300),
-            //     initialChildSize: 0.4,
-            //     maxChildSize: 0.9,
-            //     minChildSize: 0.4,
-            //     controller: draggableScrollableController,
-            //     builder: (context, scrollController) {
-            //       return ListView.builder(
-            //         itemCount: 20,
-            //         shrinkWrap: true,
-            //         controller: scrollController,
-            //         itemBuilder: (context, index) {
-            //           return Center(
-            //             child: WidgetUtils.commonTextWidget(
-            //                 text: "text", textColor: Colors.red),
-            //           );
-            //         },);
-            //     },
-            //   ),
-            // ),
+            // screens[_selectedIndex],
+            Positioned.fill(
+              child: DraggableScrollableSheet(
+                shouldCloseOnMinExtent: true,
+                snap: true,
+                expand: false,
+                snapAnimationDuration: Duration(milliseconds: 200),
+                initialChildSize: 0.4,
+                maxChildSize: 1,
+                minChildSize: 0.4,
+                controller: draggableScrollableController,
+                builder: (context, scrollController) {
+                  return [
+                    AttendanceScreen(scrollController: scrollController),
+                    TrackScreen(scrollController: scrollController),
+                    TaskListScreen(scrollController: scrollController),
+                    ProfileScreen(scrollController: scrollController),
+                  ][_selectedIndex];
+                },
+              ),
+            ),
 
             // WidgetUtils.commonAnimatedContainer(
             //   height: bannerHeight,
@@ -233,6 +232,14 @@ class DashBoardState extends State<DashBoard> {
                 onTap: () {
                   setState(() {
                     // minHeight = 0.2;
+                    if(index == 2){
+
+                      draggableScrollableController.jumpTo(1);
+
+                    }else{
+                      draggableScrollableController.jumpTo(0.4);
+
+                    }
                     _selectedIndex = index;
                     // Future.delayed(duration)
                   });

@@ -4,7 +4,8 @@ import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/widget_utils.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  ScrollController? scrollController;
+  ProfileScreen({super.key,this.scrollController});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -15,32 +16,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
   DraggableScrollableController();
   @override
   Widget build(BuildContext context) {
-    return  Animate(
-
-      effects: [ScaleEffect(curve: Curves.easeOut,begin: Offset(20,20),duration: Duration(milliseconds: 180)), ],
-      child: Positioned.fill(
-        child: DraggableScrollableSheet(
-          shouldCloseOnMinExtent: true,
-          snap: true,
-          expand: false,
-          snapAnimationDuration: Duration(milliseconds: 300),
-          initialChildSize: 0.4,
-          maxChildSize: 0.9,
-          minChildSize: 0.4,
-          controller: draggableScrollableController,
-          builder: (context, scrollController) {
-            return Container(
-              decoration: WidgetUtils.commonBoxDecoration(borderRadius: WidgetUtils.borderRadiousonly(topright: 30,topleft: 30),color: AppConstant.whiteColor),
-              child: ListView.builder(
-                itemCount: 20,
-                shrinkWrap: true,
-                controller: scrollController,
-                itemBuilder: (context, index) {
-                  return Center(
-                    child: WidgetUtils.commonTextWidget(
-                        text: "text", textColor: Colors.red),
-                  );
-                },),
+    return Animate(
+      effects: [
+        ScaleEffect(
+            curve: Curves.easeOutBack,
+            begin: Offset(1.3, 1.3),
+            duration: Duration(milliseconds: 180)),
+      ],
+      child: Container(
+        decoration: WidgetUtils.commonBoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                spreadRadius: 0,
+                blurRadius: 8,
+                offset: Offset(0, -10), // This will create a top shadow
+              ),
+            ],
+            borderRadius:
+            WidgetUtils.borderRadiousonly(topright: 18, topleft: 18),
+            color: AppConstant.whiteColor),
+        child: ListView.builder(
+          itemCount: 20,
+          shrinkWrap: true,
+          controller: widget.scrollController,
+          itemBuilder: (context, index) {
+            return Center(
+              child: WidgetUtils.commonTextWidget(
+                  text: "text", textColor: Colors.red),
             );
           },
         ),
