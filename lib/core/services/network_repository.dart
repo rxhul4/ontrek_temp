@@ -57,7 +57,7 @@ Future getResponse(Response response) async {
     // MyAppState.navKey.currentContext;
     final parsedJson = jsonDecode(response.body.toString());
     final message = parsedJson['message'].toString();
-    //AppUtils.errorMessage='Unauthorised user';
+    //WidgetUtils.errorMessage='Unauthorised user';
     return "{\"status\":\"false\",\"message\":\"$message\"}";
   } else if (statusCode == 403) {
     //  Unauthorised streams = Unauthorised.fromJson(json.decode(response.body));

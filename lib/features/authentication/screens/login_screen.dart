@@ -93,12 +93,12 @@ class _LogInScreenState extends State<LogInScreen> {
                                 WidgetUtils.commonSizedBox(height: 20),
                                 WidgetUtils.commonElevatedBtn(
                                     onPressed: () {
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                DashboardScreen(),
-                                          ));
+                                      // Navigator.push(
+                                      //     context,
+                                      //     MaterialPageRoute(
+                                      //       builder: (context) =>
+                                      //           DashboardScreen(),
+                                      //     ));
                                     },
                                     text: "SIGN IN",
                                     bgColor: AppConstant.btnColor,

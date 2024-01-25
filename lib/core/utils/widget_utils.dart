@@ -67,6 +67,7 @@ class WidgetUtils {
   static Widget commonContainer({
     double? height,
     double? width,
+    Alignment? alignment,
     BoxDecoration? decoration,
     EdgeInsets? margin,
     EdgeInsets? padding,
@@ -76,12 +77,22 @@ class WidgetUtils {
     return Container(
       height: height,
       width: width,
+      alignment: alignment,
       decoration: decoration,
       margin: margin,
       padding: padding,
       color: color,
       child: child,
     );
+  }
+
+  static BorderRadius borderRadiousonly({
+    double? topleft,
+    double? topright,
+    double? bottomleft,
+    double? bottomright,
+  }) {
+    return  BorderRadius.only(topLeft: Radius.circular(topleft ?? 0),topRight: Radius.circular(topright ?? 0),bottomLeft: Radius.circular(bottomleft ?? 0),bottomRight:  Radius.circular(bottomright ?? 0));
   }
 
   static Widget commonInkWell({

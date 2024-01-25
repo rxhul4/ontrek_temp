@@ -40,6 +40,19 @@ dependencies:
   device_info_plus: ^9.1.1
   upgrader: ^9.0.0
   shared_preferences: ^2.2.2
+  mapmyindia_gl: ^0.3.2
+  permission_handler: ^11.0.1
+  image_picker: ^1.0.4
+  cached_network_image: ^3.3.0
+  flutter_background_service: ^3.0.1
+  connectivity_plus: ^5.0.1
+  provider: ^6.1.1
+  url_launcher: ^6.2.3
+  disable_battery_optimization: ^1.1.1
+  app_settings: ^5.1.1
+  google_geocoding_api: ^1.4.1
+  draggable_bottom_sheet: ^1.0.2
+  location: ^5.0.3
 
 dev_dependencies:
   flutter_test:
