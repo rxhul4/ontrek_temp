@@ -19,9 +19,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Animate(
       effects: [
         ScaleEffect(
-            curve: Curves.easeOutBack,
-            begin: Offset(1.3, 1.3),
-            duration: Duration(milliseconds: 180)),
+            curve: Curves.ease,
+            begin: Offset(0, -1),
+            duration: Duration(milliseconds: 100)),
       ],
       child: Container(
         decoration: WidgetUtils.commonBoxDecoration(

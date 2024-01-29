@@ -5,6 +5,7 @@ import 'package:ontrek/core/storage/preference_keys.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PreferenceImpl implements IPreference {
+
   @override
   Future<String> getToken() async {
     final SharedPreferences prefs = await Preference.getSharedPreference();
@@ -34,4 +35,5 @@ class PreferenceImpl implements IPreference {
     final SharedPreferences prefs = await Preference.getSharedPreference();
     prefs.clear();
   }
+
 }

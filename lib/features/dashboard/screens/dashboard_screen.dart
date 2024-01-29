@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:mapmyindia_gl/mapmyindia_gl.dart';
+import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/widget_utils.dart';
 import 'package:ontrek/features/dashboard/screens/attendance_screen.dart';
@@ -18,6 +19,7 @@ class DashBoard extends StatefulWidget {
 class DashBoardState extends State<DashBoard> {
   late MapmyIndiaMapController mapController;
   LatLng? currentLocation;
+  late ValueNotifier<bool> isLoading;
 
   // Location location =  Location();
 
@@ -88,15 +90,9 @@ class DashBoardState extends State<DashBoard> {
     "Pofile",
   ];
   int _selectedIndex = 0;
-  double bannerHeight = 300;
-  List screens = [
-    AttendanceScreen(),
-    TrackScreen(),
-    TaskListScreen(),
-    ProfileScreen(),
-  ];
-  bool isBottomSheetVisible =
-      true; // Set to true to make the bottom sheet always visible
+
+  ValueNotifier<bool> isDayStarted = ValueNotifier(false);
+  ValueNotifier<bool> isCheckedIn = ValueNotifier(false);
 
   @override
   void initState() {
@@ -111,35 +107,40 @@ class DashBoardState extends State<DashBoard> {
         AppConstant.atlasClientSecretId);
   }
 
-  // Future modalBottomSheetShow(BuildContext context) {
-  //   return showModalBottomSheet(
-  //     backgroundColor: Colors.transparent,
-  //     context: context,
-  //     builder: (context) => buildSheet(),
-  //     isDismissible: false,
-  //     elevation: 0,
-  //   ).whenComplete(() => modalBottomSheetShow(context));
-  // }
-  // Widget buildSheet() {
-  //   return DraggableScrollableSheet(
-  //     initialChildSize: 0.6,
-  //     maxChildSize: 0.9,
-  //     minChildSize: 0.6,
-  //     builder: (BuildContext context, ScrollController scrollController) {
-  //       return Container(
-  //         decoration: BoxDecoration(color: Colors.white, boxShadow: [
-  //           BoxShadow(
-  //             color: Color(0x6C000000),
-  //             spreadRadius: 5,
-  //             blurRadius: 20,
-  //             offset: Offset(0, 0),
-  //           )
-  //         ]),
-  //         padding: EdgeInsets.all(16),
-  //       );
-  //     },
-  //   );
-  // }
+
+  Future<void> dayStart() async {
+    try {
+      print("day start function in");
+
+      // service.startService();
+      print("latitude${currentLocation?.latitude}");
+      PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+      isDayStarted.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+      if (currentLocation != null) {
+        print("latttttttttttt${currentLocation?.latitude}");
+        if (mapController != null) {
+          mapController.clearSymbols();
+          mapController.animateCamera(CameraUpdate.newCameraPosition(
+              CameraPosition(
+                  target: currentLocation ?? LatLng(0, 0), zoom: 14, tilt: 2, bearing: 2)));
+          print("data${currentLocation}");
+          mapController.addSymbol(SymbolOptions(
+            geometry: currentLocation,
+            iconColor: "#9775FA",
+          ));
+        } else {
+          print("symbole is not their");
+        }
+      } else {
+        print("currentlocation is null");
+      }
+    } catch (e) {
+      print("hjsdafjhsdfsdfsdkjfhdskjf${e}");
+    }
+  }
+
+
+
   DraggableScrollableController draggableScrollableController =
       DraggableScrollableController();
   double minHeight = 0.4;
@@ -160,7 +161,7 @@ class DashBoardState extends State<DashBoard> {
                     getCurrentLocation();
                   },
                   initialCameraPosition:
-                      CameraPosition(target: LatLng(20.5937, 78.9629))),
+                      CameraPosition(target: LatLng(20.5937, 78.9629),)),
             ),
 
             // screens[_selectedIndex],
@@ -176,7 +177,7 @@ class DashBoardState extends State<DashBoard> {
                 controller: draggableScrollableController,
                 builder: (context, scrollController) {
                   return [
-                    AttendanceScreen(scrollController: scrollController),
+                    AttendanceScreen(scrollController: scrollController,onTap: dayStart),
                     TrackScreen(scrollController: scrollController),
                     TaskListScreen(scrollController: scrollController),
                     ProfileScreen(scrollController: scrollController),
@@ -219,7 +220,7 @@ class DashBoardState extends State<DashBoard> {
         height: 60,
         decoration: WidgetUtils.commonBoxDecoration(
           border: Border.all(
-            color: AppConstant.greyColor,
+            color: AppConstant.greyColor.withOpacity(0.3),
             width: 1,
           ),
         ),

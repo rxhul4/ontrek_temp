@@ -21,7 +21,7 @@ class WidgetUtils {
         decoration: decoration,
         color: textColor ?? Colors.white,
         fontSize: fontSize ?? 14,
-        letterSpacing: letterSpacing ?? 2,
+        letterSpacing: letterSpacing ??0.2 ,
         fontWeight: fontWeight,
         height: height,
         fontFamily: fontFamily,
