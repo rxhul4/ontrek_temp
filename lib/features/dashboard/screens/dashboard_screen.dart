@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:mapmyindia_gl/mapmyindia_gl.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
+import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/core/utils/widget_utils.dart';
 import 'package:ontrek/features/dashboard/screens/attendance_screen.dart';
 import 'package:ontrek/features/dashboard/screens/profile_screen.dart';
@@ -22,6 +23,14 @@ class DashBoardState extends State<DashBoard> {
   late ValueNotifier<bool> isLoading;
 
   // Location location =  Location();
+
+  List<String> iconString = [
+    attendanceIconPath,
+    trackingIconPath,
+    taskIconPath,
+    profileIconPath
+
+  ];
 
   List<IconData> iconData = [
     Icons.location_history_sharp,
@@ -186,33 +195,6 @@ class DashBoardState extends State<DashBoard> {
               ),
             ),
 
-            // WidgetUtils.commonAnimatedContainer(
-            //   height: bannerHeight,
-            //   duration: Duration(milliseconds: 50),
-            //   child: Column(children: [
-            //     GestureDetector(
-            //         onVerticalDragUpdate: (DragUpdateDetails details) {
-            //           setState(() {
-            //             double positionY = details.globalPosition.dy;
-            //             double maxHeight =
-            //                 MediaQuery.of(context).size.height - 300;
-            //             print("yo ${positionY}");
-            //
-            //             if (positionY < 200) bannerHeight = 300;
-            //
-            //             /// Limits at 200 height minimum
-            //             if (positionY <= maxHeight)
-            //               bannerHeight =
-            //                   MediaQuery.of(context).size.height - positionY;
-            //           });
-            //         },
-            //         child: WidgetUtils.commonAnimatedContainer(
-            //             duration: Duration(milliseconds: 50),
-            //             color: Colors.green,
-            //             height: 45)),
-            //     screens[_selectedIndex],
-            //   ]),
-            // ),
           ],
         ),
       ),
@@ -245,7 +227,8 @@ class DashBoardState extends State<DashBoard> {
                     // Future.delayed(duration)
                   });
                 },
-                child: WidgetUtils.commonContainer(
+                child: AnimatedContainer(
+                  duration: Duration(milliseconds: 300),
                   alignment: Alignment.center,
                   height: 50,
                   width: 90,
@@ -254,12 +237,13 @@ class DashBoardState extends State<DashBoard> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        iconData[index],
+                      Image.asset(
+                        width: index == 0 || index == 1 ? 25: 20,
+                        height: index == 0 || index == 1 ? 25: 20,
+                        iconString[index],
                         color: _selectedIndex == index
                             ? Colors.blueAccent
                             : AppConstant.greyColor,
-                        size: _selectedIndex == index ? 22 : 20,
                       ),
                       WidgetUtils.commonTextWidget(
                         text: lableString[index],

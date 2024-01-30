@@ -55,9 +55,10 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.15),
-              spreadRadius: 4,
-              blurRadius: 12,
-              offset: Offset(0, -6), // This will create a top shadow
+              spreadRadius: 0,
+              blurRadius: 18,
+
+              offset: Offset(0, -20), // This will create a top shadow
             ),
           ],
           borderRadius: WidgetUtils.borderRadiousonly(topright: 18, topleft: 18),
