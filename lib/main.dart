@@ -1,11 +1,16 @@
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/authentication/screens/splash_screen.dart';
 
 
 void main() {
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  PreferenceHelper.load().then((value) {
+    runApp(const MyApp());
+  });
+
 }
 
 class MyApp extends StatefulWidget {
