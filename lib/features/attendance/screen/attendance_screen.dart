@@ -45,6 +45,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   ValueNotifier<bool> isDayStart = ValueNotifier(false);
   ValueNotifier<bool> isCheckIn = ValueNotifier(false);
+  ValueNotifier<bool> isDayEnd = ValueNotifier(false);
 
   @override
   Widget build(BuildContext context) {
@@ -128,29 +129,29 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   ),
                 ),
               ),
-              SizedBox(height: 40), // Added vertical spacing
-              Center(
-                child: buttonWidget(120),
+              SizedBox(height: 40),
+              // Added vertical spacing
+
+              ValueListenableBuilder(
+                valueListenable: isDayEnd,
+                builder: (context, value, child) {
+                  return Center(
+                    child: buttonWidget(isDayEnd.value),
+                  );
+                },
               ),
+
               SizedBox(height: 30),
               // Added vertical spacing
 
               GestureDetector(
                 onTap: () {
                   if(isDayStart.value){
-                    controller?.forward().whenComplete(() {
-                      dayEnd().then((value) {
-                        if (widget.onLocationFetch != null) {
-                          widget.onLocationFetch!(value);
-                        }
-                      });
-                      controller?.reset();
-                    });
+                    isDayEnd.value = true;
                   }
-
                 },
                 child: Visibility(
-                  visible: !isTaped,
+                  visible: !isDayStart.value,
                   child: WidgetUtils.commonTextWidget(
                     text: !isDayStart.value ? "Press & Hold" : "Show Off",
                     fontSize: !isDayStart.value ? 14 : 16,
@@ -186,6 +187,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     }
   }
 
+
   Future checkIn() async {
     bool isLocationServiceAvailable =
         await WidgetUtils.checkLocationServiceAvailability();
@@ -202,11 +204,27 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       }
     }
   }
+  Future checkOut() async {
+    bool isLocationServiceAvailable =
+    await WidgetUtils.checkLocationServiceAvailability();
+    PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+    isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
 
-  Future dayEnd() async {
+    if (isLocationServiceAvailable) {
+      try {
+        Position position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.medium);
+        return position;
+      } catch (e) {
+        print("Catch at DayStart${e}");
+      }
+    }
+  }
+
+  Future dayEndFunction() async {
     try {
       bool isLocationServiceAvailable =
-          await WidgetUtils.checkLocationServiceAvailability();
+      await WidgetUtils.checkLocationServiceAvailability();
       PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
       PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
       isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
@@ -220,10 +238,12 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           print("Catch at DayStart${e}");
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      print("catch at dayEnd ${e}");
+    }
   }
 
-  Widget buttonWidget(double size) {
+  Widget buttonWidget(bool? dayEnd) {
     return ValueListenableBuilder(
       valueListenable: isDayStart,
       builder: (context, value, child) {
@@ -273,6 +293,21 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         widget.onLocationFetch!(value);
                       }
                     });
+                  }else  {
+                    // if(isDayStart.value){
+
+                      // controller?.forward().whenComplete(() {
+                        dayEndFunction().then((value) {
+                          if (widget.onLocationFetch != null) {
+                            widget.onLocationFetch!(value);
+                            isDayEnd.value = false;
+                          }
+
+                          controller?.reset();
+                        });
+
+                      // });
+                    // }
                   }
                 });
               },
@@ -293,78 +328,88 @@ class _AttendanceScreenState extends State<AttendanceScreen>
               //   builder: (BuildContext context, Widget? child) {
               //     double scaleFactor =
               //         isTaped ? 2.0 : 1.0; // Adjust the scale factor as needed
-                  child: AnimatedContainer(
-                    curve: Curves.bounceInOut,
-                    duration: const Duration(milliseconds: 300),
-                    width: isTaped ? 140 : size ,
-                    height: isTaped ? 140 : size ,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: !isDayStart.value
+              child: AnimatedContainer(
+                curve: Curves.easeInOutQuad,
+                duration: const Duration(milliseconds: 300),
+                width: isTaped ? 140 : 120,
+                height: isTaped ? 140 : 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: dayEnd == true
+                          ? Colors.red.withOpacity(0.5)
+                          : !isDayStart.value
                               ? Colors.lightGreen.withOpacity(0.5)
-                              : Colors.blue,
-                          spreadRadius: isTaped ? 1 : 3,
-                          blurRadius: isTaped ? 2 : 5,
-                          offset: Offset(0, 0),
-                        ),
-                      ],
+                              : Colors.blue.withOpacity(0.5),
+                      spreadRadius: isTaped ? 1 : 2,
+                      blurRadius: isTaped ? 1 : 2,
+                      offset: Offset(0, 0),
                     ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: <Widget>[
-                        Transform.scale(
-                          scale: isTaped ? 4 : 3.6,
-                          // Adjust the scale factor as needed
-                          child: CircularProgressIndicator(
-                            value: 1.0,
-                            strokeWidth: 2,
-                            strokeCap: StrokeCap.round,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                !isDayStart.value
-                                    ? AppConstant.greyColor.withOpacity(0.1)
-                                    : Colors.blue.withOpacity(0.1)),
-                          ),
-                        ),
-                        Transform.scale(
-                          scale: isTaped ? 4 : 3.6,
-                          // Adjust the scale factor as needed
-                          child: CircularProgressIndicator(
-                            value: controller?.value,
-                            strokeCap: StrokeCap.round,
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                !isDayStart.value
-                                    ? Colors.lightGreen
-                                    : Colors.blue),
-                          ),
-                        ),
-                        WidgetUtils.commonContainer(
-                          height: isTaped ? 140 : 120,
-                          width: isTaped ? 140 : 120,
-                          decoration: WidgetUtils.commonBoxDecoration(
-                            color: !isDayStart.value
+                  ],
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: <Widget>[
+                    Transform.scale(
+                      scale: isTaped ? 4 : 3.6,
+                      // Adjust the scale factor as needed
+                      child: CircularProgressIndicator(
+                        value: 1.0,
+                        strokeWidth: 1.5,
+                        strokeCap: StrokeCap.round,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            dayEnd == true ? AppConstant.greyColor.withOpacity(0.3) :AppConstant.greyColor.withOpacity(0.3)
+                            // dayEnd == true ? Colors.red :!isDayStart.value
+                            //     ? AppConstant.greyColor
+                            //     : Colors.blue
+                            ),
+                      ),
+                    ),
+                    Transform.scale(
+                      scale: isTaped ? 4 : 3.6,
+                      // Adjust the scale factor as needed
+                      child: CircularProgressIndicator(
+                        value: controller?.value,
+                        strokeCap: StrokeCap.round,
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(dayEnd == true
+                            ? Colors.red
+                            : !isDayStart.value
+                                ? Colors.lightGreen
+                                : Colors.blue),
+                      ),
+                    ),
+                    AnimatedContainer(
+                      duration: Duration(milliseconds: 300),
+                      height: isTaped ? 140 : 120,
+                      width: isTaped ? 140 : 120,
+                      decoration: WidgetUtils.commonBoxDecoration(
+                        color: dayEnd == true
+                            ? Colors.red
+                            : !isDayStart.value
                                 ? Colors.lightGreen
                                 : Colors.blue,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: WidgetUtils.commonTextWidget(
-                              text: !isDayStart.value
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: WidgetUtils.commonTextWidget(
+                          text: dayEnd == true
+                              ? "Out"
+                              : !isDayStart.value
                                   ? "In"
                                   : !isCheckIn.value
-                                      ? "Check-in"
-                                      : "Check-out",
-                              fontSize: !isDayStart.value ? 26 : 18,
-                              textColor: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                                      ? "Check-In"
+                                      : "Check-Out",
+                          fontSize: !isDayStart.value ? 26 : 16,
+                          textColor: Colors.white,
+                          fontWeight: FontWeight.w600,
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
+                ),
+              ),
               //   },
               // ),
             );
