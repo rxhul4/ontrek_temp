@@ -273,7 +273,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.lightGreen.withOpacity(0.5),
+                      color: !isDayStart.value ? Colors.blue :Colors.lightGreen.withOpacity(0.5),
                       spreadRadius: isTaped ? 1  : 3 ,
                       blurRadius: isTaped ?  2: 5,
                       offset: Offset(0,0),
@@ -289,7 +289,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         value: 1.0,
                         strokeWidth: 2,
                         strokeCap: StrokeCap.round,
-                        valueColor: AlwaysStoppedAnimation<Color>(
+                        valueColor: AlwaysStoppedAnimation<Color>(!isDayStart.value ? Colors.blue :
                             AppConstant.greyColor.withOpacity(0.1)),
                       ),
                     ),
@@ -299,7 +299,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         value: controller?.value,
                         strokeCap: StrokeCap.round,
                         strokeWidth: 2,
-                        valueColor:  AlwaysStoppedAnimation<Color>(Colors.lightGreen),
+                        valueColor:  AlwaysStoppedAnimation<Color>(!isDayStart.value ? Colors.blue :Colors.lightGreen),
                       ),
                     ),
                     WidgetUtils.commonContainer(
