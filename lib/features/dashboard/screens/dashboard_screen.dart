@@ -238,7 +238,7 @@ class DashBoardState extends State<DashBoard> {
                     // minHeight = 0.2;
                     if(index == 2){
 
-                      draggableScrollableController.jumpTo(1);
+                      draggableScrollableController.jumpTo(0.4);
 
                     }else{
                       draggableScrollableController.jumpTo(0.4);

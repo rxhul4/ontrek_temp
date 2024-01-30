@@ -288,16 +288,16 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 });
                 controller?.reverse();
               },
-              child: AnimatedBuilder(
-                animation: controller!,
-                builder: (BuildContext context, Widget? child) {
-                  double scaleFactor =
-                      isTaped ? 2.0 : 1.0; // Adjust the scale factor as needed
-                  return AnimatedContainer(
+              // child: AnimatedBuilder(
+              //   animation: controller!,
+              //   builder: (BuildContext context, Widget? child) {
+              //     double scaleFactor =
+              //         isTaped ? 2.0 : 1.0; // Adjust the scale factor as needed
+                  child: AnimatedContainer(
                     curve: Curves.bounceInOut,
                     duration: const Duration(milliseconds: 300),
-                    width: isTaped ? 140 : size * scaleFactor,
-                    height: isTaped ? 140 : size * scaleFactor,
+                    width: isTaped ? 140 : size ,
+                    height: isTaped ? 140 : size ,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       boxShadow: [
@@ -364,9 +364,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         ),
                       ],
                     ),
-                  );
-                },
-              ),
+                  ),
+              //   },
+              // ),
             );
           },
         );
