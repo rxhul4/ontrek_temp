@@ -150,18 +150,21 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     isDayEnd.value = true;
                   }
                 },
-                child: Visibility(
-                  visible: !isDayStart.value,
-                  child: WidgetUtils.commonTextWidget(
-                    text: !isDayStart.value ? "Press & Hold" : "Show Off",
-                    fontSize: !isDayStart.value ? 14 : 16,
-                    letterSpacing: 0.2,
-                    fontWeight:
-                        !isDayStart.value ? FontWeight.w600 : FontWeight.w600,
-                    textColor:
-                        !isDayStart.value ? AppConstant.blackColor : Colors.red,
-                  ),
-                ),
+                child: ValueListenableBuilder(valueListenable: isDayStart, builder: (context, value, child) {
+
+                  return  Visibility(
+                    visible: !isDayStart.value,
+                    child: WidgetUtils.commonTextWidget(
+                      text: !isDayStart.value ? "Press & Hold" : "Show Off",
+                      fontSize: !isDayStart.value ? 14 : 16,
+                      letterSpacing: 0.2,
+                      fontWeight:
+                      !isDayStart.value ? FontWeight.w600 : FontWeight.w600,
+                      textColor:
+                      !isDayStart.value ? AppConstant.blackColor : Colors.red,
+                    ),
+                  );
+                },)
               ),
             ],
           ),
