@@ -5,10 +5,10 @@ import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/core/utils/widget_utils.dart';
-import 'package:ontrek/features/dashboard/screens/attendance_screen.dart';
-import 'package:ontrek/features/dashboard/screens/profile_screen.dart';
-import 'package:ontrek/features/dashboard/screens/task_list_screen.dart';
-import 'package:ontrek/features/dashboard/screens/track_screen.dart';
+import 'package:ontrek/features/attendance/screen/attendance_screen.dart';
+import 'package:ontrek/features/profile/screen/profile_screen.dart';
+import 'package:ontrek/features/task_list/screen/task_list_screen.dart';
+import 'package:ontrek/features/track_function/screen/track_screen.dart';
 
 class DashBoard extends StatefulWidget {
   const DashBoard({super.key});
@@ -186,7 +186,28 @@ class DashBoardState extends State<DashBoard> {
                 controller: draggableScrollableController,
                 builder: (context, scrollController) {
                   return [
-                    AttendanceScreen(scrollController: scrollController,onTap: dayStart),
+                    AttendanceScreen(scrollController: scrollController,onLocationFetch: (value){
+                      setState(() {
+                        currentLocation = LatLng(value.latitude, value.longitude);
+                      });
+
+                      if (currentLocation != null) {
+                        print("latttttttttttt${currentLocation?.latitude}");
+                        if (mapController != null) {
+                          mapController.clearSymbols();
+                          mapController.animateCamera(CameraUpdate.newCameraPosition(
+                              CameraPosition(
+                                  target: currentLocation ?? LatLng(0, 0), zoom: 14, tilt: 2, bearing: 2)));
+                          print("data${value}");
+                          mapController.addSymbol(SymbolOptions(
+                            geometry: currentLocation?? LatLng(value.latitude ,value.longitude),
+                            iconColor: "#9775FA",
+                          ));
+                        } else {
+                          print("symbole is not their");
+                        }
+                      }
+                    }),
                     TrackScreen(scrollController: scrollController),
                     TaskListScreen(scrollController: scrollController),
                     ProfileScreen(scrollController: scrollController),
