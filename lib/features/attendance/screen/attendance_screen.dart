@@ -145,7 +145,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
               SizedBox(height: 30),
               // Added vertical spacing
 
-              !isDayStart.value ? WidgetUtils.commonTextWidget(
+              !isDayStart.value || isDayEnd.value ? WidgetUtils.commonTextWidget(
                 text:  "Press & Hold",
                 fontSize:  14 ,
                 letterSpacing: 0.2,
@@ -157,7 +157,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     isDayEnd.value = true;
                   },
                   child: WidgetUtils.commonTextWidget(
-                    text:  "Show Off",
+                    text:  "Show Off" ,
                     fontSize:  16 ,
                     letterSpacing: 0.2,
                     fontWeight: FontWeight.w600 ,
@@ -251,164 +251,167 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         return ValueListenableBuilder(
           valueListenable: isCheckIn,
           builder: (context, value, child) {
-            return GestureDetector(
-              onHorizontalDragStart: (details) {
-                setState(() {
-                  isTapped = true;
-                });
-                controller?.forward();
-              },
-              onVerticalDragStart: (details) {
-                setState(() {
-                  isTapped = true;
-                });
-                controller?.forward();
-              },
-              onVerticalDragEnd: (details) {
-                setState(() {
-                  isTapped = false;
-                });
-                controller?.reverse();
-              },
-              onHorizontalDragEnd: (details) {
-                setState(() {
-                  isTapped = false;
-                });
-                controller?.reverse();
-              },
-              onTapDown: (details) {
-                setState(() {
-                  isTapped = true;
-                });
-                controller?.forward().whenComplete(() {
-                  controller?.reset();
-                  if (!isDayStart.value) {
-                    dayStart().then((value) {
-                      if (widget.onLocationFetch != null) {
-                        widget.onLocationFetch!(value);
-                      }
-                    });
-                  } else if (!isCheckIn.value) {
-                    checkIn().then((value) {
-                      if (widget.onLocationFetch != null) {
-                        widget.onLocationFetch!(value);
-                      }
-                    });
-                  }else  if(isCheckIn.value){
-                    // if(isDayStart.value){
+            return Animate(
+              effects: [ScaleEffect(begin: Offset(0,0),duration: Duration(milliseconds: 300,),curve: Curves.easeOut)],
+              child: GestureDetector(
+                onHorizontalDragStart: (details) {
+                  setState(() {
+                    isTapped = true;
+                  });
+                  controller?.forward();
+                },
+                onVerticalDragStart: (details) {
+                  setState(() {
+                    isTapped = true;
+                  });
+                  controller?.forward();
+                },
+                onVerticalDragEnd: (details) {
+                  setState(() {
+                    isTapped = false;
+                  });
+                  controller?.reverse();
+                },
+                onHorizontalDragEnd: (details) {
+                  setState(() {
+                    isTapped = false;
+                  });
+                  controller?.reverse();
+                },
+                onTapDown: (details) {
+                  setState(() {
+                    isTapped = true;
+                  });
+                  controller?.forward().whenComplete(() {
+                    controller?.reset();
+                    if (!isDayStart.value) {
+                      dayStart().then((value) {
+                        if (widget.onLocationFetch != null) {
+                          widget.onLocationFetch!(value);
+                        }
+                      });
+                    } else if (!isCheckIn.value) {
+                      checkIn().then((value) {
+                        if (widget.onLocationFetch != null) {
+                          widget.onLocationFetch!(value);
+                        }
+                      });
+                    }else  if(isCheckIn.value){
+                      // if(isDayStart.value){
 
-                    // controller?.forward().whenComplete(() {
-                    checkOut().then((value) {
-                      if (widget.onLocationFetch != null) {
-                        widget.onLocationFetch!(value);
-                        // isDayEnd.value = false;
-                      }
+                      // controller?.forward().whenComplete(() {
+                      checkOut().then((value) {
+                        if (widget.onLocationFetch != null) {
+                          widget.onLocationFetch!(value);
+                          // isDayEnd.value = false;
+                        }
 
-                      // controller?.reset();
-                    });
+                        // controller?.reset();
+                      });
 
-                    // });
-                    // }
-                  }else{
-                    checkOut().then((value) {
-                      if(widget.onLocationFetch != null){
-                        widget.onLocationFetch!(value);
-                        // isDayEnd.value = false;
-                      }
-                    });
-                  }
+                      // });
+                      // }
+                    }else{
+                      checkOut().then((value) {
+                        if(widget.onLocationFetch != null){
+                          widget.onLocationFetch!(value);
+                          // isDayEnd.value = false;
+                        }
+                      });
+                    }
 
-                });
-              },
-              onTapUp: (details) {
-                setState(() {
-                  isTapped = false;
-                });
-                controller?.reverse();
-              },
-              onTapCancel: () {
-                setState(() {
-                  isTapped = false;
-                });
-                controller?.reverse();
-              },
-              child: AnimatedBuilder(
-                animation: controller!,
-                builder: (BuildContext context, Widget? child) {
-             return  WidgetUtils.commonContainer(
+                  });
+                },
+                onTapUp: (details) {
+                  setState(() {
+                    isTapped = false;
+                  });
+                  controller?.reverse();
+                },
+                onTapCancel: () {
+                  setState(() {
+                    isTapped = false;
+                  });
+                  controller?.reverse();
+                },
+                child: AnimatedBuilder(
+                  animation: controller!,
+                  builder: (BuildContext context, Widget? child) {
+               return  WidgetUtils.commonContainer(
 
-               decoration: WidgetUtils.commonBoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: !isDayStart.value
-                              ? Colors.lightGreen.withOpacity(0.8)
-                              : Colors.blue.withOpacity(0.5),
-                      spreadRadius: isTapped ? 1 : 2,
-                      blurRadius: isTapped ? 1 : 2,
-                      offset: Offset(0, 0),
-                    ),
-                  ],
-                ),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: <Widget>[
-                    Transform.scale(
-                      scale: isTapped ? 4 : 3.6,
-                      // Adjust the scale factor as needed
-                      child: CircularProgressIndicator(
-                        value: 1,
-                        strokeWidth: 1.5,
-                        strokeCap: StrokeCap.round,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                            AppConstant.greyColor.withOpacity(0.2)
-                            // dayEnd == true ? Colors.red :!isDayStart.value
-                            //     ? AppConstant.greyColor
-                            //     : Colors.blue
-                            ),
+                 decoration: WidgetUtils.commonBoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: !isDayStart.value
+                                ? Colors.lightGreen.withOpacity(0.8)
+                                : Colors.blue.withOpacity(0.5),
+                        spreadRadius: isTapped ? 1 : 2,
+                        blurRadius: isTapped ? 1 : 2,
+                        offset: Offset(0, 0),
                       ),
-                    ),
-                    Transform.scale(
-                      scale: isTapped ? 4 : 3.6,
-                      // Adjust the scale factor as needed
-                      child: CircularProgressIndicator(
-
-                        value: controller?.value,
-                        strokeCap: StrokeCap.round,
-                        strokeWidth: 1.5,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                             !isDayStart.value
-                                ? Colors.lightGreen
-                                : Colors.blue),
-                      ),
-                    ),
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      height: isTapped ? 140 : 120,
-                      width: isTapped ? 140 : 120,
-                      decoration: WidgetUtils.commonBoxDecoration(
-                        color:!isDayStart.value
-                                ? Colors.lightGreen
-                                : Colors.blue,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: WidgetUtils.commonTextWidget(
-                          text: !isDayStart.value
-                                  ? "In"
-                                  : !isCheckIn.value
-                                      ? "Check-In"
-                                      : "Check-Out",
-                          fontSize: !isDayStart.value ? 26 : 16,
-                          textColor: Colors.white,
-                          fontWeight: FontWeight.w600,
+                    ],
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: <Widget>[
+                      Transform.scale(
+                        scale: isTapped ? 4 : 3.6,
+                        // Adjust the scale factor as needed
+                        child: CircularProgressIndicator(
+                          value: 1,
+                          strokeWidth: 1.5,
+                          strokeCap: StrokeCap.round,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              AppConstant.greyColor.withOpacity(0.2)
+                              // dayEnd == true ? Colors.red :!isDayStart.value
+                              //     ? AppConstant.greyColor
+                              //     : Colors.blue
+                              ),
                         ),
                       ),
-                    ),
-                  ],
+                      Transform.scale(
+                        scale: isTapped ? 4 : 3.6,
+                        // Adjust the scale factor as needed
+                        child: CircularProgressIndicator(
+
+                          value: controller?.value,
+                          strokeCap: StrokeCap.round,
+                          strokeWidth: 1.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                               !isDayStart.value
+                                  ? Colors.lightGreen
+                                  : Colors.blue),
+                        ),
+                      ),
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        height: isTapped ? 140 : 120,
+                        width: isTapped ? 140 : 120,
+                        decoration: WidgetUtils.commonBoxDecoration(
+                          color:!isDayStart.value
+                                  ? Colors.lightGreen
+                                  : Colors.blue,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: WidgetUtils.commonTextWidget(
+                            text: !isDayStart.value
+                                    ? "In"
+                                    : !isCheckIn.value
+                                        ? "Check-In"
+                                        : "Check-Out",
+                            fontSize: !isDayStart.value ? 26 : 16,
+                            textColor: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+                  },
                 ),
-              );
-                },
               ),
             );
           },
