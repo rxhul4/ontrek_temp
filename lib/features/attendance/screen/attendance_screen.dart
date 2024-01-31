@@ -145,7 +145,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
               SizedBox(height: 30),
               // Added vertical spacing
 
-              !isDayStart.value || isDayEnd.value ? WidgetUtils.commonTextWidget(
+              !isDayStart.value  ? WidgetUtils.commonTextWidget(
                 text:  "Press & Hold",
                 fontSize:  14 ,
                 letterSpacing: 0.2,
