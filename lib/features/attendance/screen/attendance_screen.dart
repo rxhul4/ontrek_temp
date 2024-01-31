@@ -21,8 +21,6 @@ class AttendanceScreen extends StatefulWidget {
 class _AttendanceScreenState extends State<AttendanceScreen>
     with SingleTickerProviderStateMixin {
   AnimationController? controller;
-  bool isTaped = false;
-
   DraggableScrollableController draggableScrollableController =
       DraggableScrollableController();
 
@@ -46,6 +44,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   ValueNotifier<bool> isDayStart = ValueNotifier(false);
   ValueNotifier<bool> isCheckIn = ValueNotifier(false);
   ValueNotifier<bool> isDayEnd = ValueNotifier(false);
+  bool isTapped = false;
+  bool isFromLogOutButton = false;
+
 
   @override
   Widget build(BuildContext context) {
@@ -136,7 +137,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 valueListenable: isDayEnd,
                 builder: (context, value, child) {
                   return Center(
-                    child: buttonWidget(isDayEnd.value),
+                    child: !isDayEnd.value ? buttonWidget() :  logOut(),
                   );
                 },
               ),
@@ -144,27 +145,24 @@ class _AttendanceScreenState extends State<AttendanceScreen>
               SizedBox(height: 30),
               // Added vertical spacing
 
-              GestureDetector(
-                onTap: () {
-                  if(isDayStart.value){
+              !isDayStart.value ? WidgetUtils.commonTextWidget(
+                text:  "Press & Hold",
+                fontSize:  14 ,
+                letterSpacing: 0.2,
+                fontWeight: FontWeight.w600 ,
+                textColor:
+                 AppConstant.blackColor ,
+              ):GestureDetector(
+                  onTap: () {
                     isDayEnd.value = true;
-                  }
-                },
-                child: ValueListenableBuilder(valueListenable: isDayStart, builder: (context, value, child) {
-
-                  return  Visibility(
-                    visible: !isDayStart.value,
-                    child: WidgetUtils.commonTextWidget(
-                      text: !isDayStart.value ? "Press & Hold" : "Show Off",
-                      fontSize: !isDayStart.value ? 14 : 16,
-                      letterSpacing: 0.2,
-                      fontWeight:
-                      !isDayStart.value ? FontWeight.w600 : FontWeight.w600,
-                      textColor:
-                      !isDayStart.value ? AppConstant.blackColor : Colors.red,
-                    ),
-                  );
-                },)
+                  },
+                  child: WidgetUtils.commonTextWidget(
+                    text:  "Show Off",
+                    fontSize:  16 ,
+                    letterSpacing: 0.2,
+                    fontWeight: FontWeight.w600 ,
+                    textColor: Colors.red ,
+                  )
               ),
             ],
           ),
@@ -246,7 +244,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     }
   }
 
-  Widget buttonWidget(bool? dayEnd) {
+  Widget buttonWidget() {
     return ValueListenableBuilder(
       valueListenable: isDayStart,
       builder: (context, value, child) {
@@ -256,31 +254,31 @@ class _AttendanceScreenState extends State<AttendanceScreen>
             return GestureDetector(
               onHorizontalDragStart: (details) {
                 setState(() {
-                  isTaped = true;
+                  isTapped = true;
                 });
                 controller?.forward();
               },
               onVerticalDragStart: (details) {
                 setState(() {
-                  isTaped = true;
+                  isTapped = true;
                 });
                 controller?.forward();
               },
               onVerticalDragEnd: (details) {
                 setState(() {
-                  isTaped = false;
+                  isTapped = false;
                 });
                 controller?.reverse();
               },
               onHorizontalDragEnd: (details) {
                 setState(() {
-                  isTaped = false;
+                  isTapped = false;
                 });
                 controller?.reverse();
               },
               onTapDown: (details) {
                 setState(() {
-                  isTaped = true;
+                  isTapped = true;
                 });
                 controller?.forward().whenComplete(() {
                   controller?.reset();
@@ -296,57 +294,58 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         widget.onLocationFetch!(value);
                       }
                     });
-                  }else  {
+                  }else  if(isCheckIn.value){
                     // if(isDayStart.value){
 
-                      // controller?.forward().whenComplete(() {
-                        dayEndFunction().then((value) {
-                          if (widget.onLocationFetch != null) {
-                            widget.onLocationFetch!(value);
-                            isDayEnd.value = false;
-                          }
+                    // controller?.forward().whenComplete(() {
+                    checkOut().then((value) {
+                      if (widget.onLocationFetch != null) {
+                        widget.onLocationFetch!(value);
+                        // isDayEnd.value = false;
+                      }
 
-                          controller?.reset();
-                        });
+                      // controller?.reset();
+                    });
 
-                      // });
+                    // });
                     // }
+                  }else{
+                    checkOut().then((value) {
+                      if(widget.onLocationFetch != null){
+                        widget.onLocationFetch!(value);
+                        // isDayEnd.value = false;
+                      }
+                    });
                   }
+
                 });
               },
               onTapUp: (details) {
                 setState(() {
-                  isTaped = false;
+                  isTapped = false;
                 });
                 controller?.reverse();
               },
               onTapCancel: () {
                 setState(() {
-                  isTaped = false;
+                  isTapped = false;
                 });
                 controller?.reverse();
               },
-              // child: AnimatedBuilder(
-              //   animation: controller!,
-              //   builder: (BuildContext context, Widget? child) {
-              //     double scaleFactor =
-              //         isTaped ? 2.0 : 1.0; // Adjust the scale factor as needed
-              child: AnimatedContainer(
-                curve: Curves.easeInOutQuad,
-                duration: const Duration(milliseconds: 300),
-                width: isTaped ? 140 : 120,
-                height: isTaped ? 140 : 120,
-                decoration: BoxDecoration(
+              child: AnimatedBuilder(
+                animation: controller!,
+                builder: (BuildContext context, Widget? child) {
+             return  WidgetUtils.commonContainer(
+
+               decoration: WidgetUtils.commonBoxDecoration(
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: dayEnd == true
-                          ? Colors.red.withOpacity(0.5)
-                          : !isDayStart.value
-                              ? Colors.lightGreen.withOpacity(0.5)
+                      color: !isDayStart.value
+                              ? Colors.lightGreen.withOpacity(0.8)
                               : Colors.blue.withOpacity(0.5),
-                      spreadRadius: isTaped ? 1 : 2,
-                      blurRadius: isTaped ? 1 : 2,
+                      spreadRadius: isTapped ? 1 : 2,
+                      blurRadius: isTapped ? 1 : 2,
                       offset: Offset(0, 0),
                     ),
                   ],
@@ -355,14 +354,14 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   alignment: Alignment.center,
                   children: <Widget>[
                     Transform.scale(
-                      scale: isTaped ? 4 : 3.6,
+                      scale: isTapped ? 4 : 3.6,
                       // Adjust the scale factor as needed
                       child: CircularProgressIndicator(
-                        value: 1.0,
+                        value: 1,
                         strokeWidth: 1.5,
                         strokeCap: StrokeCap.round,
                         valueColor: AlwaysStoppedAnimation<Color>(
-                            dayEnd == true ? AppConstant.greyColor.withOpacity(0.3) :AppConstant.greyColor.withOpacity(0.3)
+                            AppConstant.greyColor.withOpacity(0.2)
                             // dayEnd == true ? Colors.red :!isDayStart.value
                             //     ? AppConstant.greyColor
                             //     : Colors.blue
@@ -370,36 +369,32 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                       ),
                     ),
                     Transform.scale(
-                      scale: isTaped ? 4 : 3.6,
+                      scale: isTapped ? 4 : 3.6,
                       // Adjust the scale factor as needed
                       child: CircularProgressIndicator(
+
                         value: controller?.value,
                         strokeCap: StrokeCap.round,
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(dayEnd == true
-                            ? Colors.red
-                            : !isDayStart.value
+                        strokeWidth: 1.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                             !isDayStart.value
                                 ? Colors.lightGreen
                                 : Colors.blue),
                       ),
                     ),
                     AnimatedContainer(
-                      duration: Duration(milliseconds: 300),
-                      height: isTaped ? 140 : 120,
-                      width: isTaped ? 140 : 120,
+                      duration: const Duration(milliseconds: 300),
+                      height: isTapped ? 140 : 120,
+                      width: isTapped ? 140 : 120,
                       decoration: WidgetUtils.commonBoxDecoration(
-                        color: dayEnd == true
-                            ? Colors.red
-                            : !isDayStart.value
+                        color:!isDayStart.value
                                 ? Colors.lightGreen
                                 : Colors.blue,
                         shape: BoxShape.circle,
                       ),
                       child: Center(
                         child: WidgetUtils.commonTextWidget(
-                          text: dayEnd == true
-                              ? "Out"
-                              : !isDayStart.value
+                          text: !isDayStart.value
                                   ? "In"
                                   : !isCheckIn.value
                                       ? "Check-In"
@@ -412,13 +407,150 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     ),
                   ],
                 ),
+              );
+                },
               ),
-              //   },
-              // ),
             );
           },
         );
       },
+    );
+  }
+  Widget logOut() {
+    return Animate(
+      effects: [ScaleEffect(begin: Offset(0,0),duration: Duration(milliseconds: 300,),curve: Curves.easeOut)],
+      child: GestureDetector(
+        onHorizontalDragStart: (details) {
+          setState(() {
+            isFromLogOutButton = true;
+          });
+          controller?.forward();
+        },
+        onVerticalDragStart: (details) {
+          setState(() {
+            isFromLogOutButton = true;
+          });
+          controller?.forward();
+        },
+        onVerticalDragEnd: (details) {
+          setState(() {
+            isFromLogOutButton = false;
+          });
+          controller?.reverse();
+        },
+        onHorizontalDragEnd: (details) {
+          setState(() {
+            isFromLogOutButton = false;
+          });
+          controller?.reverse();
+        },
+        onTapDown: (details) {
+          setState(() {
+            isFromLogOutButton = true;
+          });
+          controller?.forward().whenComplete(() {
+            controller?.reset();
+            if(isDayEnd.value){
+              dayEndFunction().then((value) {
+                if(widget.onLocationFetch != null){
+                  widget.onLocationFetch!(value);
+
+                }
+                isDayEnd.value = false;
+              });
+
+            }
+          });
+        },
+        onTapUp: (details) {
+          setState(() {
+            isFromLogOutButton = false;
+          });
+          controller?.reverse();
+        },
+        onTapCancel: () {
+          setState(() {
+            isFromLogOutButton = false;
+          });
+          controller?.reverse();
+        },
+        // child: AnimatedBuilder(
+        //   animation: controller!,
+        //   builder: (BuildContext context, Widget? child) {
+        //     double scaleFactor =
+        //         isTaped ? 2.0 : 1.0; // Adjust the scale factor as needed
+        child: Animate(
+
+          effects: [ScaleEffect(begin: Offset(0,0),duration: Duration(milliseconds: 300,),curve: Curves.easeOut)],
+          child: AnimatedContainer(
+            curve: Curves.easeInOutQuad,
+            duration: const Duration(milliseconds: 300),
+            width: isFromLogOutButton ? 140 : 120,
+            height: isFromLogOutButton ? 140 : 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.red.withOpacity(0.5),
+                  spreadRadius: isFromLogOutButton ? 1 : 2,
+                  blurRadius: isFromLogOutButton ? 1 : 2,
+                  offset: Offset(0, 0),
+                ),
+              ],
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: <Widget>[
+                Transform.scale(
+                  scale: isFromLogOutButton ? 4 : 3.6,
+                  // Adjust the scale factor as needed
+                  child: CircularProgressIndicator(
+                    value: 1.0,
+                    strokeWidth: 1.5,
+                    strokeCap: StrokeCap.round,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                        AppConstant.greyColor.withOpacity(0.3)
+                      // dayEnd == true ? Colors.red :!isDayStart.value
+                      //     ? AppConstant.greyColor
+                      //     : Colors.blue
+                    ),
+                  ),
+                ),
+                Transform.scale(
+                  scale: isFromLogOutButton ? 4 : 3.6,
+                  // Adjust the scale factor as needed
+                  child: CircularProgressIndicator(
+                    value: controller?.value,
+                    strokeCap: StrokeCap.round,
+                    strokeWidth: 2,
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                       Colors.red),
+                  ),
+                ),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  height: isFromLogOutButton ? 140 : 120,
+                  width: isFromLogOutButton ? 140 : 120,
+                  decoration: WidgetUtils.commonBoxDecoration(
+                    color:Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: WidgetUtils.commonTextWidget(
+                      text: "Out",
+                      fontSize: 16,
+                      textColor: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        //   },
+        // ),
+      ),
     );
   }
 }
