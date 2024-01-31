@@ -296,24 +296,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                           widget.onLocationFetch!(value);
                         }
                       });
-                    }else  if(isCheckIn.value){
-                      // if(isDayStart.value){
-
-                      // controller?.forward().whenComplete(() {
+                    }else {
                       checkOut().then((value) {
                         if (widget.onLocationFetch != null) {
-                          widget.onLocationFetch!(value);
-                          // isDayEnd.value = false;
-                        }
-
-                        // controller?.reset();
-                      });
-
-                      // });
-                      // }
-                    }else{
-                      checkOut().then((value) {
-                        if(widget.onLocationFetch != null){
                           widget.onLocationFetch!(value);
                           // isDayEnd.value = false;
                         }
