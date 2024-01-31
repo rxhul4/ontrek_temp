@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/widget_utils.dart';
+import 'package:ontrek/features/add_task/screen/add_task_screen.dart';
 
 class TaskListScreen extends StatefulWidget {
   ScrollController? scrollController;
@@ -19,10 +22,6 @@ class _TaskListScreenState extends State<TaskListScreen>
       DraggableScrollableController();
   DateTime? selectedDate;
 
-
-
-
-
   Future<void> openDatePicker() async {
     DateTime? picked = await showDatePicker(
       context: context,
@@ -38,8 +37,9 @@ class _TaskListScreenState extends State<TaskListScreen>
             scaffoldBackgroundColor: AppConstant.whiteColor,
             textSelectionTheme: TextSelectionThemeData(
               selectionColor: AppConstant.blueColor, // Selected date color
-            ), colorScheme: ColorScheme.light(
-            background: Colors.white,
+            ),
+            colorScheme: ColorScheme.light(
+              background: Colors.white,
               onBackground: AppConstant.greyColor.withOpacity(0.5),
               primary: AppConstant.blueColor, // Button color
               onPrimary: AppConstant.whiteColor, // Text color on button
@@ -61,7 +61,14 @@ class _TaskListScreenState extends State<TaskListScreen>
     }
   }
 
-
+  Future NavigateToAddTaskScreen() async {
+    Navigator.push(
+        context,
+        DialogRoute(
+          context: context,
+          builder: (context) => AddTaskScreen(),
+        ));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -152,18 +159,16 @@ class _TaskListScreenState extends State<TaskListScreen>
                           ),
                           commonIconWidget(
                             iconData: Icons.calendar_month,
-                            onTap: () {
-                              openDatePicker();
-                            },
+                            onTap: openDatePicker,
                           ),
                           WidgetUtils.commonSizedBox(width: 10),
                           commonIconWidget(
                             iconData: Icons.add,
-                            onTap: () {},
+                            onTap: NavigateToAddTaskScreen,
                           ),
                           WidgetUtils.commonSizedBox(width: 10),
                           commonIconWidget(
-                            iconData: Icons.refresh,
+                            iconData: Icons.repeat,
                             onTap: () {},
                           ),
                         ],
@@ -189,7 +194,7 @@ class _TaskListScreenState extends State<TaskListScreen>
                             indicatorWeight: 0,
                             dividerHeight: 0.1,
                             indicatorSize: TabBarIndicatorSize.tab,
-                            padding: WidgetUtils.edgeInsetsAll(allPadding: 2),
+                            padding: WidgetUtils.edgeInsetsAll(allPadding: 2.5),
                             indicator: BoxDecoration(
                                 color: AppConstant.blueColor,
                                 borderRadius:
@@ -234,7 +239,7 @@ class _TaskListScreenState extends State<TaskListScreen>
       onTap: onTap,
       child: Icon(
         iconData,
-        size: 28,
+        size: 26,
         color: AppConstant.blackColor.withOpacity(0.6),
       ),
     );
@@ -243,6 +248,8 @@ class _TaskListScreenState extends State<TaskListScreen>
   //assigned to me
   Widget assignedToMeTabBar() {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         WidgetUtils.commonSizedBox(
           height: 100,
