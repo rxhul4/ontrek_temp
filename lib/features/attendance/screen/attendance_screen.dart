@@ -447,7 +447,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           });
           controller?.forward().whenComplete(() {
             controller?.reset();
-            if(isDayEnd.value){
+            if(isDayStart.value){
               logOutFunction().then((value) {
                 if(widget.onLocationFetch != null){
                   widget.onLocationFetch!(value);
@@ -465,12 +465,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           });
           controller?.reverse();
         },
-        onTapCancel: () {
-          setState(() {
-            isFromLogOutButton = false;
-          });
-          controller?.reverse();
-        },
+
         // child: AnimatedBuilder(
         //   animation: controller!,
         //   builder: (BuildContext context, Widget? child) {
