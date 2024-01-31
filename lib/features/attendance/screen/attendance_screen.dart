@@ -145,23 +145,29 @@ class _AttendanceScreenState extends State<AttendanceScreen>
               SizedBox(height: 30),
               // Added vertical spacing
 
-              !isDayStart.value  ? WidgetUtils.commonTextWidget(
-                text:  "Press & Hold",
-                fontSize:  14 ,
-                letterSpacing: 0.2,
-                fontWeight: FontWeight.w600 ,
-                textColor:
-                 AppConstant.blackColor ,
+              !isDayStart.value  ? Visibility(
+                visible: !isTapped,
+                child: WidgetUtils.commonTextWidget(
+                  text:  "Press & Hold",
+                  fontSize:  14 ,
+                  letterSpacing: 0.2,
+                  fontWeight: FontWeight.w600 ,
+                  textColor:
+                   AppConstant.blackColor ,
+                ),
               ):GestureDetector(
                   onTap: () {
                     isDayEnd.value = true;
                   },
-                  child: WidgetUtils.commonTextWidget(
-                    text:  "Show Off" ,
-                    fontSize:  16 ,
-                    letterSpacing: 0.2,
-                    fontWeight: FontWeight.w600 ,
-                    textColor: Colors.red ,
+                  child: Visibility(
+                    visible: !isFromLogOutButton,
+                    child: WidgetUtils.commonTextWidget(
+                      text:  "Show Off" ,
+                      fontSize:  16 ,
+                      letterSpacing: 0.2,
+                      fontWeight: FontWeight.w600 ,
+                      textColor: Colors.red ,
+                    ),
                   )
               ),
             ],
