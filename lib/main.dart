@@ -43,6 +43,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Project Base',
       theme: ThemeData(
+
         colorScheme: ColorScheme.fromSeed(seedColor: AppConstant.btnColor),
         useMaterial3: true,
       ),

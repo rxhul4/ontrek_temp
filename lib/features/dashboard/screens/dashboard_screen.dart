@@ -231,55 +231,52 @@ class DashBoardState extends State<DashBoard> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: List.generate(iconData.length, (index) {
-            return Expanded(
-              child: GestureDetector(
-                onTap: () {
+            return GestureDetector(
+              onTap: () {
 
-                  getCurrentLocation();
-                  setState(() {
-                    // minHeight = 0.2;
-                    if(index == 2){
+                getCurrentLocation();
+                setState(() {
+                  if(index == 3){
 
-                      draggableScrollableController.jumpTo(0.4);
+                    draggableScrollableController.jumpTo(1);
 
-                    }else{
-                      draggableScrollableController.jumpTo(0.4);
+                  }else{
+                    draggableScrollableController.jumpTo(0.4);
 
-                    }
-                    _selectedIndex = index;
-                    // Future.delayed(duration)
-                  });
-                },
-                child: AnimatedContainer(
-                  duration: Duration(milliseconds: 300),
-                  alignment: Alignment.center,
-                  height: 50,
-                  width: 90,
-                  color: AppConstant.whiteColor,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        width: index == 0 || index == 1 ? 25: 20,
-                        height: index == 0 || index == 1 ? 25: 20,
-                        iconString[index],
-                        color: _selectedIndex == index
-                            ? Colors.blueAccent
-                            : AppConstant.greyColor,
-                      ),
-                      WidgetUtils.commonTextWidget(
-                        text: lableString[index],
-                        textColor: _selectedIndex == index
-                            ? Colors.blueAccent
-                            : AppConstant.greyColor,
-                        fontSize: 12,
-                        fontWeight: _selectedIndex == index
-                            ? FontWeight.w600
-                            : FontWeight.w400,
-                      ),
-                    ],
-                  ),
+                  }
+                  _selectedIndex = index;
+                  // Future.delayed(duration)
+                });
+              },
+              child: AnimatedContainer(
+                duration: Duration(milliseconds: 300),
+                alignment: Alignment.center,
+                height: 50,
+                width: 90,
+                color: AppConstant.whiteColor,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      width: index == 0 || index == 1 ? 25: 20,
+                      height: index == 0 || index == 1 ? 25: 20,
+                      iconString[index],
+                      color: _selectedIndex == index
+                          ? Colors.blueAccent
+                          : AppConstant.greyColor,
+                    ),
+                    WidgetUtils.commonTextWidget(
+                      text: lableString[index],
+                      textColor: _selectedIndex == index
+                          ? Colors.blueAccent
+                          : AppConstant.greyColor,
+                      fontSize: 12,
+                      fontWeight: _selectedIndex == index
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                    ),
+                  ],
                 ),
               ),
             );

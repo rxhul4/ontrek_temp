@@ -13,9 +13,54 @@ class TaskListScreen extends StatefulWidget {
   State<TaskListScreen> createState() => _TaskListScreenState();
 }
 
-class _TaskListScreenState extends State<TaskListScreen> with TickerProviderStateMixin {
+class _TaskListScreenState extends State<TaskListScreen>
+    with TickerProviderStateMixin {
   DraggableScrollableController draggableScrollableController =
       DraggableScrollableController();
+  DateTime? selectedDate;
+
+
+
+
+
+  Future<void> openDatePicker() async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+      initialEntryMode: DatePickerEntryMode.calendarOnly,
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            backgroundColor: AppConstant.whiteColor,
+            dialogBackgroundColor: AppConstant.whiteColor,
+            scaffoldBackgroundColor: AppConstant.whiteColor,
+            textSelectionTheme: TextSelectionThemeData(
+              selectionColor: AppConstant.blueColor, // Selected date color
+            ), colorScheme: ColorScheme.light(
+            background: Colors.white,
+              onBackground: AppConstant.greyColor.withOpacity(0.5),
+              primary: AppConstant.blueColor, // Button color
+              onPrimary: AppConstant.whiteColor, // Text color on button
+            ).copyWith(background: AppConstant.whiteColor),
+            // Other theme modifications as needed...
+          ),
+          child: child ?? Container(),
+        );
+      },
+    );
+
+    if (picked != null && picked != selectedDate) {
+      setState(() {
+        selectedDate = picked;
+        // historyDateController.text =
+        //     dateFormat.format(picked); // Format date as dd-MM-yyyy
+      });
+      // callGetTimeline(getMdl);
+    }
+  }
+
 
 
   @override
@@ -96,22 +141,31 @@ class _TaskListScreenState extends State<TaskListScreen> with TickerProviderStat
                                 ),
                                 WidgetUtils.commonTextWidget(
                                   text: "Select a task",
-                                  fontWeight: FontWeight.w500,
+                                  fontWeight: FontWeight.w400,
                                   textColor:
-                                      AppConstant.blackColor.withOpacity(0.2),
-                                  letterSpacing: 0.1,
+                                      AppConstant.blackColor.withOpacity(0.3),
+                                  letterSpacing: 0,
                                   fontSize: 13,
                                 ),
                               ],
                             ),
                           ),
                           commonIconWidget(
-                              iconData: Icons.calendar_month, onTap: () {}),
-                          WidgetUtils.commonSizedBox(width: 10),
-                          commonIconWidget(iconData: Icons.add, onTap: () {}),
+                            iconData: Icons.calendar_month,
+                            onTap: () {
+                              openDatePicker();
+                            },
+                          ),
                           WidgetUtils.commonSizedBox(width: 10),
                           commonIconWidget(
-                              iconData: Icons.refresh, onTap: () {}),
+                            iconData: Icons.add,
+                            onTap: () {},
+                          ),
+                          WidgetUtils.commonSizedBox(width: 10),
+                          commonIconWidget(
+                            iconData: Icons.refresh,
+                            onTap: () {},
+                          ),
                         ],
                       ),
                     ],
@@ -119,46 +173,50 @@ class _TaskListScreenState extends State<TaskListScreen> with TickerProviderStat
                 ),
               ),
               Padding(
-                padding: WidgetUtils.edgeInsetsAll(allPadding: 20),
+                padding:
+                    WidgetUtils.edgeInsetsOnly(top: 15, left: 30, right: 30),
                 child: Column(
                   children: [
                     WidgetUtils.commonContainer(
-                      width: MediaQuery.of(context).size.width,
-                      height: 30,
-                      decoration: WidgetUtils.commonBoxDecoration(
-                        color: AppConstant.greyColor.withOpacity(0.2),
-                        borderRadius: WidgetUtils.borderRadiusAll(raduis: 5)
-                      ),
-                      child: TabBar(
-                       controller: tabController,
-                       indicatorWeight: 0,
-                       dividerHeight: 0.1,
-                       indicatorSize: TabBarIndicatorSize.tab,
-                       padding: WidgetUtils.edgeInsetsAll(allPadding: 2),
-                       indicator: BoxDecoration(
-                         color: AppConstant.blueColor,
-                         borderRadius: WidgetUtils.borderRadiusAll(raduis: 5)
-                       ),
-                          labelColor: Colors.white,
-                          unselectedLabelColor: Colors.black,
-                          tabs: const [
-                            Tab(text: 'ASSIGNED TO ME'),
-                            Tab(text: 'All task'),
-                        // Tab(child: WidgetUtils.commonTextWidget(text: 'ASSIGNED TO ME',fontSize: 12,textColor: Colors.black)),
-                        // Tab(child: WidgetUtils.commonTextWidget(text: 'ALL TASK',fontSize: 12,textColor: Colors.black)),
-                       ]
-                      )
-                    ),
+                        width: MediaQuery.of(context).size.width,
+                        height: 30,
+                        decoration: WidgetUtils.commonBoxDecoration(
+                            color: AppConstant.greyColor.withOpacity(0.2),
+                            borderRadius:
+                                WidgetUtils.borderRadiusAll(raduis: 5)),
+                        child: TabBar(
+                            controller: tabController,
+                            indicatorWeight: 0,
+                            dividerHeight: 0.1,
+                            indicatorSize: TabBarIndicatorSize.tab,
+                            padding: WidgetUtils.edgeInsetsAll(allPadding: 2),
+                            indicator: BoxDecoration(
+                                color: AppConstant.blueColor,
+                                borderRadius:
+                                    WidgetUtils.borderRadiusAll(raduis: 5)),
+                            labelColor: Colors.white,
+                            labelStyle: const TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 12,
+                            ),
+                            unselectedLabelColor: Colors.black.withOpacity(0.5),
+                            unselectedLabelStyle: const TextStyle(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 12,
+                            ),
+                            tabs: const [
+                              Tab(text: 'ASSIGNED TO ME'),
+                              Tab(text: 'All TASK'),
+                            ])),
                     SizedBox(
-                      height: MediaQuery.of(context).size.height  / 1.5,
+                      height: MediaQuery.of(context).size.height / 1.5,
                       child: TabBarView(
                           controller: tabController,
                           physics: NeverScrollableScrollPhysics(),
                           children: <Widget>[
                             assignedToMeTabBar(),
                             allTaskTabBar(),
-                          ]
-                      ),
+                          ]),
                     )
                   ],
                 ),
@@ -169,37 +227,55 @@ class _TaskListScreenState extends State<TaskListScreen> with TickerProviderStat
       ),
     );
   }
+
 //Icon
   Widget commonIconWidget({Function()? onTap, IconData? iconData}) {
-    return GestureDetector(onTap: onTap, child: Icon(iconData,size: 30,color: AppConstant.blackColor.withOpacity(0.5),));
-  }
-  //assigned to me
-  Widget assignedToMeTabBar (){
-    return Column(
-      children: [
-        WidgetUtils.commonSizedBox(
-            height: 100,
-            child: const Image(
-                image: NetworkImage('https://img.freepik.com/free-vector/phone-customization-concept-illustration_114360-4313.jpg?w=740&t=st=1706681307~exp=1706681907~hmac=8f1c6ec99afe4718ced3a79d82c4a2ac18e02ac10e72275d713f62911d901586'),
-            ),
-          ),
-        WidgetUtils.commonTextWidget(text: 'No task assigned!', textColor: AppConstant.blackColor),
-        WidgetUtils.commonTextWidget(text: 'New task will be notified', textColor: AppConstant.blackColor.withOpacity(0.5)),
-      ],
+    return InkWell(
+      onTap: onTap,
+      child: Icon(
+        iconData,
+        size: 28,
+        color: AppConstant.blackColor.withOpacity(0.6),
+      ),
     );
   }
-  //All Task
-  Widget allTaskTabBar (){
+
+  //assigned to me
+  Widget assignedToMeTabBar() {
     return Column(
       children: [
         WidgetUtils.commonSizedBox(
           height: 100,
           child: const Image(
-            image: NetworkImage('https://img.freepik.com/free-vector/phone-customization-concept-illustration_114360-4313.jpg?w=740&t=st=1706681307~exp=1706681907~hmac=8f1c6ec99afe4718ced3a79d82c4a2ac18e02ac10e72275d713f62911d901586'),
+            image: NetworkImage(
+                'https://img.freepik.com/free-vector/phone-customization-concept-illustration_114360-4313.jpg?w=740&t=st=1706681307~exp=1706681907~hmac=8f1c6ec99afe4718ced3a79d82c4a2ac18e02ac10e72275d713f62911d901586'),
           ),
         ),
-        WidgetUtils.commonTextWidget(text: 'No task assigned!', textColor: AppConstant.blackColor),
-        WidgetUtils.commonTextWidget(text: 'New task will be notified', textColor: AppConstant.blackColor.withOpacity(0.5)),
+        WidgetUtils.commonTextWidget(
+            text: 'No task assigned!', textColor: AppConstant.blackColor),
+        WidgetUtils.commonTextWidget(
+            text: 'New task will be notified',
+            textColor: AppConstant.blackColor.withOpacity(0.5)),
+      ],
+    );
+  }
+
+  //All Task
+  Widget allTaskTabBar() {
+    return Column(
+      children: [
+        WidgetUtils.commonSizedBox(
+          height: 100,
+          child: const Image(
+            image: NetworkImage(
+                'https://img.freepik.com/free-vector/phone-customization-concept-illustration_114360-4313.jpg?w=740&t=st=1706681307~exp=1706681907~hmac=8f1c6ec99afe4718ced3a79d82c4a2ac18e02ac10e72275d713f62911d901586'),
+          ),
+        ),
+        WidgetUtils.commonTextWidget(
+            text: 'No task assigned!', textColor: AppConstant.blackColor),
+        WidgetUtils.commonTextWidget(
+            text: 'New task will be notified',
+            textColor: AppConstant.blackColor.withOpacity(0.5)),
       ],
     );
   }
