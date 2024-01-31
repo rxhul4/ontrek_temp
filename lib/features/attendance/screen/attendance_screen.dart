@@ -177,7 +177,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     );
   }
 
-  Future dayStart() async {
+  Future loginFunction() async {
     bool isLocationServiceAvailable =
         await WidgetUtils.checkLocationServiceAvailability();
     PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
@@ -195,7 +195,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   }
 
 
-  Future checkIn() async {
+  Future checkInFunction() async {
     bool isLocationServiceAvailable =
         await WidgetUtils.checkLocationServiceAvailability();
     PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
@@ -211,7 +211,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       }
     }
   }
-  Future checkOut() async {
+  Future checkOutFunction() async {
     bool isLocationServiceAvailable =
     await WidgetUtils.checkLocationServiceAvailability();
     PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
@@ -228,7 +228,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     }
   }
 
-  Future dayEndFunction() async {
+  Future logOutFunction() async {
     try {
       bool isLocationServiceAvailable =
       await WidgetUtils.checkLocationServiceAvailability();
@@ -291,19 +291,19 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   controller?.forward().whenComplete(() {
                     controller?.reset();
                     if (!isDayStart.value) {
-                      dayStart().then((value) {
+                      loginFunction().then((value) {
                         if (widget.onLocationFetch != null) {
                           widget.onLocationFetch!(value);
                         }
                       });
                     } else if (!isCheckIn.value) {
-                      checkIn().then((value) {
+                      checkInFunction().then((value) {
                         if (widget.onLocationFetch != null) {
                           widget.onLocationFetch!(value);
                         }
                       });
                     }else {
-                      checkOut().then((value) {
+                      checkOutFunction().then((value) {
                         if (widget.onLocationFetch != null) {
                           widget.onLocationFetch!(value);
                           // isDayEnd.value = false;
@@ -381,8 +381,8 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         width: isTapped ? 140 : 120,
                         decoration: WidgetUtils.commonBoxDecoration(
                           color:!isDayStart.value
-                                  ? Colors.lightGreen
-                                  : Colors.blue,
+                                  ? Colors.lightGreen.withOpacity(0.5)
+                                  : Colors.blue.withOpacity(0.5),
                           shape: BoxShape.circle,
                         ),
                         child: Center(
@@ -445,7 +445,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           controller?.forward().whenComplete(() {
             controller?.reset();
             if(isDayEnd.value){
-              dayEndFunction().then((value) {
+              logOutFunction().then((value) {
                 if(widget.onLocationFetch != null){
                   widget.onLocationFetch!(value);
 
@@ -503,7 +503,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     strokeWidth: 1.5,
                     strokeCap: StrokeCap.round,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                        AppConstant.greyColor.withOpacity(0.3)
+                        AppConstant.greyColor.withOpacity(0.2)
                       // dayEnd == true ? Colors.red :!isDayStart.value
                       //     ? AppConstant.greyColor
                       //     : Colors.blue
@@ -516,7 +516,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   child: CircularProgressIndicator(
                     value: controller?.value,
                     strokeCap: StrokeCap.round,
-                    strokeWidth: 2,
+                    strokeWidth: 1.5,
                     valueColor: const AlwaysStoppedAnimation<Color>(
                        Colors.red),
                   ),
@@ -526,7 +526,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   height: isFromLogOutButton ? 140 : 120,
                   width: isFromLogOutButton ? 140 : 120,
                   decoration: WidgetUtils.commonBoxDecoration(
-                    color:Colors.red,
+                    color:Colors.red.withOpacity(0.5),
                     shape: BoxShape.circle,
                   ),
                   child: Center(

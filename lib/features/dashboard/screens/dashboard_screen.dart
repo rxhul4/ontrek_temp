@@ -39,7 +39,7 @@ class DashBoardState extends State<DashBoard> {
     Icons.person,
   ];
 
-  Future getCurrentLocation({bool? endLoader}) async {
+  Future getCurrentLocation() async {
     Map<String, dynamic> returnData = {
       "locationFetchingSuccessful": false,
       "currentLocation": currentLocation
@@ -53,7 +53,7 @@ class DashBoardState extends State<DashBoard> {
         // isLoading.value = true;
         Position position = await Geolocator.getCurrentPosition(
           // forceAndroidLocationManager: true,
-          desiredAccuracy: LocationAccuracy.medium,
+          desiredAccuracy: LocationAccuracy.low,
           // timeLimit: Duration(seconds: 30)
         );
         print("hhhhhhhhh ${position}");
@@ -234,6 +234,8 @@ class DashBoardState extends State<DashBoard> {
             return Expanded(
               child: GestureDetector(
                 onTap: () {
+
+                  getCurrentLocation();
                   setState(() {
                     // minHeight = 0.2;
                     if(index == 2){
