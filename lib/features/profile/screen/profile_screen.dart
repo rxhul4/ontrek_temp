@@ -4,6 +4,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/widget_utils.dart';
 
+import '../../../core/utils/image_path.dart';
+
 class ProfileScreen extends StatefulWidget {
   ScrollController? scrollController;
 
@@ -16,26 +18,27 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   DraggableScrollableController draggableScrollableController =
       DraggableScrollableController();
-  AndroidDeviceInfo? infoOfDevice;
 
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    getDeviceInfo().then((value) {
-      infoOfDevice = value;
-    });
-  }
-
-  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-
-  Future getDeviceInfo() async {
-    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-    print('Running on ${androidInfo.model}');
-    print('Running on ${androidInfo.product}');
-    print('Running on ${androidInfo.version.release}');
-    return androidInfo;
-  }
+  // AndroidDeviceInfo? infoOfDevice;
+  //
+  // @override
+  // void initState() {
+  //   // TODO: implement initState
+  //   super.initState();
+  //   getDeviceInfo().then((value) {
+  //     infoOfDevice = value;
+  //   });
+  // }
+  //
+  // DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+  //
+  // Future getDeviceInfo() async {
+  //   AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+  //   print('Running on ${androidInfo.model}');
+  //   print('Running on ${androidInfo.product}');
+  //   print('Running on ${androidInfo.version.release}');
+  //   return androidInfo;
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -73,20 +76,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       alignment: Alignment.topRight,
                       children: [
                         WidgetUtils.commonContainer(
-                            height: 80,
-                            width: 80,
-                            decoration: WidgetUtils.commonBoxDecoration(
+                          height: 80,
+                          width: 80,
+                          decoration: WidgetUtils.commonBoxDecoration(
                               shape: BoxShape.circle,
                               color: AppConstant.greyColor.withOpacity(0.3),
                               border: Border.all(
                                   color:
                                       AppConstant.greyColor.withOpacity(0.5)),
-                            ),
-                            child: Icon(
-                              Icons.person,
-                              size: 40,
-                              color: AppConstant.greyColor,
-                            )),
+                              image: DecorationImage(
+                                  image: AssetImage(profileImage))),
+                        ),
                         WidgetUtils.commonContainer(
                           padding: EdgeInsets.all(5),
                           decoration: WidgetUtils.commonBoxDecoration(
@@ -118,18 +118,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: ListTile(
                 contentPadding: EdgeInsets.only(left: 10, right: 10),
                 leading: WidgetUtils.commonContainer(
-                    padding: WidgetUtils.edgeInsetsAll(allPadding: 10),
-                    // margin: WidgetUtils.edgeInsetsOnly(left: 20, right: 20),
-                    decoration: WidgetUtils.commonBoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                            color: AppConstant.greyColor.withOpacity(0.5)),
-                        color: AppConstant.greyColor.withOpacity(0.3)),
-                    child: Icon(
-                      Icons.person,
-                      size: 30,
-                      color: AppConstant.greyColor,
-                    )),
+                  width: 40,
+                  decoration: WidgetUtils.commonBoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(image: AssetImage(profileImage)),
+                      border: Border.all(
+                          color: AppConstant.greyColor.withOpacity(0.5)),
+                      color: AppConstant.greyColor.withOpacity(0.3)),
+                ),
                 title: WidgetUtils.commonTextWidget(
                     text: 'Kenil Patel',
                     textColor: AppConstant.blackColor,
@@ -151,26 +147,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ListView.builder(
-                      itemCount: moreOptionsName.length,
+                      itemCount: profileOptionsList.length,
                       shrinkWrap: true,
                       scrollDirection: Axis.vertical,
                       physics: NeverScrollableScrollPhysics(),
                       itemBuilder: (context, index) {
                         return InkWell(
                           onTap: () {
-                            print('$index');
+                            print(profileOptionsList[index]);
                           },
-                          child: moreOptions(
-                            icon: moreOptionIcons[index],
-                            text: moreOptionsName[index],
+                          child: profileOptions(
+                            icon: profileOptionsListIcons[index],
+                            text: profileOptionsList[index],
                             index: index,
-                            itemCount: moreOptionsName.length,
+                            itemCount: profileOptionsList.length,
                           ),
                         );
                       },
                     ),
-                    Divider(),
-                    Text('${infoOfDevice?.version.release.toString()}')
+                    const Divider(),
+                    Padding(
+                      padding: WidgetUtils.edgeInsetsOnly(left: 10, bottom: 8),
+                      child: WidgetUtils.commonTextWidget(
+                          text: 'Version', textColor: AppConstant.blackColor),
+                    ),
+                    // Text('${infoOfDevice?.version.release.toString()}')
                   ],
                 ),
               ),
@@ -181,7 +182,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  List<String> moreOptionsName = [
+  List<String> profileOptionsList = [
     "Reimbursement",
     "Settings",
     "Help",
@@ -191,7 +192,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     "App Settings",
     "Sign Out",
   ];
-  List<IconData> moreOptionIcons = [
+  List<IconData> profileOptionsListIcons = [
     Icons.monetization_on,
     Icons.settings,
     Icons.chat,
@@ -202,7 +203,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     Icons.logout,
   ];
 
-  Widget moreOptions({
+  Widget profileOptions({
     IconData? icon,
     required String text,
     required int index,
@@ -212,17 +213,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         ListTile(
           contentPadding: EdgeInsets.only(left: 10),
-          leading: Icon(icon),
+          leading: Icon(icon, color: AppConstant.blackColor.withOpacity(0.5)),
           title: WidgetUtils.commonContainer(
             child: WidgetUtils.commonTextWidget(
                 text: text, textColor: AppConstant.blackColor),
           ),
         ),
-        if (index < itemCount - 1)
-          Divider(
-            indent: 50,
-            height: 0,
-          ),
+        if (index < itemCount - 1) Divider(indent: 50, height: 0),
       ],
     );
   }
