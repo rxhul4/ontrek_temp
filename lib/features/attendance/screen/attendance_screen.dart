@@ -161,7 +161,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     isDayEnd.value = true;
                   },
                   child: Visibility(
-                    visible: isDayStart.value || !isFromLogOutButton,
+                    visible:  !isFromLogOutButton,
                     child: WidgetUtils.commonTextWidget(
                       text:  "Show Off" ,
                       fontSize:  16 ,
@@ -293,6 +293,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     loginFunction().then((value) {
                       if (widget.onLocationFetch != null) {
                         widget.onLocationFetch!(value);
+
                       }
                     });
                   } else if (!isCheckIn.value) {
@@ -377,7 +378,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         decoration: WidgetUtils.commonBoxDecoration(
                           color:!isDayStart.value
                               ? Colors.lightGreen.withOpacity(0.8)
-                              : Colors.blue.withOpacity(0.8),
+                              : Colors.blue.withOpacity(0.7),
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
@@ -452,7 +453,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
               logOutFunction().then((value) {
                 if(widget.onLocationFetch != null){
                   widget.onLocationFetch!(value);
-
+                  isFromLogOutButton = false;
                 }
                 isDayEnd.value = false;
               });
@@ -479,7 +480,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
             decoration: WidgetUtils.commonBoxDecoration(
               shape: BoxShape.circle,
-             
             ),
             child: Stack(
               alignment: Alignment.center,
@@ -495,7 +495,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         Colors.red),
                   ),
                 ),
-                
+
                 Positioned.fill(
                   // scale: isFromLogOutButton ? 4 : 3.6,
                   // Adjust the scale factor as needed
@@ -511,7 +511,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     ),
                   ),
                 ),
-               
+
                 AnimatedContainer(
                   margin: EdgeInsets.all(3),
                   duration: const Duration(milliseconds: 300),
