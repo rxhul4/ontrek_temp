@@ -109,148 +109,145 @@ class _SaleManTrackerState extends State<SaleManTracker> {
               controller: draggableScrollableController,
               builder: (context, scrollController) {
                 return WidgetUtils.commonContainer(
-                    decoration: WidgetUtils.commonBoxDecoration(
-                      color: AppConstant.whiteColor,
-                      borderRadius: WidgetUtils.borderRadiousonly(
-                          topleft: 15, topright: 15),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppConstant.greyColor.withOpacity(0.5),
-                          offset: const Offset(0, -2),
-                          blurRadius: 15,
-                          spreadRadius: 6,
-                        ),
-                      ],
-                    ),
-                    child: SingleChildScrollView(
-                      controller: scrollController,
-                      child: Column(
-                        children: [
-                          WidgetUtils.commonContainer(
-                            decoration: WidgetUtils.commonBoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  width: 1,
-                                  color:
-                                      AppConstant.greyColor.withOpacity(0.3),
-                                ),
+                  decoration: WidgetUtils.commonBoxDecoration(
+                    color: AppConstant.whiteColor,
+                    borderRadius: WidgetUtils.borderRadiousonly(
+                        topleft: 15, topright: 15),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppConstant.greyColor.withOpacity(0.5),
+                        offset: const Offset(0, -2),
+                        blurRadius: 15,
+                        spreadRadius: 6,
+                      ),
+                    ],
+                  ),
+                  child: SingleChildScrollView(
+                    controller: scrollController,
+                    child: Column(
+                      children: [
+                        WidgetUtils.commonContainer(
+                          decoration: WidgetUtils.commonBoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(
+                                width: 1,
+                                color: AppConstant.greyColor.withOpacity(0.3),
                               ),
-                              borderRadius: WidgetUtils.borderRadiousonly(
-                                  topleft: 18, topright: 18),
-                              color: Colors.white,
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 10),
-                              child: Column(
-                                children: [
-                                  WidgetUtils.commonContainer(
-                                    width: 30,
-                                    height: 5,
-                                    decoration:
-                                        WidgetUtils.commonBoxDecoration(
-                                            color: AppConstant.greyColor
-                                                .withOpacity(0.3),
-                                            borderRadius:
-                                                WidgetUtils.borderRadiusAll(
-                                                    raduis: 12)),
-                                  ),
-                                  Row(
-                                    children: [
-                                      WidgetUtils.commonContainer(
-                                          height: 45,
-                                          width: 45,
-                                          decoration:
-                                              WidgetUtils.commonBoxDecoration(
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                                color: Colors.grey,
-                                                width: 1.2),
-                                          ),
-                                          child: Icon(Icons.person,
-                                              color: Colors.cyan)),
-                                      WidgetUtils.commonSizedBox(width: 10),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            WidgetUtils.commonTextWidget(
-                                              text: "You",
-                                              fontWeight: FontWeight.w600,
-                                              textColor:
-                                                  AppConstant.blackColor,
-                                              letterSpacing: 0.2,
-                                              fontSize: 15,
-                                            ),
-                                            WidgetUtils.commonTextWidget(
-                                              text:
-                                                  "Dwarkesh Business Hub Visat...",
-                                              fontWeight: FontWeight.w400,
-                                              textColor: AppConstant
-                                                  .blackColor
-                                                  .withOpacity(0.3),
-                                              letterSpacing: 0,
-                                              fontSize: 13,
-                                            ),
-                                          ],
+                            borderRadius: WidgetUtils.borderRadiousonly(
+                                topleft: 18, topright: 18),
+                            color: Colors.white,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 10),
+                            child: Column(
+                              children: [
+                                WidgetUtils.commonContainer(
+                                  width: 30,
+                                  height: 5,
+                                  decoration: WidgetUtils.commonBoxDecoration(
+                                      color: AppConstant.greyColor
+                                          .withOpacity(0.3),
+                                      borderRadius: WidgetUtils.borderRadiusAll(
+                                          raduis: 12)),
+                                ),
+                                Row(
+                                  children: [
+                                    WidgetUtils.commonContainer(
+                                        height: 45,
+                                        width: 45,
+                                        decoration:
+                                            WidgetUtils.commonBoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                              color: Colors.grey, width: 1.2),
                                         ),
+                                        child: Icon(Icons.person,
+                                            color: Colors.cyan)),
+                                    WidgetUtils.commonSizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          WidgetUtils.commonTextWidget(
+                                            text: "You",
+                                            fontWeight: FontWeight.w600,
+                                            textColor: AppConstant.blackColor,
+                                            letterSpacing: 0.2,
+                                            fontSize: 15,
+                                          ),
+                                          WidgetUtils.commonTextWidget(
+                                            text:
+                                                "Dwarkesh Business Hub Visat...",
+                                            fontWeight: FontWeight.w400,
+                                            textColor: AppConstant.blackColor
+                                                .withOpacity(0.3),
+                                            letterSpacing: 0,
+                                            fontSize: 13,
+                                          ),
+                                        ],
                                       ),
-                                      commonIconWidget(
-                                        iconData: Icons.call,
-                                        color: AppConstant.blueColor,
-                                        onTap: () {},
-                                      ),
-                                      WidgetUtils.commonSizedBox(width: 10),
-                                      commonIconWidget(
-                                        iconData: Icons.more_vert,
-                                        onTap: () {},
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
+                                    ),
+                                    commonIconWidget(
+                                      iconData: Icons.call,
+                                      color: AppConstant.blueColor,
+                                      onTap: () {},
+                                    ),
+                                    WidgetUtils.commonSizedBox(width: 10),
+                                    commonIconWidget(
+                                      iconData: Icons.more_vert,
+                                      onTap: () {},
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
-                          WidgetUtils.commonContainer(
-                              padding: WidgetUtils.edgeInsetsOnly(
-                                  top: 20, bottom: 20),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppConstant.greyColor
-                                        .withOpacity(0.2),
-                                    offset: Offset(0, 2),
-                                    blurRadius: 4,
-                                    spreadRadius: 1,
-                                  ),
-                                ],
+                        ),
+                        WidgetUtils.commonContainer(
+                          padding:
+                              WidgetUtils.edgeInsetsOnly(top: 20, bottom: 20),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppConstant.greyColor.withOpacity(0.2),
+                                offset: Offset(0, 2),
+                                blurRadius: 4,
+                                spreadRadius: 1,
                               ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
-                                children: [
-                                  travelInfoRowWidget(
-                                      iconData: Icons.timelapse,
-                                      textData: "15:30",
-                                      typeOfText: "DURATION",
-                                      iconColor: Colors.red),
-                                  travelInfoRowWidget(
-                                      iconData: Icons.speed_sharp,
-                                      textData: "0 Km",
-                                      typeOfText: "DISTANCE",
-                                      iconColor: Colors.green),
-                                  travelInfoRowWidget(
-                                      iconData: Icons.location_on_outlined,
-                                      textData: "3",
-                                      typeOfText: "CHECKINS",
-                                      iconColor: AppConstant.blueColor),
-                                ],
-                              ))
-                        ],
-                      ),
-                    ));
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              travelInfoRowWidget(
+                                  iconData: Icons.timelapse,
+                                  textData: "15:30",
+                                  typeOfText: "DURATION",
+                                  iconColor: Colors.red),
+                              travelInfoRowWidget(
+                                  iconData: Icons.speed_sharp,
+                                  textData: "0 Km",
+                                  typeOfText: "DISTANCE",
+                                  iconColor: Colors.green),
+                              travelInfoRowWidget(
+                                  iconData: Icons.location_on_outlined,
+                                  textData: "3",
+                                  typeOfText: "CHECKINS",
+                                  iconColor: AppConstant.blueColor),
+                            ],
+                          ),
+                        ),
+                        Align(
+                            alignment: Alignment.topCenter,
+                            child: dateSelectionWidget(isFromSheet: true)),
+                      ],
+                    ),
+                  ),
+                );
               },
             ),
           ],
@@ -332,7 +329,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                     ),
                   )),
             ),
-            dateSelectionWidget(),
+            dateSelectionWidget(isFromSheet: false),
             WidgetUtils.commonInkWell(
               onTap: onTapGetCurrentPosition,
               child: WidgetUtils.commonContainer(
@@ -361,23 +358,37 @@ class _SaleManTrackerState extends State<SaleManTracker> {
     );
   }
 
-  Widget dateSelectionWidget() {
+  Widget dateSelectionWidget({bool? isFromSheet}) {
     return WidgetUtils.commonContainer(
       width: 210,
-      margin:
-          WidgetUtils.edgeInsetsOnly(top: 10, bottom: 10, right: 20, left: 20),
+      margin: WidgetUtils.edgeInsetsOnly(
+          top: isFromSheet == true ? 0 : 10, bottom: 10, right: 20, left: 20),
       padding: WidgetUtils.edgeInsetsAll(allPadding: 10),
       decoration: WidgetUtils.commonBoxDecoration(
-          borderRadius: WidgetUtils.borderRadiusAll(raduis: 60),
-          color: AppConstant.whiteColor,
-          boxShadow: [
-            BoxShadow(
-              color: AppConstant.greyColor.withOpacity(0.5),
-              offset: Offset(2, 2),
-              blurRadius: 3,
-              spreadRadius: 2,
-            )
-          ]),
+        borderRadius: isFromSheet == true
+            ? WidgetUtils.borderRadiousonly(bottomleft: 15, bottomright: 15)
+            : WidgetUtils.borderRadiusAll(raduis: 60),
+        color: AppConstant.whiteColor,
+        boxShadow: isFromSheet == true
+            ? [
+                BoxShadow(
+                  color: AppConstant.greyColor.withOpacity(0.2),
+                  offset:
+                      Offset(0, 5), // Adjusting the offset for the bottom side
+                  blurRadius: 4,
+                  spreadRadius: 1,
+                ),
+              ]
+            : [
+                BoxShadow(
+                  color: AppConstant.greyColor.withOpacity(0.5),
+                  offset:
+                      Offset(2, 2), // Default shadow if isFromSheet is false
+                  blurRadius: 3,
+                  spreadRadius: 2,
+                ),
+              ],
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
