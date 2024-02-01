@@ -24,14 +24,14 @@ class DashBoard extends StatefulWidget {
 }
 
 class DashBoardState extends State<DashBoard> {
-  // late Completer<GoogleMapController> googleMapController =
-  // Completer<GoogleMapController>();
   late final Completer<GoogleMapController> googleMapController = Completer();
   LatLng? currentLocation;
   late ValueNotifier<bool> isLoading;
   Set<Marker> markers = Set();
+  int _selectedIndex = 0;
 
-  // Location location =  Location();
+  ValueNotifier<bool> isDayStarted = ValueNotifier(false);
+  ValueNotifier<bool> isCheckedIn = ValueNotifier(false);
 
   List<String> iconString = [
     attendanceIconPath,
@@ -67,13 +67,16 @@ class DashBoardState extends State<DashBoard> {
     }
   }
 
-  Future<void> getFetchedLocation(currentLocation)async{
-    if(currentLocation != null){
-      if(googleMapController!= null){
-        updateCameraPosition(currentLocation ?? LatLng(0, 0));
-        addCurrentLocationMarker(currentLocation ?? LatLng(0, 0));
-
+  Future<void> getFetchedLocation(currentLocation) async {
+    try {
+      if (currentLocation != null) {
+        if (googleMapController != null) {
+          updateCameraPosition(currentLocation ?? LatLng(0, 0));
+          addCurrentLocationMarker(currentLocation ?? LatLng(0, 0));
+        }
       }
+    } catch (e) {
+      print("catach at getFecthedLocation${e}");
     }
   }
 
@@ -90,7 +93,7 @@ class DashBoardState extends State<DashBoard> {
 
   void addCurrentLocationMarker(LatLng location) {
     markers.clear(); // Clear previous markers
-     markers.add(
+    markers.add(
       Marker(
         markerId: MarkerId("currentLocation"),
         position: location,
@@ -105,10 +108,6 @@ class DashBoardState extends State<DashBoard> {
     "Tasks",
     "Pofile",
   ];
-  int _selectedIndex = 0;
-
-  ValueNotifier<bool> isDayStarted = ValueNotifier(false);
-  ValueNotifier<bool> isCheckedIn = ValueNotifier(false);
 
   @override
   void initState() {
@@ -116,8 +115,8 @@ class DashBoardState extends State<DashBoard> {
     getCurrentLocation();
   }
 
-  DraggableScrollableController draggableScrollableController = DraggableScrollableController();
-
+  DraggableScrollableController draggableScrollableController =
+      DraggableScrollableController();
 
   @override
   Widget build(BuildContext context) {
@@ -129,7 +128,8 @@ class DashBoardState extends State<DashBoard> {
               // bottom: MediaQuery.of(context).size.height ,
               child: GoogleMap(
                   zoomControlsEnabled: false,
-                  padding: WidgetUtils.edgeInsetsOnly(bottom: MediaQuery.of(context).size.height *0.3),
+                  padding: WidgetUtils.edgeInsetsOnly(
+                      bottom: MediaQuery.of(context).size.height * 0.3),
                   mapType: MapType.normal,
                   onMapCreated: (controller) {
                     googleMapController.complete(controller);

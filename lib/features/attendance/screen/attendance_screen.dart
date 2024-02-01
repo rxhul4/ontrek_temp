@@ -46,6 +46,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   ValueNotifier<bool> isDayEnd = ValueNotifier(false);
   bool isTapped = false;
   bool isFromLogOutButton = false;
+  bool isLoading = false;
 
 
   @override
@@ -251,6 +252,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     }
   }
 
+
   Widget buttonWidget() {
     return ValueListenableBuilder(
       valueListenable: isDayStart,
@@ -449,6 +451,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           });
           controller?.forward().whenComplete(() {
             controller?.reset();
+            setState(() {
+              isLoading = true;
+            });
             if(isDayStart.value){
               logOutFunction().then((value) {
                 if(widget.onLocationFetch != null){
@@ -456,6 +461,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   isFromLogOutButton = false;
                 }
                 isDayEnd.value = false;
+                setState(() {
+                  isLoading = false;
+                });
               });
 
             }
