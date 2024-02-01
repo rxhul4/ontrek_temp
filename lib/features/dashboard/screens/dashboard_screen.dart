@@ -126,16 +126,15 @@ class DashBoardState extends State<DashBoard> {
         child: Stack(
           children: [
             Positioned.fill(
-              bottom: MediaQuery.of(context).size.height * 0.3,
+              // bottom: MediaQuery.of(context).size.height ,
               child: GoogleMap(
-                  // myLocationEnabled: true,
                   zoomControlsEnabled: false,
+                  padding: WidgetUtils.edgeInsetsOnly(bottom: MediaQuery.of(context).size.height *0.3),
                   mapType: MapType.normal,
                   onMapCreated: (controller) {
                     googleMapController.complete(controller);
                   },
                   markers: markers,
-                  // myLocationButtonEnabled: true,
                   initialCameraPosition:
                       CameraPosition(target: LatLng(0, 0), zoom: 14)),
             ),
@@ -175,6 +174,7 @@ class DashBoardState extends State<DashBoard> {
       bottomNavigationBar: WidgetUtils.commonContainer(
         height: 60,
         decoration: WidgetUtils.commonBoxDecoration(
+          color: AppConstant.whiteColor,
           border: Border.all(
             color: AppConstant.greyColor.withOpacity(0.3),
             width: 1,
@@ -200,8 +200,8 @@ class DashBoardState extends State<DashBoard> {
               child: AnimatedContainer(
                 duration: Duration(milliseconds: 300),
                 alignment: Alignment.center,
-                height: 50,
-                width: 90,
+                height: 60,
+                width: 100,
                 color: AppConstant.whiteColor,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
