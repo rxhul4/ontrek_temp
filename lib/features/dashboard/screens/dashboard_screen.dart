@@ -1,6 +1,12 @@
+import 'dart:async';
+import 'dart:typed_data';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:mapmyindia_gl/mapmyindia_gl.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+// import 'package:mapmyindia_gl/mapmyindia_gl.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
@@ -18,18 +24,20 @@ class DashBoard extends StatefulWidget {
 }
 
 class DashBoardState extends State<DashBoard> {
-  late MapmyIndiaMapController mapController;
+  late final Completer<GoogleMapController> googleMapController = Completer();
   LatLng? currentLocation;
   late ValueNotifier<bool> isLoading;
+  Set<Marker> markers = Set();
+  int _selectedIndex = 0;
 
-  // Location location =  Location();
+  ValueNotifier<bool> isDayStarted = ValueNotifier(false);
+  ValueNotifier<bool> isCheckedIn = ValueNotifier(false);
 
   List<String> iconString = [
     attendanceIconPath,
     trackingIconPath,
     taskIconPath,
     profileIconPath
-
   ];
 
   List<IconData> iconData = [
@@ -39,57 +47,59 @@ class DashBoardState extends State<DashBoard> {
     Icons.person,
   ];
 
-  Future getCurrentLocation() async {
-    Map<String, dynamic> returnData = {
-      "locationFetchingSuccessful": false,
-      "currentLocation": currentLocation
-    };
+  Future<void> getCurrentLocation() async {
+    print("innnnnnnnnnnnn");
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.low,
+      );
 
-    bool isLocationServiceAvailable =
-        await WidgetUtils.checkLocationServiceAvailability();
-    print("hhhhhh $isLocationServiceAvailable");
-    if (isLocationServiceAvailable) {
-      try {
-        // isLoading.value = true;
-        Position position = await Geolocator.getCurrentPosition(
-          // forceAndroidLocationManager: true,
-          desiredAccuracy: LocationAccuracy.low,
-          // timeLimit: Duration(seconds: 30)
-        );
-        print("hhhhhhhhh ${position}");
+      setState(() {
         currentLocation = LatLng(position.latitude, position.longitude);
-        mapController.clearSymbols();
-        mapController.animateCamera(CameraUpdate.newCameraPosition(
-            CameraPosition(
-                target: currentLocation ?? LatLng(0, 0),
-                zoom: 14,
-                tilt: 2,
-                bearing: 2)));
-        mapController.addSymbol(SymbolOptions(
-          geometry: currentLocation,
-        ));
-        returnData["currentLocation"] = currentLocation;
-        returnData["locationFetchingSuccessful"] = true;
-      } catch (e) {
-        returnData["currentLocation"] = currentLocation;
-        returnData["locationFetchingSuccessful"] = false;
-        print("in catch at get location lat long : ${e}");
-      }
-    } else {
-      // WidgetUtils.showCustomDialog(
-      //     ctx: context,
-      //     dialogMessage: "Location is not enable. Please enable it and try again",
-      //     showCustomWidget: true,
-      //     positiveCustomText: "Open\nSettings",
-      //     customWidgetOnPressed: () {
-      //       openLocationSettings();
-      //     },
-      //     showDefaultBtn: false);
-      returnData["currentLocation"] = currentLocation;
-      returnData["locationFetchingSuccessful"] = false;
+        print("${currentLocation}");
+        if (currentLocation != null) {
+          updateCameraPosition(currentLocation ?? LatLng(0, 0));
+          addCurrentLocationMarker(currentLocation ?? LatLng(0, 0));
+        }
+      });
+    } catch (e) {
+      print("Error fetching location: $e");
     }
-    // isLoading.value = endLoader ?? false;
-    return returnData;
+  }
+
+  Future<void> getFetchedLocation(currentLocation) async {
+    try {
+      if (currentLocation != null) {
+        if (googleMapController != null) {
+          updateCameraPosition(currentLocation ?? LatLng(0, 0));
+          addCurrentLocationMarker(currentLocation ?? LatLng(0, 0));
+        }
+      }
+    } catch (e) {
+      print("catach at getFecthedLocation${e}");
+    }
+  }
+
+  Future updateCameraPosition(LatLng location) async {
+    print("location-------${location}");
+    final GoogleMapController controller = await googleMapController.future;
+    controller.animateCamera(CameraUpdate.newCameraPosition(
+      CameraPosition(
+        target: location,
+        zoom: 14,
+      ),
+    ));
+  }
+
+  void addCurrentLocationMarker(LatLng location) {
+    markers.clear(); // Clear previous markers
+    markers.add(
+      Marker(
+        markerId: MarkerId("currentLocation"),
+        position: location,
+        infoWindow: InfoWindow(title: "Current Location"),
+      ),
+    );
   }
 
   List<String> lableString = [
@@ -98,61 +108,15 @@ class DashBoardState extends State<DashBoard> {
     "Tasks",
     "Pofile",
   ];
-  int _selectedIndex = 0;
-
-  ValueNotifier<bool> isDayStarted = ValueNotifier(false);
-  ValueNotifier<bool> isCheckedIn = ValueNotifier(false);
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // modalBottomSheetShow(context);
-    });
-    MapmyIndiaAccountManager.setMapSDKKey(AppConstant.apiKeyofMap);
-    MapmyIndiaAccountManager.setRestAPIKey(AppConstant.apiKeyofMap);
-    MapmyIndiaAccountManager.setAtlasClientId(AppConstant.atlasClientId);
-    MapmyIndiaAccountManager.setAtlasClientSecret(
-        AppConstant.atlasClientSecretId);
+    getCurrentLocation();
   }
-
-
-  Future<void> dayStart() async {
-    try {
-      print("day start function in");
-
-      // service.startService();
-      print("latitude${currentLocation?.latitude}");
-      PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-      isDayStarted.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
-      if (currentLocation != null) {
-        print("latttttttttttt${currentLocation?.latitude}");
-        if (mapController != null) {
-          mapController.clearSymbols();
-          mapController.animateCamera(CameraUpdate.newCameraPosition(
-              CameraPosition(
-                  target: currentLocation ?? LatLng(0, 0), zoom: 14, tilt: 2, bearing: 2)));
-          print("data${currentLocation}");
-          mapController.addSymbol(SymbolOptions(
-            geometry: currentLocation,
-            iconColor: "#9775FA",
-          ));
-        } else {
-          print("symbole is not their");
-        }
-      } else {
-        print("currentlocation is null");
-      }
-    } catch (e) {
-      print("hjsdafjhsdfsdfsdkjfhdskjf${e}");
-    }
-  }
-
-
 
   DraggableScrollableController draggableScrollableController =
       DraggableScrollableController();
-  double minHeight = 0.4;
 
   @override
   Widget build(BuildContext context) {
@@ -161,16 +125,18 @@ class DashBoardState extends State<DashBoard> {
         child: Stack(
           children: [
             Positioned.fill(
-              bottom: MediaQuery.of(context).size.height * 0.3,
-              child: MapmyIndiaMap(
+              // bottom: MediaQuery.of(context).size.height ,
+              child: GoogleMap(
+                  zoomControlsEnabled: false,
+                  padding: WidgetUtils.edgeInsetsOnly(
+                      bottom: MediaQuery.of(context).size.height * 0.3),
+                  mapType: MapType.normal,
                   onMapCreated: (controller) {
-                    mapController = controller;
+                    googleMapController.complete(controller);
                   },
-                  onStyleLoadedCallback: () async {
-                    getCurrentLocation();
-                  },
+                  markers: markers,
                   initialCameraPosition:
-                      CameraPosition(target: LatLng(20.5937, 78.9629),)),
+                      CameraPosition(target: LatLng(0, 0), zoom: 14)),
             ),
 
             // screens[_selectedIndex],
@@ -186,28 +152,15 @@ class DashBoardState extends State<DashBoard> {
                 controller: draggableScrollableController,
                 builder: (context, scrollController) {
                   return [
-                    AttendanceScreen(scrollController: scrollController,onLocationFetch: (value){
-                      setState(() {
-                        currentLocation = LatLng(value.latitude, value.longitude);
-                      });
-
-                      if (currentLocation != null) {
-                        print("latttttttttttt${currentLocation?.latitude}");
-                        if (mapController != null) {
-                          mapController.clearSymbols();
-                          mapController.animateCamera(CameraUpdate.newCameraPosition(
-                              CameraPosition(
-                                  target: currentLocation ?? LatLng(0, 0), zoom: 14, tilt: 2, bearing: 2)));
-                          print("data${value}");
-                          mapController.addSymbol(SymbolOptions(
-                            geometry: currentLocation?? LatLng(value.latitude ,value.longitude),
-                            iconColor: "#9775FA",
-                          ));
-                        } else {
-                          print("symbole is not their");
-                        }
-                      }
-                    }),
+                    AttendanceScreen(
+                        scrollController: scrollController,
+                        onLocationFetch: (value) {
+                          setState(() {
+                            currentLocation =
+                                LatLng(value.latitude, value.longitude);
+                          });
+                          getFetchedLocation(currentLocation);
+                        }),
                     TrackScreen(scrollController: scrollController),
                     TaskListScreen(scrollController: scrollController),
                     ProfileScreen(scrollController: scrollController),
@@ -215,13 +168,13 @@ class DashBoardState extends State<DashBoard> {
                 },
               ),
             ),
-
           ],
         ),
       ),
       bottomNavigationBar: WidgetUtils.commonContainer(
         height: 60,
         decoration: WidgetUtils.commonBoxDecoration(
+          color: AppConstant.whiteColor,
           border: Border.all(
             color: AppConstant.greyColor.withOpacity(0.3),
             width: 1,
@@ -233,16 +186,12 @@ class DashBoardState extends State<DashBoard> {
           children: List.generate(iconData.length, (index) {
             return GestureDetector(
               onTap: () {
-
-                getCurrentLocation();
+                // getCurrentLocation();
                 setState(() {
-                  if(index == 3){
-
+                  if (index == 3) {
                     draggableScrollableController.jumpTo(1);
-
-                  }else{
+                  } else {
                     draggableScrollableController.jumpTo(0.4);
-
                   }
                   _selectedIndex = index;
                   // Future.delayed(duration)
@@ -251,16 +200,16 @@ class DashBoardState extends State<DashBoard> {
               child: AnimatedContainer(
                 duration: Duration(milliseconds: 300),
                 alignment: Alignment.center,
-                height: 50,
-                width: 90,
+                height: 60,
+                width: 100,
                 color: AppConstant.whiteColor,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Image.asset(
-                      width: index == 0 || index == 1 ? 25: 20,
-                      height: index == 0 || index == 1 ? 25: 20,
+                      width: index == 0 || index == 1 ? 25 : 20,
+                      height: index == 0 || index == 1 ? 25 : 20,
                       iconString[index],
                       color: _selectedIndex == index
                           ? Colors.blueAccent

@@ -46,6 +46,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   ValueNotifier<bool> isDayEnd = ValueNotifier(false);
   bool isTapped = false;
   bool isFromLogOutButton = false;
+  bool isLoading = false;
 
 
   @override
@@ -78,6 +79,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           physics: NeverScrollableScrollPhysics(),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+
             // Aligns children at the center vertically
             children: [
               WidgetUtils.commonContainer(
@@ -160,7 +162,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     isDayEnd.value = true;
                   },
                   child: Visibility(
-                    visible: !isFromLogOutButton,
+                    visible:  !isFromLogOutButton,
                     child: WidgetUtils.commonTextWidget(
                       text:  "Show Off" ,
                       fontSize:  16 ,
@@ -250,6 +252,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     }
   }
 
+
   Widget buttonWidget() {
     return ValueListenableBuilder(
       valueListenable: isDayStart,
@@ -292,6 +295,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     loginFunction().then((value) {
                       if (widget.onLocationFetch != null) {
                         widget.onLocationFetch!(value);
+
                       }
                     });
                   } else if (!isCheckIn.value) {
@@ -376,7 +380,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         decoration: WidgetUtils.commonBoxDecoration(
                           color:!isDayStart.value
                               ? Colors.lightGreen.withOpacity(0.8)
-                              : Colors.blue.withOpacity(0.8),
+                              : Colors.blue.withOpacity(0.7),
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
@@ -447,13 +451,19 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           });
           controller?.forward().whenComplete(() {
             controller?.reset();
+            setState(() {
+              isLoading = true;
+            });
             if(isDayStart.value){
               logOutFunction().then((value) {
                 if(widget.onLocationFetch != null){
                   widget.onLocationFetch!(value);
-
+                  isFromLogOutButton = false;
                 }
                 isDayEnd.value = false;
+                setState(() {
+                  isLoading = false;
+                });
               });
 
             }
@@ -478,7 +488,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
             decoration: WidgetUtils.commonBoxDecoration(
               shape: BoxShape.circle,
-             
             ),
             child: Stack(
               alignment: Alignment.center,
@@ -494,7 +503,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         Colors.red),
                   ),
                 ),
-                
+
                 Positioned.fill(
                   // scale: isFromLogOutButton ? 4 : 3.6,
                   // Adjust the scale factor as needed
@@ -510,7 +519,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     ),
                   ),
                 ),
-               
+
                 AnimatedContainer(
                   margin: EdgeInsets.all(3),
                   duration: const Duration(milliseconds: 300),
