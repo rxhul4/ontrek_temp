@@ -151,12 +151,15 @@ class _TrackScreenState extends State<TrackScreen> {
     return Column(
       children: [
         WidgetUtils.commonContainer(
-          padding: WidgetUtils.edgeInsetsAll(allPadding: 25),
+          height: 55,
+          width: 55,
+          padding: WidgetUtils.edgeInsetsAll(allPadding: 30),
           decoration: WidgetUtils.commonBoxDecoration(
               shape: BoxShape.circle,
               color: AppConstant.greyColor.withOpacity(0.2),
               border: Border.all(color: AppConstant.primaryColor, width: 1.2),
-              image: DecorationImage(image: AssetImage(profileImage))),
+              image: DecorationImage(
+                  fit: BoxFit.cover, image: AssetImage(profileImage))),
         ),
         WidgetUtils.commonSizedBox(height: 8),
         WidgetUtils.commonTextWidget(

@@ -69,6 +69,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               physics: NeverScrollableScrollPhysics(),
               child: WidgetUtils.commonContainer(
                 height: MediaQuery.of(context).size.height / 3,
+                width: double.infinity,
+                color: AppConstant.greyColor.withOpacity(0.3),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -85,6 +87,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   color:
                                       AppConstant.greyColor.withOpacity(0.5)),
                               image: DecorationImage(
+                                  fit: BoxFit.cover,
                                   image: AssetImage(profileImage))),
                         ),
                         WidgetUtils.commonContainer(
@@ -119,9 +122,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 contentPadding: EdgeInsets.only(left: 10, right: 10),
                 leading: WidgetUtils.commonContainer(
                   width: 40,
+                  height: 40,
                   decoration: WidgetUtils.commonBoxDecoration(
                       shape: BoxShape.circle,
-                      image: DecorationImage(image: AssetImage(profileImage)),
+                      image: DecorationImage(
+                          fit: BoxFit.cover,image: AssetImage(profileImage)),
                       border: Border.all(
                           color: AppConstant.greyColor.withOpacity(0.5)),
                       color: AppConstant.greyColor.withOpacity(0.3)),
@@ -136,7 +141,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     fontSize: 12),
                 trailing: IconButton(
                   onPressed: () {},
-                  icon: Icon(Icons.call, color: AppConstant.blueColor),
+                  icon: Icon(Icons.call, color: Colors.blue.shade800),
                 ),
               ),
             ),
