@@ -24,7 +24,7 @@ class WidgetUtils {
         letterSpacing: letterSpacing ??0.2 ,
         fontWeight: fontWeight,
         height: height,
-        fontFamily: fontFamily,
+        fontFamily: "Open Sans",
       ),
     );
   }
