@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/widget_utils.dart';
+import 'package:ontrek/features/salesman_tracker/salesman_tracker.dart';
 
 import '../../../core/utils/image_path.dart';
 
@@ -119,14 +120,15 @@ class _TrackScreenState extends State<TrackScreen> {
             ),
             Expanded(
               child: GridView.builder(
-                itemCount: 32,
+                itemCount: 5,
                 shrinkWrap: true,
                 controller: widget.scrollController,
                 padding: WidgetUtils.edgeInsetsAll(allPadding: 10),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4, childAspectRatio: 4 / 4.5),
+                    crossAxisCount: 4, childAspectRatio: 4 / 4.5
+                ),
                 itemBuilder: (BuildContext context, int index) {
-                  return trackGrid();
+                  return saleMenList(index);
                 },
               ),
             ),
@@ -147,27 +149,36 @@ class _TrackScreenState extends State<TrackScreen> {
     );
   }
 
-  Widget trackGrid() {
-    return Column(
-      children: [
-        WidgetUtils.commonContainer(
-          height: 55,
-          width: 55,
-          padding: WidgetUtils.edgeInsetsAll(allPadding: 30),
-          decoration: WidgetUtils.commonBoxDecoration(
-              shape: BoxShape.circle,
-              color: AppConstant.greyColor.withOpacity(0.2),
-              border: Border.all(color: AppConstant.primaryColor, width: 1.2),
-              image: DecorationImage(
-                  fit: BoxFit.cover, image: AssetImage(profileImage))),
-        ),
-        WidgetUtils.commonSizedBox(height: 8),
-        WidgetUtils.commonTextWidget(
-            text: 'You', textColor: AppConstant.blackColor, fontSize: 12),
-        WidgetUtils.commonTextWidget(
-            text: 'Last week', textColor: Colors.cyan, fontSize: 10),
-      ],
+  Widget saleMenList(int index) {
+    return WidgetUtils.commonInkWell(
+      onTap: () {
+        print("index ${index}");
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SaleManTracker(index: index),
+            ));
+      },
+      child: Column(
+        children: [
+          WidgetUtils.commonContainer(
+              width: 60,
+              height: 60,
+              decoration: WidgetUtils.commonBoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                      color: AppConstant.greyColor.withOpacity(0.5)),
+                  color: AppConstant.greyColor.withOpacity(0.3)
+              ),
+              child: Icon(Icons.person,color: AppConstant.blackColor,size: 24,)
+          ),
+          WidgetUtils.commonSizedBox(height: 5),
+          WidgetUtils.commonTextWidget(
+              text: 'You', textColor: AppConstant.blackColor, fontSize: 11),
+          WidgetUtils.commonTextWidget(
+              text: 'Last week', textColor: Colors.cyan, fontSize: 9),
+        ],
+      ),
     );
   }
 }
-// dummy code

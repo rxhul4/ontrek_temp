@@ -7,4 +7,5 @@ const trackingIconPath = "$assetsBasePath/icons/tracking_icon.png";
 //
 const assetsBasePathImage = "assets/images";
 
-const profileImage = "$assetsBasePathImage/profilePicture.png";
+// const profileImage = "$assetsBasePathImage/profilePicture.png";
+const profileImage = "$assetsBasePathImage/profileImage.png";

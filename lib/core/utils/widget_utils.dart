@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
+import 'package:ontrek/core/utils/app_constant.dart';
 
 class WidgetUtils {
   static Widget commonTextWidget({
@@ -44,6 +46,12 @@ class WidgetUtils {
     bool isLocationServiceAvailable = false;
     isLocationServiceAvailable = await Geolocator.isLocationServiceEnabled();
     return isLocationServiceAvailable;
+  }
+  static dateFormat({
+    DateTime? date,
+    String? dateFormat,
+  }){
+    return DateFormat(dateFormat ?? AppConstant.dateFormat).format(date ?? DateTime.now());
   }
 
   static EdgeInsets edgeInsetsOnly({
@@ -214,7 +222,7 @@ class WidgetUtils {
 // static loaderWidget({Color? color}){
 //   return Center(
 //     child: SpinKitCubeGrid(
-//       color: color ?? AppColors.colorPurple,
+//       color: color ?? AppConstants.colorPurple,
 //     ),
 //   );
 // }

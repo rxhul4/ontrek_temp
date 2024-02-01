@@ -71,7 +71,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: WidgetUtils.commonContainer(
                 height: MediaQuery.of(context).size.height / 3,
                 width: double.infinity,
-                color: AppConstant.greyColor.withOpacity(0.3),
+                color: AppConstant.whiteColor.withOpacity(0.3),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -82,14 +82,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           height: 80,
                           width: 80,
                           decoration: WidgetUtils.commonBoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppConstant.greyColor.withOpacity(0.3),
-                              border: Border.all(
-                                  color:
-                                      AppConstant.greyColor.withOpacity(0.5)),
-                              image: DecorationImage(
-                                  fit: BoxFit.cover,
-                                  image: AssetImage(profileImage))),
+                            shape: BoxShape.circle,
+                            color: AppConstant.greyColor.withOpacity(0.3),
+                            border: Border.all(
+                                color: AppConstant.greyColor.withOpacity(0.5)),
+                          ),
+                          child: Icon(Icons.person,color: AppConstant.blackColor,size: 40,)
                         ),
                         WidgetUtils.commonContainer(
                           padding: EdgeInsets.all(5),
@@ -126,11 +124,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   height: 40,
                   decoration: WidgetUtils.commonBoxDecoration(
                       shape: BoxShape.circle,
-                      image: DecorationImage(
-                          fit: BoxFit.cover,image: AssetImage(profileImage)),
                       border: Border.all(
                           color: AppConstant.greyColor.withOpacity(0.5)),
-                      color: AppConstant.greyColor.withOpacity(0.3)),
+                      color: AppConstant.greyColor.withOpacity(0.3)
+                  ),
+                  child: Icon(Icons.person,color: AppConstant.blackColor,size: 22,)
                 ),
                 title: WidgetUtils.commonTextWidget(
                     text: 'Kenil Patel',

@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 
 class AppConstant {
+
+  // date formate
+  static const String dateFormat= "yyyy-MM-dd'T'HH:mm:ss";
+
   // api method constant
 
   static String appLevelAuthKey = "abcd123xyz";
+
   //mapMyIndiaApiKey
   static String apiKeyofMap = "07a29db75f9ab6fc62ebfcfecf941af5";
   static String atlasClientId = "33OkryzDZsIuPWhy678YKWN8tiGMyn-ttozdaTlcHZTmjgOa_PhBVWL_PLiB7pDEF-8rCZrWQyXa9dp8klU4G-Ks9wKZdWHc";
