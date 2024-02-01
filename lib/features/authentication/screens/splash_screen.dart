@@ -1,9 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
-import 'package:ontrek/core/utils/image_path.dart';
-import 'package:ontrek/core/utils/widget_utils.dart';
-import 'package:ontrek/features/authentication/screens/login_screen.dart';
 import 'package:ontrek/features/dashboard/screens/dashboard_screen.dart';
 
 class SplashScreen extends StatefulWidget {

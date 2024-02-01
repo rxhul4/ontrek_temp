@@ -78,6 +78,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           physics: NeverScrollableScrollPhysics(),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+
             // Aligns children at the center vertically
             children: [
               WidgetUtils.commonContainer(
@@ -160,7 +161,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     isDayEnd.value = true;
                   },
                   child: Visibility(
-                    visible: !isFromLogOutButton,
+                    visible: isDayStart.value || !isFromLogOutButton,
                     child: WidgetUtils.commonTextWidget(
                       text:  "Show Off" ,
                       fontSize:  16 ,
