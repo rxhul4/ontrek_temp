@@ -1,3 +1,4 @@
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
@@ -15,6 +16,26 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   DraggableScrollableController draggableScrollableController =
       DraggableScrollableController();
+  AndroidDeviceInfo? infoOfDevice;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getDeviceInfo().then((value) {
+      infoOfDevice = value;
+    });
+  }
+
+  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+
+  Future getDeviceInfo() async {
+    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+    print('Running on ${androidInfo.model}');
+    print('Running on ${androidInfo.product}');
+    print('Running on ${androidInfo.version.release}');
+    return androidInfo;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,8 +76,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             height: 80,
                             width: 80,
                             decoration: WidgetUtils.commonBoxDecoration(
-                                shape: BoxShape.circle,
-                                color: AppConstant.greyColor.withOpacity(0.3)),
+                              shape: BoxShape.circle,
+                              color: AppConstant.greyColor.withOpacity(0.3),
+                              border: Border.all(
+                                  color:
+                                      AppConstant.greyColor.withOpacity(0.5)),
+                            ),
                             child: Icon(
                               Icons.person,
                               size: 40,
@@ -86,8 +111,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             Container(
               decoration: BoxDecoration(
-                  border:
-                      Border(bottom: BorderSide(color: AppConstant.greyColor))),
+                border: Border(
+                  bottom: BorderSide(color: AppConstant.greyColor, width: 0),
+                ),
+              ),
               child: ListTile(
                 contentPadding: EdgeInsets.only(left: 10, right: 10),
                 leading: WidgetUtils.commonContainer(
@@ -121,6 +148,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: SingleChildScrollView(
                 scrollDirection: Axis.vertical,
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ListView.builder(
                       itemCount: moreOptionsName.length,
@@ -128,16 +156,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       scrollDirection: Axis.vertical,
                       physics: NeverScrollableScrollPhysics(),
                       itemBuilder: (context, index) {
-                        return moreOptions(
-                          icon: moreOptionIcons[index],
-                          text: moreOptionsName[index],
-                          index: index,
-                          itemCount: moreOptionsName.length,
+                        return InkWell(
+                          onTap: () {
+                            print('$index');
+                          },
+                          child: moreOptions(
+                            icon: moreOptionIcons[index],
+                            text: moreOptionsName[index],
+                            index: index,
+                            itemCount: moreOptionsName.length,
+                          ),
                         );
                       },
                     ),
                     Divider(),
-                    Text('version')
+                    Text('${infoOfDevice?.version.release.toString()}')
                   ],
                 ),
               ),
@@ -181,57 +214,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
           contentPadding: EdgeInsets.only(left: 10),
           leading: Icon(icon),
           title: WidgetUtils.commonContainer(
-            // decoration: WidgetUtils.commonBoxDecoration(
-            //     border: Border(
-            //         bottom: BorderSide(
-            //   color: AppConstant.greyColor.withOpacity(0.5),
-            //   width: 1,
-            // ))),
             child: WidgetUtils.commonTextWidget(
                 text: text, textColor: AppConstant.blackColor),
           ),
         ),
-        if(index < itemCount - 1)
-        Divider(
-          indent: 50,
-          height: 0,
-        ),
-
+        if (index < itemCount - 1)
+          Divider(
+            indent: 50,
+            height: 0,
+          ),
       ],
     );
-    //   Column(
-    //   children: [
-    //     Row(
-    //           children: [
-    //             WidgetUtils.commonContainer(
-    //               margin: WidgetUtils.edgeInsetsOnly(left: 10,top: 10),
-    //                 decoration: WidgetUtils.commonBoxDecoration(
-    //                     color: AppConstant.whiteColor,
-    //                     border: Border.all(
-    //                       color: AppConstant.whiteColor,
-    //                     )),
-    //                 child: Icon(icon)),
-    //                 Expanded(
-    //                   child: WidgetUtils.commonContainer(
-    //                     // padding: WidgetUtils.edgeInsetsOnly(left: 10,top: 10),
-    //                     decoration: WidgetUtils.commonBoxDecoration(
-    //                       border: Border(
-    //                         bottom: BorderSide(color: AppConstant.greyColor.withOpacity(0.5),width: 1,)
-    //                       )
-    //                     ),
-    //                     child: WidgetUtils.commonTextWidget(
-    //                       text: text,
-    //                       textColor: AppConstant.blackColor.withOpacity(0.5),
-    //                       fontSize: 18,
-    //                     ),
-    //                   ),
-    //                 )
-    //           ],
-    //         ),
-    //     // Divider(
-    //     //   indent: 45,
-    //     // )
-    //   ],
-    // );
   }
 }
