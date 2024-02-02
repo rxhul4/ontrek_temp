@@ -69,6 +69,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
     super.initState();
     print("index_____${widget.index}");
     getCurrentLocation();
+    selectedDate = DateTime.now();
   }
 
   DraggableScrollableController draggableScrollableController =
@@ -82,7 +83,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
           children: [
             GoogleMap(
                 zoomControlsEnabled: false,
-                padding: WidgetUtils.edgeInsetsOnly(
+                padding: AppUtils.edgeInsetsOnly(
                     bottom: MediaQuery.of(context).size.height * 0.25),
                 mapType: MapType.normal,
                 onMapCreated: (controller) {
@@ -108,10 +109,10 @@ class _SaleManTrackerState extends State<SaleManTracker> {
               minChildSize: 0.23,
               controller: draggableScrollableController,
               builder: (context, scrollController) {
-                return WidgetUtils.commonContainer(
-                  decoration: WidgetUtils.commonBoxDecoration(
+                return AppUtils.commonContainer(
+                  decoration: AppUtils.commonBoxDecoration(
                     color: AppConstant.whiteColor,
-                    borderRadius: WidgetUtils.borderRadiousonly(
+                    borderRadius: AppUtils.borderRadiousonly(
                         topleft: 15, topright: 15),
                     boxShadow: [
                       BoxShadow(
@@ -126,15 +127,15 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                     controller: scrollController,
                     child: Column(
                       children: [
-                        WidgetUtils.commonContainer(
-                          decoration: WidgetUtils.commonBoxDecoration(
+                        AppUtils.commonContainer(
+                          decoration: AppUtils.commonBoxDecoration(
                             border: Border(
                               bottom: BorderSide(
                                 width: 1,
                                 color: AppConstant.greyColor.withOpacity(0.3),
                               ),
                             ),
-                            borderRadius: WidgetUtils.borderRadiousonly(
+                            borderRadius: AppUtils.borderRadiousonly(
                                 topleft: 18, topright: 18),
                             color: Colors.white,
                           ),
@@ -143,42 +144,42 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                                 horizontal: 20, vertical: 10),
                             child: Column(
                               children: [
-                                WidgetUtils.commonContainer(
+                                AppUtils.commonContainer(
                                   width: 30,
                                   height: 5,
-                                  decoration: WidgetUtils.commonBoxDecoration(
+                                  decoration: AppUtils.commonBoxDecoration(
                                       color: AppConstant.greyColor
                                           .withOpacity(0.3),
-                                      borderRadius: WidgetUtils.borderRadiusAll(
+                                      borderRadius: AppUtils.borderRadiusAll(
                                           raduis: 12)),
                                 ),
                                 Row(
                                   children: [
-                                    WidgetUtils.commonContainer(
+                                    AppUtils.commonContainer(
                                         height: 45,
                                         width: 45,
                                         decoration:
-                                            WidgetUtils.commonBoxDecoration(
+                                            AppUtils.commonBoxDecoration(
                                           shape: BoxShape.circle,
                                           border: Border.all(
                                               color: Colors.grey, width: 1.2),
                                         ),
                                         child: Icon(Icons.person,
                                             color: Colors.cyan)),
-                                    WidgetUtils.commonSizedBox(width: 10),
+                                    AppUtils.commonSizedBox(width: 10),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          WidgetUtils.commonTextWidget(
+                                          AppUtils.commonTextWidget(
                                             text: "You",
                                             fontWeight: FontWeight.w600,
                                             textColor: AppConstant.blackColor,
                                             letterSpacing: 0.2,
                                             fontSize: 15,
                                           ),
-                                          WidgetUtils.commonTextWidget(
+                                          AppUtils.commonTextWidget(
                                             text:
                                                 "Dwarkesh Business Hub Visat...",
                                             fontWeight: FontWeight.w400,
@@ -195,7 +196,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                                       color: AppConstant.blueColor,
                                       onTap: () {},
                                     ),
-                                    WidgetUtils.commonSizedBox(width: 10),
+                                    AppUtils.commonSizedBox(width: 10),
                                     commonIconWidget(
                                       iconData: Icons.more_vert,
                                       onTap: () {},
@@ -206,9 +207,9 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                             ),
                           ),
                         ),
-                        WidgetUtils.commonContainer(
+                        AppUtils.commonContainer(
                           padding:
-                              WidgetUtils.edgeInsetsOnly(top: 20, bottom: 20),
+                              AppUtils.edgeInsetsOnly(top: 20, bottom: 20),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             boxShadow: [
@@ -268,14 +269,14 @@ class _SaleManTrackerState extends State<SaleManTracker> {
           color: iconColor,
           size: 36,
         ),
-        WidgetUtils.commonSizedBox(height: 5),
-        WidgetUtils.commonTextWidget(
+        AppUtils.commonSizedBox(height: 5),
+        AppUtils.commonTextWidget(
             text: textData ?? "",
             textColor: AppConstant.blackColor,
             fontSize: 12,
             letterSpacing: 2),
-        WidgetUtils.commonSizedBox(height: 5),
-        WidgetUtils.commonTextWidget(
+        AppUtils.commonSizedBox(height: 5),
+        AppUtils.commonTextWidget(
             text: typeOfText ?? "",
             textColor: AppConstant.greyColor.withOpacity(0.8),
             fontSize: 12,
@@ -300,17 +301,17 @@ class _SaleManTrackerState extends State<SaleManTracker> {
       {required Function() onTapBackButton,
       required Function() onTapGetCurrentPosition}) {
     return Positioned(
-      child: WidgetUtils.commonContainer(
+      child: AppUtils.commonContainer(
         margin: const EdgeInsets.only(left: 10, right: 10, top: 10),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            WidgetUtils.commonInkWell(
+            AppUtils.commonInkWell(
               onTap: onTapBackButton,
-              child: WidgetUtils.commonContainer(
+              child: AppUtils.commonContainer(
                   height: 40,
                   width: 40,
-                  decoration: WidgetUtils.commonBoxDecoration(
+                  decoration: AppUtils.commonBoxDecoration(
                       color: AppConstant.whiteColor,
                       shape: BoxShape.circle,
                       boxShadow: [
@@ -321,7 +322,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                           spreadRadius: 2,
                         )
                       ]),
-                  child: WidgetUtils.commonContainer(
+                  child: AppUtils.commonContainer(
                     child: Icon(
                       Icons.arrow_back_ios_new,
                       size: 18,
@@ -330,12 +331,12 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                   )),
             ),
             dateSelectionWidget(isFromSheet: false),
-            WidgetUtils.commonInkWell(
+            AppUtils.commonInkWell(
               onTap: onTapGetCurrentPosition,
-              child: WidgetUtils.commonContainer(
+              child: AppUtils.commonContainer(
                   height: 40,
                   width: 40,
-                  decoration: WidgetUtils.commonBoxDecoration(
+                  decoration: AppUtils.commonBoxDecoration(
                       color: AppConstant.whiteColor,
                       shape: BoxShape.circle,
                       boxShadow: [
@@ -359,15 +360,15 @@ class _SaleManTrackerState extends State<SaleManTracker> {
   }
 
   Widget dateSelectionWidget({bool? isFromSheet}) {
-    return WidgetUtils.commonContainer(
+    return AppUtils.commonContainer(
       width: 210,
-      margin: WidgetUtils.edgeInsetsOnly(
+      margin: AppUtils.edgeInsetsOnly(
           top: isFromSheet == true ? 0 : 10, bottom: 10, right: 20, left: 20),
-      padding: WidgetUtils.edgeInsetsAll(allPadding: 10),
-      decoration: WidgetUtils.commonBoxDecoration(
+      padding: AppUtils.edgeInsetsAll(allPadding: 10),
+      decoration: AppUtils.commonBoxDecoration(
         borderRadius: isFromSheet == true
-            ? WidgetUtils.borderRadiousonly(bottomleft: 15, bottomright: 15)
-            : WidgetUtils.borderRadiusAll(raduis: 60),
+            ? AppUtils.borderRadiousonly(bottomleft: 15, bottomright: 15)
+            : AppUtils.borderRadiusAll(raduis: 60),
         color: AppConstant.whiteColor,
         boxShadow: isFromSheet == true
             ? [
@@ -392,18 +393,18 @@ class _SaleManTrackerState extends State<SaleManTracker> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          WidgetUtils.commonInkWell(
+          AppUtils.commonInkWell(
               onTap: () {
                 setState(() {
                   selectedDate = selectedDate?.subtract(Duration(days: 1));
                 });
                 // callGetRouteHistoryApi(getMdl);
               },
-              child: WidgetUtils.commonContainer(
+              child: AppUtils.commonContainer(
                 width: 40,
                 height: 30,
-                decoration: WidgetUtils.commonBoxDecoration(
-                    borderRadius: WidgetUtils.borderRadiousonly(
+                decoration: AppUtils.commonBoxDecoration(
+                    borderRadius: AppUtils.borderRadiousonly(
                         bottomleft: 15, topleft: 15)),
                 child: Icon(
                   Icons.keyboard_arrow_left,
@@ -411,26 +412,26 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                   size: 30,
                 ),
               )),
-          WidgetUtils.commonInkWell(
+          AppUtils.commonInkWell(
             onTap: openDatePicker,
-            child: WidgetUtils.commonTextWidget(
+            child: AppUtils.commonTextWidget(
                 textColor: AppConstant.blackColor,
-                text: WidgetUtils.dateFormat(
+                text: AppUtils.dateFormat(
                     date: selectedDate, dateFormat: "dd-MM-yyyy"),
                 fontSize: 15),
           ),
-          WidgetUtils.commonInkWell(
+          AppUtils.commonInkWell(
             onTap: () {
               setState(() {
                 selectedDate = selectedDate?.add(Duration(days: 1));
               });
               // callGetRouteHistoryApi(getMdl);
             },
-            child: WidgetUtils.commonContainer(
+            child: AppUtils.commonContainer(
               width: 40,
               height: 30,
-              decoration: WidgetUtils.commonBoxDecoration(
-                  borderRadius: WidgetUtils.borderRadiousonly(
+              decoration: AppUtils.commonBoxDecoration(
+                  borderRadius: AppUtils.borderRadiousonly(
                       topright: 15, bottomright: 15)),
               child: Icon(
                 Icons.keyboard_arrow_right,

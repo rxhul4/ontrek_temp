@@ -31,17 +31,17 @@ class _LogInScreenState extends State<LogInScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  WidgetUtils.commonContainer(
-                      margin: WidgetUtils.edgeInsetsOnly(left: 20, right: 20),
+                  AppUtils.commonContainer(
+                      margin: AppUtils.edgeInsetsOnly(left: 20, right: 20),
                       width: double.infinity,
                       // height: MediaQuery.sizeOf(context).height / 2.5,
-                      decoration: WidgetUtils.commonBoxDecoration(
+                      decoration: AppUtils.commonBoxDecoration(
                           color: AppConstant.whiteColor,
-                          borderRadius: WidgetUtils.borderRadiusAll(raduis: 8)),
+                          borderRadius: AppUtils.borderRadiusAll(raduis: 8)),
                       child: Column(
                         children: [
-                          WidgetUtils.commonContainer(
-                            decoration: WidgetUtils.commonBoxDecoration(
+                          AppUtils.commonContainer(
+                            decoration: AppUtils.commonBoxDecoration(
                                 borderRadius: BorderRadius.only(
                                     topLeft: Radius.circular(8),
                                     topRight: Radius.circular(8)),
@@ -55,24 +55,24 @@ class _LogInScreenState extends State<LogInScreen> {
                             height: 60,
                             child: Padding(
                               padding:
-                                  WidgetUtils.edgeInsetsOnly(left: 16, right: 11),
+                                  AppUtils.edgeInsetsOnly(left: 16, right: 11),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  WidgetUtils.commonTextWidget(
+                                  AppUtils.commonTextWidget(
                                       text: "ALREADY MEMBERS",
                                       fontWeight: FontWeight.bold,
                                       textColor: AppConstant.primaryColor),
-                                  WidgetUtils.commonInkWell(
+                                  AppUtils.commonInkWell(
                                     onTap: () {},
-                                    child: WidgetUtils.commonContainer(
-                                      decoration: WidgetUtils.commonBoxDecoration(
+                                    child: AppUtils.commonContainer(
+                                      decoration: AppUtils.commonBoxDecoration(
                                           borderRadius:
-                                              WidgetUtils.borderRadiusAll(
+                                              AppUtils.borderRadiusAll(
                                                   raduis: 5)),
-                                      padding: WidgetUtils.edgeInsetsOnly(
+                                      padding: AppUtils.edgeInsetsOnly(
                                           top: 2, bottom: 2, left: 5, right: 5),
-                                      child: WidgetUtils.commonTextWidget(
+                                      child: AppUtils.commonTextWidget(
                                           text: "Need help?",
                                           letterSpacing: 0.5,
                                           textColor: AppConstant.greyColor),
@@ -83,15 +83,15 @@ class _LogInScreenState extends State<LogInScreen> {
                             ),
                           ),
                           Padding(
-                            padding: WidgetUtils.edgeInsetsOnly(
+                            padding: AppUtils.edgeInsetsOnly(
                                 left: 16, right: 16, top: 30),
                             child: Column(
                               children: [
                                 AppTextField(hintText: "Email"),
-                                WidgetUtils.commonSizedBox(height: 20),
+                                AppUtils.commonSizedBox(height: 20),
                                 AppTextField(hintText: "Password"),
-                                WidgetUtils.commonSizedBox(height: 20),
-                                WidgetUtils.commonElevatedBtn(
+                                AppUtils.commonSizedBox(height: 20),
+                                AppUtils.commonElevatedBtn(
                                     onPressed: () {
                                       // Navigator.push(
                                       //     context,
@@ -104,26 +104,26 @@ class _LogInScreenState extends State<LogInScreen> {
                                     bgColor: AppConstant.btnColor,
                                     height: 45,
                                     width: double.infinity),
-                                WidgetUtils.commonSizedBox(height: 20),
+                                AppUtils.commonSizedBox(height: 20),
                               ],
                             ),
                           ),
                         ],
                       )),
-                  WidgetUtils.commonSizedBox(height: 30),
-                  WidgetUtils.commonTextWidget(
+                  AppUtils.commonSizedBox(height: 30),
+                  AppUtils.commonTextWidget(
                       text: "Don't have an account yet ?",
                       letterSpacing: 0.5,
                       fontWeight: FontWeight.w600,
                       textColor: AppConstant.whiteColor),
-                  WidgetUtils.commonInkWell(
+                  AppUtils.commonInkWell(
                     onTap: () {},
-                    child: WidgetUtils.commonContainer(
-                      decoration: WidgetUtils.commonBoxDecoration(
-                          borderRadius: WidgetUtils.borderRadiusAll(raduis: 5)),
-                      padding: WidgetUtils.edgeInsetsOnly(
+                    child: AppUtils.commonContainer(
+                      decoration: AppUtils.commonBoxDecoration(
+                          borderRadius: AppUtils.borderRadiusAll(raduis: 5)),
+                      padding: AppUtils.edgeInsetsOnly(
                           top: 2, bottom: 2, left: 5, right: 5),
-                      child: WidgetUtils.commonTextWidget(
+                      child: AppUtils.commonTextWidget(
                           text: "Create an account",
                           letterSpacing: 0.5,
                           fontWeight: FontWeight.w600,

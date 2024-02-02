@@ -81,7 +81,7 @@ class _TaskListScreenState extends State<TaskListScreen>
             duration: Duration(milliseconds: 100)),
       ],
       child: Container(
-        decoration: WidgetUtils.commonBoxDecoration(
+        decoration: AppUtils.commonBoxDecoration(
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.15),
@@ -91,14 +91,14 @@ class _TaskListScreenState extends State<TaskListScreen>
               ),
             ],
             borderRadius:
-                WidgetUtils.borderRadiousonly(topright: 18, topleft: 18),
+                AppUtils.borderRadiousonly(topright: 18, topleft: 18),
             color: AppConstant.whiteColor),
         child: SingleChildScrollView(
           controller: widget.scrollController,
           child: Column(
             children: [
-              WidgetUtils.commonContainer(
-                decoration: WidgetUtils.commonBoxDecoration(
+              AppUtils.commonContainer(
+                decoration: AppUtils.commonBoxDecoration(
                   border: Border(
                     bottom: BorderSide(
                       width: 1,
@@ -106,7 +106,7 @@ class _TaskListScreenState extends State<TaskListScreen>
                     ),
                   ),
                   borderRadius:
-                      WidgetUtils.borderRadiousonly(topleft: 18, topright: 18),
+                      AppUtils.borderRadiousonly(topleft: 18, topright: 18),
                   color: Colors.white,
                 ),
                 child: Padding(
@@ -114,39 +114,39 @@ class _TaskListScreenState extends State<TaskListScreen>
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   child: Column(
                     children: [
-                      WidgetUtils.commonContainer(
+                      AppUtils.commonContainer(
                         width: 30,
                         height: 5,
-                        decoration: WidgetUtils.commonBoxDecoration(
+                        decoration: AppUtils.commonBoxDecoration(
                             color: AppConstant.greyColor.withOpacity(0.3),
                             borderRadius:
-                                WidgetUtils.borderRadiusAll(raduis: 12)),
+                                AppUtils.borderRadiusAll(raduis: 12)),
                       ),
                       Row(
                         children: [
-                          WidgetUtils.commonContainer(
+                          AppUtils.commonContainer(
                             height: 45,
                             width: 45,
-                            decoration: WidgetUtils.commonBoxDecoration(
+                            decoration: AppUtils.commonBoxDecoration(
                               shape: BoxShape.circle,
                               color: AppConstant.blueColor,
                               border:
                                   Border.all(color: Colors.grey, width: 1.2),
                             ),
                           ),
-                          WidgetUtils.commonSizedBox(width: 10),
+                          AppUtils.commonSizedBox(width: 10),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                WidgetUtils.commonTextWidget(
+                                AppUtils.commonTextWidget(
                                   text: "Task",
                                   fontWeight: FontWeight.w600,
                                   textColor: AppConstant.blackColor,
                                   letterSpacing: 0.2,
                                   fontSize: 15,
                                 ),
-                                WidgetUtils.commonTextWidget(
+                                AppUtils.commonTextWidget(
                                   text: "Select a task",
                                   fontWeight: FontWeight.w400,
                                   textColor:
@@ -161,12 +161,12 @@ class _TaskListScreenState extends State<TaskListScreen>
                             iconData: Icons.calendar_month,
                             onTap: openDatePicker,
                           ),
-                          WidgetUtils.commonSizedBox(width: 10),
+                          AppUtils.commonSizedBox(width: 10),
                           commonIconWidget(
                             iconData: Icons.add,
                             onTap: NavigateToAddTaskScreen,
                           ),
-                          WidgetUtils.commonSizedBox(width: 10),
+                          AppUtils.commonSizedBox(width: 10),
                           commonIconWidget(
                             iconData: Icons.repeat,
                             onTap: () {},
@@ -179,26 +179,26 @@ class _TaskListScreenState extends State<TaskListScreen>
               ),
               Padding(
                 padding:
-                    WidgetUtils.edgeInsetsOnly(top: 15, left: 30, right: 30),
+                    AppUtils.edgeInsetsOnly(top: 15, left: 30, right: 30),
                 child: Column(
                   children: [
-                    WidgetUtils.commonContainer(
+                    AppUtils.commonContainer(
                         width: MediaQuery.of(context).size.width,
                         height: 30,
-                        decoration: WidgetUtils.commonBoxDecoration(
+                        decoration: AppUtils.commonBoxDecoration(
                             color: AppConstant.greyColor.withOpacity(0.2),
                             borderRadius:
-                                WidgetUtils.borderRadiusAll(raduis: 5)),
+                                AppUtils.borderRadiusAll(raduis: 5)),
                         child: TabBar(
                             controller: tabController,
                             indicatorWeight: 0,
                             dividerHeight: 0.1,
                             indicatorSize: TabBarIndicatorSize.tab,
-                            padding: WidgetUtils.edgeInsetsAll(allPadding: 2.5),
+                            padding: AppUtils.edgeInsetsAll(allPadding: 2.5),
                             indicator: BoxDecoration(
                                 color: AppConstant.blueColor,
                                 borderRadius:
-                                    WidgetUtils.borderRadiusAll(raduis: 5)),
+                                    AppUtils.borderRadiusAll(raduis: 5)),
                             labelColor: Colors.white,
                             labelStyle: const TextStyle(
                               fontWeight: FontWeight.w500,
@@ -251,16 +251,16 @@ class _TaskListScreenState extends State<TaskListScreen>
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        WidgetUtils.commonSizedBox(
+        AppUtils.commonSizedBox(
           height: 100,
           child: const Image(
             image: NetworkImage(
                 'https://img.freepik.com/free-vector/phone-customization-concept-illustration_114360-4313.jpg?w=740&t=st=1706681307~exp=1706681907~hmac=8f1c6ec99afe4718ced3a79d82c4a2ac18e02ac10e72275d713f62911d901586'),
           ),
         ),
-        WidgetUtils.commonTextWidget(
+        AppUtils.commonTextWidget(
             text: 'No task assigned!', textColor: AppConstant.blackColor),
-        WidgetUtils.commonTextWidget(
+        AppUtils.commonTextWidget(
             text: 'New task will be notified',
             textColor: AppConstant.blackColor.withOpacity(0.5)),
       ],
@@ -271,16 +271,16 @@ class _TaskListScreenState extends State<TaskListScreen>
   Widget allTaskTabBar() {
     return Column(
       children: [
-        WidgetUtils.commonSizedBox(
+        AppUtils.commonSizedBox(
           height: 100,
           child: const Image(
             image: NetworkImage(
                 'https://img.freepik.com/free-vector/phone-customization-concept-illustration_114360-4313.jpg?w=740&t=st=1706681307~exp=1706681907~hmac=8f1c6ec99afe4718ced3a79d82c4a2ac18e02ac10e72275d713f62911d901586'),
           ),
         ),
-        WidgetUtils.commonTextWidget(
+        AppUtils.commonTextWidget(
             text: 'No task assigned!', textColor: AppConstant.blackColor),
-        WidgetUtils.commonTextWidget(
+        AppUtils.commonTextWidget(
             text: 'New task will be notified',
             textColor: AppConstant.blackColor.withOpacity(0.5)),
       ],

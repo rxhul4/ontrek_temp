@@ -24,12 +24,12 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
             Navigator.pop(context);
           },
             child: Icon(Icons.arrow_back_ios_new,color: AppConstant.blackColor.withOpacity(0.7),size: 24,)),
-        title: WidgetUtils.commonTextWidget(text: "Access Denied",textColor:AppConstant.blackColor.withOpacity(0.7),fontSize: 18 ),
+        title: AppUtils.commonTextWidget(text: "Access Denied",textColor:AppConstant.blackColor.withOpacity(0.7),fontSize: 18 ),
         centerTitle: true,
         bottom: PreferredSize(
           preferredSize: Size.zero,
-          child: WidgetUtils.commonContainer(
-            decoration: WidgetUtils.commonBoxDecoration(
+          child: AppUtils.commonContainer(
+            decoration: AppUtils.commonBoxDecoration(
               border: Border(
                 bottom: BorderSide(color: AppConstant.blackColor.withOpacity(0.4),width: 0.3)
               )
@@ -44,7 +44,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Center(child: Image.network("https://cdni.iconscout.com/illustration/premium/thumb/access-denied-7345129-5913495.png",width: 200,height: 150,)),
-            WidgetUtils.commonTextWidget(text: "The permission to create task has been\nrestricted, please contact your admin!",textColor: AppConstant.greyColor.withOpacity(0.9),fontSize: 12,textAlign: TextAlign.center,letterSpacing: 0,)
+            AppUtils.commonTextWidget(text: "The permission to create task has been\nrestricted, please contact your admin!",textColor: AppConstant.greyColor.withOpacity(0.9),fontSize: 12,textAlign: TextAlign.center,letterSpacing: 0,)
           ],
         )
     );

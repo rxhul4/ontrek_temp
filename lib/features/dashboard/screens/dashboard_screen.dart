@@ -128,7 +128,7 @@ class DashBoardState extends State<DashBoard> {
               // bottom: MediaQuery.of(context).size.height ,
               child: GoogleMap(
                   zoomControlsEnabled: false,
-                  padding: WidgetUtils.edgeInsetsOnly(
+                  padding: AppUtils.edgeInsetsOnly(
                       bottom: MediaQuery.of(context).size.height * 0.3),
                   mapType: MapType.normal,
                   onMapCreated: (controller) {
@@ -171,9 +171,9 @@ class DashBoardState extends State<DashBoard> {
           ],
         ),
       ),
-      bottomNavigationBar: WidgetUtils.commonContainer(
+      bottomNavigationBar: AppUtils.commonContainer(
         height: 60,
-        decoration: WidgetUtils.commonBoxDecoration(
+        decoration: AppUtils.commonBoxDecoration(
           color: AppConstant.whiteColor,
           border: Border.all(
             color: AppConstant.greyColor.withOpacity(0.3),
@@ -215,7 +215,7 @@ class DashBoardState extends State<DashBoard> {
                           ? Colors.blueAccent
                           : AppConstant.greyColor,
                     ),
-                    WidgetUtils.commonTextWidget(
+                    AppUtils.commonTextWidget(
                       text: lableString[index],
                       textColor: _selectedIndex == index
                           ? Colors.blueAccent

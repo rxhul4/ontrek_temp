@@ -60,7 +60,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         ),
       ],
       child: Container(
-        decoration: WidgetUtils.commonBoxDecoration(
+        decoration: AppUtils.commonBoxDecoration(
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.15),
@@ -71,7 +71,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
             ),
           ],
           borderRadius:
-              WidgetUtils.borderRadiousonly(topright: 18, topleft: 18),
+              AppUtils.borderRadiousonly(topright: 18, topleft: 18),
           color: AppConstant.whiteColor,
         ),
         child: SingleChildScrollView(
@@ -82,8 +82,8 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
             // Aligns children at the center vertically
             children: [
-              WidgetUtils.commonContainer(
-                decoration: WidgetUtils.commonBoxDecoration(
+              AppUtils.commonContainer(
+                decoration: AppUtils.commonBoxDecoration(
                   border: Border(
                     bottom: BorderSide(
                       width: 1,
@@ -91,7 +91,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     ),
                   ),
                   borderRadius:
-                      WidgetUtils.borderRadiousonly(topleft: 18, topright: 18),
+                      AppUtils.borderRadiousonly(topleft: 18, topright: 18),
                   color: Colors.white,
                 ),
                 child: Padding(
@@ -99,27 +99,27 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                   child: Row(
                     children: [
-                      WidgetUtils.commonContainer(
+                      AppUtils.commonContainer(
                         height: 45,
                         width: 45,
-                        decoration: WidgetUtils.commonBoxDecoration(
+                        decoration: AppUtils.commonBoxDecoration(
                           shape: BoxShape.circle,
                           color: AppConstant.greyColor,
                           border: Border.all(color: Colors.red, width: 1.2),
                         ),
                       ),
-                      WidgetUtils.commonSizedBox(width: 10),
+                      AppUtils.commonSizedBox(width: 10),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          WidgetUtils.commonTextWidget(
+                          AppUtils.commonTextWidget(
                             text: "Vatsal",
                             fontWeight: FontWeight.w600,
                             textColor: AppConstant.blackColor,
                             letterSpacing: 0.2,
                             fontSize: 15,
                           ),
-                          WidgetUtils.commonTextWidget(
+                          AppUtils.commonTextWidget(
                             text: "Epistic interiour Pvt Ltd",
                             fontWeight: FontWeight.w500,
                             textColor: AppConstant.blackColor.withOpacity(0.7),
@@ -149,7 +149,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
               !isDayStart.value  ? Visibility(
                 visible: !isTapped,
-                child: WidgetUtils.commonTextWidget(
+                child: AppUtils.commonTextWidget(
                   text:  "Press & Hold",
                   fontSize:  14 ,
                   letterSpacing: 0.2,
@@ -163,7 +163,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   },
                   child: Visibility(
                     visible:  !isFromLogOutButton,
-                    child: WidgetUtils.commonTextWidget(
+                    child: AppUtils.commonTextWidget(
                       text:  "Show Off" ,
                       fontSize:  16 ,
                       letterSpacing: 0.2,
@@ -181,7 +181,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   Future loginFunction() async {
     bool isLocationServiceAvailable =
-        await WidgetUtils.checkLocationServiceAvailability();
+        await AppUtils.checkLocationServiceAvailability();
     PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
     isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
 
@@ -199,7 +199,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   Future checkInFunction() async {
     bool isLocationServiceAvailable =
-        await WidgetUtils.checkLocationServiceAvailability();
+        await AppUtils.checkLocationServiceAvailability();
     PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
     isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
 
@@ -215,7 +215,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   }
   Future checkOutFunction() async {
     bool isLocationServiceAvailable =
-    await WidgetUtils.checkLocationServiceAvailability();
+    await AppUtils.checkLocationServiceAvailability();
     PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
     isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
 
@@ -233,7 +233,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   Future logOutFunction() async {
     try {
       bool isLocationServiceAvailable =
-      await WidgetUtils.checkLocationServiceAvailability();
+      await AppUtils.checkLocationServiceAvailability();
       PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
       PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
       isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
@@ -330,9 +330,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
               child: Animate(
                 effects: [ScaleEffect(begin: Offset(0,0),duration: Duration(milliseconds: 300,),curve: Curves.easeOut)],
 
-                child: WidgetUtils.commonContainer(
+                child: AppUtils.commonContainer(
 
-                  decoration: WidgetUtils.commonBoxDecoration(
+                  decoration: AppUtils.commonBoxDecoration(
                     shape: BoxShape.circle,
 
                   ),
@@ -377,7 +377,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         duration: const Duration(milliseconds: 300),
                         height: isTapped ? 120 : 100,
                         width: isTapped ? 120 : 100,
-                        decoration: WidgetUtils.commonBoxDecoration(
+                        decoration: AppUtils.commonBoxDecoration(
                           color:!isDayStart.value
                               ? Colors.lightGreen.withOpacity(0.8)
                               : Colors.blue.withOpacity(0.7),
@@ -394,7 +394,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                           ],
                         ),
                         child: Center(
-                          child: WidgetUtils.commonTextWidget(
+                          child: AppUtils.commonTextWidget(
                             text: !isDayStart.value
                                 ? "In"
                                 : !isCheckIn.value
@@ -484,9 +484,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         child: Animate(
 
           effects: [ScaleEffect(begin: Offset(0,0),duration: Duration(milliseconds: 300,),curve: Curves.easeOut)],
-          child: WidgetUtils.commonContainer(
+          child: AppUtils.commonContainer(
 
-            decoration: WidgetUtils.commonBoxDecoration(
+            decoration: AppUtils.commonBoxDecoration(
               shape: BoxShape.circle,
             ),
             child: Stack(
@@ -525,7 +525,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   duration: const Duration(milliseconds: 300),
                   height: isFromLogOutButton ? 120 : 100,
                   width: isFromLogOutButton ? 120 : 100,
-                  decoration: WidgetUtils.commonBoxDecoration(
+                  decoration: AppUtils.commonBoxDecoration(
                     color:Colors.red.withOpacity(0.8),
                     shape: BoxShape.circle,
                     boxShadow: [
@@ -538,7 +538,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     ],
                   ),
                   child: Center(
-                    child: WidgetUtils.commonTextWidget(
+                    child: AppUtils.commonTextWidget(
                       text: "Out",
                       fontSize: 16,
                       textColor: Colors.white,

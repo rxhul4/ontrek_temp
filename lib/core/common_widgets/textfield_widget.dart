@@ -27,6 +27,9 @@ class AppTextField extends StatelessWidget {
   String? hintText;
   double? letterSpacing;
   Color? fillColor;
+  Widget? prefixIcon;
+  Widget? suffixIcon;
+  Color? suffixColor;
 
   AppTextField(
       {Key? key,
@@ -52,7 +55,11 @@ class AppTextField extends StatelessWidget {
         this.fillColor,
         this.onTap,
         this.onTapOutside,
-        this.labelTextColor})
+        this.labelTextColor,
+        this.prefixIcon,
+        this.suffixIcon,
+        this.suffixColor,
+      })
       : super(key: key);
 
   @override
@@ -61,21 +68,27 @@ class AppTextField extends StatelessWidget {
       onChanged: onChanged,
       controller: controller,
       onTap: onTap,
+
       onEditingComplete: onEditingComplete,
       onTapOutside: onTapOutside,
       style: TextStyle(
         letterSpacing: letterSpacing,
-        color: inputTextColor ?? AppConstant.btnColor,
+        color: inputTextColor ?? AppConstant.blackColor,
         fontSize: inputTextFontSize ?? 14,
+        fontWeight: FontWeight.w500,
         fontFamily:fontFamily,
       ),
-      keyboardType: textInputType ?? TextInputType.phone,
+      keyboardType: textInputType ?? TextInputType.text,
       cursorColor:  cursorColor ?? AppConstant.primaryColor,
       decoration: InputDecoration(
+        prefixIcon: prefixIcon ?? Icon(Icons.search),
+        prefixIconColor: Colors.black,
+        suffixIcon: suffixIcon,
+        suffixIconColor: suffixColor,
         contentPadding: EdgeInsets.only(left: 10,right: 10),
         alignLabelWithHint: true,
         labelText: labelText,
-        hintText: hintText,
+        hintText: hintText ,
         hintStyle: TextStyle(color: hintTextColor ?? AppConstant.greyColor, fontSize: hintFontSize ?? 14,fontFamily: hintFontFamily),
         labelStyle: TextStyle(color: labelTextColor ?? AppConstant.greyColor, fontSize: labelFontSize ?? 14,fontFamily: labelFontFamily),
         filled: true,

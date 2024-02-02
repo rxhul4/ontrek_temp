@@ -51,7 +51,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ],
       child: Container(
-        decoration: WidgetUtils.commonBoxDecoration(
+        decoration: AppUtils.commonBoxDecoration(
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.15),
@@ -61,14 +61,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ],
             borderRadius:
-                WidgetUtils.borderRadiousonly(topright: 18, topleft: 18),
+                AppUtils.borderRadiousonly(topright: 18, topleft: 18),
             color: AppConstant.whiteColor),
         child: Column(
           children: [
             SingleChildScrollView(
               controller: widget.scrollController,
               physics: NeverScrollableScrollPhysics(),
-              child: WidgetUtils.commonContainer(
+              child: AppUtils.commonContainer(
                 height: MediaQuery.of(context).size.height / 3,
                 width: double.infinity,
                 color: AppConstant.whiteColor.withOpacity(0.3),
@@ -78,10 +78,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Stack(
                       alignment: Alignment.topRight,
                       children: [
-                        WidgetUtils.commonContainer(
+                        AppUtils.commonContainer(
                           height: 80,
                           width: 80,
-                          decoration: WidgetUtils.commonBoxDecoration(
+                          decoration: AppUtils.commonBoxDecoration(
                             shape: BoxShape.circle,
                             color: AppConstant.greyColor.withOpacity(0.3),
                             border: Border.all(
@@ -89,21 +89,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           child: Icon(Icons.person,color: AppConstant.blackColor,size: 40,)
                         ),
-                        WidgetUtils.commonContainer(
+                        AppUtils.commonContainer(
                           padding: EdgeInsets.all(5),
-                          decoration: WidgetUtils.commonBoxDecoration(
+                          decoration: AppUtils.commonBoxDecoration(
                               color: Colors.white, shape: BoxShape.circle),
                           child: Icon(Icons.edit, size: 15),
                         )
                       ],
                     ),
-                    WidgetUtils.commonSizedBox(height: 10),
-                    WidgetUtils.commonTextWidget(
+                    AppUtils.commonSizedBox(height: 10),
+                    AppUtils.commonTextWidget(
                         text: 'Vatsal',
                         textColor: AppConstant.blackColor,
                         fontWeight: FontWeight.w500,
                         fontSize: 18),
-                    WidgetUtils.commonTextWidget(
+                    AppUtils.commonTextWidget(
                         text: 'Epist Interior Pvt Ltd',
                         textColor: AppConstant.blackColor.withOpacity(0.6),
                         fontSize: 12),
@@ -119,10 +119,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               child: ListTile(
                 contentPadding: EdgeInsets.only(left: 10, right: 10),
-                leading: WidgetUtils.commonContainer(
+                leading: AppUtils.commonContainer(
                   width: 40,
                   height: 40,
-                  decoration: WidgetUtils.commonBoxDecoration(
+                  decoration: AppUtils.commonBoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
                           color: AppConstant.greyColor.withOpacity(0.5)),
@@ -130,11 +130,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   child: Icon(Icons.person,color: AppConstant.blackColor,size: 22,)
                 ),
-                title: WidgetUtils.commonTextWidget(
+                title: AppUtils.commonTextWidget(
                     text: 'Kenil Patel',
                     textColor: AppConstant.blackColor,
                     fontWeight: FontWeight.w500),
-                subtitle: WidgetUtils.commonTextWidget(
+                subtitle: AppUtils.commonTextWidget(
                     text: 'Reporting Manager',
                     textColor: AppConstant.blackColor.withOpacity(0.6),
                     fontSize: 12),
@@ -171,8 +171,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const Divider(),
                     Padding(
-                      padding: WidgetUtils.edgeInsetsOnly(left: 10, bottom: 8),
-                      child: WidgetUtils.commonTextWidget(
+                      padding: AppUtils.edgeInsetsOnly(left: 10, bottom: 8),
+                      child: AppUtils.commonTextWidget(
                           text: 'Version', textColor: AppConstant.blackColor),
                     ),
                     // Text('${infoOfDevice?.version.release.toString()}')
@@ -218,8 +218,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ListTile(
           contentPadding: EdgeInsets.only(left: 10),
           leading: Icon(icon, color: AppConstant.blackColor.withOpacity(0.5)),
-          title: WidgetUtils.commonContainer(
-            child: WidgetUtils.commonTextWidget(
+          title: AppUtils.commonContainer(
+            child: AppUtils.commonTextWidget(
                 text: text, textColor: AppConstant.blackColor),
           ),
         ),

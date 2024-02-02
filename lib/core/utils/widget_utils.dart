@@ -3,7 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 
-class WidgetUtils {
+class AppUtils {
   static Widget commonTextWidget({
     required String text,
     Color? textColor,
