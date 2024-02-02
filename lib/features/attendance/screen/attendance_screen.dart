@@ -4,7 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
-import 'package:ontrek/core/utils/widget_utils.dart';
+import 'package:ontrek/core/utils/App_utils.dart';
 
 class AttendanceScreen extends StatefulWidget {
   double? height;

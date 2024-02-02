@@ -5,7 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
-import 'package:ontrek/core/utils/widget_utils.dart';
+import 'package:ontrek/core/utils/App_utils.dart';
 
 class SaleManTracker extends StatefulWidget {
   int? index;

@@ -10,7 +10,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
-import 'package:ontrek/core/utils/widget_utils.dart';
+import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/features/attendance/screen/attendance_screen.dart';
 import 'package:ontrek/features/profile/screen/profile_screen.dart';
 import 'package:ontrek/features/task_list/screen/task_list_screen.dart';

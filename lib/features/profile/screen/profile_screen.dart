@@ -1,10 +1,8 @@
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
-import 'package:ontrek/core/utils/widget_utils.dart';
+import 'package:ontrek/core/utils/App_utils.dart';
 
-import '../../../core/utils/image_path.dart';
 
 class ProfileScreen extends StatefulWidget {
   ScrollController? scrollController;
@@ -19,31 +17,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   DraggableScrollableController draggableScrollableController =
       DraggableScrollableController();
 
-  // AndroidDeviceInfo? infoOfDevice;
-  //
-  // @override
-  // void initState() {
-  //   // TODO: implement initState
-  //   super.initState();
-  //   getDeviceInfo().then((value) {
-  //     infoOfDevice = value;
-  //   });
-  // }
-  //
-  // DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-  //
-  // Future getDeviceInfo() async {
-  //   AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-  //   print('Running on ${androidInfo.model}');
-  //   print('Running on ${androidInfo.product}');
-  //   print('Running on ${androidInfo.version.release}');
-  //   return androidInfo;
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Animate(
-      effects: [
+      effects: const [
         ScaleEffect(
           curve: Curves.bounceIn,
           begin: Offset(0, -1),

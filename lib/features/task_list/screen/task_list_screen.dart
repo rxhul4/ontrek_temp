@@ -4,7 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
-import 'package:ontrek/core/utils/widget_utils.dart';
+import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/features/add_task/screen/add_task_screen.dart';
 
 class TaskListScreen extends StatefulWidget {

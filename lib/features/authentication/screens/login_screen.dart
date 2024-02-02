@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ontrek/core/common_widgets/textfield_widget.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
-import 'package:ontrek/core/utils/widget_utils.dart';
+import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/features/dashboard/screens/dashboard_screen.dart';
 import 'package:upgrader/upgrader.dart';
 
