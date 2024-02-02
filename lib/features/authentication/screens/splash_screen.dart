@@ -1,7 +1,12 @@
 import 'dart:async';
+import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
+import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/features/dashboard/screens/dashboard_screen.dart';
+import 'package:ontrek/features/permissions/location_permission_screen.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -21,22 +26,59 @@ class _SplashScreenState extends State<SplashScreen> {
 
   redirectToLogin() {
     Timer(const Duration(milliseconds: 3000), () {
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => DashBoard()));
+      askPermissionAndRedirect();
+
     });
   }
+
+  Future askPermissionAndRedirect()async{
+    var status = await Permission.location.status;
+    if(status.isGranted){
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => DashBoard(),));
+    }else{
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LocationPermissionScreen() ,));
+
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppConstant.primaryColor,
-      // body: Center(
-      //     child: WidgetUtils.imageAsset(
-      //         imagePath: logoImagePath,
-      //         width: 100,
-      //         height: 100,
-      //         fit: BoxFit.cover,
-      //         imageColor: AppConstant.btnColor)),
+      backgroundColor: AppConstant.blueColor,
+      body: Column(
+        // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        // crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Center(
+                  child: Image.asset(
+                    logoImagePath,
+                    color: AppConstant.whiteColor,
+                    width: 200,
+                    height: 200,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            alignment: Alignment.bottomCenter,
+            margin: AppUtils.edgeInsetsOnly(bottom: 25),
+            child: AppUtils.commonTextWidget(
+              text: "Location Intelligence and Analytics App",
+              fontWeight: FontWeight.w400,
+              textColor: AppConstant.whiteColor,
+              fontSize: 13,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      )
+
     );
   }
 }

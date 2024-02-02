@@ -1,10 +1,12 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class AttendanceScreen extends StatefulWidget {
   double? height;
@@ -22,13 +24,16 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     with SingleTickerProviderStateMixin {
   AnimationController? controller;
   DraggableScrollableController draggableScrollableController =
-      DraggableScrollableController();
+  DraggableScrollableController();
+  LocalAuthentication _localAuthentication = LocalAuthentication();
+  bool isBiometricAvailable = false;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     initAnimateController();
+    checkBiometricAvailable();
     isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
     isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
   }
@@ -48,6 +53,12 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   bool isFromLogOutButton = false;
   bool isLoading = false;
 
+  checkBiometricAvailable() async {
+    isBiometricAvailable = await _localAuthentication.canCheckBiometrics;
+    if (kDebugMode) {
+      print("isBiometricAvailable $isBiometricAvailable");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +82,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
             ),
           ],
           borderRadius:
-              AppUtils.borderRadiousonly(topright: 18, topleft: 18),
+          AppUtils.borderRadiousonly(topright: 18, topleft: 18),
           color: AppConstant.whiteColor,
         ),
         child: SingleChildScrollView(
@@ -91,12 +102,12 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     ),
                   ),
                   borderRadius:
-                      AppUtils.borderRadiousonly(topleft: 18, topright: 18),
+                  AppUtils.borderRadiousonly(topleft: 18, topright: 18),
                   color: Colors.white,
                 ),
                 child: Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                   child: Row(
                     children: [
                       AppUtils.commonContainer(
@@ -139,7 +150,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 valueListenable: isDayEnd,
                 builder: (context, value, child) {
                   return Center(
-                    child: !isDayEnd.value ? buttonWidget() :  logOut(),
+                    child: !isDayEnd.value ? buttonWidget() : logOut(),
                   );
                 },
               ),
@@ -147,28 +158,28 @@ class _AttendanceScreenState extends State<AttendanceScreen>
               SizedBox(height: 30),
               // Added vertical spacing
 
-              !isDayStart.value  ? Visibility(
+              !isDayStart.value ? Visibility(
                 visible: !isTapped,
                 child: AppUtils.commonTextWidget(
-                  text:  "Press & Hold",
-                  fontSize:  14 ,
+                  text: "Press & Hold",
+                  fontSize: 14,
                   letterSpacing: 0.2,
-                  fontWeight: FontWeight.w600 ,
+                  fontWeight: FontWeight.w600,
                   textColor:
-                   AppConstant.blackColor ,
+                  AppConstant.blackColor,
                 ),
-              ):GestureDetector(
+              ) : GestureDetector(
                   onTap: () {
                     isDayEnd.value = true;
                   },
                   child: Visibility(
-                    visible:  !isFromLogOutButton,
+                    visible: !isFromLogOutButton,
                     child: AppUtils.commonTextWidget(
-                      text:  "Show Off" ,
-                      fontSize:  16 ,
+                      text: "Show Off",
+                      fontSize: 14,
                       letterSpacing: 0.2,
-                      fontWeight: FontWeight.w600 ,
-                      textColor: Colors.red ,
+                      fontWeight: FontWeight.w600,
+                      textColor: Colors.red,
                     ),
                   )
               ),
@@ -180,8 +191,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   }
 
   Future loginFunction() async {
+
     bool isLocationServiceAvailable =
-        await AppUtils.checkLocationServiceAvailability();
+    await AppUtils.checkLocationServiceAvailability();
     PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
     isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
 
@@ -199,7 +211,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   Future checkInFunction() async {
     bool isLocationServiceAvailable =
-        await AppUtils.checkLocationServiceAvailability();
+    await AppUtils.checkLocationServiceAvailability();
     PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
     isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
 
@@ -213,6 +225,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       }
     }
   }
+
   Future checkOutFunction() async {
     bool isLocationServiceAvailable =
     await AppUtils.checkLocationServiceAvailability();
@@ -261,56 +274,63 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           valueListenable: isCheckIn,
           builder: (context, value, child) {
             return GestureDetector(
-              onHorizontalDragStart: (details) {
-                setState(() {
-                  isTapped = true;
-                });
-                controller?.forward();
-              },
-              onVerticalDragStart: (details) {
-                setState(() {
-                  isTapped = true;
-                });
-                controller?.forward();
-              },
-              onVerticalDragEnd: (details) {
-                setState(() {
-                  isTapped = false;
-                });
-                controller?.reverse();
-              },
-              onHorizontalDragEnd: (details) {
-                setState(() {
-                  isTapped = false;
-                });
-                controller?.reverse();
-              },
+              // onHorizontalDragStart: (details) {
+              //   setState(() {
+              //     isTapped = true;
+              //   });
+              //   controller?.forward();
+              // },
+              // onVerticalDragStart: (details) {
+              //   setState(() {
+              //     isTapped = true;
+              //   });
+              //   controller?.forward();
+              // },
+              // onVerticalDragEnd: (details) {
+              //   setState(() {
+              //     isTapped = false;
+              //   });
+              //   controller?.reverse();
+              // },
+              // onHorizontalDragEnd: (details) {
+              //   setState(() {
+              //     isTapped = false;
+              //   });
+              //   controller?.reverse();
+              // },
               onTapDown: (details) {
                 setState(() {
                   isTapped = true;
                 });
-                controller?.forward().whenComplete(() {
-                  controller?.reset();
-                  if (!isDayStart.value) {
-                    loginFunction().then((value) {
-                      if (widget.onLocationFetch != null) {
-                        widget.onLocationFetch!(value);
+                controller?.forward().whenComplete(() async{
+                  if (await Permission
+                      .locationAlways.isGranted){
+                    doLocalVerification(() {
+                      controller?.reset();
+                      if (!isDayStart.value) {
 
+                        loginFunction().then((value) {
+                          if (widget.onLocationFetch != null) {
+                            widget.onLocationFetch!(value);
+                          }
+                        });
+                      } else if (!isCheckIn.value) {
+                        checkInFunction().then((value) {
+                          if (widget.onLocationFetch != null) {
+                            widget.onLocationFetch!(value);
+                          }
+                        });
+                      } else {
+                        checkOutFunction().then((value) {
+                          if (widget.onLocationFetch != null) {
+                            widget.onLocationFetch!(value);
+                            // isDayEnd.value = false;
+                          }
+                        });
                       }
                     });
-                  } else if (!isCheckIn.value) {
-                    checkInFunction().then((value) {
-                      if (widget.onLocationFetch != null) {
-                        widget.onLocationFetch!(value);
-                      }
-                    });
-                  }else {
-                    checkOutFunction().then((value) {
-                      if (widget.onLocationFetch != null) {
-                        widget.onLocationFetch!(value);
-                        // isDayEnd.value = false;
-                      }
-                    });
+                  }else{
+                    openAppSettings();
                   }
 
                 });
@@ -328,7 +348,11 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 controller?.reverse();
               },
               child: Animate(
-                effects: [ScaleEffect(begin: Offset(0,0),duration: Duration(milliseconds: 300,),curve: Curves.easeOut)],
+                effects: [
+                  ScaleEffect(begin: Offset(0, 0),
+                      duration: Duration(milliseconds: 300,),
+                      curve: Curves.easeOut)
+                ],
 
                 child: AppUtils.commonContainer(
 
@@ -378,7 +402,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         height: isTapped ? 120 : 100,
                         width: isTapped ? 120 : 100,
                         decoration: AppUtils.commonBoxDecoration(
-                          color:!isDayStart.value
+                          color: !isDayStart.value
                               ? Colors.lightGreen.withOpacity(0.8)
                               : Colors.blue.withOpacity(0.7),
                           shape: BoxShape.circle,
@@ -400,7 +424,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                 : !isCheckIn.value
                                 ? "Check-In"
                                 : "Check-Out",
-                            fontSize: !isDayStart.value ? 26 : 14,
+                            fontSize: !isDayStart.value ? 22 : 13,
                             textColor: Colors.white,
                             fontWeight: FontWeight.w600,
                           ),
@@ -417,56 +441,62 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       },
     );
   }
+
   Widget logOut() {
     return Animate(
-      effects: [ScaleEffect(begin: Offset(0,0),duration: Duration(milliseconds: 300,),curve: Curves.easeOut)],
+      effects: [
+        ScaleEffect(begin: Offset(0, 0),
+            duration: Duration(milliseconds: 300,),
+            curve: Curves.easeOut)
+      ],
       child: GestureDetector(
-        onHorizontalDragStart: (details) {
-          setState(() {
-            isFromLogOutButton = true;
-          });
-          controller?.forward();
-        },
-        onVerticalDragStart: (details) {
-          setState(() {
-            isFromLogOutButton = true;
-          });
-          controller?.forward();
-        },
-        onVerticalDragEnd: (details) {
-          setState(() {
-            isFromLogOutButton = false;
-          });
-          controller?.reverse();
-        },
-        onHorizontalDragEnd: (details) {
-          setState(() {
-            isFromLogOutButton = false;
-          });
-          controller?.reverse();
-        },
+        // onHorizontalDragStart: (details) {
+        //   setState(() {
+        //     isFromLogOutButton = true;
+        //   });
+        //   controller?.forward();
+        // },
+        // onVerticalDragStart: (details) {
+        //   setState(() {
+        //     isFromLogOutButton = true;
+        //   });
+        //   controller?.forward();
+        // },
+        // onVerticalDragEnd: (details) {
+        //   setState(() {
+        //     isFromLogOutButton = false;
+        //   });
+        //   controller?.reverse();
+        // },
+        // onHorizontalDragEnd: (details) {
+        //   setState(() {
+        //     isFromLogOutButton = false;
+        //   });
+        //   controller?.reverse();
+        // },
         onTapDown: (details) {
           setState(() {
             isFromLogOutButton = true;
           });
           controller?.forward().whenComplete(() {
-            controller?.reset();
-            setState(() {
-              isLoading = true;
-            });
-            if(isDayStart.value){
-              logOutFunction().then((value) {
-                if(widget.onLocationFetch != null){
-                  widget.onLocationFetch!(value);
-                  isFromLogOutButton = false;
-                }
-                isDayEnd.value = false;
-                setState(() {
-                  isLoading = false;
-                });
-              });
-
-            }
+           doLocalVerification((){
+             controller?.reset();
+             setState(() {
+               isLoading = true;
+             });
+             if (isDayStart.value) {
+               logOutFunction().then((value) {
+                 if (widget.onLocationFetch != null) {
+                   widget.onLocationFetch!(value);
+                   isFromLogOutButton = false;
+                 }
+                 isDayEnd.value = false;
+                 setState(() {
+                   isLoading = false;
+                 });
+               });
+             }
+           });
           });
         },
         onTapUp: (details) {
@@ -476,14 +506,14 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           controller?.reverse();
         },
 
-        // child: AnimatedBuilder(
-        //   animation: controller!,
-        //   builder: (BuildContext context, Widget? child) {
-        //     double scaleFactor =
-        //         isTaped ? 2.0 : 1.0; // Adjust the scale factor as needed
+
         child: Animate(
 
-          effects: [ScaleEffect(begin: Offset(0,0),duration: Duration(milliseconds: 300,),curve: Curves.easeOut)],
+          effects: const [
+            ScaleEffect(begin: Offset(0, 0),
+                duration: Duration(milliseconds: 300,),
+                curve: Curves.easeOut)
+          ],
           child: AppUtils.commonContainer(
 
             decoration: AppUtils.commonBoxDecoration(
@@ -521,12 +551,12 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 ),
 
                 AnimatedContainer(
-                  margin: EdgeInsets.all(3),
+                  margin: const EdgeInsets.all(3),
                   duration: const Duration(milliseconds: 300),
                   height: isFromLogOutButton ? 120 : 100,
                   width: isFromLogOutButton ? 120 : 100,
                   decoration: AppUtils.commonBoxDecoration(
-                    color:Colors.red.withOpacity(0.8),
+                    color: Colors.red.withOpacity(0.8),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
@@ -540,7 +570,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   child: Center(
                     child: AppUtils.commonTextWidget(
                       text: "Out",
-                      fontSize: 16,
+                      fontSize: 20,
                       textColor: Colors.white,
                       fontWeight: FontWeight.w600,
                     ),
@@ -554,6 +584,77 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         // ),
       ),
     );
+  }
+
+  openDialogFnc(String text) {
+    showDialog(
+      context: context,
+      builder: (context) => showDialogBox(text, context),
+    );
+  }
+
+  AlertDialog showDialogBox(String text, BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(10))),
+      // Remove border radius
+      insetPadding: const EdgeInsets.all(0),
+      titlePadding: const EdgeInsets.all(0),
+      contentPadding: const EdgeInsets.only(
+          top: 30, bottom: 10, left: 20, right: 20),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Text(text, textAlign: TextAlign.center,),
+          AppUtils.commonTextWidget(text: text,textAlign: TextAlign.center,textColor: AppConstant.blackColor,fontWeight: FontWeight.w400),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                style: TextButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: AppUtils.commonTextWidget(text: "OK",textColor: AppConstant.blueColor,letterSpacing: 1,fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  doLocalVerification(Function afterSuccessfulVerificationFnc) async {
+    if (isBiometricAvailable) {
+      bool isAuthenticated = await _localAuthentication.authenticate(
+          localizedReason: "Authenticate using Biometrics",
+          options: const AuthenticationOptions(
+              stickyAuth: true, useErrorDialogs: true));
+      if (isAuthenticated) {
+        if (kDebugMode) {
+          print("isAuthenticated $isAuthenticated");
+        }
+
+        // openDialogFnc("Authentication Successful");
+        afterSuccessfulVerificationFnc();
+      } else {
+        if (kDebugMode) {
+          print("isAuthenticated $isAuthenticated");
+        }
+        openDialogFnc("Authentication Fail! Please Try Again");
+      }
+    } else {
+      if (kDebugMode) {
+        print("Biometric Auth is not available on this device");
+      }
+      showDialog(
+        context: context,
+        builder: (context) =>
+            showDialogBox(
+                "Biometric Auth is not available on this device",context),
+      );
+    }
   }
 
 }

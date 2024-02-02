@@ -1,11 +1,15 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
+import 'package:ontrek/core/utils/image_path.dart';
+import 'package:timeline_tile/timeline_tile.dart';
 
 class SaleManTracker extends StatefulWidget {
   int? index;
@@ -112,8 +116,8 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                 return AppUtils.commonContainer(
                   decoration: AppUtils.commonBoxDecoration(
                     color: AppConstant.whiteColor,
-                    borderRadius: AppUtils.borderRadiousonly(
-                        topleft: 15, topright: 15),
+                    borderRadius:
+                        AppUtils.borderRadiousonly(topleft: 15, topright: 15),
                     boxShadow: [
                       BoxShadow(
                         color: AppConstant.greyColor.withOpacity(0.5),
@@ -150,8 +154,8 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                                   decoration: AppUtils.commonBoxDecoration(
                                       color: AppConstant.greyColor
                                           .withOpacity(0.3),
-                                      borderRadius: AppUtils.borderRadiusAll(
-                                          raduis: 12)),
+                                      borderRadius:
+                                          AppUtils.borderRadiusAll(raduis: 12)),
                                 ),
                                 Row(
                                   children: [
@@ -208,8 +212,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                           ),
                         ),
                         AppUtils.commonContainer(
-                          padding:
-                              AppUtils.edgeInsetsOnly(top: 20, bottom: 20),
+                          padding: AppUtils.edgeInsetsOnly(top: 20, bottom: 20),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             boxShadow: [
@@ -243,8 +246,78 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                           ),
                         ),
                         Align(
-                            alignment: Alignment.topCenter,
-                            child: dateSelectionWidget(isFromSheet: true)),
+                          alignment: Alignment.topCenter,
+                          child: dateSelectionWidget(isFromSheet: true),
+                        ),
+                        ListView.builder(
+                          itemCount: iconList.length,
+                          physics: const NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemBuilder: (context, index) {
+                            DateTime dateTime = DateTime.now();
+                            var formatTime = AppUtils.dateFormat(date: dateTime,dateFormat: "HH:mm aa");
+                            var formattedDate = AppUtils.dateFormat(date: dateTime,dateFormat: "d MMM y");
+                            String indicatorText = 'Indicator ${index + 1}'; // Example indicator text
+
+                            return TimelineTile(
+                              hasIndicator: true,
+                              axis: TimelineAxis.vertical,
+                              lineXY: 0.48,
+                              isLast: index ==iconList.length - 1,
+                              isFirst: index ==iconList.first ,
+                              indicatorStyle: IndicatorStyle(
+                                indicatorXY: 0,
+                                drawGap: true,
+                                height: 40,
+                                width: 40,
+                                indicator: AppUtils.commonContainer(
+                                  decoration: AppUtils.commonBoxDecoration(
+                                    // color: Colors.lightGreen,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Center(child: Image.asset(iconList[index])),
+                                ),
+                              ),
+                              beforeLineStyle:  LineStyle(
+                                color: AppConstant.primaryColor,
+                                thickness: 1,
+                              ),
+                              afterLineStyle:  LineStyle(
+                                color: AppConstant.primaryColor,
+                                thickness: 1,
+                              ),
+                              startChild: AppUtils.commonContainer(
+                                padding: AppUtils.edgeInsetsOnly(top: 10),
+                                margin: AppUtils.edgeInsetsOnly(left: 50),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+
+                                    AppUtils.commonTextWidget(text: "${formattedDate}",textColor: AppConstant.greyColor,fontWeight: FontWeight.w400,fontSize: 16),
+                                    AppUtils.commonTextWidget(text: "${formatTime}",textColor: AppConstant.blackColor,fontWeight: FontWeight.w400,fontSize: 14),
+
+                                  ],
+                                ),
+                              ),
+                              endChild:  AppUtils.commonContainer(
+                                padding: AppUtils.edgeInsetsOnly(top: 5),
+                                margin: AppUtils.edgeInsetsOnly(right: 10,bottom: 20,left: 10),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+
+                                    AppUtils.commonTextWidget(text: "Logged In",textColor: Colors.lightGreen,fontWeight: FontWeight.w400,fontSize: 16),
+                                    AppUtils.commonTextWidget(text: "Shop No.15,Aniket Regime,Guda Garden Rd,Opp. Swarnim Bunglows, Rayasan, Gujarat, 382421,India dtaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ",textColor: AppConstant.blackColor,fontWeight: FontWeight.w400,fontSize: 14),
+
+                                  ],
+                                ),
+                              ),
+                              alignment: TimelineAlign.manual,
+                            );
+                          },
+                        )
+
+
                       ],
                     ),
                   ),
@@ -256,6 +329,25 @@ class _SaleManTrackerState extends State<SaleManTracker> {
       ),
     );
   }
+
+  List<String> nameList = [
+    "Logged In"
+    "Checked In"
+    "Checked Out"
+    "Waiting - 19 Min"
+    "Gps"
+    "Logged Out"
+  ];
+
+ List<String> iconList = [
+   loginIcon,
+   checkInIcon,
+   checkOutIcon,
+   waitingIcon,
+   gpsIcon,
+   logoutIcon,
+
+ ];
 
   Widget travelInfoRowWidget(
       {IconData? iconData,

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -15,6 +16,7 @@ import 'package:ontrek/features/attendance/screen/attendance_screen.dart';
 import 'package:ontrek/features/profile/screen/profile_screen.dart';
 import 'package:ontrek/features/task_list/screen/task_list_screen.dart';
 import 'package:ontrek/features/track_function/screen/track_screen.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class DashBoard extends StatefulWidget {
   const DashBoard({super.key});
@@ -112,9 +114,21 @@ class DashBoardState extends State<DashBoard> {
   @override
   void initState() {
     super.initState();
-    getCurrentLocation();
+    checkPermission();
+
   }
 
+  Future checkPermission() async {
+    final status = await Permission.location.status;
+    if (status.isDenied) {
+      await Permission.location.request();
+    } else if (status.isPermanentlyDenied) {
+      AppSettings.openAppSettings(type: AppSettingsType.location);
+    } else {
+      // Location permission is granted
+      await getCurrentLocation();
+    }
+  }
   DraggableScrollableController draggableScrollableController =
       DraggableScrollableController();
 
@@ -155,6 +169,7 @@ class DashBoardState extends State<DashBoard> {
                     AttendanceScreen(
                         scrollController: scrollController,
                         onLocationFetch: (value) {
+
                           setState(() {
                             currentLocation =
                                 LatLng(value.latitude, value.longitude);

@@ -26,7 +26,7 @@ class AppUtils {
         letterSpacing: letterSpacing ??0.2 ,
         fontWeight: fontWeight,
         height: height,
-        fontFamily: "Open Sans",
+        fontFamily: "Poppins",
       ),
     );
   }
