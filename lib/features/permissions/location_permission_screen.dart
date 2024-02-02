@@ -67,7 +67,7 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
                 text: "ENABLE LOCATION",
                 bgColor: AppConstant.blueColor.withOpacity(0.9),
                 borderRadiusAll: 30,
-                onPressed:_askLocationPermission
+                onPressed: askLocationPermission
               ),
               AppUtils.commonInkWell(
                   child: AppUtils.commonTextWidget(
@@ -89,11 +89,11 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
   }
 
 
-  Future<void> _askLocationPermission() async {
+  Future<void> askLocationPermission() async {
     final status = await Permission.location.status;
     if (status.isDenied) {
       // Permission still denied, ask again
-      await _askLocationPermission();
+      await askLocationPermission();
     } else if (status.isPermanentlyDenied) {
       // Permission permanently denied, show custom popup
       AppSettings.openAppSettings(type: AppSettingsType.location);
