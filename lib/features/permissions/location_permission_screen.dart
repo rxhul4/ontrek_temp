@@ -90,7 +90,7 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
 
 
   Future<void> askLocationPermission() async {
-    final status = await Permission.location.status;
+    final status = await Permission.location.request();
     if (status.isDenied) {
       // Permission still denied, ask again
       await askLocationPermission();
