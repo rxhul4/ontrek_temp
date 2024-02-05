@@ -11,10 +11,13 @@ import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 
+import 'local_model.dart';
+
 class SaleManTracker extends StatefulWidget {
   int? index;
+  String? name;
 
-  SaleManTracker({super.key, this.index});
+  SaleManTracker({super.key, this.index,this.name});
 
   @override
   State<SaleManTracker> createState() => _SaleManTrackerState();
@@ -177,7 +180,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           AppUtils.commonTextWidget(
-                                            text: "You",
+                                            text: widget.name ?? "",
                                             fontWeight: FontWeight.w600,
                                             textColor: AppConstant.blackColor,
                                             letterSpacing: 0.2,
@@ -198,13 +201,13 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                                     commonIconWidget(
                                       iconData: Icons.call,
                                       color: AppConstant.blueColor,
-                                      onTap: () {},
+                                      onTap: openDialogFnc,
                                     ),
-                                    AppUtils.commonSizedBox(width: 10),
-                                    commonIconWidget(
-                                      iconData: Icons.more_vert,
-                                      onTap: () {},
-                                    ),
+                                    // AppUtils.commonSizedBox(width: 10),
+                                    // commonIconWidget(
+                                    //   iconData: Icons.more_vert,
+                                    //   onTap: () {},
+                                    // ),
                                   ],
                                 ),
                               ],
@@ -250,7 +253,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                           child: dateSelectionWidget(isFromSheet: true),
                         ),
                         ListView.builder(
-                          itemCount: iconList.length,
+                          itemCount: userList.length,
                           physics: const NeverScrollableScrollPhysics(),
                           shrinkWrap: true,
                           itemBuilder: (context, index) {
@@ -264,7 +267,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                               axis: TimelineAxis.vertical,
                               lineXY: 0.48,
                               isLast: index ==iconList.length - 1,
-                              isFirst: index ==iconList.first ,
+                              isFirst: index == iconList.first ,
                               indicatorStyle: IndicatorStyle(
                                 indicatorXY: 0,
                                 drawGap: true,
@@ -293,8 +296,8 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
 
-                                    AppUtils.commonTextWidget(text: "${formattedDate}",textColor: AppConstant.greyColor,fontWeight: FontWeight.w400,fontSize: 16),
-                                    AppUtils.commonTextWidget(text: "${formatTime}",textColor: AppConstant.blackColor,fontWeight: FontWeight.w400,fontSize: 14),
+                                    AppUtils.commonTextWidget(text: /*"${formattedDate}"*/ userList[index].eventDate,textColor: AppConstant.greyColor,fontWeight: FontWeight.w400,fontSize: 16),
+                                    AppUtils.commonTextWidget(text: /*"${formatTime}"*/userList[index].eventTime,textColor: AppConstant.blackColor,fontWeight: FontWeight.w400,fontSize: 14),
 
                                   ],
                                 ),
@@ -306,8 +309,8 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
 
-                                    AppUtils.commonTextWidget(text: "Logged In",textColor: Colors.lightGreen,fontWeight: FontWeight.w400,fontSize: 16),
-                                    AppUtils.commonTextWidget(text: "Shop No.15,Aniket Regime,Guda Garden Rd,Opp. Swarnim Bunglows, Rayasan, Gujarat, 382421,India dtaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ",textColor: AppConstant.blackColor,fontWeight: FontWeight.w400,fontSize: 14),
+                                    AppUtils.commonTextWidget(text: userList[index].statusOfEvent,textColor: Colors.lightGreen,fontWeight: FontWeight.w400,fontSize: 16),
+                                    AppUtils.commonTextWidget(text: userList[index].eventAddress,textColor: AppConstant.blackColor,fontWeight: FontWeight.w400,fontSize: 14),
 
                                   ],
                                 ),
@@ -363,16 +366,18 @@ class _SaleManTrackerState extends State<SaleManTracker> {
         ),
         AppUtils.commonSizedBox(height: 5),
         AppUtils.commonTextWidget(
+          fontWeight: FontWeight.w500,
             text: textData ?? "",
             textColor: AppConstant.blackColor,
             fontSize: 12,
-            letterSpacing: 2),
+            letterSpacing: 1),
         AppUtils.commonSizedBox(height: 5),
         AppUtils.commonTextWidget(
+            fontWeight: FontWeight.w500,
             text: typeOfText ?? "",
             textColor: AppConstant.greyColor.withOpacity(0.8),
             fontSize: 12,
-            letterSpacing: 2),
+            letterSpacing: 1),
       ],
     );
   }
@@ -536,6 +541,169 @@ class _SaleManTrackerState extends State<SaleManTracker> {
       ),
     );
   }
+
+  openDialogFnc() {
+    showDialog(
+      context: context,
+      builder: (context) => showDialogBox(context),
+    );
+  }
+  AlertDialog showDialogBox(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppConstant.blueColor,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(10))),
+
+      contentPadding: AppUtils.edgeInsetsOnly(
+          right: 15,
+          left: 15,
+          top: 10,
+          bottom: 10),
+      insetPadding: AppUtils.edgeInsetsAll(
+          allPadding: 0),
+      titlePadding: AppUtils.edgeInsetsAll(
+          allPadding: 0),
+      content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment:
+              MainAxisAlignment
+                  .spaceBetween,
+              children: [
+                AppUtils.commonSizedBox(
+                  height: 40,
+                  width: 40,
+                ),
+                AppUtils.commonTextWidget(
+                  // textColor: App,
+                    text: "Contact Info",
+                    fontSize: 16),
+                AppUtils.commonContainer(
+                    height: 40,
+                    width: 40,
+                    child: IconButton(
+                        color: AppConstant.whiteColor,
+                        onPressed: () {
+                          Navigator.pop(
+                              context);
+                        },
+                        icon: Icon(
+                            Icons.close)))
+              ],
+            ),
+            AppUtils.commonSizedBox(
+                height: 10),
+
+            Visibility(
+              visible: false,
+              child: AppUtils.commonTextWidget(
+                margin: AppUtils.edgeInsetsOnly(top: 30,bottom: 30),
+                text: "No contact info found",
+                fontSize: 14,
+              ),
+            ),
+
+            Visibility(
+              visible:true,
+              child: GestureDetector(
+                onTap: () {
+                  // AppUtils.launchToBrowser(
+                  //     Uri.parse(
+                  //         "tel:${getSalesMenListModelData?[index].primaryPhoneNo}"));
+                },
+                child: AppUtils.commonContainer(
+                  padding:
+                  AppUtils.edgeInsetsAll(
+                      allPadding: 15),
+                  width: double.infinity,
+                  decoration: AppUtils
+                      .commonBoxDecoration(
+                      border: Border.all(
+                        color: AppConstant.greyColor.withOpacity(0.5),
+                        width: 1,),
+                      borderRadius:
+                      BorderRadius.circular(
+                          5),
+                      color: AppConstant.whiteColor
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.call,
+                          color: AppConstant.blueColor
+                      ),
+                      AppUtils.commonSizedBox(
+                          width: 5),
+                      AppUtils.commonTextWidget(
+                          letterSpacing: 2,
+                          text: "910679588",
+                          // text: getSalesMenListModelData?[
+                          // index]
+                          //     .primaryPhoneNo ??
+                          //     '',
+                          fontSize: 14,
+                          textColor: AppConstant.blueColor
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            AppUtils.commonSizedBox(
+                height: 10),
+            Visibility(
+              visible:true,
+              child: GestureDetector(
+                onTap: () {
+                  // AppUtils.launchToBrowser(
+                  //     Uri.parse(
+                  //         "tel:${getSalesMenListModelData?[index].altPhoneNo}"));
+                },
+                child: AppUtils.commonContainer(
+                  padding:
+                  AppUtils.edgeInsetsAll(
+                      allPadding: 15),
+                  width: double.infinity,
+                  decoration: AppUtils
+                      .commonBoxDecoration(
+                    border: Border.all(
+                        color:AppConstant.greyColor.withOpacity(0.5),
+                        width: 1),
+                    borderRadius:
+                    BorderRadius.circular(
+                        5),
+                    color: AppConstant.whiteColor,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.call,
+                          color : AppConstant.blueColor
+                      ),
+                      AppUtils.commonSizedBox(
+                          width: 5),
+                      AppUtils.commonTextWidget(letterSpacing: 2,
+                          text: "7435019181",
+                          // text: getSalesMenListModelData?[
+                          // index]
+                          //     .altPhoneNo ??
+                          //     '',
+                          fontSize: 14,
+                          textColor: AppConstant.blueColor
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            AppUtils.commonSizedBox(
+                height: 10),
+          ]),
+    );
+  }
+
+
+
+
 
   DateTime? selectedDate;
 

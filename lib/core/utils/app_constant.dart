@@ -22,6 +22,7 @@ class AppConstant {
   static Color primaryColor = const Color.fromRGBO(255, 185, 51, 1);
   static Color btnColor = const Color.fromRGBO(26,83,92, 1);
   static Color textFieldBgColor = const Color.fromRGBO(244,248,249, 1);
+  static const Color greyWithShade = Color.fromRGBO(245, 246, 250, 1);
 
 
   static Color transparentColor = const Color(0x00000000);

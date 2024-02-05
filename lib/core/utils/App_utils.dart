@@ -215,8 +215,8 @@ class AppUtils {
     return ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         duration: const Duration(milliseconds: 800),
-        content: Text(message),
-        backgroundColor: Colors.green ?? giveColor,
+        content: AppUtils.commonTextWidget(text: message,textColor: AppConstant.whiteColor),
+        backgroundColor: Colors.blue ?? giveColor,
       ),
     );
   }

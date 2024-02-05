@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:ontrek/features/check_out/check_out_form_screen.dart';
 
 class AttendanceScreen extends StatefulWidget {
   double? height;
@@ -25,7 +26,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     with SingleTickerProviderStateMixin {
   AnimationController? controller;
   DraggableScrollableController draggableScrollableController =
-      DraggableScrollableController();
+  DraggableScrollableController();
   LocalAuthentication _localAuthentication = LocalAuthentication();
   bool isBiometricAvailable = false;
 
@@ -53,6 +54,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   bool isTapped = false;
   bool isFromLogOutButton = false;
   bool isLoading = false;
+  Position? position;
 
   checkBiometricAvailable() async {
     isBiometricAvailable = await _localAuthentication.canCheckBiometrics;
@@ -63,136 +65,144 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Animate(
-      effects: const [
-        ScaleEffect(
-          curve: Curves.ease,
-          begin: Offset(0, -1),
-          duration: Duration(milliseconds: 100),
-        ),
-      ],
-      child: Container(
-        decoration: AppUtils.commonBoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.15),
-              spreadRadius: 0,
-              blurRadius: 8,
+    return Container(
+      decoration: AppUtils.commonBoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            spreadRadius: 0,
+            blurRadius: 8,
 
-              offset: Offset(0, -10), // This will create a top shadow
-            ),
-          ],
-          borderRadius: AppUtils.borderRadiousonly(topright: 18, topleft: 18),
-          color: AppConstant.whiteColor,
-        ),
-        child: SingleChildScrollView(
-          controller: widget.scrollController,
-          physics: NeverScrollableScrollPhysics(),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-
-            // Aligns children at the center vertically
-            children: [
-              AppUtils.commonContainer(
-                decoration: AppUtils.commonBoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      width: 1,
-                      color: AppConstant.greyColor.withOpacity(0.3),
-                    ),
-                  ),
-                  borderRadius:
-                      AppUtils.borderRadiousonly(topleft: 18, topright: 18),
-                  color: Colors.white,
-                ),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                  child: Row(
-                    children: [
-                      AppUtils.commonContainer(
-                        height: 45,
-                        width: 45,
-                        decoration: AppUtils.commonBoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppConstant.greyColor,
-                          border: Border.all(color: Colors.red, width: 1.2),
-                        ),
-                      ),
-                      AppUtils.commonSizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          AppUtils.commonTextWidget(
-                            text: "Vatsal",
-                            fontWeight: FontWeight.w600,
-                            textColor: AppConstant.blackColor,
-                            letterSpacing: 0.2,
-                            fontSize: 15,
-                          ),
-                          AppUtils.commonTextWidget(
-                            text: "Epistic interiour Pvt Ltd",
-                            fontWeight: FontWeight.w500,
-                            textColor: AppConstant.blackColor.withOpacity(0.7),
-                            letterSpacing: 0.1,
-                            fontSize: 13,
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(height: 40),
-              // Added vertical spacing
-
-              ValueListenableBuilder(
-                valueListenable: isDayEnd,
-                builder: (context, value, child) {
-                  return Center(
-                    child: !isDayEnd.value ? buttonWidget() : logOut(),
-                  );
-                },
-              ),
-
-              SizedBox(height: 30),
-              // Added vertical spacing
-
-              !isDayStart.value
-                  ? Visibility(
-                      visible: !isTapped,
-                      child: AppUtils.commonTextWidget(
-                        text: "Press & Hold",
-                        fontSize: 14,
-                        letterSpacing: 0.2,
-                        fontWeight: FontWeight.w600,
-                        textColor: AppConstant.blackColor,
-                      ),
-                    )
-                  : GestureDetector(
-                      onTap: () {
-                        isDayEnd.value = true;
-                      },
-                      child: Visibility(
-                        visible: !isFromLogOutButton,
-                        child: AppUtils.commonTextWidget(
-                          text: "Show Off",
-                          fontSize: 14,
-                          letterSpacing: 0.2,
-                          fontWeight: FontWeight.w600,
-                          textColor: Colors.red,
-                        ),
-                      )),
-            ],
+            offset: Offset(0, -10), // This will create a top shadow
           ),
+        ],
+        borderRadius: AppUtils.borderRadiousonly(topright: 18, topleft: 18),
+        color: AppConstant.whiteColor,
+      ),
+      child: SingleChildScrollView(
+        controller: widget.scrollController,
+        // physics: NeverScrollableScrollPhysics(),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+
+          // Aligns children at the center vertically
+          children: [
+            AppUtils.commonContainer(
+              decoration: AppUtils.commonBoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    width: 1,
+                    color: AppConstant.greyColor.withOpacity(0.3),
+                  ),
+                ),
+                borderRadius:
+                AppUtils.borderRadiousonly(topleft: 18, topright: 18),
+                color: Colors.white,
+              ),
+              child: Padding(
+                padding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                child: Row(
+                  children: [
+                    AppUtils.commonContainer(
+                      height: 45,
+                      width: 45,
+                      decoration: AppUtils.commonBoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppConstant.greyColor,
+                        border: Border.all(color: Colors.red, width: 1.2),
+                      ),
+                    ),
+                    AppUtils.commonSizedBox(width: 10),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        AppUtils.commonTextWidget(
+                          text: "Vatsal",
+                          fontWeight: FontWeight.w600,
+                          textColor: AppConstant.blackColor,
+                          letterSpacing: 0.2,
+                          fontSize: 15,
+                        ),
+                        AppUtils.commonTextWidget(
+                          text: "Epistic interiour Pvt Ltd",
+                          fontWeight: FontWeight.w500,
+                          textColor: AppConstant.blackColor.withOpacity(0.7),
+                          letterSpacing: 0.1,
+                          fontSize: 13,
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(height: 40),
+            // Added vertical spacing
+
+            ValueListenableBuilder(
+              valueListenable: isDayEnd,
+              builder: (context, value, child) {
+                return Center(
+                  child: !isDayEnd.value ? buttonWidget() : logOut(),
+                );
+              },
+            ),
+
+            SizedBox(height: 30),
+            // Added vertical spacing
+
+            !isDayStart.value
+                ? Visibility(
+              visible: !isTapped,
+              child: AppUtils.commonTextWidget(
+                text: "Press & Hold",
+                fontSize: 14,
+                letterSpacing: 0.2,
+                fontWeight: FontWeight.w600,
+                textColor: AppConstant.blackColor,
+              ),
+            )
+                : GestureDetector(
+                onTap: () {
+                  isDayEnd.value = true;
+                },
+                child: Visibility(
+                  visible: !isFromLogOutButton,
+                  child: AppUtils.commonTextWidget(
+                    text: "Show Off",
+                    fontSize: 14,
+                    letterSpacing: 0.2,
+                    fontWeight: FontWeight.w600,
+                    textColor: Colors.red,
+                  ),
+                )),
+          ],
         ),
       ),
     );
   }
 
+  Future getCurrentLocation() async {
+    bool isLocationServiceAvailable =
+    await AppUtils.checkLocationServiceAvailability();
+    // PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+    // isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+
+    if (isLocationServiceAvailable) {
+      try {
+        Position position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.medium);
+        return position;
+      } catch (e) {
+        print("Catch at DayStart${e}");
+      }
+    }
+  }
+
   Future loginFunction() async {
     bool isLocationServiceAvailable =
-        await AppUtils.checkLocationServiceAvailability();
+    await AppUtils.checkLocationServiceAvailability();
     PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
     isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
 
@@ -209,7 +219,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   Future checkInFunction() async {
     bool isLocationServiceAvailable =
-        await AppUtils.checkLocationServiceAvailability();
+    await AppUtils.checkLocationServiceAvailability();
     PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
     isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
 
@@ -224,27 +234,33 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     }
   }
 
+
   Future checkOutFunction() async {
     bool isLocationServiceAvailable =
-        await AppUtils.checkLocationServiceAvailability();
-    PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-    isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+    await AppUtils.checkLocationServiceAvailability();
 
     if (isLocationServiceAvailable) {
       try {
-        Position position = await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.medium);
+        Navigator.push(context, MaterialPageRoute(builder: (context) => CheckOutFormScreen(),)).then((value1) {
+          isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+          getCurrentLocation().then((value) {
+            if(widget.onLocationFetch != null){
+              widget.onLocationFetch!(value);
+            }
+          });
+        });
         return position;
       } catch (e) {
         print("Catch at DayStart${e}");
       }
     }
+    return position;
   }
 
   Future logOutFunction() async {
     try {
       bool isLocationServiceAvailable =
-          await AppUtils.checkLocationServiceAvailability();
+      await AppUtils.checkLocationServiceAvailability();
       PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
       PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
       isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
@@ -301,29 +317,14 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 });
                 controller?.forward().whenComplete(() async {
                   HapticFeedback.vibrate();
-                  doLocalVerification(() {
+
                     controller?.reset();
                     if (!isDayStart.value) {
-                      loginFunction().then((value) {
-                        if (widget.onLocationFetch != null) {
-                          widget.onLocationFetch!(value);
-                        }
-                      });
+                      doLocalVerification(doVerificationForLogIn);
                     } else if (!isCheckIn.value) {
-                      checkInFunction().then((value) {
-                        if (widget.onLocationFetch != null) {
-                          widget.onLocationFetch!(value);
-                        }
-                      });
-                    } else {
-                      checkOutFunction().then((value) {
-                        if (widget.onLocationFetch != null) {
-                          widget.onLocationFetch!(value);
-                          // isDayEnd.value = false;
-                        }
-                      });
-                    }
-                  });
+                     doLocalVerification(doVerificationForCheckIn);
+                    }else
+                    checkOutFunction();
                 });
               },
               onTapUp: (details) {
@@ -376,10 +377,10 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                           strokeCap: StrokeCap.round,
                           valueColor: AlwaysStoppedAnimation<Color>(
                               AppConstant.greyColor.withOpacity(0.2)
-                              // dayEnd == true ? Colors.red :!isDayStart.value
-                              //     ? AppConstant.greyColor
-                              //     : Colors.blue
-                              ),
+                            // dayEnd == true ? Colors.red :!isDayStart.value
+                            //     ? AppConstant.greyColor
+                            //     : Colors.blue
+                          ),
                         ),
                       ),
                       AnimatedContainer(
@@ -408,8 +409,8 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                             text: !isDayStart.value
                                 ? "In"
                                 : !isCheckIn.value
-                                    ? "Check-In"
-                                    : "Check-Out",
+                                ? "Check-In"
+                                : "Check-Out",
                             fontSize: !isDayStart.value ? 22 : 13,
                             textColor: Colors.white,
                             fontWeight: FontWeight.w600,
@@ -425,6 +426,20 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         );
       },
     );
+  }
+  doVerificationForCheckIn(){
+    return  checkInFunction().then((value) {
+      if (widget.onLocationFetch != null) {
+        widget.onLocationFetch!(value);
+      }
+    });
+  }
+  doVerificationForLogIn(){
+    return  loginFunction().then((value) {
+      if (widget.onLocationFetch != null) {
+        widget.onLocationFetch!(value);
+      }
+    });
   }
 
   Widget logOut() {
@@ -489,10 +504,10 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     strokeCap: StrokeCap.round,
                     valueColor: AlwaysStoppedAnimation<Color>(
                         AppConstant.greyColor.withOpacity(0.2)
-                        // dayEnd == true ? Colors.red :!isDayStart.value
-                        //     ? AppConstant.greyColor
-                        //     : Colors.blue
-                        ),
+                      // dayEnd == true ? Colors.red :!isDayStart.value
+                      //     ? AppConstant.greyColor
+                      //     : Colors.blue
+                    ),
                   ),
                 ),
                 AnimatedContainer(
@@ -567,7 +582,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       insetPadding: const EdgeInsets.all(0),
       titlePadding: const EdgeInsets.all(0),
       contentPadding:
-          const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
+      const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -626,11 +641,10 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       }
       showDialog(
         context: context,
-        builder: (context) => showDialogBox(
-            "Biometric Auth is not available on this device", context),
+        builder: (context) =>
+            showDialogBox(
+                "Biometric Auth is not available on this device", context),
       );
     }
   }
-
-
 }

@@ -160,10 +160,10 @@ class DashBoardState extends State<DashBoard> {
                 shouldCloseOnMinExtent: true,
                 snap: true,
                 expand: false,
-                snapAnimationDuration: Duration(milliseconds: 200),
-                initialChildSize: 0.4,
+                snapAnimationDuration: const Duration(milliseconds: 200),
+                initialChildSize: 0.09,
                 maxChildSize: 1,
-                minChildSize: 0.4,
+                minChildSize: 0.09,
                 controller: draggableScrollableController,
                 builder: (context, scrollController) {
                   return [

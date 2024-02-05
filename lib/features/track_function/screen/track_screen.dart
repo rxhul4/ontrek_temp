@@ -3,7 +3,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:ontrek/core/common_widgets/textfield_widget.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
+import 'package:ontrek/features/salesman_tracker/local_model.dart';
 import 'package:ontrek/features/salesman_tracker/salesman_tracker.dart';
+
 
 
 class TrackScreen extends StatefulWidget {
@@ -21,28 +23,28 @@ class _TrackScreenState extends State<TrackScreen> {
   ScrollController gridScrollController = ScrollController();
   bool isSearchVisible = false;
 
-
-  void _handleDraggableScroll() {
-    // Check if the sheet has reached a specific position (e.g., 1)
-    if (widget.scrollController?.position.pixels == 1) {
-      // If reached, enable scrolling for the GridView
-      setState(() {
-        gridScrollController = ScrollController();
-      });
-    } else {
-      // If not reached, disable scrolling for the GridView
-      setState(() {
-        gridScrollController.dispose();
-      });
-    }
-  }
+  //
+  // void _handleDraggableScroll() {
+  //   // Check if the sheet has reached a specific position (e.g., 1)
+  //   if (widget.scrollController?.position.pixels == 1) {
+  //     // If reached, enable scrolling for the GridView
+  //     setState(() {
+  //       gridScrollController = widget.scrollController ?? ScrollController();
+  //     });
+  //   } else {
+  //     // If not reached, disable scrolling for the GridView
+  //     setState(() {
+  //       gridScrollController.dispose();
+  //     });
+  //   }
+  // }
 
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    widget.scrollController?.addListener(_handleDraggableScroll);
+    // widget.scrollController?.addListener(_handleDraggableScroll);
   }
 
   // @override
@@ -77,6 +79,7 @@ class _TrackScreenState extends State<TrackScreen> {
             color: AppConstant.whiteColor),
         child: SingleChildScrollView(
           controller: widget.scrollController,
+          physics: /*widget.scrollController?.position.pixels == 1 ? NeverScrollableScrollPhysics() :*/ AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
               AppUtils.commonContainer(
@@ -168,11 +171,11 @@ class _TrackScreenState extends State<TrackScreen> {
                 padding: const EdgeInsets.only(top: 100),
                 child: Center(child: CircularProgressIndicator(color: AppConstant.blueColor,)),
               ) : GridView.builder(
-                controller: gridScrollController,
-                itemCount: 50,
+                // controller: gridScrollController,
+                itemCount: userList.length,
                 shrinkWrap: true,
                 // controller: widget.scrollController,
-                physics: const NeverScrollableScrollPhysics(),
+                physics: widget.scrollController?.position.pixels == 1 ? AlwaysScrollableScrollPhysics() : NeverScrollableScrollPhysics(),
                 padding: AppUtils.edgeInsetsAll(allPadding: 10),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 4, childAspectRatio: 4 / 4.5),
@@ -213,6 +216,7 @@ class _TrackScreenState extends State<TrackScreen> {
 
         },
         hintText: "Search",
+        prefixIcon: Icon(Icons.search),
         cursorColor: AppConstant.blackColor.withOpacity(0.9),
         allBorderRadius: 10,
         fillColor: AppConstant.whiteColor,
@@ -248,7 +252,7 @@ class _TrackScreenState extends State<TrackScreen> {
         Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => SaleManTracker(index: index),
+              builder: (context) => SaleManTracker(index: index,name: userList[index].name),
             ));
       },
       child: Column(
@@ -268,7 +272,7 @@ class _TrackScreenState extends State<TrackScreen> {
               )),
           AppUtils.commonSizedBox(height: 5),
           AppUtils.commonTextWidget(
-              text: 'You', textColor: AppConstant.blackColor, fontSize: 11),
+              text: userList[index].name, textColor: AppConstant.blackColor, fontSize: 11),
           AppUtils.commonTextWidget(
               text: 'Last week', textColor: Colors.cyan, fontSize: 9),
         ],

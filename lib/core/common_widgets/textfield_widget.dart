@@ -30,7 +30,7 @@ class AppTextField extends StatelessWidget {
   Widget? prefixIcon;
   Widget? suffixIcon;
   Color? suffixColor;
-
+  int? maxLines;
   AppTextField(
       {Key? key,
         this.labelText,
@@ -59,6 +59,7 @@ class AppTextField extends StatelessWidget {
         this.prefixIcon,
         this.suffixIcon,
         this.suffixColor,
+        this.maxLines,
       })
       : super(key: key);
 
@@ -80,15 +81,17 @@ class AppTextField extends StatelessWidget {
       ),
       keyboardType: textInputType ?? TextInputType.text,
       cursorColor:  cursorColor ?? AppConstant.primaryColor,
+      maxLines: maxLines ?? 1,
       decoration: InputDecoration(
-        prefixIcon: prefixIcon ?? Icon(Icons.search),
+        prefixIcon: prefixIcon,
         prefixIconColor: Colors.black,
         suffixIcon: suffixIcon,
         suffixIconColor: suffixColor,
-        contentPadding: EdgeInsets.only(left: 10,right: 10),
+        contentPadding: EdgeInsets.only(left: 10,right: 10,top: 20),
         alignLabelWithHint: true,
         labelText: labelText,
         hintText: hintText ,
+
         hintStyle: TextStyle(color: hintTextColor ?? AppConstant.greyColor, fontSize: hintFontSize ?? 14,fontFamily: hintFontFamily),
         labelStyle: TextStyle(color: labelTextColor ?? AppConstant.greyColor, fontSize: labelFontSize ?? 14,fontFamily: labelFontFamily),
         filled: true,
