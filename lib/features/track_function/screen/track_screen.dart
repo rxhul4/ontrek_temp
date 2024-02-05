@@ -5,7 +5,6 @@ import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/features/salesman_tracker/salesman_tracker.dart';
 
-import '../../../core/utils/image_path.dart';
 
 class TrackScreen extends StatefulWidget {
   ScrollController? scrollController;
@@ -19,16 +18,49 @@ class TrackScreen extends StatefulWidget {
 class _TrackScreenState extends State<TrackScreen> {
   DraggableScrollableController draggableScrollableController =
       DraggableScrollableController();
+  ScrollController gridScrollController = ScrollController();
   bool isSearchVisible = false;
+
+
+  void _handleDraggableScroll() {
+    // Check if the sheet has reached a specific position (e.g., 1)
+    if (widget.scrollController?.position.pixels == 1) {
+      // If reached, enable scrolling for the GridView
+      setState(() {
+        gridScrollController = ScrollController();
+      });
+    } else {
+      // If not reached, disable scrolling for the GridView
+      setState(() {
+        gridScrollController.dispose();
+      });
+    }
+  }
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    widget.scrollController?.addListener(_handleDraggableScroll);
+  }
+
+  // @override
+  // void dispose() {
+  //   // TODO: implement dispose
+  //   super.dispose();
+  //   widget.scrollController?.removeListener(_handleDraggableScroll);
+  //   gridScrollController.dispose();
+  // }
 
   @override
   Widget build(BuildContext context) {
     return Animate(
-      effects: [
+      effects: const [
         ScaleEffect(
             curve: Curves.ease,
             begin: Offset(0, -1),
-            duration: Duration(milliseconds: 300)),
+            duration: Duration(milliseconds: 100)),
       ],
       child: Container(
         decoration: AppUtils.commonBoxDecoration(
@@ -121,7 +153,9 @@ class _TrackScreenState extends State<TrackScreen> {
                           AppUtils.commonSizedBox(width: 10),
                           commonIconWidget(
                             iconData: Icons.repeat,
-                            onTap: () {},
+                            onTap: () {
+                              refresh();
+                            },
                           ),
                         ],
                       ),
@@ -130,7 +164,11 @@ class _TrackScreenState extends State<TrackScreen> {
                 ),
               ),
               isSearchVisible ? searchWidget() : SizedBox(),
-              GridView.builder(
+              isRefreshing ?  Padding(
+                padding: const EdgeInsets.only(top: 100),
+                child: Center(child: CircularProgressIndicator(color: AppConstant.blueColor,)),
+              ) : GridView.builder(
+                controller: gridScrollController,
                 itemCount: 50,
                 shrinkWrap: true,
                 // controller: widget.scrollController,
@@ -139,7 +177,7 @@ class _TrackScreenState extends State<TrackScreen> {
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 4, childAspectRatio: 4 / 4.5),
                 itemBuilder: (BuildContext context, int index) {
-                  return saleMenList(index);
+                  return  saleMenList(index);
                 },
               ),
             ],
@@ -147,6 +185,22 @@ class _TrackScreenState extends State<TrackScreen> {
         ),
       ),
     );
+  }
+
+  bool isRefreshing = false;
+  refresh()async{
+
+      setState(() {
+        isRefreshing = true;
+      });
+
+      // Simulate a delay to show the refresh indicator for 3 seconds.
+      await Future.delayed(const Duration(seconds: 3));
+
+      setState(() {
+        isRefreshing = false;
+      });
+
   }
 
   TextEditingController searchController = TextEditingController();

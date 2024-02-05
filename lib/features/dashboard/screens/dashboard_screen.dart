@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -169,14 +170,12 @@ class DashBoardState extends State<DashBoard> {
                     AttendanceScreen(
                         scrollController: scrollController,
                         onLocationFetch: (value) {
-
                           setState(() {
-                            currentLocation =
-                                LatLng(value.latitude, value.longitude);
+                            currentLocation = LatLng(value.latitude, value.longitude);
                           });
                           getFetchedLocation(currentLocation);
                         }),
-                    TrackScreen(scrollController: scrollController),
+                    TrackScreen(scrollController: scrollController,),
                     TaskListScreen(scrollController: scrollController),
                     ProfileScreen(scrollController: scrollController),
                   ][_selectedIndex];
@@ -201,7 +200,8 @@ class DashBoardState extends State<DashBoard> {
           children: List.generate(iconData.length, (index) {
             return GestureDetector(
               onTap: () {
-                // getCurrentLocation();
+                HapticFeedback.vibrate();
+                getCurrentLocation();
                 setState(() {
                   if (index == 3) {
                     draggableScrollableController.jumpTo(1);
@@ -213,7 +213,7 @@ class DashBoardState extends State<DashBoard> {
                 });
               },
               child: AnimatedContainer(
-                duration: Duration(milliseconds: 300),
+                duration: const Duration(milliseconds: 300),
                 alignment: Alignment.center,
                 height: 60,
                 width: 100,

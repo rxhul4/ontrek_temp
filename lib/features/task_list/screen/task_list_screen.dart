@@ -70,9 +70,23 @@ class _TaskListScreenState extends State<TaskListScreen>
         ));
   }
 
+  late TabController tabController;
+  int selectedIndex = 0;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    tabController = TabController(length: 2, vsync: this);
+    tabController.addListener(() {
+      setState(() {
+        selectedIndex = tabController.index;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    TabController tabController = TabController(length: 2, vsync: this);
     return Animate(
       effects: [
         ScaleEffect(
@@ -90,8 +104,7 @@ class _TaskListScreenState extends State<TaskListScreen>
                 offset: Offset(0, -10), // This will create a top shadow
               ),
             ],
-            borderRadius:
-                AppUtils.borderRadiousonly(topright: 18, topleft: 18),
+            borderRadius: AppUtils.borderRadiousonly(topright: 18, topleft: 18),
             color: AppConstant.whiteColor),
         child: SingleChildScrollView(
           controller: widget.scrollController,
@@ -119,8 +132,7 @@ class _TaskListScreenState extends State<TaskListScreen>
                         height: 5,
                         decoration: AppUtils.commonBoxDecoration(
                             color: AppConstant.greyColor.withOpacity(0.3),
-                            borderRadius:
-                                AppUtils.borderRadiusAll(raduis: 12)),
+                            borderRadius: AppUtils.borderRadiusAll(raduis: 12)),
                       ),
                       Row(
                         children: [
@@ -169,7 +181,7 @@ class _TaskListScreenState extends State<TaskListScreen>
                           AppUtils.commonSizedBox(width: 10),
                           commonIconWidget(
                             iconData: Icons.repeat,
-                            onTap: () {},
+                            onTap: refresh,
                           ),
                         ],
                       ),
@@ -177,55 +189,97 @@ class _TaskListScreenState extends State<TaskListScreen>
                   ),
                 ),
               ),
-              Padding(
-                padding:
-                    AppUtils.edgeInsetsOnly(top: 15, left: 30, right: 30),
-                child: Column(
-                  children: [
-                    AppUtils.commonContainer(
-                        width: MediaQuery.of(context).size.width,
-                        height: 30,
-                        decoration: AppUtils.commonBoxDecoration(
-                            color: AppConstant.greyColor.withOpacity(0.2),
-                            borderRadius:
-                                AppUtils.borderRadiusAll(raduis: 5)),
-                        child: TabBar(
-                            controller: tabController,
-                            indicatorWeight: 0,
-                            dividerHeight: 0.1,
-                            indicatorSize: TabBarIndicatorSize.tab,
-                            padding: AppUtils.edgeInsetsAll(allPadding: 2.5),
-                            indicator: BoxDecoration(
-                                color: AppConstant.blueColor,
-                                borderRadius:
-                                    AppUtils.borderRadiusAll(raduis: 5)),
-                            labelColor: Colors.white,
-                            labelStyle: const TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 12,
-                            ),
-                            unselectedLabelColor: Colors.black.withOpacity(0.5),
-                            unselectedLabelStyle: const TextStyle(
-                              fontWeight: FontWeight.w400,
-                              fontSize: 12,
-                            ),
-                            tabs: const [
-                              Tab(text: 'ASSIGNED TO ME'),
-                              Tab(text: 'All TASK'),
-                            ])),
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height / 1.5,
-                      child: TabBarView(
-                          controller: tabController,
-                          physics: NeverScrollableScrollPhysics(),
-                          children: <Widget>[
-                            assignedToMeTabBar(),
-                            allTaskTabBar(),
-                          ]),
-                    )
-                  ],
+              AppUtils.commonContainer(
+                height: 30,
+                margin: EdgeInsets.only(top: 20, left: 30, right: 30),
+                decoration: AppUtils.commonBoxDecoration(
+                  color: AppConstant.greyColor.withOpacity(0.2),
+                  borderRadius: AppUtils.borderRadiusAll(raduis: 5),
                 ),
-              )
+                child: TabBar.secondary(
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    controller: tabController,
+                    padding: AppUtils.edgeInsetsAll(allPadding: 2),
+                    // enableFeedback: true,
+                    labelColor: Colors.white,
+                    unselectedLabelStyle: TextStyle(
+                      letterSpacing: 0.2,
+                      fontWeight: FontWeight.w400,
+                      fontSize: 12,
+                    ),
+                    indicatorWeight: 0,
+                    dividerHeight: 0,
+                    labelStyle: TextStyle(
+                      letterSpacing: 0.2,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
+                    ),
+                    automaticIndicatorColorAdjustment: true,
+                    indicator: BoxDecoration(
+                        color: AppConstant.blueColor,
+                        borderRadius: AppUtils.borderRadiusAll(raduis: 5)),
+                    tabs: [
+                      Tab(text: 'ASSIGNED TO ME'),
+                      Tab(text: 'All TASK'),
+                    ]),
+              ),
+              SizedBox(
+                  height: MediaQuery.of(context).size.height ,
+                  child: TabBarView(
+                    controller: tabController,
+                    children: [assignedToMeTabBar(), allTaskTabBar()],
+                  ))
+
+              // Padding(
+              //   padding:
+              //       AppUtils.edgeInsetsOnly(top: 15, left: 30, right: 30),
+              //   child: Column(
+              //     children: [
+              //       AppUtils.commonContainer(
+              //           // width: MediaQuery.of(context).size.width,
+              //           // height: 30,
+              //           decoration: AppUtils.commonBoxDecoration(
+              //               color: AppConstant.greyColor.withOpacity(0.2),
+              //               borderRadius:
+              //                   AppUtils.borderRadiusAll(raduis: 5)),
+              //           child: TabBar.secondary(
+              //               controller: tabController,
+              //               indicatorWeight: 0,
+              //               dividerHeight: 0.1,
+              //               indicatorSize: TabBarIndicatorSize.tab,
+              //               padding: AppUtils.edgeInsetsAll(allPadding: 2.5),
+              //               indicator: BoxDecoration(
+              //                   color: AppConstant.blueColor,
+              //                   borderRadius:
+              //                       AppUtils.borderRadiusAll(raduis: 5)),
+              //               labelColor: Colors.white,
+              //               labelStyle: const TextStyle(
+              //                 fontWeight: FontWeight.w500,
+              //                 fontSize: 12,
+              //               ),
+              //               unselectedLabelColor: Colors.black.withOpacity(0.5),
+              //               unselectedLabelStyle: const TextStyle(
+              //                 fontWeight: FontWeight.w400,
+              //                 fontSize: 12,
+              //               ),
+              //               tabs: const [
+              //                 Tab(text: 'ASSIGNED TO ME'),
+              //                 Tab(text: 'All TASK'),
+              //               ])),
+              //       Expanded(
+              // height: MediaQuery.of(context).size.height / 1.5,
+              //         child: TabBarView(
+              //             controller: tabController,
+              //             physics: NeverScrollableScrollPhysics(),
+              //             children: <Widget>[
+              //
+              //               assignedToMeTabBar(),
+              //               allTaskTabBar(),
+              //             ]),
+              //       )
+              //     ],
+              //   ),
+              // )
             ],
           ),
         ),
@@ -247,43 +301,86 @@ class _TaskListScreenState extends State<TaskListScreen>
 
   //assigned to me
   Widget assignedToMeTabBar() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        AppUtils.commonSizedBox(
-          height: 100,
-          child: const Image(
-            image: NetworkImage(
-                'https://img.freepik.com/free-vector/phone-customization-concept-illustration_114360-4313.jpg?w=740&t=st=1706681307~exp=1706681907~hmac=8f1c6ec99afe4718ced3a79d82c4a2ac18e02ac10e72275d713f62911d901586'),
-          ),
-        ),
-        AppUtils.commonTextWidget(
-            text: 'No task assigned!', textColor: AppConstant.blackColor),
-        AppUtils.commonTextWidget(
-            text: 'New task will be notified',
-            textColor: AppConstant.blackColor.withOpacity(0.5)),
-      ],
-    );
+    return isRefreshing
+        ? Padding(
+            padding: const EdgeInsets.only(top: 80),
+            child: Align(
+                alignment: Alignment.topCenter,
+                child: CircularProgressIndicator(
+                  color: AppConstant.blueColor,
+                )),
+          )
+        : Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              AppUtils.commonSizedBox(height: 15),
+              AppUtils.commonSizedBox(
+                height: 100,
+                child: const Image(
+                  image: NetworkImage(
+                      'https://img.freepik.com/free-vector/phone-customization-concept-illustration_114360-4313.jpg?w=740&t=st=1706681307~exp=1706681907~hmac=8f1c6ec99afe4718ced3a79d82c4a2ac18e02ac10e72275d713f62911d901586'),
+                ),
+              ),
+              AppUtils.commonTextWidget(
+                text: 'No task assigned!',
+                textColor: AppConstant.blackColor.withOpacity(0.6),
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0,
+              ),
+              AppUtils.commonTextWidget(
+                  letterSpacing: 0,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                  text: 'New task will be notified',
+                  textColor: AppConstant.blackColor.withOpacity(0.5)),
+            ],
+          );
   }
 
   //All Task
   Widget allTaskTabBar() {
-    return Column(
-      children: [
-        AppUtils.commonSizedBox(
-          height: 100,
-          child: const Image(
-            image: NetworkImage(
-                'https://img.freepik.com/free-vector/phone-customization-concept-illustration_114360-4313.jpg?w=740&t=st=1706681307~exp=1706681907~hmac=8f1c6ec99afe4718ced3a79d82c4a2ac18e02ac10e72275d713f62911d901586'),
-          ),
-        ),
-        AppUtils.commonTextWidget(
-            text: 'No task assigned!', textColor: AppConstant.blackColor),
-        AppUtils.commonTextWidget(
-            text: 'New task will be notified',
-            textColor: AppConstant.blackColor.withOpacity(0.5)),
-      ],
-    );
+    return isRefreshing
+        ? Padding(
+            padding: const EdgeInsets.only(top: 80),
+            child: Align(
+                alignment: Alignment.topCenter,
+                child: CircularProgressIndicator(
+                  color: AppConstant.blueColor,
+                )),
+          )
+        : Column(
+            children: [
+              AppUtils.commonSizedBox(height: 15),
+              AppUtils.commonSizedBox(
+                height: 100,
+                child: const Image(
+                  image: NetworkImage(
+                      'https://img.freepik.com/free-vector/phone-customization-concept-illustration_114360-4313.jpg?w=740&t=st=1706681307~exp=1706681907~hmac=8f1c6ec99afe4718ced3a79d82c4a2ac18e02ac10e72275d713f62911d901586'),
+                ),
+              ),
+              AppUtils.commonTextWidget(
+                  text: 'No task assigned!', textColor: AppConstant.blackColor),
+              AppUtils.commonTextWidget(
+                  text: 'New task will be notified',
+                  textColor: AppConstant.blackColor.withOpacity(0.5)),
+            ],
+          );
+  }
+
+  bool isRefreshing = false;
+
+  refresh() async {
+    setState(() {
+      isRefreshing = true;
+    });
+
+    // Simulate a delay to show the refresh indicator for 3 seconds.
+    await Future.delayed(const Duration(seconds: 3));
+
+    setState(() {
+      isRefreshing = false;
+    });
   }
 }

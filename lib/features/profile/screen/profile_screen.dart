@@ -88,8 +88,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             ),
-            Container(
-              decoration: BoxDecoration(
+            AppUtils.commonContainer(
+              decoration: AppUtils.commonBoxDecoration(
                 border: Border(
                   bottom: BorderSide(color: AppConstant.greyColor, width: 0),
                 ),
@@ -116,7 +116,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     textColor: AppConstant.blackColor.withOpacity(0.6),
                     fontSize: 12),
                 trailing: IconButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    openDialogFnc();
+                  },
                   icon: Icon(Icons.call, color: Colors.blue.shade800),
                 ),
               ),
@@ -161,6 +163,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
+
   }
 
   List<String> profileOptionsList = [
@@ -202,6 +205,164 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         if (index < itemCount - 1) Divider(indent: 50, height: 0),
       ],
+    );
+  }
+  openDialogFnc() {
+    showDialog(
+      context: context,
+      builder: (context) => showDialogBox(context),
+    );
+  }
+  AlertDialog showDialogBox(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppConstant.blueColor,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(10))),
+
+      contentPadding: AppUtils.edgeInsetsOnly(
+          right: 15,
+          left: 15,
+          top: 10,
+          bottom: 10),
+      insetPadding: AppUtils.edgeInsetsAll(
+          allPadding: 0),
+      titlePadding: AppUtils.edgeInsetsAll(
+          allPadding: 0),
+      content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment:
+              MainAxisAlignment
+                  .spaceBetween,
+              children: [
+                AppUtils.commonSizedBox(
+                  height: 40,
+                  width: 40,
+                ),
+                AppUtils.commonTextWidget(
+                  // textColor: App,
+                    text: "Contact Info",
+                    fontSize: 16),
+                AppUtils.commonContainer(
+                    height: 40,
+                    width: 40,
+                    child: IconButton(
+                      color: AppConstant.whiteColor,
+                        onPressed: () {
+                          Navigator.pop(
+                              context);
+                        },
+                        icon: Icon(
+                            Icons.close)))
+              ],
+            ),
+            AppUtils.commonSizedBox(
+                height: 10),
+
+            Visibility(
+              visible: false,
+              child: AppUtils.commonTextWidget(
+                margin: AppUtils.edgeInsetsOnly(top: 30,bottom: 30),
+                text: "No contact info found",
+                fontSize: 14,
+              ),
+            ),
+
+            Visibility(
+              visible:true,
+              child: GestureDetector(
+                onTap: () {
+                  // AppUtils.launchToBrowser(
+                  //     Uri.parse(
+                  //         "tel:${getSalesMenListModelData?[index].primaryPhoneNo}"));
+                },
+                child: AppUtils.commonContainer(
+                  padding:
+                  AppUtils.edgeInsetsAll(
+                      allPadding: 15),
+                  width: double.infinity,
+                  decoration: AppUtils
+                      .commonBoxDecoration(
+                    border: Border.all(
+                        color: AppConstant.greyColor.withOpacity(0.5),
+                        width: 1,),
+                    borderRadius:
+                    BorderRadius.circular(
+                        5),
+                    color: AppConstant.whiteColor
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.call,
+                          color: AppConstant.blueColor
+                      ),
+                      AppUtils.commonSizedBox(
+                          width: 5),
+                      AppUtils.commonTextWidget(
+                        letterSpacing: 2,
+                        text: "910679588",
+                        // text: getSalesMenListModelData?[
+                        // index]
+                        //     .primaryPhoneNo ??
+                        //     '',
+                        fontSize: 14,
+                        textColor: AppConstant.blueColor
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            AppUtils.commonSizedBox(
+                height: 10),
+            Visibility(
+              visible:true,
+              child: GestureDetector(
+                onTap: () {
+                  // AppUtils.launchToBrowser(
+                  //     Uri.parse(
+                  //         "tel:${getSalesMenListModelData?[index].altPhoneNo}"));
+                },
+                child: AppUtils.commonContainer(
+                  padding:
+                  AppUtils.edgeInsetsAll(
+                      allPadding: 15),
+                  width: double.infinity,
+                  decoration: AppUtils
+                      .commonBoxDecoration(
+                    border: Border.all(
+                        color:AppConstant.greyColor.withOpacity(0.5),
+                        width: 1),
+                    borderRadius:
+                    BorderRadius.circular(
+                        5),
+                    color: AppConstant.whiteColor,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.call,
+                          color : AppConstant.blueColor
+                      ),
+                      AppUtils.commonSizedBox(
+                          width: 5),
+                      AppUtils.commonTextWidget(letterSpacing: 2,
+                        text: "7435019181",
+                        // text: getSalesMenListModelData?[
+                        // index]
+                        //     .altPhoneNo ??
+                        //     '',
+                        fontSize: 14,
+                          textColor: AppConstant.blueColor
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            AppUtils.commonSizedBox(
+                height: 10),
+          ]),
     );
   }
 }

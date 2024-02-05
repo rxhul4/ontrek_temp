@@ -174,6 +174,7 @@ class AppUtils {
     double? letterSpacing,
     double? height,
     Gradient? gradient,
+    Color? backgroundColor,
   }) {
     return commonContainer(
       height: height,
@@ -191,7 +192,7 @@ class AppUtils {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
+          backgroundColor: backgroundColor ?? Colors.transparent,
           shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadiusAll ?? 10),
