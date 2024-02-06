@@ -162,9 +162,12 @@ class DashBoardState extends State<DashBoard> {
                 expand: false,
                 snapAnimationDuration: const Duration(milliseconds: 200),
                 initialChildSize: 0.09,
-                maxChildSize: 1,
+                maxChildSize: _selectedIndex == 0 ? 0.4 :1,
                 minChildSize: 0.09,
                 controller: draggableScrollableController,
+                snapSizes:[
+                 0.4
+                ] ,
                 builder: (context, scrollController) {
                   return [
                     AttendanceScreen(
@@ -206,7 +209,7 @@ class DashBoardState extends State<DashBoard> {
                   if (index == 3) {
                     draggableScrollableController.jumpTo(1);
                   } else {
-                    draggableScrollableController.jumpTo(0.4);
+                    draggableScrollableController.jumpTo(0.09);
                   }
                   _selectedIndex = index;
                   // Future.delayed(duration)

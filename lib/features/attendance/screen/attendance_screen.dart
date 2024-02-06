@@ -65,119 +65,147 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: AppUtils.commonBoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            spreadRadius: 0,
-            blurRadius: 8,
+    return Animate(
+      effects: [
+        ScaleEffect(
+            curve: Curves.ease,
+            begin: Offset(0, -1),
+            duration: Duration(milliseconds: 100)),
+      ],
+      child: Container(
+        decoration: AppUtils.commonBoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              spreadRadius: 0,
+              blurRadius: 8,
 
-            offset: Offset(0, -10), // This will create a top shadow
-          ),
-        ],
-        borderRadius: AppUtils.borderRadiousonly(topright: 18, topleft: 18),
-        color: AppConstant.whiteColor,
-      ),
-      child: SingleChildScrollView(
-        controller: widget.scrollController,
-        // physics: NeverScrollableScrollPhysics(),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-
-          // Aligns children at the center vertically
-          children: [
-            AppUtils.commonContainer(
-              decoration: AppUtils.commonBoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    width: 1,
-                    color: AppConstant.greyColor.withOpacity(0.3),
-                  ),
-                ),
-                borderRadius:
-                AppUtils.borderRadiousonly(topleft: 18, topright: 18),
-                color: Colors.white,
-              ),
-              child: Padding(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                child: Row(
-                  children: [
-                    AppUtils.commonContainer(
-                      height: 45,
-                      width: 45,
-                      decoration: AppUtils.commonBoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppConstant.greyColor,
-                        border: Border.all(color: Colors.red, width: 1.2),
-                      ),
-                    ),
-                    AppUtils.commonSizedBox(width: 10),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        AppUtils.commonTextWidget(
-                          text: "Vatsal",
-                          fontWeight: FontWeight.w600,
-                          textColor: AppConstant.blackColor,
-                          letterSpacing: 0.2,
-                          fontSize: 15,
-                        ),
-                        AppUtils.commonTextWidget(
-                          text: "Epistic interiour Pvt Ltd",
-                          fontWeight: FontWeight.w500,
-                          textColor: AppConstant.blackColor.withOpacity(0.7),
-                          letterSpacing: 0.1,
-                          fontSize: 13,
-                        ),
-                      ],
-                    )
-                  ],
-                ),
-              ),
+              offset: Offset(0, -10), // This will create a top shadow
             ),
-            SizedBox(height: 40),
-            // Added vertical spacing
-
-            ValueListenableBuilder(
-              valueListenable: isDayEnd,
-              builder: (context, value, child) {
-                return Center(
-                  child: !isDayEnd.value ? buttonWidget() : logOut(),
-                );
-              },
-            ),
-
-            SizedBox(height: 30),
-            // Added vertical spacing
-
-            !isDayStart.value
-                ? Visibility(
-              visible: !isTapped,
-              child: AppUtils.commonTextWidget(
-                text: "Press & Hold",
-                fontSize: 14,
-                letterSpacing: 0.2,
-                fontWeight: FontWeight.w600,
-                textColor: AppConstant.blackColor,
-              ),
-            )
-                : GestureDetector(
-                onTap: () {
-                  isDayEnd.value = true;
-                },
-                child: Visibility(
-                  visible: !isFromLogOutButton,
-                  child: AppUtils.commonTextWidget(
-                    text: "Show Off",
-                    fontSize: 14,
-                    letterSpacing: 0.2,
-                    fontWeight: FontWeight.w600,
-                    textColor: Colors.red,
-                  ),
-                )),
           ],
+          borderRadius: AppUtils.borderRadiousonly(topright: 18, topleft: 18),
+          color: AppConstant.whiteColor,
+        ),
+        child: SingleChildScrollView(
+          controller: widget.scrollController,
+          // physics: NeverScrollableScrollPhysics(),
+          // physics: widget.scrollController!.position.pixels > 0.4 ? NeverScrollableScrollPhysics() :AlwaysScrollableScrollPhysics(),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+
+            // Aligns children at the center vertically
+            children: [
+              AppUtils.commonContainer(
+                decoration: AppUtils.commonBoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      width: 1,
+                      color: AppConstant.greyColor.withOpacity(0.3),
+                    ),
+                  ),
+                  borderRadius:
+                  AppUtils.borderRadiousonly(topleft: 18, topright: 18),
+                  color: Colors.white,
+                ),
+                child: Padding(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  child: Column(
+                    children: [
+                      AppUtils.commonContainer(
+                        width: 30,
+                        height: 5,
+                        decoration: AppUtils.commonBoxDecoration(
+                            color: AppConstant.greyColor.withOpacity(0.3),
+                            borderRadius:
+                            AppUtils.borderRadiusAll(raduis: 12)),
+                      ),
+                      Row(
+                        children: [
+                          AppUtils.commonContainer(
+                            height: 45,
+                            width: 45,
+                            decoration: AppUtils.commonBoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppConstant.greyColor,
+                              border: Border.all(color: Colors.red, width: 1.2),
+                            ),
+                          ),
+                          AppUtils.commonSizedBox(width: 10),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              AppUtils.commonTextWidget(
+                                text: "Vatsal",
+                                fontWeight: FontWeight.w600,
+                                textColor: AppConstant.blackColor,
+                                letterSpacing: 0.2,
+                                fontSize: 15,
+                              ),
+                              AppUtils.commonTextWidget(
+                                text: "Epistic interiour Pvt Ltd",
+                                fontWeight: FontWeight.w500,
+                                textColor: AppConstant.blackColor.withOpacity(0.7),
+                                letterSpacing: 0.1,
+                                fontSize: 13,
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 50),
+              // Added vertical spacing
+
+              Column(
+                children: [
+                  ValueListenableBuilder(
+                    valueListenable: isDayEnd,
+                    builder: (context, value, child) {
+                      return Center(
+                        child: !isDayEnd.value ? buttonWidget() : logOut() ,
+                      );
+                    },
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 30),
+              // Added vertical spacing
+
+              !isDayStart.value
+                  ? Visibility(
+                visible: !isTapped,
+                child: AppUtils.commonTextWidget(
+                  text: "Press & Hold",
+                  fontSize: 14,
+                  letterSpacing: 0.2,
+                  fontWeight: FontWeight.w600,
+                  textColor: AppConstant.blackColor,
+                ),
+              )
+                  : GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      isDayEnd.value = !isDayEnd.value; // Toggle the value
+                    });
+
+                  },
+                  child: Visibility(
+                    visible: !isFromLogOutButton,
+                    child: AppUtils.commonTextWidget(
+                      text:  isDayEnd.value ? "Show Hide" : "Show Off",
+                      fontSize: 14,
+                      letterSpacing: 0.2,
+                      fontWeight: FontWeight.w600,
+                      textColor:isDayEnd.value ? AppConstant.blueColor : Colors.red ,
+                    ),
+                  )),
+            ],
+          ),
         ),
       ),
     );
