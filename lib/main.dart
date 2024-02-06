@@ -3,12 +3,27 @@ import 'package:flutter/material.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/authentication/screens/splash_screen.dart';
+import 'package:ontrek/features/salesman_tracker/provider/salesmen_tracking_timeline_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:provider/single_child_widget.dart';
+
+import 'features/track_function/provider/salesmen_list_provider.dart';
+
+List<SingleChildWidget> providers = [
+  ChangeNotifierProvider<SalesMenListProvider>(
+    create: (_) => SalesMenListProvider(),
+  ),
+  ChangeNotifierProvider<SaleMenTackingTimeLineProvider>(
+    create: (_) => SaleMenTackingTimeLineProvider(),
+  ),
+];
 
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   PreferenceHelper.load().then((value) {
-    runApp(const MyApp());
+    runApp(MultiProvider(providers: providers,
+    child: const MyApp()));
   });
 
 }

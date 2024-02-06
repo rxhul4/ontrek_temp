@@ -197,57 +197,62 @@ class DashBoardState extends State<DashBoard> {
             width: 1,
           ),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: List.generate(iconData.length, (index) {
-            return GestureDetector(
-              onTap: () {
-                HapticFeedback.vibrate();
-                getCurrentLocation();
-                setState(() {
-                  if (index == 3) {
-                    draggableScrollableController.jumpTo(1);
-                  } else {
-                    draggableScrollableController.jumpTo(0.09);
-                  }
-                  _selectedIndex = index;
-                  // Future.delayed(duration)
-                });
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                alignment: Alignment.center,
-                height: 60,
-                width: 100,
-                color: AppConstant.whiteColor,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      width: index == 0 || index == 1 ? 25 : 20,
-                      height: index == 0 || index == 1 ? 25 : 20,
-                      iconString[index],
-                      color: _selectedIndex == index
-                          ? Colors.blueAccent
-                          : AppConstant.greyColor,
+        child: AppUtils.commonContainer(
+          padding: EdgeInsets.only(left: 10,right: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: List.generate(iconData.length, (index) {
+              return GestureDetector(
+                onTap: () {
+                  HapticFeedback.vibrate();
+                  getCurrentLocation();
+                  setState(() {
+                    if (index == 3) {
+                      draggableScrollableController.jumpTo(1);
+                    } else {
+                      draggableScrollableController.jumpTo(0.09);
+                    }
+                    _selectedIndex = index;
+                    // Future.delayed(duration)
+                  });
+                },
+                child: AnimatedContainer(
+
+                  padding:  index == 0 ? AppUtils.edgeInsetsOnly(left: 0,right: 0) : AppUtils.edgeInsetsOnly(left: 15,right: 15),
+                  duration: const Duration(milliseconds: 300),
+                  alignment: Alignment.center,
+                  height: 60,
+                  // width: 100,
+                  color: Colors.white,
+                  child:  Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          width: index == 0 || index == 1 ? 25 : 20,
+                          height: index == 0 || index == 1 ? 25 : 20,
+                          iconString[index],
+                          color: _selectedIndex == index
+                              ? Colors.blueAccent
+                              : AppConstant.greyColor,
+                        ),
+                        AppUtils.commonTextWidget(
+                          text: lableString[index],
+                          textColor: _selectedIndex == index
+                              ? Colors.blueAccent
+                              : AppConstant.greyColor,
+                          fontSize: 12,
+                          fontWeight: _selectedIndex == index
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
+                      ],
                     ),
-                    AppUtils.commonTextWidget(
-                      text: lableString[index],
-                      textColor: _selectedIndex == index
-                          ? Colors.blueAccent
-                          : AppConstant.greyColor,
-                      fontSize: 12,
-                      fontWeight: _selectedIndex == index
-                          ? FontWeight.w600
-                          : FontWeight.w400,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }),
+                  ),
+              );
+            }),
+          ),
         ),
       ),
     );

@@ -4,7 +4,10 @@ import 'package:ontrek/core/common_widgets/textfield_widget.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/features/salesman_tracker/local_model.dart';
-import 'package:ontrek/features/salesman_tracker/salesman_tracker.dart';
+import 'package:ontrek/features/salesman_tracker/screen/salesman_tracker.dart';
+import 'package:ontrek/features/track_function/model/salemen_list_model.dart';
+import 'package:ontrek/features/track_function/provider/salesmen_list_provider.dart';
+import 'package:provider/provider.dart';
 
 
 
@@ -18,48 +21,43 @@ class TrackScreen extends StatefulWidget {
 }
 
 class _TrackScreenState extends State<TrackScreen> {
-  DraggableScrollableController draggableScrollableController =
-      DraggableScrollableController();
+  DraggableScrollableController draggableScrollableController = DraggableScrollableController();
   ScrollController gridScrollController = ScrollController();
   bool isSearchVisible = false;
 
 
-  //
-  // void _handleDraggableScroll() {
-  //   // Check if the sheet has reached a specific position (e.g., 1)
-  //   if (widget.scrollController?.position.pixels == 1) {
-  //     // If reached, enable scrolling for the GridView
-  //     setState(() {
-  //       gridScrollController = widget.scrollController ?? ScrollController();
-  //     });
-  //   } else {
-  //     // If not reached, disable scrolling for the GridView
-  //     setState(() {
-  //       gridScrollController.dispose();
-  //     });
-  //   }
-  // }
+  GetSalesMenListModel? getSalesMenListModel;
 
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    // widget.scrollController?.addListener(_handleDraggableScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final postMdl = Provider.of<SalesMenListProvider>(context, listen: false);
+      callGetSalesManListApi(postMdl);
+    });
   }
 
-  // @override
-  // void dispose() {
-  //   // TODO: implement dispose
-  //   super.dispose();
-  //   widget.scrollController?.removeListener(_handleDraggableScroll);
-  //   gridScrollController.dispose();
-  // }
+
+
+  callGetSalesManListApi(SalesMenListProvider getMdl) {
+    getMdl.apiCallGetSalesManList(
+      eventDate:
+        AppUtils.dateFormat(dateFormat: "yyyy-MM-dd", date: DateTime.now()),)
+        .then((value) {
+      getSalesMenListModel = value;
+      if (getSalesMenListModel?.code != 200) {
+        openDialogFnc(getSalesMenListModel?.message ?? "");
+      }
+    });
+  }
 
 
 
   @override
   Widget build(BuildContext context) {
+    final getMdl = Provider.of<SalesMenListProvider>(context);
     return Animate(
       effects: const [
         ScaleEffect(
@@ -160,7 +158,7 @@ class _TrackScreenState extends State<TrackScreen> {
                           commonIconWidget(
                             iconData: Icons.repeat,
                             onTap: () {
-                              refresh();
+                              refresh(getMdl);
                             },
                           ),
                         ],
@@ -170,12 +168,14 @@ class _TrackScreenState extends State<TrackScreen> {
                 ),
               ),
               isSearchVisible ? searchWidget() : SizedBox(),
-              isRefreshing ?  Padding(
+              getMdl.isFetching || getMdl.getSalesMenListModel?.data == null ?   Padding(
                 padding: const EdgeInsets.only(top: 100),
                 child: Center(child: CircularProgressIndicator(color: AppConstant.blueColor,)),
-              ) : GridView.builder(
+              ) :(getMdl.getSalesMenListModel?.data?.length ?? 0) <= 0 ? AppUtils.commonNoDataFound(onPressed: () {
+                callGetSalesManListApi(getMdl);
+              }) :  GridView.builder(
                 // controller: gridScrollController,
-                itemCount: userList.length,
+                itemCount: getSalesMenListModel?.data?.length,
                 shrinkWrap: true,
                 // controller: widget.scrollController,
                 physics: widget.scrollController?.position.pixels == 1 ? AlwaysScrollableScrollPhysics() : NeverScrollableScrollPhysics(),
@@ -183,7 +183,7 @@ class _TrackScreenState extends State<TrackScreen> {
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 4, childAspectRatio: 4 / 4.5),
                 itemBuilder: (BuildContext context, int index) {
-                  return  saleMenList(index);
+                  return  saleMenList(index, getSalesMenListModel?.data,);
                 },
               ),
             ],
@@ -194,19 +194,8 @@ class _TrackScreenState extends State<TrackScreen> {
   }
 
   bool isRefreshing = false;
-  refresh()async{
-
-      setState(() {
-        isRefreshing = true;
-      });
-
-      // Simulate a delay to show the refresh indicator for 3 seconds.
-      await Future.delayed(const Duration(seconds: 3));
-
-      setState(() {
-        isRefreshing = false;
-      });
-
+  refresh(SalesMenListProvider getMdl)async{
+    callGetSalesManListApi(getMdl);
   }
 
   TextEditingController searchController = TextEditingController();
@@ -248,14 +237,14 @@ class _TrackScreenState extends State<TrackScreen> {
     );
   }
 
-  Widget saleMenList(int index) {
+  Widget saleMenList(int index, List<Data>? getSalesMenListModelData) {
     return AppUtils.commonInkWell(
       onTap: () {
         print("index ${index}");
         Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => SaleManTracker(index: index,name: userList[index].name),
+              builder: (context) => SaleManTracker(index: index,name: getSalesMenListModelData?[index].fullName,userUid: getSalesMenListModelData?[index].userUid),
             ));
       },
       child: Column(
@@ -275,9 +264,59 @@ class _TrackScreenState extends State<TrackScreen> {
               )),
           AppUtils.commonSizedBox(height: 5),
           AppUtils.commonTextWidget(
-              text: userList[index].name, textColor: AppConstant.blackColor, fontSize: 11),
+              text:/* userList[index].name*/ getSalesMenListModelData?[index].fullName ?? "", textColor: AppConstant.blackColor, fontSize: 11),
+          // AppUtils.commonTextWidget(
+          //     text: 'Last week', textColor: Colors.cyan, fontSize: 9),
+        ],
+      ),
+    );
+  }
+
+
+  openDialogFnc(String text) {
+    showDialog(
+      context: context,
+      builder: (context) => showDialogBox(text, context),
+    );
+  }
+
+  AlertDialog showDialogBox(String text, BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(10))),
+      // Remove border radius
+      insetPadding: const EdgeInsets.all(0),
+      titlePadding: const EdgeInsets.all(0),
+      contentPadding:
+      const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Text(text, textAlign: TextAlign.center,),
           AppUtils.commonTextWidget(
-              text: 'Last week', textColor: Colors.cyan, fontSize: 9),
+              text: text,
+              textAlign: TextAlign.center,
+              textColor: AppConstant.blackColor,
+              fontWeight: FontWeight.w400),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                style: TextButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10))),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: AppUtils.commonTextWidget(
+                    text: "OK",
+                    textColor: AppConstant.blueColor,
+                    letterSpacing: 1,
+                    fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
         ],
       ),
     );

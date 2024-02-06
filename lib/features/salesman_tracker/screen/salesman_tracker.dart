@@ -9,15 +9,19 @@ import 'package:intl/intl.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/image_path.dart';
+import 'package:ontrek/features/salesman_tracker/model/salesmen_tracking_detailes.dart';
+import 'package:ontrek/features/salesman_tracker/provider/salesmen_tracking_timeline_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 
-import 'local_model.dart';
+import '../local_model.dart';
 
 class SaleManTracker extends StatefulWidget {
   int? index;
   String? name;
+  String? userUid;
 
-  SaleManTracker({super.key, this.index,this.name});
+  SaleManTracker({super.key, this.index, this.name,this.userUid});
 
   @override
   State<SaleManTracker> createState() => _SaleManTrackerState();
@@ -27,6 +31,9 @@ class _SaleManTrackerState extends State<SaleManTracker> {
   late final Completer<GoogleMapController> googleMapController = Completer();
   Set<Marker> markers = Set();
   LatLng currentLocation = LatLng(20.5937, 78.9629);
+  DraggableScrollableController draggableScrollableController =
+  DraggableScrollableController();
+  GetTimeLineModel? getTimeLineModel;
 
   Future<void> getCurrentLocation() async {
     print("innnnnnnnnnnnn");
@@ -77,13 +84,38 @@ class _SaleManTrackerState extends State<SaleManTracker> {
     print("index_____${widget.index}");
     getCurrentLocation();
     selectedDate = DateTime.now();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final getMdl = Provider.of<SaleMenTackingTimeLineProvider>(context, listen: false);
+      callGetTimeline(getMdl);
+    });
+
   }
 
-  DraggableScrollableController draggableScrollableController =
-      DraggableScrollableController();
+
+  callGetTimeline(SaleMenTackingTimeLineProvider getMdl) {
+    getMdl
+        .apiCallGetTimeLine(
+        eventDate: AppUtils.dateFormat(
+            date: selectedDate, dateFormat: "yyyy-MM-dd"),
+        userUid:  widget.userUid)
+        .then((value) {
+      getTimeLineModel = value;
+      if (getTimeLineModel?.code != 200) {
+        openCustomDialog(getTimeLineModel?.message ?? "");
+      } else {
+        // getTimeLineModel = GetTimeLineModel();
+      }
+    });
+  }
+
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
+    final getMdl = Provider.of<SaleMenTackingTimeLineProvider>(context);
     return Scaffold(
       body: SafeArea(
         child: Stack(
@@ -203,11 +235,6 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                                       color: AppConstant.blueColor,
                                       onTap: openDialogFnc,
                                     ),
-                                    // AppUtils.commonSizedBox(width: 10),
-                                    // commonIconWidget(
-                                    //   iconData: Icons.more_vert,
-                                    //   onTap: () {},
-                                    // ),
                                   ],
                                 ),
                               ],
@@ -252,22 +279,25 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                           alignment: Alignment.topCenter,
                           child: dateSelectionWidget(isFromSheet: true),
                         ),
-                        ListView.builder(
-                          itemCount: userList.length,
+                        getMdl.isFetching || getMdl.getTimeLineModel?.data?.length == 0 ? Center(child: CircularProgressIndicator(color: AppConstant.blueColor,)) : ListView.builder(
+                          itemCount: getTimeLineModel?.data?.length,
                           physics: const NeverScrollableScrollPhysics(),
                           shrinkWrap: true,
                           itemBuilder: (context, index) {
                             DateTime dateTime = DateTime.now();
-                            var formatTime = AppUtils.dateFormat(date: dateTime,dateFormat: "HH:mm aa");
-                            var formattedDate = AppUtils.dateFormat(date: dateTime,dateFormat: "d MMM y");
-                            String indicatorText = 'Indicator ${index + 1}'; // Example indicator text
+                            var formatTime = AppUtils.dateFormat(
+                                date: dateTime, dateFormat: "HH:mm aa");
+                            var formattedDate = AppUtils.dateFormat(
+                                date: dateTime, dateFormat: "d MMM y");
+                            String indicatorText =
+                                'Indicator ${index + 1}'; // Example indicator text
 
                             return TimelineTile(
                               hasIndicator: true,
                               axis: TimelineAxis.vertical,
                               lineXY: 0.48,
-                              isLast: index ==iconList.length - 1,
-                              isFirst: index == iconList.first ,
+                              isLast: index == iconList.length - 1,
+                              isFirst: index == iconList.first,
                               indicatorStyle: IndicatorStyle(
                                 indicatorXY: 0,
                                 drawGap: true,
@@ -278,14 +308,15 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                                     // color: Colors.lightGreen,
                                     shape: BoxShape.circle,
                                   ),
-                                  child: Center(child: Image.asset(iconList[index])),
+                                  child: Center(
+                                      child: Image.asset(iconList[index])),
                                 ),
                               ),
-                              beforeLineStyle:  LineStyle(
+                              beforeLineStyle: LineStyle(
                                 color: AppConstant.primaryColor,
                                 thickness: 1,
                               ),
-                              afterLineStyle:  LineStyle(
+                              afterLineStyle: LineStyle(
                                 color: AppConstant.primaryColor,
                                 thickness: 1,
                               ),
@@ -295,23 +326,38 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-
-                                    AppUtils.commonTextWidget(text: /*"${formattedDate}"*/ userList[index].eventDate,textColor: AppConstant.greyColor,fontWeight: FontWeight.w400,fontSize: 16),
-                                    AppUtils.commonTextWidget(text: /*"${formatTime}"*/userList[index].eventTime,textColor: AppConstant.blackColor,fontWeight: FontWeight.w400,fontSize: 14),
-
+                                    AppUtils.commonTextWidget(
+                                        text: /*"${formattedDate}"*/
+                                            userList[index].eventDate,
+                                        textColor: AppConstant.greyColor,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 16),
+                                    AppUtils.commonTextWidget(
+                                        text: /*"${formatTime}"*/
+                                            userList[index].eventTime,
+                                        textColor: AppConstant.blackColor,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 14),
                                   ],
                                 ),
                               ),
-                              endChild:  AppUtils.commonContainer(
+                              endChild: AppUtils.commonContainer(
                                 padding: AppUtils.edgeInsetsOnly(top: 5),
-                                margin: AppUtils.edgeInsetsOnly(right: 10,bottom: 20,left: 10),
+                                margin: AppUtils.edgeInsetsOnly(
+                                    right: 10, bottom: 20, left: 10),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-
-                                    AppUtils.commonTextWidget(text: userList[index].statusOfEvent,textColor: Colors.lightGreen,fontWeight: FontWeight.w400,fontSize: 16),
-                                    AppUtils.commonTextWidget(text: userList[index].eventAddress,textColor: AppConstant.blackColor,fontWeight: FontWeight.w400,fontSize: 14),
-
+                                    AppUtils.commonTextWidget(
+                                        text: userList[index].statusOfEvent,
+                                        textColor: Colors.lightGreen,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 16),
+                                    AppUtils.commonTextWidget(
+                                        text: userList[index].eventAddress,
+                                        textColor: AppConstant.blackColor,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 14),
                                   ],
                                 ),
                               ),
@@ -319,8 +365,6 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                             );
                           },
                         )
-
-
                       ],
                     ),
                   ),
@@ -335,22 +379,21 @@ class _SaleManTrackerState extends State<SaleManTracker> {
 
   List<String> nameList = [
     "Logged In"
-    "Checked In"
-    "Checked Out"
-    "Waiting - 19 Min"
-    "Gps"
-    "Logged Out"
+        "Checked In"
+        "Checked Out"
+        "Waiting - 19 Min"
+        "Gps"
+        "Logged Out"
   ];
 
- List<String> iconList = [
-   loginIcon,
-   checkInIcon,
-   checkOutIcon,
-   waitingIcon,
-   gpsIcon,
-   logoutIcon,
-
- ];
+  List<String> iconList = [
+    loginIcon,
+    checkInIcon,
+    checkOutIcon,
+    waitingIcon,
+    gpsIcon,
+    logoutIcon,
+  ];
 
   Widget travelInfoRowWidget(
       {IconData? iconData,
@@ -366,7 +409,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
         ),
         AppUtils.commonSizedBox(height: 5),
         AppUtils.commonTextWidget(
-          fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w500,
             text: textData ?? "",
             textColor: AppConstant.blackColor,
             fontSize: 12,
@@ -548,161 +591,174 @@ class _SaleManTrackerState extends State<SaleManTracker> {
       builder: (context) => showDialogBox(context),
     );
   }
+
   AlertDialog showDialogBox(BuildContext context) {
     return AlertDialog(
       backgroundColor: AppConstant.blueColor,
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(10))),
-
-      contentPadding: AppUtils.edgeInsetsOnly(
-          right: 15,
-          left: 15,
-          top: 10,
-          bottom: 10),
-      insetPadding: AppUtils.edgeInsetsAll(
-          allPadding: 0),
-      titlePadding: AppUtils.edgeInsetsAll(
-          allPadding: 0),
-      content: Column(
-          mainAxisSize: MainAxisSize.min,
+      contentPadding:
+          AppUtils.edgeInsetsOnly(right: 15, left: 15, top: 10, bottom: 10),
+      insetPadding: AppUtils.edgeInsetsAll(allPadding: 0),
+      titlePadding: AppUtils.edgeInsetsAll(allPadding: 0),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              mainAxisAlignment:
-              MainAxisAlignment
-                  .spaceBetween,
-              children: [
-                AppUtils.commonSizedBox(
-                  height: 40,
-                  width: 40,
-                ),
-                AppUtils.commonTextWidget(
-                  // textColor: App,
-                    text: "Contact Info",
-                    fontSize: 16),
-                AppUtils.commonContainer(
-                    height: 40,
-                    width: 40,
-                    child: IconButton(
-                        color: AppConstant.whiteColor,
-                        onPressed: () {
-                          Navigator.pop(
-                              context);
-                        },
-                        icon: Icon(
-                            Icons.close)))
-              ],
-            ),
             AppUtils.commonSizedBox(
-                height: 10),
-
-            Visibility(
-              visible: false,
-              child: AppUtils.commonTextWidget(
-                margin: AppUtils.edgeInsetsOnly(top: 30,bottom: 30),
-                text: "No contact info found",
-                fontSize: 14,
-              ),
+              height: 40,
+              width: 40,
             ),
-
-            Visibility(
-              visible:true,
-              child: GestureDetector(
-                onTap: () {
-                  // AppUtils.launchToBrowser(
-                  //     Uri.parse(
-                  //         "tel:${getSalesMenListModelData?[index].primaryPhoneNo}"));
-                },
-                child: AppUtils.commonContainer(
-                  padding:
-                  AppUtils.edgeInsetsAll(
-                      allPadding: 15),
-                  width: double.infinity,
-                  decoration: AppUtils
-                      .commonBoxDecoration(
-                      border: Border.all(
-                        color: AppConstant.greyColor.withOpacity(0.5),
-                        width: 1,),
-                      borderRadius:
-                      BorderRadius.circular(
-                          5),
-                      color: AppConstant.whiteColor
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.call,
-                          color: AppConstant.blueColor
-                      ),
-                      AppUtils.commonSizedBox(
-                          width: 5),
-                      AppUtils.commonTextWidget(
-                          letterSpacing: 2,
-                          text: "910679588",
-                          // text: getSalesMenListModelData?[
-                          // index]
-                          //     .primaryPhoneNo ??
-                          //     '',
-                          fontSize: 14,
-                          textColor: AppConstant.blueColor
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            AppUtils.commonSizedBox(
-                height: 10),
-            Visibility(
-              visible:true,
-              child: GestureDetector(
-                onTap: () {
-                  // AppUtils.launchToBrowser(
-                  //     Uri.parse(
-                  //         "tel:${getSalesMenListModelData?[index].altPhoneNo}"));
-                },
-                child: AppUtils.commonContainer(
-                  padding:
-                  AppUtils.edgeInsetsAll(
-                      allPadding: 15),
-                  width: double.infinity,
-                  decoration: AppUtils
-                      .commonBoxDecoration(
-                    border: Border.all(
-                        color:AppConstant.greyColor.withOpacity(0.5),
-                        width: 1),
-                    borderRadius:
-                    BorderRadius.circular(
-                        5),
+            AppUtils.commonTextWidget(
+                // textColor: App,
+                text: "Contact Info",
+                fontSize: 16),
+            AppUtils.commonContainer(
+                height: 40,
+                width: 40,
+                child: IconButton(
                     color: AppConstant.whiteColor,
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    icon: Icon(Icons.close)))
+          ],
+        ),
+        AppUtils.commonSizedBox(height: 10),
+        Visibility(
+          visible: false,
+          child: AppUtils.commonTextWidget(
+            margin: AppUtils.edgeInsetsOnly(top: 30, bottom: 30),
+            text: "No contact info found",
+            fontSize: 14,
+          ),
+        ),
+        Visibility(
+          visible: true,
+          child: GestureDetector(
+            onTap: () {
+              // AppUtils.launchToBrowser(
+              //     Uri.parse(
+              //         "tel:${getSalesMenListModelData?[index].primaryPhoneNo}"));
+            },
+            child: AppUtils.commonContainer(
+              padding: AppUtils.edgeInsetsAll(allPadding: 15),
+              width: double.infinity,
+              decoration: AppUtils.commonBoxDecoration(
+                  border: Border.all(
+                    color: AppConstant.greyColor.withOpacity(0.5),
+                    width: 1,
                   ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.call,
-                          color : AppConstant.blueColor
-                      ),
-                      AppUtils.commonSizedBox(
-                          width: 5),
-                      AppUtils.commonTextWidget(letterSpacing: 2,
-                          text: "7435019181",
-                          // text: getSalesMenListModelData?[
-                          // index]
-                          //     .altPhoneNo ??
-                          //     '',
-                          fontSize: 14,
-                          textColor: AppConstant.blueColor
-                      ),
-                    ],
-                  ),
-                ),
+                  borderRadius: BorderRadius.circular(5),
+                  color: AppConstant.whiteColor),
+              child: Row(
+                children: [
+                  Icon(Icons.call, color: AppConstant.blueColor),
+                  AppUtils.commonSizedBox(width: 5),
+                  AppUtils.commonTextWidget(
+                      letterSpacing: 2,
+                      text: "910679588",
+                      // text: getSalesMenListModelData?[
+                      // index]
+                      //     .primaryPhoneNo ??
+                      //     '',
+                      fontSize: 14,
+                      textColor: AppConstant.blueColor),
+                ],
               ),
             ),
-            AppUtils.commonSizedBox(
-                height: 10),
-          ]),
+          ),
+        ),
+        AppUtils.commonSizedBox(height: 10),
+        Visibility(
+          visible: true,
+          child: GestureDetector(
+            onTap: () {
+              // AppUtils.launchToBrowser(
+              //     Uri.parse(
+              //         "tel:${getSalesMenListModelData?[index].altPhoneNo}"));
+            },
+            child: AppUtils.commonContainer(
+              padding: AppUtils.edgeInsetsAll(allPadding: 15),
+              width: double.infinity,
+              decoration: AppUtils.commonBoxDecoration(
+                border: Border.all(
+                    color: AppConstant.greyColor.withOpacity(0.5), width: 1),
+                borderRadius: BorderRadius.circular(5),
+                color: AppConstant.whiteColor,
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.call, color: AppConstant.blueColor),
+                  AppUtils.commonSizedBox(width: 5),
+                  AppUtils.commonTextWidget(
+                      letterSpacing: 2,
+                      text: "7435019181",
+                      // text: getSalesMenListModelData?[
+                      // index]
+                      //     .altPhoneNo ??
+                      //     '',
+                      fontSize: 14,
+                      textColor: AppConstant.blueColor),
+                ],
+              ),
+            ),
+          ),
+        ),
+        AppUtils.commonSizedBox(height: 10),
+      ]),
     );
   }
 
 
+  openCustomDialog(String text) {
+    showDialog(
+      context: context,
+      builder: (context) => showCustomDialog(text, context),
+    );
+  }
 
+  AlertDialog showCustomDialog(String text, BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(10))),
+      // Remove border radius
+      insetPadding: const EdgeInsets.all(0),
+      titlePadding: const EdgeInsets.all(0),
+      contentPadding:
+      const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Text(text, textAlign: TextAlign.center,),
+          AppUtils.commonTextWidget(
+              text: text,
+              textAlign: TextAlign.center,
+              textColor: AppConstant.blackColor,
+              fontWeight: FontWeight.w400),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                style: TextButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10))),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: AppUtils.commonTextWidget(
+                    text: "OK",
+                    textColor: AppConstant.blueColor,
+                    letterSpacing: 1,
+                    fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
 
   DateTime? selectedDate;

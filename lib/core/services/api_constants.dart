@@ -1,2 +1,5 @@
-const String baseUrl = "app.projectBase.com";
-const String logInUrl = "$baseUrl/auth/login";
+class ApiConstants{
+   static const String baseUrl = "http://ontrek_v1api.epistic.net/api";
+   static const String getSalesMenList = "$baseUrl/Admin/GetSalesMenList";
+   static const String getSalesMentimeLine = "$baseUrl/Admin/GetTimeLine";
+}

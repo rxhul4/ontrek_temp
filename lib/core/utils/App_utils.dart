@@ -1,3 +1,4 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
@@ -42,6 +43,15 @@ class AppUtils {
       child: child,
     );
   }
+
+  static Future<bool> checkInternetConnectivity() async {
+    bool isInternetAvailable = false;
+
+    final connectivityResult = await Connectivity().checkConnectivity();
+    isInternetAvailable = connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi;
+
+    return isInternetAvailable;
+  }
   static Future<bool> checkLocationServiceAvailability() async {
     bool isLocationServiceAvailable = false;
     isLocationServiceAvailable = await Geolocator.isLocationServiceEnabled();
@@ -76,6 +86,30 @@ class AppUtils {
     double? allPadding,
   }) {
     return EdgeInsets.all(allPadding ?? 0);
+  }
+
+
+  static Widget commonNoDataFound({String? text,VoidCallback? onPressed}){
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        AppUtils.commonTextWidget(
+            text: text ?? "No Data Found"),
+        AppUtils.commonSizedBox(height: 10),
+        AppUtils.commonElevatedBtn(
+          height: 50,
+          text: "Refresh",
+          bgColor: AppConstant.blueColor,
+          textColor: AppConstant.whiteColor,
+          borderRadiusAll: 10,
+          leftMargin: 0,
+          rightMargin: 0,
+          bottomMargin: 0,
+          topMargin: 0,
+          onPressed: onPressed,
+        )
+      ],
+    );
   }
 
   static Widget commonContainer({
@@ -175,6 +209,7 @@ class AppUtils {
     double? height,
     Gradient? gradient,
     Color? backgroundColor,
+    Color? textColor
   }) {
     return commonContainer(
       height: height,
@@ -201,6 +236,7 @@ class AppUtils {
         child: commonTextWidget(
           text: text ?? '',
           fontFamily: fontFamily,
+          textColor:  textColor,
           fontSize: fontSize ?? 14,
           letterSpacing: letterSpacing,
         ),
