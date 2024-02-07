@@ -131,7 +131,7 @@ class DashBoardState extends State<DashBoard> {
     }
   }
   DraggableScrollableController draggableScrollableController =
-      DraggableScrollableController();
+  DraggableScrollableController();
 
   @override
   Widget build(BuildContext context) {
@@ -151,7 +151,7 @@ class DashBoardState extends State<DashBoard> {
                   },
                   markers: markers,
                   initialCameraPosition:
-                      CameraPosition(target: LatLng(0, 0), zoom: 14)),
+                  CameraPosition(target: LatLng(0, 0), zoom: 14)),
             ),
 
             // screens[_selectedIndex],
@@ -161,12 +161,12 @@ class DashBoardState extends State<DashBoard> {
                 snap: true,
                 expand: false,
                 snapAnimationDuration: const Duration(milliseconds: 200),
-                initialChildSize: 0.09,
+                initialChildSize: 0.4,
                 maxChildSize: _selectedIndex == 0 ? 0.4 :1,
                 minChildSize: 0.09,
                 controller: draggableScrollableController,
                 snapSizes:[
-                 0.4
+                  0.4
                 ] ,
                 builder: (context, scrollController) {
                   return [
@@ -211,7 +211,7 @@ class DashBoardState extends State<DashBoard> {
                     if (index == 3) {
                       draggableScrollableController.jumpTo(1);
                     } else {
-                      draggableScrollableController.jumpTo(0.09);
+                      draggableScrollableController.jumpTo(0.4);
                     }
                     _selectedIndex = index;
                     // Future.delayed(duration)
@@ -226,30 +226,30 @@ class DashBoardState extends State<DashBoard> {
                   // width: 100,
                   color: Colors.white,
                   child:  Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.asset(
-                          width: index == 0 || index == 1 ? 25 : 20,
-                          height: index == 0 || index == 1 ? 25 : 20,
-                          iconString[index],
-                          color: _selectedIndex == index
-                              ? Colors.blueAccent
-                              : AppConstant.greyColor,
-                        ),
-                        AppUtils.commonTextWidget(
-                          text: lableString[index],
-                          textColor: _selectedIndex == index
-                              ? Colors.blueAccent
-                              : AppConstant.greyColor,
-                          fontSize: 12,
-                          fontWeight: _selectedIndex == index
-                              ? FontWeight.w600
-                              : FontWeight.w400,
-                        ),
-                      ],
-                    ),
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        width: index == 0 || index == 1 ? 25 : 20,
+                        height: index == 0 || index == 1 ? 25 : 20,
+                        iconString[index],
+                        color: _selectedIndex == index
+                            ? Colors.blueAccent
+                            : AppConstant.greyColor,
+                      ),
+                      AppUtils.commonTextWidget(
+                        text: lableString[index],
+                        textColor: _selectedIndex == index
+                            ? Colors.blueAccent
+                            : AppConstant.greyColor,
+                        fontSize: 12,
+                        fontWeight: _selectedIndex == index
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                      ),
+                    ],
                   ),
+                ),
               );
             }),
           ),

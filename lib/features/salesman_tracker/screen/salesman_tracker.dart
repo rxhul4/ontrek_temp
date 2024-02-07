@@ -8,6 +8,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
+import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/features/salesman_tracker/model/salesmen_tracking_detailes.dart';
 import 'package:ontrek/features/salesman_tracker/provider/salesmen_tracking_timeline_provider.dart';
@@ -21,7 +22,7 @@ class SaleManTracker extends StatefulWidget {
   String? name;
   String? userUid;
 
-  SaleManTracker({super.key, this.index, this.name,this.userUid});
+  SaleManTracker({super.key, this.index, this.name, this.userUid});
 
   @override
   State<SaleManTracker> createState() => _SaleManTrackerState();
@@ -32,7 +33,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
   Set<Marker> markers = Set();
   LatLng currentLocation = LatLng(20.5937, 78.9629);
   DraggableScrollableController draggableScrollableController =
-  DraggableScrollableController();
+      DraggableScrollableController();
   GetTimeLineModel? getTimeLineModel;
 
   Future<void> getCurrentLocation() async {
@@ -77,27 +78,62 @@ class _SaleManTrackerState extends State<SaleManTracker> {
     );
   }
 
+  String imagePath = '';
+  Color? statusColor;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     print("index_____${widget.index}");
+    print("userUid----${widget.userUid}");
     getCurrentLocation();
     selectedDate = DateTime.now();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final getMdl = Provider.of<SaleMenTackingTimeLineProvider>(context, listen: false);
+      final getMdl =
+          Provider.of<SaleMenTackingTimeLineProvider>(context, listen: false);
       callGetTimeline(getMdl);
+      setIconFunction();
     });
+  }
 
+  setIconFunction() {
+    final trackingStatus = getTimeLineModel?.data?.first?.trackingStatus;
+
+    if (trackingStatus != null) {
+      print("Tracking Status1: $trackingStatus");
+
+      switch (trackingStatus) {
+        case 'Day Start':
+          imagePath = loginIcon;
+          break;
+        case 'Check In':
+          imagePath = checkInIcon;
+          break;
+        case 'Check Out':
+          imagePath = checkOutIcon;
+          break;
+        case 'Waiting Start':
+        case 'Waiting End':
+          imagePath = waitingIcon;
+          break;
+        default:
+          imagePath = logoutIcon;
+      }
+    } else {
+      // Handling null case
+      print("Tracking status is null");
+      imagePath = logoutIcon; // or provide a default image path
+    }
   }
 
 
   callGetTimeline(SaleMenTackingTimeLineProvider getMdl) {
     getMdl
         .apiCallGetTimeLine(
-        eventDate: AppUtils.dateFormat(
-            date: selectedDate, dateFormat: "yyyy-MM-dd"),
-        userUid:  widget.userUid)
+            eventDate: AppUtils.dateFormat(
+                date: selectedDate, dateFormat: "yyyy-MM-dd"),
+            userUid: widget.userUid)
         .then((value) {
       getTimeLineModel = value;
       if (getTimeLineModel?.code != 200) {
@@ -108,14 +144,10 @@ class _SaleManTrackerState extends State<SaleManTracker> {
     });
   }
 
-
-
-
-
-
   @override
   Widget build(BuildContext context) {
     final getMdl = Provider.of<SaleMenTackingTimeLineProvider>(context);
+
     return Scaffold(
       body: SafeArea(
         child: Stack(
@@ -279,92 +311,170 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                           alignment: Alignment.topCenter,
                           child: dateSelectionWidget(isFromSheet: true),
                         ),
-                        getMdl.isFetching || getMdl.getTimeLineModel?.data?.length == 0 ? Center(child: CircularProgressIndicator(color: AppConstant.blueColor,)) : ListView.builder(
-                          itemCount: getTimeLineModel?.data?.length,
-                          physics: const NeverScrollableScrollPhysics(),
-                          shrinkWrap: true,
-                          itemBuilder: (context, index) {
-                            DateTime dateTime = DateTime.now();
-                            var formatTime = AppUtils.dateFormat(
-                                date: dateTime, dateFormat: "HH:mm aa");
-                            var formattedDate = AppUtils.dateFormat(
-                                date: dateTime, dateFormat: "d MMM y");
-                            String indicatorText =
-                                'Indicator ${index + 1}'; // Example indicator text
+                        AppUtils.commonSizedBox(height: 20),
+                        getMdl.isFetching
+                            ? AppUtils.loaderWidget()
+                            : getMdl.getTimeLineModel?.data == null ||
+                                    (getMdl.getTimeLineModel?.data?.length ??
+                                            0) <=
+                                        0
+                                ? AppUtils.commonNoDataFound(
+                                    onPressed: () {
+                                      callGetTimeline(getMdl);
+                                    },
+                                  )
+                                : ListView.builder(
+                                    itemCount:
+                                        getMdl.getTimeLineModel?.data?.length ??
+                                            0,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    shrinkWrap: true,
+                                    itemBuilder: (context, index) {
+                                      // DateTime dateTime = DateTime.now();
+                                      var formatTime = AppUtils.getDate(
+                                          date: getMdl.getTimeLineModel
+                                                  ?.data?[index].eventTime ??
+                                              "",
+                                          format: "HH:mm aa");
+                                      var formattedDate = AppUtils.getDate(
+                                          date: getMdl.getTimeLineModel
+                                                  ?.data?[index].eventTime ??
+                                              "",
+                                          format: "d MMM y");
 
-                            return TimelineTile(
-                              hasIndicator: true,
-                              axis: TimelineAxis.vertical,
-                              lineXY: 0.48,
-                              isLast: index == iconList.length - 1,
-                              isFirst: index == iconList.first,
-                              indicatorStyle: IndicatorStyle(
-                                indicatorXY: 0,
-                                drawGap: true,
-                                height: 40,
-                                width: 40,
-                                indicator: AppUtils.commonContainer(
-                                  decoration: AppUtils.commonBoxDecoration(
-                                    // color: Colors.lightGreen,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Center(
-                                      child: Image.asset(iconList[index])),
-                                ),
-                              ),
-                              beforeLineStyle: LineStyle(
-                                color: AppConstant.primaryColor,
-                                thickness: 1,
-                              ),
-                              afterLineStyle: LineStyle(
-                                color: AppConstant.primaryColor,
-                                thickness: 1,
-                              ),
-                              startChild: AppUtils.commonContainer(
-                                padding: AppUtils.edgeInsetsOnly(top: 10),
-                                margin: AppUtils.edgeInsetsOnly(left: 50),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    AppUtils.commonTextWidget(
-                                        text: /*"${formattedDate}"*/
-                                            userList[index].eventDate,
-                                        textColor: AppConstant.greyColor,
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 16),
-                                    AppUtils.commonTextWidget(
-                                        text: /*"${formatTime}"*/
-                                            userList[index].eventTime,
-                                        textColor: AppConstant.blackColor,
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 14),
-                                  ],
-                                ),
-                              ),
-                              endChild: AppUtils.commonContainer(
-                                padding: AppUtils.edgeInsetsOnly(top: 5),
-                                margin: AppUtils.edgeInsetsOnly(
-                                    right: 10, bottom: 20, left: 10),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    AppUtils.commonTextWidget(
-                                        text: userList[index].statusOfEvent,
-                                        textColor: Colors.lightGreen,
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 16),
-                                    AppUtils.commonTextWidget(
-                                        text: userList[index].eventAddress,
-                                        textColor: AppConstant.blackColor,
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 14),
-                                  ],
-                                ),
-                              ),
-                              alignment: TimelineAlign.manual,
-                            );
-                          },
-                        )
+
+                                        final trackingStatus = getTimeLineModel?.data?[index].trackingStatus;
+
+                                        if (trackingStatus != null) {
+                                          print("Tracking Status: $trackingStatus");
+
+                                          switch (trackingStatus) {
+                                            case 'Day Start':
+                                              imagePath = loginIcon;
+                                              statusColor = Colors.lightGreen;
+                                              break;
+                                            case 'Check In':
+                                              imagePath = checkInIcon;
+                                              statusColor = AppConstant.blueColor;
+                                              break;
+                                            case 'Check Out':
+                                              imagePath = checkOutIcon;
+                                              statusColor = AppConstant.blueColor;
+                                              break;
+                                            case 'Waiting Start':
+                                            case 'Waiting End':
+                                              imagePath = waitingIcon;
+                                              statusColor = Colors.orangeAccent;
+                                              break;
+                                            default:
+                                              imagePath = logoutIcon;
+                                              statusColor = Colors.red;
+    }
+                                        } else {
+                                          // Handling null case
+                                          print("Tracking status is null");
+                                          imagePath = logoutIcon; // or provide a default image path
+                                        }
+
+                                      return TimelineTile(
+                                        hasIndicator: true,
+                                        axis: TimelineAxis.vertical,
+                                        lineXY: 0.5,
+                                        isLast: index ==
+                                            (getMdl.getTimeLineModel?.data
+                                                        ?.length ??
+                                                    0) -
+                                                1,
+                                        isFirst: index ==
+                                            getMdl
+                                                .getTimeLineModel?.data?.length,
+                                        indicatorStyle: IndicatorStyle(
+                                          indicatorXY: 0,
+                                          drawGap: true,
+                                          height: 40,
+                                          width: 40,
+                                          indicator: AppUtils.commonContainer(
+                                            decoration:
+                                                AppUtils.commonBoxDecoration(
+                                              // color: Colors.lightGreen,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Center(
+                                                child: Image.asset(
+                                                  imagePath,
+                                            )),
+                                          ),
+                                        ),
+                                        beforeLineStyle: LineStyle(
+                                          color: AppConstant.primaryColor,
+                                          thickness: 1,
+                                        ),
+                                        afterLineStyle: LineStyle(
+                                          color: AppConstant.primaryColor,
+                                          thickness: 1,
+                                        ),
+                                        startChild: AppUtils.commonContainer(
+                                          padding:
+                                              AppUtils.edgeInsetsOnly(top: 10),
+                                          margin:
+                                              AppUtils.edgeInsetsOnly(left: 30),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              AppUtils.commonTextWidget(
+                                                  text:
+                                                      "${formattedDate}" /* getTimeLineModel?.data?[index].eventDate ?? ""*/,
+                                                  textColor:
+                                                      AppConstant.greyColor,
+                                                  fontWeight: FontWeight.w400,
+                                                  fontSize: 16),
+                                              AppUtils.commonTextWidget(
+                                                  text:
+                                                      "${formatTime}" /*getTimeLineModel?.data?[index].eventTime ?? ""*/,
+                                                  textColor:
+                                                      AppConstant.blackColor,
+                                                  fontWeight: FontWeight.w400,
+                                                  fontSize: 14),
+                                            ],
+                                          ),
+                                        ),
+                                        endChild: AppUtils.commonContainer(
+                                          padding:
+                                              AppUtils.edgeInsetsOnly(top: 5),
+                                          margin: AppUtils.edgeInsetsOnly(
+                                              right: 10, bottom: 20, left: 30),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              AppUtils.commonTextWidget(
+                                                  text: getMdl
+                                                          .getTimeLineModel
+                                                          ?.data?[index]
+                                                          .trackingStatus ??
+                                                      "",
+                                                  textColor: statusColor,
+                                                  fontWeight: FontWeight.w400,
+                                                  fontSize: 16),
+                                              AppUtils.commonTextWidget(
+                                                  text: getMdl
+                                                          .getTimeLineModel
+                                                          ?.data?[index]
+                                                          .trackingAddress ??
+                                                      "",
+                                                  textColor:
+                                                      AppConstant.blackColor,
+                                                  fontWeight: FontWeight.w400,
+                                                  fontSize: 14),
+                                            ],
+                                          ),
+                                        ),
+                                        alignment: TimelineAlign.manual,
+                                      );
+                                    },
+                                  )
                       ],
                     ),
                   ),
@@ -710,7 +820,6 @@ class _SaleManTrackerState extends State<SaleManTracker> {
     );
   }
 
-
   openCustomDialog(String text) {
     showDialog(
       context: context,
@@ -726,7 +835,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
       insetPadding: const EdgeInsets.all(0),
       titlePadding: const EdgeInsets.all(0),
       contentPadding:
-      const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
+          const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -759,7 +868,6 @@ class _SaleManTrackerState extends State<SaleManTracker> {
       ),
     );
   }
-
 
   DateTime? selectedDate;
 

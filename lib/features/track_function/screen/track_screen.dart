@@ -34,17 +34,15 @@ class _TrackScreenState extends State<TrackScreen> {
     // TODO: implement initState
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final postMdl = Provider.of<SalesMenListProvider>(context, listen: false);
-      callGetSalesManListApi(postMdl);
+      final getMdl = Provider.of<SalesMenListProvider>(context, listen: false);
+      callGetSalesManListApi(getMdl,"");
     });
   }
 
 
 
-  callGetSalesManListApi(SalesMenListProvider getMdl) {
-    getMdl.apiCallGetSalesManList(
-      eventDate:
-        AppUtils.dateFormat(dateFormat: "yyyy-MM-dd", date: DateTime.now()),)
+  callGetSalesManListApi(SalesMenListProvider getMdl,String? fullName) {
+    getMdl.apiCallGetSalesManList(eventDate: AppUtils.dateFormat(dateFormat: "yyyy-MM-dd", date: DateTime.now()),fullName: fullName)
         .then((value) {
       getSalesMenListModel = value;
       if (getSalesMenListModel?.code != 200) {
@@ -76,7 +74,7 @@ class _TrackScreenState extends State<TrackScreen> {
               ),
             ],
             borderRadius:
-                AppUtils.borderRadiousonly(topright: 18, topleft: 18),
+            AppUtils.borderRadiousonly(topright: 18, topleft: 18),
             color: AppConstant.whiteColor),
         child: SingleChildScrollView(
           controller: widget.scrollController,
@@ -92,12 +90,12 @@ class _TrackScreenState extends State<TrackScreen> {
                     ),
                   ),
                   borderRadius:
-                      AppUtils.borderRadiousonly(topleft: 18, topright: 18),
+                  AppUtils.borderRadiousonly(topleft: 18, topright: 18),
                   color: Colors.white,
                 ),
                 child: Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   child: Column(
                     children: [
                       AppUtils.commonContainer(
@@ -106,7 +104,7 @@ class _TrackScreenState extends State<TrackScreen> {
                         decoration: AppUtils.commonBoxDecoration(
                             color: AppConstant.greyColor.withOpacity(0.3),
                             borderRadius:
-                                AppUtils.borderRadiusAll(raduis: 12)),
+                            AppUtils.borderRadiusAll(raduis: 12)),
                       ),
                       Row(
                         children: [
@@ -116,10 +114,10 @@ class _TrackScreenState extends State<TrackScreen> {
                               decoration: AppUtils.commonBoxDecoration(
                                 shape: BoxShape.circle,
                                 border:
-                                    Border.all(color: Colors.grey, width: 1.2),
+                                Border.all(color: Colors.grey, width: 1.2),
                               ),
                               child:
-                                  Icon(Icons.location_pin, color: Colors.cyan)),
+                              Icon(Icons.location_pin, color: Colors.cyan)),
                           AppUtils.commonSizedBox(width: 10),
                           Expanded(
                             child: Column(
@@ -136,7 +134,7 @@ class _TrackScreenState extends State<TrackScreen> {
                                   text: "Select a user to locate",
                                   fontWeight: FontWeight.w400,
                                   textColor:
-                                      AppConstant.blackColor.withOpacity(0.3),
+                                  AppConstant.blackColor.withOpacity(0.3),
                                   letterSpacing: 0,
                                   fontSize: 13,
                                 ),
@@ -167,23 +165,31 @@ class _TrackScreenState extends State<TrackScreen> {
                   ),
                 ),
               ),
-              isSearchVisible ? searchWidget() : SizedBox(),
-              getMdl.isFetching || getMdl.getSalesMenListModel?.data == null ?   Padding(
+
+    // getMdl.isFetching || getMdl.getSalesMenListModel?.data == null ?   Padding(
+    //   padding: const EdgeInsets.only(top: 100),
+    //   child: Center(child: CircularProgressIndicator(color: AppConstant.blueColor,)),
+    // ) :(getMdl.getSalesMenListModel?.data?.length ?? 0) <= 0 ? AppUtils.commonNoDataFound(onPressed: () {
+    //   callGetSalesManListApi(getMdl);
+    // }) :
+              isSearchVisible ? searchWidget(getMdl) : SizedBox(),
+              getMdl.isFetching ? Padding(
                 padding: const EdgeInsets.only(top: 100),
-                child: Center(child: CircularProgressIndicator(color: AppConstant.blueColor,)),
-              ) :(getMdl.getSalesMenListModel?.data?.length ?? 0) <= 0 ? AppUtils.commonNoDataFound(onPressed: () {
-                callGetSalesManListApi(getMdl);
-              }) :  GridView.builder(
-                // controller: gridScrollController,
-                itemCount: getSalesMenListModel?.data?.length,
+                child: Center(child: CircularProgressIndicator(color: AppConstant.blueColor,))) :(getMdl.getSalesMenListModel?.data?.length ?? 0) <= 0?Padding(
+                  padding: const EdgeInsets.only(top: 80),
+                  child: AppUtils.commonNoDataFound(onPressed: () {
+                            callGetSalesManListApi(getMdl,"");
+                          }),
+                )
+                      : GridView.builder(
+                itemCount: getMdl.getSalesMenListModel?.data?.length ?? 0,
                 shrinkWrap: true,
-                // controller: widget.scrollController,
                 physics: widget.scrollController?.position.pixels == 1 ? AlwaysScrollableScrollPhysics() : NeverScrollableScrollPhysics(),
                 padding: AppUtils.edgeInsetsAll(allPadding: 10),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 4, childAspectRatio: 4 / 4.5),
                 itemBuilder: (BuildContext context, int index) {
-                  return  saleMenList(index, getSalesMenListModel?.data,);
+                  return  saleMenList(index, getMdl.getSalesMenListModel?.data,);
                 },
               ),
             ],
@@ -195,17 +201,17 @@ class _TrackScreenState extends State<TrackScreen> {
 
   bool isRefreshing = false;
   refresh(SalesMenListProvider getMdl)async{
-    callGetSalesManListApi(getMdl);
+    callGetSalesManListApi(getMdl,"");
   }
 
   TextEditingController searchController = TextEditingController();
-  Widget searchWidget() {
+  Widget searchWidget(getMdl) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: AppTextField(
         controller: searchController,
-        onChanged: (p0) {
-
+        onChanged: (value) {
+          callGetSalesManListApi(getMdl,value ?? "");
         },
         hintText: "Search",
         prefixIcon: Icon(Icons.search),
@@ -217,6 +223,7 @@ class _TrackScreenState extends State<TrackScreen> {
             setState(() {
               isSearchVisible = false;
             });
+            callGetSalesManListApi(getMdl, "");
           },
           child: Icon(Icons.close),
         ),
@@ -244,7 +251,7 @@ class _TrackScreenState extends State<TrackScreen> {
         Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => SaleManTracker(index: index,name: getSalesMenListModelData?[index].fullName,userUid: getSalesMenListModelData?[index].userUid),
+              builder: (context) => SaleManTracker(index: index,name: getSalesMenListModelData?[index].fullName,userUid: getSalesMenListModelData?[index].userUid,),
             ));
       },
       child: Column(
@@ -255,7 +262,7 @@ class _TrackScreenState extends State<TrackScreen> {
               decoration: AppUtils.commonBoxDecoration(
                   shape: BoxShape.circle,
                   border:
-                      Border.all(color: AppConstant.greyColor.withOpacity(0.5)),
+                  Border.all(color: AppConstant.greyColor.withOpacity(0.5)),
                   color: AppConstant.greyColor.withOpacity(0.3)),
               child: Icon(
                 Icons.person,
@@ -264,7 +271,7 @@ class _TrackScreenState extends State<TrackScreen> {
               )),
           AppUtils.commonSizedBox(height: 5),
           AppUtils.commonTextWidget(
-              text:/* userList[index].name*/ getSalesMenListModelData?[index].fullName ?? "", textColor: AppConstant.blackColor, fontSize: 11),
+              text: /*userList[index].name*/ getSalesMenListModelData?[index].fullName ?? "", textColor: AppConstant.blackColor, fontSize: 11),
           // AppUtils.commonTextWidget(
           //     text: 'Last week', textColor: Colors.cyan, fontSize: 9),
         ],

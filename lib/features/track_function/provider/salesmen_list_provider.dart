@@ -29,8 +29,8 @@ class SalesMenListProvider extends ChangeNotifier{
     _isFetching = true;
     notifyListeners();
     try {
-      String endPoint = "${ApiConstants.getSalesMenList}?manager_id=7&event_date=2024-01-24";
-      // String endPointWithoutDate = "${ApiConstants.getSalesMenList}?manager_id=$managerId&event_date=$eventDate&Filter=$fullName";
+      String endPoint = "${ApiConstants.getSalesMenList}?manager_id=7&event_date=2024-01-22&Filter=$fullName";
+      // String endPoint = "${ApiConstants.getSalesMenList}?manager_id=${7}&event_date=$eventDate&Filter=$fullName";
       var response = await callGetMethod(endPoint);
       getSalesMenListModel = GetSalesMenListModel.fromJson(json.decode(response));
       print('response ${getSalesMenListModel?.toJson()}');

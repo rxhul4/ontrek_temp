@@ -27,7 +27,7 @@ class SaleMenTackingTimeLineProvider extends ChangeNotifier{
     _isFetching = true;
     notifyListeners();
     try {
-      String endPoint = "${ApiConstants.getSalesMentimeLine}?user_uid=3d940d3c-0626-4ed7-af58-7f61d9ae3719&event_date=2024-02-02";
+      String endPoint = "${ApiConstants.getSalesMentimeLine}?user_uid=523565dc-dec1-42b2-9714-65fc396d431b&event_date=2024-01-24";
       // String endPoint = "${ApiConstants.getSalesMentimeLine}?user_uid=$userUid&event_date=$eventDate";
       var response = await callGetMethod(endPoint);
       getTimeLineModel = GetTimeLineModel.fromJson(json.decode(response));

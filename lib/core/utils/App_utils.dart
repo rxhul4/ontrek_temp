@@ -32,6 +32,14 @@ class AppUtils {
     );
   }
 
+
+  static loaderWidget({Color? color, double? size}) {
+    return Center(
+      child: CircularProgressIndicator(
+        color: color ?? AppConstant.blueColor,
+      ),
+    );
+  }
   static Widget commonSizedBox({
     double? height,
     double? width,
@@ -94,7 +102,7 @@ class AppUtils {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         AppUtils.commonTextWidget(
-            text: text ?? "No Data Found"),
+            text: text ?? "No Data Found",textColor: AppConstant.blackColor),
         AppUtils.commonSizedBox(height: 10),
         AppUtils.commonElevatedBtn(
           height: 50,
@@ -110,6 +118,19 @@ class AppUtils {
         )
       ],
     );
+  }
+
+  static String getDate({required String date, required String format}) {
+    // print("uuuuuuuuu $date");
+    String parseDate = '';
+    if (date != '') {
+      try {
+        parseDate = DateFormat(format).format(DateTime.parse(date));
+      } catch (e) {
+        return parseDate;
+      }
+    }
+    return parseDate;
   }
 
   static Widget commonContainer({
