@@ -3,8 +3,26 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AppUtils {
+
+  static Future<void> launchToBrowser(Uri url) async {
+    if (!await launchUrl(
+      url,
+      mode: LaunchMode.externalApplication,
+    )) {
+      throw Exception('Could not launch $url');
+    }
+  }
+
+
+
+
+
+
+
+
   static Widget commonTextWidget({
     required String text,
     Color? textColor,
@@ -16,11 +34,13 @@ class AppUtils {
     TextAlign? textAlign,
     EdgeInsets? margin,
     TextDecoration? decoration,
+    TextOverflow? overflow
   }) {
     return Text(
       textAlign: textAlign,
       text,
       style: TextStyle(
+        overflow: overflow,
         decoration: decoration,
         color: textColor ?? Colors.white,
         fontSize: fontSize ?? 14,

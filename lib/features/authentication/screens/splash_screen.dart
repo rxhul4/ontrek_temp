@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
@@ -45,7 +46,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppConstant.blueColor,
+      backgroundColor: AppConstant.whiteColor,
       body: Column(
         // mainAxisAlignment: MainAxisAlignment.spaceBetween,
         // crossAxisAlignment: CrossAxisAlignment.center,
@@ -55,11 +56,14 @@ class _SplashScreenState extends State<SplashScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Center(
-                  child: Image.asset(
-                    logoImagePath,
-                    color: AppConstant.whiteColor,
-                    width: 200,
-                    height: 200,
+                  child: Animate(
+                    effects: [FadeEffect(curve: Curves.ease,duration: Duration(milliseconds: 3000)),ShimmerEffect(curve: Curves.ease,duration: Duration(milliseconds: 3000)),],
+                    child: Image.asset(
+                      logoImagePath,
+                      color: AppConstant.blueColor,
+                      width: 200,
+                      height: 200,
+                    ),
                   ),
                 ),
               ],
@@ -71,7 +75,7 @@ class _SplashScreenState extends State<SplashScreen> {
             child: AppUtils.commonTextWidget(
               text: "Location Intelligence and Analytics App",
               fontWeight: FontWeight.w400,
-              textColor: AppConstant.whiteColor,
+              textColor: AppConstant.blueColor,
               fontSize: 13,
               letterSpacing: 0.5,
             ),

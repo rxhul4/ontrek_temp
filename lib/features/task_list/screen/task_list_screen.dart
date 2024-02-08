@@ -89,10 +89,11 @@ class _TaskListScreenState extends State<TaskListScreen>
   Widget build(BuildContext context) {
     return Animate(
       effects: [
-        ScaleEffect(
-            curve: Curves.ease,
-            begin: Offset(0, -1),
-            duration: Duration(milliseconds: 100)),
+        SlideEffect(
+            end: Offset(0, 0),
+            curve: Curves.decelerate,
+            begin: Offset(0, 1),
+            duration: Duration(milliseconds: 600)),
       ],
       child: Container(
         decoration: AppUtils.commonBoxDecoration(

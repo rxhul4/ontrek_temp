@@ -20,12 +20,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Animate(
-      effects: const [
-        ScaleEffect(
-          curve: Curves.bounceIn,
-          begin: Offset(0, -1),
-          duration: Duration(milliseconds: 300),
-        ),
+      effects: [
+        SlideEffect(
+            end: Offset(0, 0),
+            curve: Curves.decelerate,
+            begin: Offset(0, 1),
+            duration: Duration(milliseconds: 600)),
       ],
       child: Container(
         decoration: AppUtils.commonBoxDecoration(

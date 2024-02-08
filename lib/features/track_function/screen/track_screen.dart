@@ -57,11 +57,12 @@ class _TrackScreenState extends State<TrackScreen> {
   Widget build(BuildContext context) {
     final getMdl = Provider.of<SalesMenListProvider>(context);
     return Animate(
-      effects: const [
-        ScaleEffect(
-            curve: Curves.ease,
-            begin: Offset(0, -1),
-            duration: Duration(milliseconds: 100)),
+      effects: [
+        SlideEffect(
+            end: Offset(0, 0),
+            curve: Curves.decelerate,
+            begin: Offset(0, 1),
+            duration: Duration(milliseconds: 600)),
       ],
       child: Container(
         decoration: AppUtils.commonBoxDecoration(
@@ -248,10 +249,11 @@ class _TrackScreenState extends State<TrackScreen> {
     return AppUtils.commonInkWell(
       onTap: () {
         print("index ${index}");
+        print("phone number ${getSalesMenListModelData?[index].phoneNo}");
         Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => SaleManTracker(index: index,name: getSalesMenListModelData?[index].fullName,userUid: getSalesMenListModelData?[index].userUid,),
+              builder: (context) => SaleManTracker(index: index,name: getSalesMenListModelData?[index].fullName,userUid: getSalesMenListModelData?[index].userUid,phoneNumber: getSalesMenListModelData?[index].phoneNo),
             ));
       },
       child: Column(

@@ -10,6 +10,7 @@ import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
+
 import 'package:ontrek/features/salesman_tracker/model/salesmen_tracking_detailes.dart';
 import 'package:ontrek/features/salesman_tracker/provider/salesmen_tracking_timeline_provider.dart';
 import 'package:provider/provider.dart';
@@ -21,8 +22,10 @@ class SaleManTracker extends StatefulWidget {
   int? index;
   String? name;
   String? userUid;
+  String? phoneNumber;
 
-  SaleManTracker({super.key, this.index, this.name, this.userUid});
+  SaleManTracker(
+      {super.key, this.index, this.name, this.userUid, this.phoneNumber});
 
   @override
   State<SaleManTracker> createState() => _SaleManTrackerState();
@@ -35,6 +38,10 @@ class _SaleManTrackerState extends State<SaleManTracker> {
   DraggableScrollableController draggableScrollableController =
       DraggableScrollableController();
   GetTimeLineModel? getTimeLineModel;
+  int? countOfCheckins;
+  String imagePath = '';
+  Color? statusColor;
+  int? checkInCount;
 
   Future<void> getCurrentLocation() async {
     print("innnnnnnnnnnnn");
@@ -47,8 +54,8 @@ class _SaleManTrackerState extends State<SaleManTracker> {
         currentLocation = LatLng(position.latitude, position.longitude);
         print("${currentLocation}");
         if (currentLocation != null) {
-          updateCameraPosition(currentLocation ?? LatLng(0, 0));
-          addCurrentLocationMarker(currentLocation ?? LatLng(0, 0));
+          updateCameraPosition(currentLocation);
+          addCurrentLocationMarker(currentLocation);
         }
       });
     } catch (e) {
@@ -62,7 +69,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
     controller.animateCamera(CameraUpdate.newCameraPosition(
       CameraPosition(
         target: location,
-        zoom: 24,
+        zoom: 16,
       ),
     ));
   }
@@ -78,8 +85,18 @@ class _SaleManTrackerState extends State<SaleManTracker> {
     );
   }
 
-  String imagePath = '';
-  Color? statusColor;
+  void addUpdatedLocationMarker(LatLng location) {
+    setState(() {
+      markers.clear(); // Clear previous markers
+      markers.add(
+        Marker(
+          markerId: MarkerId("updateLocation"),
+          position: location,
+          infoWindow: InfoWindow(title: "Update Location"),
+        ),
+      );
+    });
+  }
 
   @override
   void initState() {
@@ -90,43 +107,23 @@ class _SaleManTrackerState extends State<SaleManTracker> {
     getCurrentLocation();
     selectedDate = DateTime.now();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final getMdl =
-          Provider.of<SaleMenTackingTimeLineProvider>(context, listen: false);
+      final getMdl = Provider.of<SaleMenTackingTimeLineProvider>(context, listen: false);
       callGetTimeline(getMdl);
-      setIconFunction();
+      // setIconFunction();
     });
   }
 
-  setIconFunction() {
-    final trackingStatus = getTimeLineModel?.data?.first?.trackingStatus;
+  countCheckins() {
+    List<String?>? trackingStatus =
+        getTimeLineModel?.data?.map((e) => e.trackingStatus).toList();
+    setState(() {
+      checkInCount =
+          trackingStatus?.where((element) => element == "Check In")?.length;
+    });
 
-    if (trackingStatus != null) {
-      print("Tracking Status1: $trackingStatus");
-
-      switch (trackingStatus) {
-        case 'Day Start':
-          imagePath = loginIcon;
-          break;
-        case 'Check In':
-          imagePath = checkInIcon;
-          break;
-        case 'Check Out':
-          imagePath = checkOutIcon;
-          break;
-        case 'Waiting Start':
-        case 'Waiting End':
-          imagePath = waitingIcon;
-          break;
-        default:
-          imagePath = logoutIcon;
-      }
-    } else {
-      // Handling null case
-      print("Tracking status is null");
-      imagePath = logoutIcon; // or provide a default image path
-    }
+    print("cehckiinnn${checkInCount}");
+    return checkInCount;
   }
-
 
   callGetTimeline(SaleMenTackingTimeLineProvider getMdl) {
     getMdl
@@ -140,8 +137,15 @@ class _SaleManTrackerState extends State<SaleManTracker> {
         openCustomDialog(getTimeLineModel?.message ?? "");
       } else {
         // getTimeLineModel = GetTimeLineModel();
+        countCheckins();
+        // setIconFunction();
       }
     });
+  }
+
+  Future onClickLocateOnMap(LatLng location) async {
+    await updateCameraPosition(location);
+    addUpdatedLocationMarker(location);
   }
 
   @override
@@ -166,344 +170,338 @@ class _SaleManTrackerState extends State<SaleManTracker> {
             // dateSelectionWidget(),
             trackAppBarWidget(
               onTapGetCurrentPosition: getCurrentLocation,
+              getMdl: getMdl,
               onTapBackButton: () {
                 Navigator.pop(context);
               },
             ),
-            DraggableScrollableSheet(
-              shouldCloseOnMinExtent: true,
-              snap: true,
-              expand: true,
-              snapAnimationDuration: Duration(milliseconds: 500),
-              initialChildSize: 0.23,
-              maxChildSize: 1,
-              minChildSize: 0.23,
-              controller: draggableScrollableController,
-              builder: (context, scrollController) {
-                return AppUtils.commonContainer(
-                  decoration: AppUtils.commonBoxDecoration(
-                    color: AppConstant.whiteColor,
-                    borderRadius:
-                        AppUtils.borderRadiousonly(topleft: 15, topright: 15),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppConstant.greyColor.withOpacity(0.5),
-                        offset: const Offset(0, -2),
-                        blurRadius: 15,
-                        spreadRadius: 6,
-                      ),
-                    ],
-                  ),
-                  child: SingleChildScrollView(
-                    controller: scrollController,
-                    child: Column(
-                      children: [
-                        AppUtils.commonContainer(
+                    DraggableScrollableSheet(
+                      shouldCloseOnMinExtent: true,
+                      snap: true,
+                      expand: true,
+                      snapAnimationDuration: Duration(milliseconds: 500),
+                      initialChildSize: 0.23,
+                      maxChildSize: 1,
+                      minChildSize: 0.23,
+                      controller: draggableScrollableController,
+                      builder: (context, scrollController) {
+                        return AppUtils.commonContainer(
                           decoration: AppUtils.commonBoxDecoration(
-                            border: Border(
-                              bottom: BorderSide(
-                                width: 1,
-                                color: AppConstant.greyColor.withOpacity(0.3),
+                            color: AppConstant.whiteColor,
+                            borderRadius:
+                                AppUtils.borderRadiousonly(topleft: 15, topright: 15),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppConstant.greyColor.withOpacity(0.5),
+                                offset: const Offset(0, -2),
+                                blurRadius: 15,
+                                spreadRadius: 6,
                               ),
-                            ),
-                            borderRadius: AppUtils.borderRadiousonly(
-                                topleft: 18, topright: 18),
-                            color: Colors.white,
+                            ],
                           ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 10),
+                          child: SingleChildScrollView(
+                            controller: scrollController,
                             child: Column(
                               children: [
                                 AppUtils.commonContainer(
-                                  width: 30,
-                                  height: 5,
                                   decoration: AppUtils.commonBoxDecoration(
-                                      color: AppConstant.greyColor
-                                          .withOpacity(0.3),
-                                      borderRadius:
-                                          AppUtils.borderRadiusAll(raduis: 12)),
-                                ),
-                                Row(
-                                  children: [
-                                    AppUtils.commonContainer(
-                                        height: 45,
-                                        width: 45,
-                                        decoration:
-                                            AppUtils.commonBoxDecoration(
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                              color: Colors.grey, width: 1.2),
-                                        ),
-                                        child: Icon(Icons.person,
-                                            color: Colors.cyan)),
-                                    AppUtils.commonSizedBox(width: 10),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          AppUtils.commonTextWidget(
-                                            text: widget.name ?? "",
-                                            fontWeight: FontWeight.w600,
-                                            textColor: AppConstant.blackColor,
-                                            letterSpacing: 0.2,
-                                            fontSize: 15,
-                                          ),
-                                          AppUtils.commonTextWidget(
-                                            text:
-                                                "Dwarkesh Business Hub Visat...",
-                                            fontWeight: FontWeight.w400,
-                                            textColor: AppConstant.blackColor
-                                                .withOpacity(0.3),
-                                            letterSpacing: 0,
-                                            fontSize: 13,
-                                          ),
-                                        ],
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        width: 1,
+                                        color: AppConstant.greyColor.withOpacity(0.3),
                                       ),
                                     ),
-                                    commonIconWidget(
-                                      iconData: Icons.call,
-                                      color: AppConstant.blueColor,
-                                      onTap: openDialogFnc,
+                                    borderRadius: AppUtils.borderRadiousonly(
+                                        topleft: 18, topright: 18),
+                                    color: Colors.white,
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20, vertical: 10),
+                                    child: Column(
+                                      children: [
+                                        AppUtils.commonContainer(
+                                          width: 30,
+                                          height: 5,
+                                          decoration: AppUtils.commonBoxDecoration(
+                                              color: AppConstant.greyColor
+                                                  .withOpacity(0.3),
+                                              borderRadius:
+                                                  AppUtils.borderRadiusAll(raduis: 12)),
+                                        ),
+                                        Row(
+                                          children: [
+                                            AppUtils.commonContainer(
+                                                height: 45,
+                                                width: 45,
+                                                decoration:
+                                                    AppUtils.commonBoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  border: Border.all(
+                                                      color: Colors.grey, width: 1.2),
+                                                ),
+                                                child: const Icon(Icons.person,
+                                                    color: Colors.cyan)),
+                                            AppUtils.commonSizedBox(width: 10),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  AppUtils.commonTextWidget(
+                                                    text: widget.name ?? "",
+                                                    fontWeight: FontWeight.w600,
+                                                    textColor: AppConstant.blackColor,
+                                                    letterSpacing: 0.2,
+                                                    fontSize: 15,
+                                                  ),
+                                                  AppUtils.commonTextWidget(
+                                                    text:
+                                                        "Dwarkesh Business Hub Visat...",
+                                                    fontWeight: FontWeight.w400,
+                                                    textColor: AppConstant.blackColor
+                                                        .withOpacity(0.3),
+                                                    letterSpacing: 0,
+                                                    fontSize: 13,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            commonIconWidget(
+                                              iconData: Icons.call,
+                                              color: AppConstant.blueColor,
+                                              onTap: openDialogFnc,
+                                            ),
+                                          ],
+                                        ),
+                                      ],
                                     ),
-                                  ],
+                                  ),
                                 ),
+                                AppUtils.commonContainer(
+                                  padding: AppUtils.edgeInsetsOnly(top: 20, bottom: 20),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppConstant.greyColor.withOpacity(0.2),
+                                        offset: Offset(0, 2),
+                                        blurRadius: 4,
+                                        spreadRadius: 1,
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    children: [
+                                      travelInfoRowWidget(
+                                          iconData: Icons.timelapse,
+                                          textData: "15:30",
+                                          typeOfText: "DURATION",
+                                          iconColor: Colors.red),
+                                      travelInfoRowWidget(
+                                          iconData: Icons.speed_sharp,
+                                          textData: "0 Km",
+                                          typeOfText: "DISTANCE",
+                                          iconColor: Colors.green),
+                                      travelInfoRowWidget(
+                                          iconData: Icons.location_on_outlined,
+                                          textData: checkInCount.toString(),
+                                          typeOfText: "CHECKINS",
+                                          iconColor: AppConstant.blueColor),
+                                    ],
+                                  ),
+                                ),
+                                Align(
+                                  alignment: Alignment.topCenter,
+                                  child: dateSelectionWidget(isFromSheet: true,getMdl: getMdl),
+                                ),
+                                AppUtils.commonSizedBox(height: 20),
+                                getMdl.isFetching
+                                    ? AppUtils.loaderWidget()
+                                    : getMdl.getTimeLineModel?.data == null ||
+                                            (getMdl.getTimeLineModel?.data?.length ??
+                                                    0) <=
+                                                0
+                                        ? AppUtils.commonNoDataFound(
+                                            onPressed: () {
+                                              callGetTimeline(getMdl);
+                                            },
+                                          )
+                                        : ListView.builder(
+                                            itemCount:
+                                                getMdl.getTimeLineModel?.data?.length ??
+                                                    0,
+                                            physics:
+                                                const NeverScrollableScrollPhysics(),
+                                            shrinkWrap: true,
+                                            itemBuilder: (context, index) {
+                                              // DateTime dateTime = DateTime.now();
+                                              var formatTime = AppUtils.getDate(
+                                                  date: getMdl.getTimeLineModel
+                                                          ?.data?[index].eventTime ??
+                                                      "",
+                                                  format: "HH:mm aa");
+                                              var formattedDate = AppUtils.getDate(
+                                                  date: getMdl.getTimeLineModel
+                                                          ?.data?[index].eventTime ??
+                                                      "",
+                                                  format: "d MMM y");
+
+
+                                                final trackingStatus = getTimeLineModel?.data?[index].trackingStatus;
+
+                                                if (trackingStatus != null) {
+                                                  print("Tracking Status: $trackingStatus");
+
+                                                  switch (trackingStatus) {
+                                                    case 'Day Start':
+                                                      imagePath = loginIcon;
+                                                      statusColor = Colors.lightGreen;
+                                                      break;
+                                                    case 'Check In':
+                                                      imagePath = checkInIcon;
+                                                      statusColor = AppConstant.blueColor;
+                                                      break;
+                                                    case 'Check Out':
+                                                      imagePath = checkOutIcon;
+                                                      statusColor = AppConstant.blueColor;
+                                                      break;
+                                                    case 'Waiting Start':
+                                                    case 'Waiting End':
+                                                      imagePath = waitingIcon;
+                                                      statusColor = Colors.orangeAccent;
+                                                      break;
+                                                    default:
+                                                      imagePath = logoutIcon;
+                                                      statusColor = Colors.red;
+            }
+                                                } else {
+                                                  // Handling null case
+                                                  print("Tracking status is null");
+                                                  imagePath = logoutIcon; // or provide a default image path
+                                                }
+
+                                              return TimelineTile(
+                                                hasIndicator: true,
+                                                axis: TimelineAxis.vertical,
+                                                lineXY: 0.5,
+                                                isLast: index ==
+                                                    (getMdl.getTimeLineModel?.data
+                                                                ?.length ??
+                                                            0) -
+                                                        1,
+                                                isFirst: index ==
+                                                    getMdl
+                                                        .getTimeLineModel?.data?.length,
+                                                indicatorStyle: IndicatorStyle(
+                                                  indicatorXY: 0,
+                                                  drawGap: true,
+                                                  height: 40,
+                                                  width: 40,
+                                                  indicator: AppUtils.commonContainer(
+                                                    decoration:
+                                                        AppUtils.commonBoxDecoration(
+                                                      // color: Colors.lightGreen,
+                                                      shape: BoxShape.circle,
+                                                    ),
+                                                    child: Center(
+                                                        child: Image.asset(
+                                                          imagePath,
+                                                    )),
+                                                  ),
+                                                ),
+                                                beforeLineStyle: LineStyle(
+                                                  color: AppConstant.primaryColor,
+                                                  thickness: 1,
+                                                ),
+                                                afterLineStyle: LineStyle(
+                                                  color: AppConstant.primaryColor,
+                                                  thickness: 1,
+                                                ),
+                                                startChild: AppUtils.commonContainer(
+                                                  padding:
+                                                      AppUtils.edgeInsetsOnly(top: 10),
+                                                  margin:
+                                                      AppUtils.edgeInsetsOnly(left: 30),
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment.start,
+                                                    children: [
+                                                      AppUtils.commonTextWidget(
+
+                                                          text: formattedDate /* getTimeLineModel?.data?[index].eventDate ?? ""*/,
+                                                          textColor:
+                                                              AppConstant.greyColor,
+                                                          fontWeight: FontWeight.w400,
+                                                          fontSize: 16),
+                                                      AppUtils.commonTextWidget(
+                                                          text:
+                                                              formatTime /*getTimeLineModel?.data?[index].eventTime ?? ""*/,
+                                                          textColor:
+                                                              AppConstant.blackColor,
+                                                          fontWeight: FontWeight.w400,
+                                                          fontSize: 14),
+                                                    ],
+                                                  ),
+                                                ),
+                                                endChild: AppUtils.commonInkWell(
+
+                                                  onTap: () {
+
+                                                    draggableScrollableController.animateTo(0.23,duration: Duration(milliseconds: 1000),curve: Curves.decelerate);
+                                                    onClickLocateOnMap(LatLng(getTimeLineModel?.data?[index].lattitude ?? 0, getTimeLineModel?.data?[index].longitude ?? 0)).then((value) {
+                                                      draggableScrollableController.reset();
+                                                    });
+
+                                                  },
+                                                  child: AppUtils.commonContainer(
+                                                    padding:
+                                                        AppUtils.edgeInsetsOnly(top: 5),
+                                                    margin: AppUtils.edgeInsetsOnly(
+                                                        right: 10, bottom: 20, left: 30),
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment.start,
+                                                      children: [
+                                                        AppUtils.commonTextWidget(
+                                                            text: getMdl
+                                                                    .getTimeLineModel
+                                                                    ?.data?[index]
+                                                                    .trackingStatus ??
+                                                                "",
+                                                            textColor: statusColor,
+                                                            fontWeight: FontWeight.w400,
+                                                            fontSize: 16),
+                                                        AppUtils.commonTextWidget(
+                                                            text: getMdl
+                                                                    .getTimeLineModel
+                                                                    ?.data?[index]
+                                                                    .trackingAddress ??
+                                                                "",
+                                                            textColor:
+                                                                AppConstant.blackColor,
+                                                            fontWeight: FontWeight.w400,
+                                                            fontSize: 14),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                                alignment: TimelineAlign.manual,
+                                              );
+                                            },
+                                          )
                               ],
                             ),
                           ),
-                        ),
-                        AppUtils.commonContainer(
-                          padding: AppUtils.edgeInsetsOnly(top: 20, bottom: 20),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppConstant.greyColor.withOpacity(0.2),
-                                offset: Offset(0, 2),
-                                blurRadius: 4,
-                                spreadRadius: 1,
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              travelInfoRowWidget(
-                                  iconData: Icons.timelapse,
-                                  textData: "15:30",
-                                  typeOfText: "DURATION",
-                                  iconColor: Colors.red),
-                              travelInfoRowWidget(
-                                  iconData: Icons.speed_sharp,
-                                  textData: "0 Km",
-                                  typeOfText: "DISTANCE",
-                                  iconColor: Colors.green),
-                              travelInfoRowWidget(
-                                  iconData: Icons.location_on_outlined,
-                                  textData: "3",
-                                  typeOfText: "CHECKINS",
-                                  iconColor: AppConstant.blueColor),
-                            ],
-                          ),
-                        ),
-                        Align(
-                          alignment: Alignment.topCenter,
-                          child: dateSelectionWidget(isFromSheet: true),
-                        ),
-                        AppUtils.commonSizedBox(height: 20),
-                        getMdl.isFetching
-                            ? AppUtils.loaderWidget()
-                            : getMdl.getTimeLineModel?.data == null ||
-                                    (getMdl.getTimeLineModel?.data?.length ??
-                                            0) <=
-                                        0
-                                ? AppUtils.commonNoDataFound(
-                                    onPressed: () {
-                                      callGetTimeline(getMdl);
-                                    },
-                                  )
-                                : ListView.builder(
-                                    itemCount:
-                                        getMdl.getTimeLineModel?.data?.length ??
-                                            0,
-                                    physics:
-                                        const NeverScrollableScrollPhysics(),
-                                    shrinkWrap: true,
-                                    itemBuilder: (context, index) {
-                                      // DateTime dateTime = DateTime.now();
-                                      var formatTime = AppUtils.getDate(
-                                          date: getMdl.getTimeLineModel
-                                                  ?.data?[index].eventTime ??
-                                              "",
-                                          format: "HH:mm aa");
-                                      var formattedDate = AppUtils.getDate(
-                                          date: getMdl.getTimeLineModel
-                                                  ?.data?[index].eventTime ??
-                                              "",
-                                          format: "d MMM y");
-
-
-                                        final trackingStatus = getTimeLineModel?.data?[index].trackingStatus;
-
-                                        if (trackingStatus != null) {
-                                          print("Tracking Status: $trackingStatus");
-
-                                          switch (trackingStatus) {
-                                            case 'Day Start':
-                                              imagePath = loginIcon;
-                                              statusColor = Colors.lightGreen;
-                                              break;
-                                            case 'Check In':
-                                              imagePath = checkInIcon;
-                                              statusColor = AppConstant.blueColor;
-                                              break;
-                                            case 'Check Out':
-                                              imagePath = checkOutIcon;
-                                              statusColor = AppConstant.blueColor;
-                                              break;
-                                            case 'Waiting Start':
-                                            case 'Waiting End':
-                                              imagePath = waitingIcon;
-                                              statusColor = Colors.orangeAccent;
-                                              break;
-                                            default:
-                                              imagePath = logoutIcon;
-                                              statusColor = Colors.red;
-    }
-                                        } else {
-                                          // Handling null case
-                                          print("Tracking status is null");
-                                          imagePath = logoutIcon; // or provide a default image path
-                                        }
-
-                                      return TimelineTile(
-                                        hasIndicator: true,
-                                        axis: TimelineAxis.vertical,
-                                        lineXY: 0.5,
-                                        isLast: index ==
-                                            (getMdl.getTimeLineModel?.data
-                                                        ?.length ??
-                                                    0) -
-                                                1,
-                                        isFirst: index ==
-                                            getMdl
-                                                .getTimeLineModel?.data?.length,
-                                        indicatorStyle: IndicatorStyle(
-                                          indicatorXY: 0,
-                                          drawGap: true,
-                                          height: 40,
-                                          width: 40,
-                                          indicator: AppUtils.commonContainer(
-                                            decoration:
-                                                AppUtils.commonBoxDecoration(
-                                              // color: Colors.lightGreen,
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: Center(
-                                                child: Image.asset(
-                                                  imagePath,
-                                            )),
-                                          ),
-                                        ),
-                                        beforeLineStyle: LineStyle(
-                                          color: AppConstant.primaryColor,
-                                          thickness: 1,
-                                        ),
-                                        afterLineStyle: LineStyle(
-                                          color: AppConstant.primaryColor,
-                                          thickness: 1,
-                                        ),
-                                        startChild: AppUtils.commonContainer(
-                                          padding:
-                                              AppUtils.edgeInsetsOnly(top: 10),
-                                          margin:
-                                              AppUtils.edgeInsetsOnly(left: 30),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              AppUtils.commonTextWidget(
-                                                  text:
-                                                      "${formattedDate}" /* getTimeLineModel?.data?[index].eventDate ?? ""*/,
-                                                  textColor:
-                                                      AppConstant.greyColor,
-                                                  fontWeight: FontWeight.w400,
-                                                  fontSize: 16),
-                                              AppUtils.commonTextWidget(
-                                                  text:
-                                                      "${formatTime}" /*getTimeLineModel?.data?[index].eventTime ?? ""*/,
-                                                  textColor:
-                                                      AppConstant.blackColor,
-                                                  fontWeight: FontWeight.w400,
-                                                  fontSize: 14),
-                                            ],
-                                          ),
-                                        ),
-                                        endChild: AppUtils.commonContainer(
-                                          padding:
-                                              AppUtils.edgeInsetsOnly(top: 5),
-                                          margin: AppUtils.edgeInsetsOnly(
-                                              right: 10, bottom: 20, left: 30),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              AppUtils.commonTextWidget(
-                                                  text: getMdl
-                                                          .getTimeLineModel
-                                                          ?.data?[index]
-                                                          .trackingStatus ??
-                                                      "",
-                                                  textColor: statusColor,
-                                                  fontWeight: FontWeight.w400,
-                                                  fontSize: 16),
-                                              AppUtils.commonTextWidget(
-                                                  text: getMdl
-                                                          .getTimeLineModel
-                                                          ?.data?[index]
-                                                          .trackingAddress ??
-                                                      "",
-                                                  textColor:
-                                                      AppConstant.blackColor,
-                                                  fontWeight: FontWeight.w400,
-                                                  fontSize: 14),
-                                            ],
-                                          ),
-                                        ),
-                                        alignment: TimelineAlign.manual,
-                                      );
-                                    },
-                                  )
-                      ],
+                        );
+                      },
                     ),
-                  ),
-                );
-              },
-            ),
           ],
         ),
       ),
     );
   }
-
-  List<String> nameList = [
-    "Logged In"
-        "Checked In"
-        "Checked Out"
-        "Waiting - 19 Min"
-        "Gps"
-        "Logged Out"
-  ];
-
-  List<String> iconList = [
-    loginIcon,
-    checkInIcon,
-    checkOutIcon,
-    waitingIcon,
-    gpsIcon,
-    logoutIcon,
-  ];
 
   Widget travelInfoRowWidget(
       {IconData? iconData,
@@ -549,7 +547,8 @@ class _SaleManTrackerState extends State<SaleManTracker> {
 
   Widget trackAppBarWidget(
       {required Function() onTapBackButton,
-      required Function() onTapGetCurrentPosition}) {
+      required Function() onTapGetCurrentPosition,
+      getMdl}) {
     return Positioned(
       child: AppUtils.commonContainer(
         margin: const EdgeInsets.only(left: 10, right: 10, top: 10),
@@ -580,7 +579,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                     ),
                   )),
             ),
-            dateSelectionWidget(isFromSheet: false),
+            dateSelectionWidget(isFromSheet: false, getMdl: getMdl),
             AppUtils.commonInkWell(
               onTap: onTapGetCurrentPosition,
               child: AppUtils.commonContainer(
@@ -609,7 +608,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
     );
   }
 
-  Widget dateSelectionWidget({bool? isFromSheet}) {
+  Widget dateSelectionWidget({bool? isFromSheet, getMdl}) {
     return AppUtils.commonContainer(
       width: 210,
       margin: AppUtils.edgeInsetsOnly(
@@ -648,7 +647,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                 setState(() {
                   selectedDate = selectedDate?.subtract(Duration(days: 1));
                 });
-                // callGetRouteHistoryApi(getMdl);
+                callGetTimeline(getMdl);
               },
               child: AppUtils.commonContainer(
                 width: 40,
@@ -675,7 +674,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
               setState(() {
                 selectedDate = selectedDate?.add(Duration(days: 1));
               });
-              // callGetRouteHistoryApi(getMdl);
+              callGetTimeline(getMdl);
             },
             child: AppUtils.commonContainer(
               width: 40,
@@ -708,7 +707,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(10))),
       contentPadding:
-          AppUtils.edgeInsetsOnly(right: 15, left: 15, top: 10, bottom: 10),
+          AppUtils.edgeInsetsOnly(right: 15, left: 15, top: 10, bottom: 20),
       insetPadding: AppUtils.edgeInsetsAll(allPadding: 0),
       titlePadding: AppUtils.edgeInsetsAll(allPadding: 0),
       content: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -743,79 +742,37 @@ class _SaleManTrackerState extends State<SaleManTracker> {
             fontSize: 14,
           ),
         ),
-        Visibility(
-          visible: true,
-          child: GestureDetector(
-            onTap: () {
-              // AppUtils.launchToBrowser(
-              //     Uri.parse(
-              //         "tel:${getSalesMenListModelData?[index].primaryPhoneNo}"));
-            },
-            child: AppUtils.commonContainer(
-              padding: AppUtils.edgeInsetsAll(allPadding: 15),
-              width: double.infinity,
-              decoration: AppUtils.commonBoxDecoration(
-                  border: Border.all(
-                    color: AppConstant.greyColor.withOpacity(0.5),
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(5),
-                  color: AppConstant.whiteColor),
-              child: Row(
-                children: [
-                  Icon(Icons.call, color: AppConstant.blueColor),
-                  AppUtils.commonSizedBox(width: 5),
-                  AppUtils.commonTextWidget(
-                      letterSpacing: 2,
-                      text: "910679588",
-                      // text: getSalesMenListModelData?[
-                      // index]
-                      //     .primaryPhoneNo ??
-                      //     '',
-                      fontSize: 14,
-                      textColor: AppConstant.blueColor),
-                ],
-              ),
-            ),
-          ),
-        ),
-        AppUtils.commonSizedBox(height: 10),
-        Visibility(
-          visible: true,
-          child: GestureDetector(
-            onTap: () {
-              // AppUtils.launchToBrowser(
-              //     Uri.parse(
-              //         "tel:${getSalesMenListModelData?[index].altPhoneNo}"));
-            },
-            child: AppUtils.commonContainer(
-              padding: AppUtils.edgeInsetsAll(allPadding: 15),
-              width: double.infinity,
-              decoration: AppUtils.commonBoxDecoration(
+        GestureDetector(
+          onTap: () {
+            AppUtils.launchToBrowser(Uri.parse("tel:${widget.phoneNumber}"));
+          },
+          child: AppUtils.commonContainer(
+            padding: AppUtils.edgeInsetsAll(allPadding: 15),
+            width: double.infinity,
+            decoration: AppUtils.commonBoxDecoration(
                 border: Border.all(
-                    color: AppConstant.greyColor.withOpacity(0.5), width: 1),
+                  color: AppConstant.greyColor.withOpacity(0.5),
+                  width: 1,
+                ),
                 borderRadius: BorderRadius.circular(5),
-                color: AppConstant.whiteColor,
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.call, color: AppConstant.blueColor),
-                  AppUtils.commonSizedBox(width: 5),
-                  AppUtils.commonTextWidget(
-                      letterSpacing: 2,
-                      text: "7435019181",
-                      // text: getSalesMenListModelData?[
-                      // index]
-                      //     .altPhoneNo ??
-                      //     '',
-                      fontSize: 14,
-                      textColor: AppConstant.blueColor),
-                ],
-              ),
+                color: AppConstant.whiteColor),
+            child: Row(
+              children: [
+                Icon(Icons.call, color: AppConstant.blueColor),
+                AppUtils.commonSizedBox(width: 5),
+                AppUtils.commonTextWidget(
+                    letterSpacing: 2,
+                    text: widget.phoneNumber ?? "",
+                    // text: getSalesMenListModelData?[
+                    // index]
+                    //     .primaryPhoneNo ??
+                    //     '',
+                    fontSize: 14,
+                    textColor: AppConstant.blueColor),
+              ],
             ),
           ),
         ),
-        AppUtils.commonSizedBox(height: 10),
       ]),
     );
   }
