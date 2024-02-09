@@ -117,7 +117,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                 },
                 child: AppUtils.commonTextWidget(
                     text: "OK",
-                    textColor: AppConstant.blueColor,
+                    textColor: AppConstant.appPrimaryColor,
                     letterSpacing: 1,
                     fontWeight: FontWeight.w600),
               ),
@@ -233,7 +233,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                             decoration: AppUtils.commonBoxDecoration(
                               color: AppConstant.greyWithShade,
                               borderRadius: BorderRadius.circular(5),
-                              border: Border.all(color: AppConstant.blueColor),
+                              border: Border.all(color: AppConstant.appPrimaryColor),
                             ),
                             child: Center(
                               child: AppUtils.commonTextWidget(
@@ -267,7 +267,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                           borderRadiusAll: 5,
                           text: "Submit",
                           fontSize: 16,
-                          bgColor: AppConstant.blueColor,
+                          bgColor: AppConstant.appPrimaryColor,
                           height: 56,
                           width: double.infinity,
 
@@ -278,7 +278,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                 ),
               ),
               isLoading ? Center(child: CircularProgressIndicator(
-                color: AppConstant.blueColor,),) : SizedBox(),
+                color: AppConstant.appPrimaryColor,),) : SizedBox(),
             ],
           )),
     );
@@ -301,7 +301,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
           controller: controller,
           hintText: text ?? "",
           maxLines: maxLine ?? 1,
-          cursorColor: AppConstant.blueColor.withOpacity(0.9),
+          cursorColor: AppConstant.appPrimaryColor.withOpacity(0.9),
           allBorderRadius: 5,
           fillColor: AppConstant.whiteColor,
           hintTextColor: AppConstant.greyColor.withOpacity(0.5),

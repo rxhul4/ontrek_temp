@@ -20,7 +20,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Animate(
-      effects: [
+      effects: const [
         SlideEffect(
             end: Offset(0, 0),
             curve: Curves.decelerate,
@@ -42,50 +42,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
             color: AppConstant.whiteColor),
         child: Column(
           children: [
-            SingleChildScrollView(
-              controller: widget.scrollController,
-              physics: NeverScrollableScrollPhysics(),
-              child: AppUtils.commonContainer(
-                height: MediaQuery.of(context).size.height / 3,
-                width: double.infinity,
-                color: AppConstant.whiteColor.withOpacity(0.3),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Stack(
-                      alignment: Alignment.topRight,
-                      children: [
-                        AppUtils.commonContainer(
-                          height: 80,
-                          width: 80,
-                          decoration: AppUtils.commonBoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppConstant.greyColor.withOpacity(0.3),
-                            border: Border.all(
-                                color: AppConstant.greyColor.withOpacity(0.5)),
-                          ),
-                          child: Icon(Icons.person,color: AppConstant.blackColor,size: 40,)
+            AppUtils.commonContainer(
+              height: MediaQuery.of(context).size.height / 3,
+              width: double.infinity,
+              color: AppConstant.whiteColor.withOpacity(0.3),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Stack(
+                    alignment: Alignment.topRight,
+                    children: [
+                      AppUtils.commonContainer(
+                        height: 80,
+                        width: 80,
+                        decoration: AppUtils.commonBoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppConstant.greyColor.withOpacity(0.3),
+                          border: Border.all(
+                              color: AppConstant.greyColor.withOpacity(0.5)),
                         ),
-                        AppUtils.commonContainer(
-                          padding: EdgeInsets.all(5),
-                          decoration: AppUtils.commonBoxDecoration(
-                              color: Colors.white, shape: BoxShape.circle),
-                          child: Icon(Icons.edit, size: 15),
-                        )
-                      ],
-                    ),
-                    AppUtils.commonSizedBox(height: 10),
-                    AppUtils.commonTextWidget(
-                        text: 'Vatsal',
-                        textColor: AppConstant.blackColor,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 18),
-                    AppUtils.commonTextWidget(
-                        text: 'Epist Interior Pvt Ltd',
-                        textColor: AppConstant.blackColor.withOpacity(0.6),
-                        fontSize: 12),
-                  ],
-                ),
+                        child: Icon(Icons.person,color: AppConstant.blackColor,size: 40,)
+                      ),
+                      AppUtils.commonContainer(
+                        padding: EdgeInsets.all(5),
+                        decoration: AppUtils.commonBoxDecoration(
+                            color: Colors.white, shape: BoxShape.circle),
+                        child: Icon(Icons.edit, size: 15),
+                      )
+                    ],
+                  ),
+                  AppUtils.commonSizedBox(height: 10),
+                  AppUtils.commonTextWidget(
+                      text: 'Vatsal',
+                      textColor: AppConstant.blackColor,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 18),
+                  AppUtils.commonTextWidget(
+                      text: 'Epist Interior Pvt Ltd',
+                      textColor: AppConstant.blackColor.withOpacity(0.6),
+                      fontSize: 12),
+                ],
               ),
             ),
             AppUtils.commonContainer(
@@ -130,9 +126,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ListView.builder(
+                      controller: widget.scrollController,
                       itemCount: profileOptionsList.length,
                       shrinkWrap: true,
-                      scrollDirection: Axis.vertical,
+                      // scrollDirection: Axis.vertical,
                       physics: NeverScrollableScrollPhysics(),
                       itemBuilder: (context, index) {
                         return InkWell(
@@ -215,7 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
   AlertDialog showDialogBox(BuildContext context) {
     return AlertDialog(
-      backgroundColor: AppConstant.blueColor,
+      backgroundColor: AppConstant.appPrimaryColor,
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(10))),
 
@@ -295,7 +292,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Row(
                     children: [
                       Icon(Icons.call,
-                          color: AppConstant.blueColor
+                          color: AppConstant.appPrimaryColor
                       ),
                       AppUtils.commonSizedBox(
                           width: 5),
@@ -307,7 +304,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         //     .primaryPhoneNo ??
                         //     '',
                         fontSize: 14,
-                        textColor: AppConstant.blueColor
+                        textColor: AppConstant.appPrimaryColor
                       ),
                     ],
                   ),
@@ -342,7 +339,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Row(
                     children: [
                       Icon(Icons.call,
-                          color : AppConstant.blueColor
+                          color : AppConstant.appPrimaryColor
                       ),
                       AppUtils.commonSizedBox(
                           width: 5),
@@ -353,7 +350,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         //     .altPhoneNo ??
                         //     '',
                         fontSize: 14,
-                          textColor: AppConstant.blueColor
+                          textColor: AppConstant.appPrimaryColor
                       ),
                     ],
                   ),

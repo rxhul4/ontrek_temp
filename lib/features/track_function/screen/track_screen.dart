@@ -169,14 +169,14 @@ class _TrackScreenState extends State<TrackScreen> {
 
     // getMdl.isFetching || getMdl.getSalesMenListModel?.data == null ?   Padding(
     //   padding: const EdgeInsets.only(top: 100),
-    //   child: Center(child: CircularProgressIndicator(color: AppConstant.blueColor,)),
+    //   child: Center(child: CircularProgressIndicator(color: AppConstant.appPrimaryColor,)),
     // ) :(getMdl.getSalesMenListModel?.data?.length ?? 0) <= 0 ? AppUtils.commonNoDataFound(onPressed: () {
     //   callGetSalesManListApi(getMdl);
     // }) :
               isSearchVisible ? searchWidget(getMdl) : SizedBox(),
               getMdl.isFetching ? Padding(
                 padding: const EdgeInsets.only(top: 100),
-                child: Center(child: CircularProgressIndicator(color: AppConstant.blueColor,))) :(getMdl.getSalesMenListModel?.data?.length ?? 0) <= 0?Padding(
+                child: Center(child: CircularProgressIndicator(color: AppConstant.appPrimaryColor,))) :(getMdl.getSalesMenListModel?.data?.length ?? 0) <= 0?Padding(
                   padding: const EdgeInsets.only(top: 80),
                   child: AppUtils.commonNoDataFound(onPressed: () {
                             callGetSalesManListApi(getMdl,"");
@@ -320,7 +320,7 @@ class _TrackScreenState extends State<TrackScreen> {
                 },
                 child: AppUtils.commonTextWidget(
                     text: "OK",
-                    textColor: AppConstant.blueColor,
+                    textColor: AppConstant.appPrimaryColor,
                     letterSpacing: 1,
                     fontWeight: FontWeight.w600),
               ),

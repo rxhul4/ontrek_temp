@@ -36,12 +36,12 @@ class _TaskListScreenState extends State<TaskListScreen>
             dialogBackgroundColor: AppConstant.whiteColor,
             scaffoldBackgroundColor: AppConstant.whiteColor,
             textSelectionTheme: TextSelectionThemeData(
-              selectionColor: AppConstant.blueColor, // Selected date color
+              selectionColor: AppConstant.appPrimaryColor, // Selected date color
             ),
             colorScheme: ColorScheme.light(
               background: Colors.white,
               onBackground: AppConstant.greyColor.withOpacity(0.5),
-              primary: AppConstant.blueColor, // Button color
+              primary: AppConstant.appPrimaryColor, // Button color
               onPrimary: AppConstant.whiteColor, // Text color on button
             ).copyWith(background: AppConstant.whiteColor),
             // Other theme modifications as needed...
@@ -88,7 +88,7 @@ class _TaskListScreenState extends State<TaskListScreen>
   @override
   Widget build(BuildContext context) {
     return Animate(
-      effects: [
+      effects: const [
         SlideEffect(
             end: Offset(0, 0),
             curve: Curves.decelerate,
@@ -142,7 +142,7 @@ class _TaskListScreenState extends State<TaskListScreen>
                             width: 45,
                             decoration: AppUtils.commonBoxDecoration(
                               shape: BoxShape.circle,
-                              color: AppConstant.blueColor,
+                              color: AppConstant.appPrimaryColor,
                               border:
                                   Border.all(color: Colors.grey, width: 1.2),
                             ),
@@ -217,7 +217,7 @@ class _TaskListScreenState extends State<TaskListScreen>
                     ),
                     automaticIndicatorColorAdjustment: true,
                     indicator: BoxDecoration(
-                        color: AppConstant.blueColor,
+                        color: AppConstant.appPrimaryColor,
                         borderRadius: AppUtils.borderRadiusAll(raduis: 5)),
                     tabs: [
                       Tab(text: 'ASSIGNED TO ME'),
@@ -250,7 +250,7 @@ class _TaskListScreenState extends State<TaskListScreen>
               //               indicatorSize: TabBarIndicatorSize.tab,
               //               padding: AppUtils.edgeInsetsAll(allPadding: 2.5),
               //               indicator: BoxDecoration(
-              //                   color: AppConstant.blueColor,
+              //                   color: AppConstant.appPrimaryColor,
               //                   borderRadius:
               //                       AppUtils.borderRadiusAll(raduis: 5)),
               //               labelColor: Colors.white,
@@ -308,7 +308,7 @@ class _TaskListScreenState extends State<TaskListScreen>
             child: Align(
                 alignment: Alignment.topCenter,
                 child: CircularProgressIndicator(
-                  color: AppConstant.blueColor,
+                  color: AppConstant.appPrimaryColor,
                 )),
           )
         : Column(
@@ -348,7 +348,7 @@ class _TaskListScreenState extends State<TaskListScreen>
             child: Align(
                 alignment: Alignment.topCenter,
                 child: CircularProgressIndicator(
-                  color: AppConstant.blueColor,
+                  color: AppConstant.appPrimaryColor,
                 )),
           )
         : Column(
@@ -362,8 +362,16 @@ class _TaskListScreenState extends State<TaskListScreen>
                 ),
               ),
               AppUtils.commonTextWidget(
-                  text: 'No task assigned!', textColor: AppConstant.blackColor),
+                text: 'No task assigned!',
+                textColor: AppConstant.blackColor.withOpacity(0.6),
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0,
+              ),
               AppUtils.commonTextWidget(
+                  letterSpacing: 0,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
                   text: 'New task will be notified',
                   textColor: AppConstant.blackColor.withOpacity(0.5)),
             ],

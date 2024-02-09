@@ -115,6 +115,12 @@ class DashBoardState extends State<DashBoard> {
   @override
   void initState() {
     super.initState();
+    draggableScrollableController = DraggableScrollableController();
+    // draggableScrollableController.addListener(() {
+    //   if(_selectedIndex == 0){
+    //     draggableScrollableController.isAttached
+    //   }
+    // });
     checkPermission();
 
   }
@@ -161,11 +167,11 @@ class DashBoardState extends State<DashBoard> {
                 snap: true,
                 expand: false,
                 snapAnimationDuration: const Duration(milliseconds: 200),
-                initialChildSize: 0.4,
-                maxChildSize: _selectedIndex == 0 ? 0.4 :1,
+                initialChildSize:  0.4,
+                maxChildSize: 1,
                 minChildSize: 0.09,
                 controller: draggableScrollableController,
-                snapSizes:[
+                snapSizes: [
                   0.4
                 ] ,
                 builder: (context, scrollController) {
@@ -214,6 +220,9 @@ class DashBoardState extends State<DashBoard> {
                       draggableScrollableController.jumpTo(0.4);
                     }
                     _selectedIndex = index;
+                    print("selected----${_selectedIndex}&& ${index}");
+                    print("size_of_sheet${draggableScrollableController.size}&& ${index}");
+
                     // Future.delayed(duration)
                   });
                 },
@@ -234,13 +243,13 @@ class DashBoardState extends State<DashBoard> {
                         height: index == 0 || index == 1 ? 25 : 20,
                         iconString[index],
                         color: _selectedIndex == index
-                            ? Colors.blueAccent
+                            ? AppConstant.appPrimaryColor
                             : AppConstant.greyColor,
                       ),
                       AppUtils.commonTextWidget(
                         text: lableString[index],
                         textColor: _selectedIndex == index
-                            ? Colors.blueAccent
+                            ? AppConstant.appPrimaryColor
                             : AppConstant.greyColor,
                         fontSize: 12,
                         fontWeight: _selectedIndex == index

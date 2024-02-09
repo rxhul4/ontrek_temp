@@ -65,7 +65,7 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
                 width: double.infinity,
                 height: 50,
                 text: "ENABLE LOCATION",
-                bgColor: AppConstant.blueColor.withOpacity(0.9),
+                bgColor: AppConstant.appPrimaryColor.withOpacity(0.9),
                 borderRadiusAll: 30,
                 onPressed: askLocationPermission
               ),

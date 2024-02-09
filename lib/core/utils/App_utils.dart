@@ -56,7 +56,7 @@ class AppUtils {
   static loaderWidget({Color? color, double? size}) {
     return Center(
       child: CircularProgressIndicator(
-        color: color ?? AppConstant.blueColor,
+        color: color ?? AppConstant.appPrimaryColor,
       ),
     );
   }
@@ -127,7 +127,7 @@ class AppUtils {
         AppUtils.commonElevatedBtn(
           height: 50,
           text: "Refresh",
-          bgColor: AppConstant.blueColor,
+          bgColor: AppConstant.appPrimaryColor,
           textColor: AppConstant.whiteColor,
           borderRadiusAll: 10,
           leftMargin: 0,

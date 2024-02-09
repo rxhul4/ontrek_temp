@@ -60,7 +60,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     effects: [FadeEffect(curve: Curves.ease,duration: Duration(milliseconds: 3000)),ShimmerEffect(curve: Curves.ease,duration: Duration(milliseconds: 3000)),],
                     child: Image.asset(
                       logoImagePath,
-                      color: AppConstant.blueColor,
+                      color: AppConstant.appPrimaryColor,
                       width: 200,
                       height: 200,
                     ),
@@ -75,7 +75,7 @@ class _SplashScreenState extends State<SplashScreen> {
             child: AppUtils.commonTextWidget(
               text: "Location Intelligence and Analytics App",
               fontWeight: FontWeight.w400,
-              textColor: AppConstant.blueColor,
+              textColor: AppConstant.appPrimaryColor,
               fontSize: 13,
               letterSpacing: 0.5,
             ),

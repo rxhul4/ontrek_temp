@@ -269,7 +269,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                                             ),
                                             commonIconWidget(
                                               iconData: Icons.call,
-                                              color: AppConstant.blueColor,
+                                              color: AppConstant.appPrimaryColor,
                                               onTap: openDialogFnc,
                                             ),
                                           ],
@@ -308,7 +308,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                                           iconData: Icons.location_on_outlined,
                                           textData: checkInCount.toString(),
                                           typeOfText: "CHECKINS",
-                                          iconColor: AppConstant.blueColor),
+                                          iconColor: AppConstant.appPrimaryColor),
                                     ],
                                   ),
                                 ),
@@ -361,11 +361,11 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                                                       break;
                                                     case 'Check In':
                                                       imagePath = checkInIcon;
-                                                      statusColor = AppConstant.blueColor;
+                                                      statusColor = AppConstant.appPrimaryColor;
                                                       break;
                                                     case 'Check Out':
                                                       imagePath = checkOutIcon;
-                                                      statusColor = AppConstant.blueColor;
+                                                      statusColor = AppConstant.appPrimaryColor;
                                                       break;
                                                     case 'Waiting Start':
                                                     case 'Waiting End':
@@ -657,7 +657,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                         bottomleft: 15, topleft: 15)),
                 child: Icon(
                   Icons.keyboard_arrow_left,
-                  color: AppConstant.blueColor,
+                  color: AppConstant.appPrimaryColor,
                   size: 30,
                 ),
               )),
@@ -684,7 +684,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                       topright: 15, bottomright: 15)),
               child: Icon(
                 Icons.keyboard_arrow_right,
-                color: AppConstant.blueColor,
+                color: AppConstant.appPrimaryColor,
                 size: 30,
               ),
             ),
@@ -703,7 +703,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
 
   AlertDialog showDialogBox(BuildContext context) {
     return AlertDialog(
-      backgroundColor: AppConstant.blueColor,
+      backgroundColor: AppConstant.appPrimaryColor,
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(10))),
       contentPadding:
@@ -758,7 +758,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                 color: AppConstant.whiteColor),
             child: Row(
               children: [
-                Icon(Icons.call, color: AppConstant.blueColor),
+                Icon(Icons.call, color: AppConstant.appPrimaryColor),
                 AppUtils.commonSizedBox(width: 5),
                 AppUtils.commonTextWidget(
                     letterSpacing: 2,
@@ -768,7 +768,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                     //     .primaryPhoneNo ??
                     //     '',
                     fontSize: 14,
-                    textColor: AppConstant.blueColor),
+                    textColor: AppConstant.appPrimaryColor),
               ],
             ),
           ),
@@ -815,7 +815,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                 },
                 child: AppUtils.commonTextWidget(
                     text: "OK",
-                    textColor: AppConstant.blueColor,
+                    textColor: AppConstant.appPrimaryColor,
                     letterSpacing: 1,
                     fontWeight: FontWeight.w600),
               ),
@@ -842,12 +842,12 @@ class _SaleManTrackerState extends State<SaleManTracker> {
             dialogBackgroundColor: AppConstant.whiteColor,
             scaffoldBackgroundColor: AppConstant.whiteColor,
             textSelectionTheme: TextSelectionThemeData(
-              selectionColor: AppConstant.blueColor, // Selected date color
+              selectionColor: AppConstant.appPrimaryColor, // Selected date color
             ),
             colorScheme: ColorScheme.light(
               background: Colors.white,
               onBackground: AppConstant.greyColor.withOpacity(0.5),
-              primary: AppConstant.blueColor, // Button color
+              primary: AppConstant.appPrimaryColor, // Button color
               onPrimary: AppConstant.whiteColor, // Text color on button
             ).copyWith(background: AppConstant.whiteColor),
             // Other theme modifications as needed...

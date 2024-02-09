@@ -59,14 +59,15 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   checkBiometricAvailable() async {
     isBiometricAvailable = await _localAuthentication.canCheckBiometrics;
     if (kDebugMode) {
-      print("isBiometricAvailable $isBiometricAvailable");
+      print("isBiometricAvailable-$isBiometricAvailable");
     }
   }
 
   @override
   Widget build(BuildContext context) {
+
     return Animate(
-      effects: [
+      effects: const  [
         SlideEffect(
             end: Offset(0, 0),
             curve: Curves.decelerate,
@@ -89,7 +90,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         ),
         child: SingleChildScrollView(
           controller: widget.scrollController,
-          // physics: NeverScrollableScrollPhysics(),
+          physics: NeverScrollableScrollPhysics() ,
           // physics: widget.scrollController!.position.pixels > 0.4 ? NeverScrollableScrollPhysics() :AlwaysScrollableScrollPhysics(),
 
 
@@ -199,7 +200,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                           fontSize: 14,
                           letterSpacing: 0.2,
                           fontWeight: FontWeight.w600,
-                          textColor:isDayEnd.value ? AppConstant.blueColor : Colors.red ,
+                          textColor:isDayEnd.value ? AppConstant.appPrimaryColor : Colors.red ,
                         ),
                       )),
                 ],
@@ -643,7 +644,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 },
                 child: AppUtils.commonTextWidget(
                     text: "OK",
-                    textColor: AppConstant.blueColor,
+                    textColor: AppConstant.appPrimaryColor,
                     letterSpacing: 1,
                     fontWeight: FontWeight.w600),
               ),
