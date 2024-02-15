@@ -1,6 +1,8 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_geocoding_api/google_geocoding_api.dart';
 import 'package:intl/intl.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -18,8 +20,174 @@ class AppUtils {
 
 
 
+  static getAddress(double lat ,double long) async {
+    const String googelApiKey = 'AIzaSyBtIPj5XDL4wiGpUaiXrYfTyWLDLlyvgbs';
+    final bool isDebugMode = true;
+    final api = GoogleGeocodingApi(googelApiKey, isLogged: isDebugMode);
+    final reversedSearchResults = await api.reverse(
+      '${lat},${long}',
+      language: 'en',
+    );
+    print("address please111   \n${reversedSearchResults.results.first.formattedAddress}");
+    return reversedSearchResults;
+  }
 
 
+
+  static bool validateEmail(String value) {
+    Pattern pattern =
+        r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+    RegExp regex = RegExp(pattern.toString());
+    return regex.hasMatch(value);
+  }
+
+
+  static Widget commonNetworkImageWidget(
+      {String? path,
+        double? width,
+        double? height,
+        Alignment? alignment,
+        Color? iconColor,
+        Color? loaderBackgroundColor,
+        Color? loaderColor,
+        // BaseCacheManager? cacheManager,
+        BoxFit? boxFit}) {
+    // DefaultCacheManager cm = DefaultCacheManager();
+    // cm.emptyCache();
+    return /*CachedNetworkImage(
+      // cacheManager: cacheManager ?? CacheManager(Config(
+      //   "fluttercampus",
+      //   stalePeriod: const Duration(seconds: 2),
+      //   //one week cache period
+      // )),
+      cacheManager: CacheManager(Config(
+        "fluttercampus",
+        stalePeriod: const Duration(seconds: 30),
+        maxNrOfCacheObjects: 0,
+
+        //one week cache period
+      )),
+      imageUrl: path.toString(),
+      width: width,
+      height: height,
+      placeholder: (context, url) => showLoaderList(
+          loaderBackgroundColor: loaderBackgroundColor,
+          loaderColor: loaderColor),
+      errorWidget: (context, url, error) => Image.asset(
+        icNoImage,
+        height: AppConstants.fifty,
+        width: AppConstants.fifty,
+      ),
+      color: iconColor,
+      fit: boxFit ?? BoxFit.cover,
+    ) */
+      Image.network(
+        path ?? "",
+        width: width,
+        loadingBuilder: ((context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            // padding: EdgeInsets.all(AppConstants.twenty),
+              decoration: AppUtils.containerDecoration(
+                // radius: 14,
+                borderWidth: 0,
+                borderColor: Colors.transparent,
+                color: loaderBackgroundColor ??
+                    AppConstant.whiteColor.withOpacity(0.70),
+              ),
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: loaderColor ?? AppConstant.appPrimaryColor,
+                  strokeWidth: 1.0,
+                ),
+              ));
+        }),
+        errorBuilder: (context, error, stackTrace) => Icon(Icons.person),
+        height: height,
+        // alignment: alignment ?? Alignment.center,
+        color: iconColor,
+        fit: boxFit ?? BoxFit.cover,
+      );
+  }
+
+
+
+  static BoxDecoration containerDecoration({
+    double radius = 13,
+    double radiusTopLeft = 0,
+    double radiusBottomLeft = 0,
+    double radiusTopRight = 0,
+    double radiusBottomRight = 0,
+    Color? color ,
+    bool isBoxShadow = false,
+    bool isShowBorder = false,
+    bool isTopLeftRight = false,
+    Color? borderColor ,
+    BoxShape boxShape = BoxShape.circle,
+    double borderWidth = 1,
+  }) {
+    return BoxDecoration(
+      borderRadius: isTopLeftRight
+          ? circularTopLeftRightBorderRadius(
+        radiusTopLeft,
+        radiusBottomLeft,
+        radiusTopRight,
+        radiusBottomRight,
+      )
+          : circularBorderRadius(
+        radius,
+      ),
+      shape: boxShape,
+      border: Border.all(
+        width: isShowBorder ? borderWidth : 0,
+        color: isShowBorder ? borderColor ?? AppConstant.transparentColor : AppConstant.transparentColor,
+      ),
+      color: color,
+      boxShadow: isBoxShadow
+          ? [
+        BoxShadow(
+          color: borderColor ?? AppConstant.transparentColor,
+          offset: Offset(0, 2),
+          blurRadius:5,
+          spreadRadius: 2,
+        ),
+      ]
+          : [],
+    );
+  }
+  static circularBorderRadius(double radius) {
+    return BorderRadius.circular(
+      radius,
+    );
+  }
+
+  static circularTopLeftRightBorderRadius(
+      double radiusTopLeft,
+      double radiusBottomLeft,
+      double radiusTopRight,
+      double radiusBottomRight,
+      ) {
+    return BorderRadius.only(
+      topLeft: circularRadius(
+        radiusTopLeft,
+      ),
+      bottomLeft: circularRadius(
+        radiusBottomLeft,
+      ),
+      topRight: circularRadius(
+        radiusTopRight,
+      ),
+      bottomRight: circularRadius(
+        radiusBottomRight,
+      ),
+    );
+  }
+
+  static circularRadius(double radius) {
+    return Radius.circular(
+      radius,
+    );
+  }
 
 
 
@@ -53,9 +221,57 @@ class AppUtils {
   }
 
 
-  static loaderWidget({Color? color, double? size}) {
+
+
+  static  dialogWidget(String text, BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(10))),
+      // Remove border radius
+      insetPadding: const EdgeInsets.all(40),
+      titlePadding: const EdgeInsets.all(0),
+      contentPadding:
+      const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Text(text, textAlign: TextAlign.center,),
+          AppUtils.commonTextWidget(
+              text: text,
+              textAlign: TextAlign.center,
+              textColor: AppConstant.blackColor,
+              fontWeight: FontWeight.w400),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                style: TextButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10))),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: AppUtils.commonTextWidget(
+                    text: "OK",
+                    textColor: AppConstant.appPrimaryColor,
+                    letterSpacing: 1,
+                    fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  static loaderWidget({Color? color}) {
     return Center(
       child: CircularProgressIndicator(
+        strokeWidth: 4,
+        strokeCap: StrokeCap.round,
+        strokeAlign: 0.1,
+
         color: color ?? AppConstant.appPrimaryColor,
       ),
     );

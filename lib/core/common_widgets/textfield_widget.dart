@@ -77,7 +77,7 @@ class AppTextField extends StatelessWidget {
         color: inputTextColor ?? AppConstant.blackColor,
         fontSize: inputTextFontSize ?? 14,
         fontWeight: FontWeight.w500,
-        fontFamily:fontFamily,
+        fontFamily:fontFamily ?? "Poppins",
       ),
       keyboardType: textInputType ?? TextInputType.text,
       cursorColor:  cursorColor ?? AppConstant.primaryColor,

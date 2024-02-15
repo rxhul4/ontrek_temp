@@ -12,7 +12,7 @@ class PreferenceHelper {
   static const String IS_LOGIN = "isLogin";
   static const String USER_DATA = "userData";
 
-  static const String EMPLOYEE_NAME = "employeeName";
+  static const String FULL_NAME = "employeeName";
   static const String EMAIL = "email";
   static const String PHONE_NO = "phoneNo";
   static const String PROFILE_PIC = "profilePic";

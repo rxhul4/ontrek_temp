@@ -609,51 +609,51 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   openDialogFnc(String text) {
     showDialog(
       context: context,
-      builder: (context) => showDialogBox(text, context),
+      builder: (context) => AppUtils.dialogWidget(text, context),
     );
   }
 
-  AlertDialog showDialogBox(String text, BuildContext context) {
-    return AlertDialog(
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(10))),
-      // Remove border radius
-      insetPadding: const EdgeInsets.all(0),
-      titlePadding: const EdgeInsets.all(0),
-      contentPadding:
-          const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Text(text, textAlign: TextAlign.center,),
-          AppUtils.commonTextWidget(
-              text: text,
-              textAlign: TextAlign.center,
-              textColor: AppConstant.blackColor,
-              fontWeight: FontWeight.w400),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                style: TextButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10))),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: AppUtils.commonTextWidget(
-                    text: "OK",
-                    textColor: AppConstant.appPrimaryColor,
-                    letterSpacing: 1,
-                    fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+  // AlertDialog showDialogBox(String text, BuildContext context) {
+  //   return AlertDialog(
+  //     shape: RoundedRectangleBorder(
+  //         borderRadius: BorderRadius.all(Radius.circular(10))),
+  //     // Remove border radius
+  //     insetPadding: const EdgeInsets.all(0),
+  //     titlePadding: const EdgeInsets.all(0),
+  //     contentPadding:
+  //         const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
+  //     content: Column(
+  //       mainAxisSize: MainAxisSize.min,
+  //       children: [
+  //         // Text(text, textAlign: TextAlign.center,),
+  //         AppUtils.commonTextWidget(
+  //             text: text,
+  //             textAlign: TextAlign.center,
+  //             textColor: AppConstant.blackColor,
+  //             fontWeight: FontWeight.w400),
+  //         const SizedBox(height: 10),
+  //         Row(
+  //           mainAxisAlignment: MainAxisAlignment.end,
+  //           children: [
+  //             TextButton(
+  //               style: TextButton.styleFrom(
+  //                   shape: RoundedRectangleBorder(
+  //                       borderRadius: BorderRadius.circular(10))),
+  //               onPressed: () {
+  //                 Navigator.pop(context);
+  //               },
+  //               child: AppUtils.commonTextWidget(
+  //                   text: "OK",
+  //                   textColor: AppConstant.appPrimaryColor,
+  //                   letterSpacing: 1,
+  //                   fontWeight: FontWeight.w600),
+  //             ),
+  //           ],
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   doLocalVerification(Function afterSuccessfulVerificationFnc) async {
     if (isBiometricAvailable) {
@@ -678,11 +678,15 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       if (kDebugMode) {
         print("Biometric Auth is not available on this device");
       }
-      showDialog(
-        context: context,
-        builder: (context) => showDialogBox(
-            "Biometric Auth is not available on this device", context),
-      );
+
+
+      openDialogFnc("Biometric Auth is not available on this device");
+      // showDialog(
+      //   context: context,
+      //
+      // //   builder: (context) => showDialogBox(
+      // //       "Biometric Auth is not available on this device", context),
+      // // );
     }
   }
 }

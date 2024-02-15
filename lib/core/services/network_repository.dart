@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
+import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 
 Map<String, String> header = {
@@ -12,15 +15,35 @@ Map<String, String> header = {
   'appLevelAuthKey': AppConstant.appLevelAuthKey,
 };
 
+
+AndroidDeviceInfo? myDeviceInfo;
+
+
 Future callPostMethod(String url, Map<String, dynamic> params) async {
+  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+  String? authToken = PreferenceHelper.getString(PreferenceHelper.AUTH_TOKEN);
+  myDeviceInfo = await deviceInfo.androidInfo;
+  print("deviceId${myDeviceInfo?.id ?? ""}");
+  print("deviceversion${myDeviceInfo?.version.release ?? ""}");
+  print("devicemodel${myDeviceInfo?.model ?? ""}");
+
+  Map<String, String> commonHeaderWithToken = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'Authorization': 'Bearer ${authToken}',
+    'DeviceId' : myDeviceInfo?.id ?? "",
+    'DeviceModel':myDeviceInfo?.model ?? "",
+    'DeviceOS' :Platform.operatingSystem,
+    'OSVersion' :myDeviceInfo?.version.release ?? ""
+  };
   if (kDebugMode) {
     print("params--${jsonEncode(params)}");
   }
   return await http
       .post(
     Uri.parse(url),
-    body: params,
-    headers: header,
+    body: utf8.encode(json.encode(params)),
+    headers: authToken == "" || authToken == null ?  header : commonHeaderWithToken,
   )
       .then((http.Response response) {
     return getResponse(response);

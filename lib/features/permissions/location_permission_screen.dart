@@ -1,4 +1,5 @@
 import 'package:app_settings/app_settings.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ontrek/core/common_widgets/app_scaffold.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
@@ -77,7 +78,7 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
                   onTap: () {
                     Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(
+                        CupertinoPageRoute(
                           builder: (context) => DashBoard(),
                         ));
                   })
