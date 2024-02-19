@@ -26,7 +26,7 @@ class AttendanceProvider extends ChangeNotifier {
 
 
 
-  Future<AddActivityModel?> apiCallAddCheckInCheckOut({
+  Future<AddActivityModel?> apiCallAddActivity({
     File? imageFile,
     String? userUid,
     double? latitude,

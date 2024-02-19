@@ -12,6 +12,8 @@ class ApiConstants{
   //salesMen
    static const String addActivity = "$baseUrl/SalesMen/AddActivity";
 
+   //totapi
+   static const String getTableOfTableByType = "$baseUrl/TableOfTable/GetTableOfTableByType";
 
 
 }

@@ -332,6 +332,34 @@ class AppUtils {
     return EdgeInsets.all(allPadding ?? 0);
   }
 
+static String switchCaseForTotType(int param){
+    String value =  "";
+    switch (param) {
+      case 1:
+        value =
+        "visit_type_1";
+        break;
+      case 2:
+        value = "visit_type_2";
+        break;
+      case 3:
+        value =
+        "visit_type_3";
+        break;
+      case 4:
+        value = "visit_type_4";
+        break;
+      case 5:
+        value = "visit_type_5";
+        break;
+      default:
+        value =
+        "";
+        break;
+    }
+return value;
+}
+
 
   static Widget commonNoDataFound({String? text,VoidCallback? onPressed}){
     return Column(
