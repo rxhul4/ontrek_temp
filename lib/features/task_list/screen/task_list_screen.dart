@@ -204,6 +204,7 @@ class _TaskListScreenState extends State<TaskListScreen>
                     // enableFeedback: true,
                     labelColor: Colors.white,
                     unselectedLabelStyle: TextStyle(
+                      fontFamily:  "Poppins",
                       letterSpacing: 0.2,
                       fontWeight: FontWeight.w400,
                       fontSize: 12,
@@ -211,6 +212,7 @@ class _TaskListScreenState extends State<TaskListScreen>
                     indicatorWeight: 0,
                     dividerHeight: 0,
                     labelStyle: TextStyle(
+                      fontFamily:  "Poppins",
                       letterSpacing: 0.2,
                       fontWeight: FontWeight.w500,
                       fontSize: 12,

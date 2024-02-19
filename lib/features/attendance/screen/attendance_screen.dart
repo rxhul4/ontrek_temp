@@ -22,32 +22,13 @@ class AttendanceScreen extends StatefulWidget {
   State<AttendanceScreen> createState() => _AttendanceScreenState();
 }
 
-class _AttendanceScreenState extends State<AttendanceScreen>
-    with SingleTickerProviderStateMixin {
+class _AttendanceScreenState extends State<AttendanceScreen> with SingleTickerProviderStateMixin {
   AnimationController? controller;
   DraggableScrollableController draggableScrollableController =
-      DraggableScrollableController();
-  LocalAuthentication _localAuthentication = LocalAuthentication();
+  DraggableScrollableController();
+  LocalAuthentication localAuthentication = LocalAuthentication();
   bool isBiometricAvailable = false;
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    initAnimateController();
-    checkBiometricAvailable();
-    isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
-    isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
-  }
-
-  initAnimateController() {
-    controller =
-        AnimationController(vsync: this, duration: Duration(seconds: 1));
-    controller?.addListener(() {
-      setState(() {});
-    });
-  }
-
+  String? userUid;
   ValueNotifier<bool> isDayStart = ValueNotifier(false);
   ValueNotifier<bool> isCheckIn = ValueNotifier(false);
   ValueNotifier<bool> isDayEnd = ValueNotifier(false);
@@ -56,8 +37,43 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   bool isLoading = false;
   Position? position;
 
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    initAnimateController();
+    checkBiometricAvailable();
+    isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+    isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+    userUid = PreferenceHelper.getString(PreferenceHelper.USER_UID);
+    print("userUid====${userUid}");
+    super.initState();
+
+  }
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    draggableScrollableController.dispose();
+    controller?.dispose();
+    super.dispose();
+  }
+
+  initAnimateController() {
+    controller =
+        AnimationController(vsync: this, duration: Duration(seconds: 1));
+    controller?.addListener(() {
+      if(!mounted){
+
+      }
+      setState(() {});
+    });
+  }
+
+
+  
+
   checkBiometricAvailable() async {
-    isBiometricAvailable = await _localAuthentication.canCheckBiometrics;
+    isBiometricAvailable = await localAuthentication.canCheckBiometrics;
     if (kDebugMode) {
       print("isBiometricAvailable-$isBiometricAvailable");
     }
@@ -91,7 +107,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         child: SingleChildScrollView(
           controller: widget.scrollController,
           physics: NeverScrollableScrollPhysics() ,
-          // physics: widget.scrollController!.position.pixels > 0.4 ? NeverScrollableScrollPhysics() :AlwaysScrollableScrollPhysics(),
 
 
           child: Column(
@@ -219,7 +234,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   Future getCurrentLocation() async {
     bool isLocationServiceAvailable =
-        await AppUtils.checkLocationServiceAvailability();
+    await AppUtils.checkLocationServiceAvailability();
     // PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
     // isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
 
@@ -236,7 +251,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   Future loginFunction() async {
     bool isLocationServiceAvailable =
-        await AppUtils.checkLocationServiceAvailability();
+    await AppUtils.checkLocationServiceAvailability();
     PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
     isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
 
@@ -253,7 +268,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   Future checkInFunction() async {
     bool isLocationServiceAvailable =
-        await AppUtils.checkLocationServiceAvailability();
+    await AppUtils.checkLocationServiceAvailability();
     PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
     isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
 
@@ -270,7 +285,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   Future checkOutFunction() async {
     bool isLocationServiceAvailable =
-        await AppUtils.checkLocationServiceAvailability();
+    await AppUtils.checkLocationServiceAvailability();
 
     if (isLocationServiceAvailable) {
       try {
@@ -297,7 +312,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   Future logOutFunction() async {
     try {
       bool isLocationServiceAvailable =
-          await AppUtils.checkLocationServiceAvailability();
+      await AppUtils.checkLocationServiceAvailability();
       PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
       PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
       isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
@@ -324,30 +339,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           valueListenable: isCheckIn,
           builder: (context, value, child) {
             return GestureDetector(
-              // onHorizontalDragStart: (details) {
-              //   setState(() {
-              //     isTapped = true;
-              //   });
-              //   controller?.forward();
-              // },
-              // onVerticalDragStart: (details) {
-              //   setState(() {
-              //     isTapped = true;
-              //   });
-              //   controller?.forward();
-              // },
-              // onVerticalDragEnd: (details) {
-              //   setState(() {
-              //     isTapped = false;
-              //   });
-              //   controller?.reverse();
-              // },
-              // onHorizontalDragEnd: (details) {
-              //   setState(() {
-              //     isTapped = false;
-              //   });
-              //   controller?.reverse();
-              // },
               onTapDown: (details) {
                 setState(() {
                   isTapped = true;
@@ -357,9 +348,13 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
                   controller?.reset();
                   if (!isDayStart.value) {
-                    doLocalVerification(doVerificationForLogIn);
+                    doLocalVerification(afterSuccessfulVerificationFnc: () {
+                      doVerificationForLogIn();
+                    },);
                   } else if (!isCheckIn.value) {
-                    doLocalVerification(doVerificationForCheckIn);
+                    doLocalVerification(afterSuccessfulVerificationFnc: () {
+                      doVerificationForCheckIn();
+                    },);
                   } else
                     checkOutFunction();
                 });
@@ -414,10 +409,10 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                           strokeCap: StrokeCap.round,
                           valueColor: AlwaysStoppedAnimation<Color>(
                               AppConstant.greyColor.withOpacity(0.2)
-                              // dayEnd == true ? Colors.red :!isDayStart.value
-                              //     ? AppConstant.greyColor
-                              //     : Colors.blue
-                              ),
+                            // dayEnd == true ? Colors.red :!isDayStart.value
+                            //     ? AppConstant.greyColor
+                            //     : Colors.blue
+                          ),
                         ),
                       ),
                       AnimatedContainer(
@@ -446,8 +441,8 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                             text: !isDayStart.value
                                 ? "In"
                                 : !isCheckIn.value
-                                    ? "Check-In"
-                                    : "Check-Out",
+                                ? "Check-In"
+                                : "Check-Out",
                             fontSize: !isDayStart.value ? 22 : 13,
                             textColor: Colors.white,
                             fontWeight: FontWeight.w600,
@@ -543,10 +538,10 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     strokeCap: StrokeCap.round,
                     valueColor: AlwaysStoppedAnimation<Color>(
                         AppConstant.greyColor.withOpacity(0.2)
-                        // dayEnd == true ? Colors.red :!isDayStart.value
-                        //     ? AppConstant.greyColor
-                        //     : Colors.blue
-                        ),
+                      // dayEnd == true ? Colors.red :!isDayStart.value
+                      //     ? AppConstant.greyColor
+                      //     : Colors.blue
+                    ),
                   ),
                 ),
                 AnimatedContainer(
@@ -586,7 +581,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   }
 
   doVerificationAndLogout() {
-    return doLocalVerification(() {
+    return doLocalVerification(afterSuccessfulVerificationFnc: () {
       controller?.reset();
       setState(() {
         isLoading = true;
@@ -613,51 +608,10 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     );
   }
 
-  // AlertDialog showDialogBox(String text, BuildContext context) {
-  //   return AlertDialog(
-  //     shape: RoundedRectangleBorder(
-  //         borderRadius: BorderRadius.all(Radius.circular(10))),
-  //     // Remove border radius
-  //     insetPadding: const EdgeInsets.all(0),
-  //     titlePadding: const EdgeInsets.all(0),
-  //     contentPadding:
-  //         const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
-  //     content: Column(
-  //       mainAxisSize: MainAxisSize.min,
-  //       children: [
-  //         // Text(text, textAlign: TextAlign.center,),
-  //         AppUtils.commonTextWidget(
-  //             text: text,
-  //             textAlign: TextAlign.center,
-  //             textColor: AppConstant.blackColor,
-  //             fontWeight: FontWeight.w400),
-  //         const SizedBox(height: 10),
-  //         Row(
-  //           mainAxisAlignment: MainAxisAlignment.end,
-  //           children: [
-  //             TextButton(
-  //               style: TextButton.styleFrom(
-  //                   shape: RoundedRectangleBorder(
-  //                       borderRadius: BorderRadius.circular(10))),
-  //               onPressed: () {
-  //                 Navigator.pop(context);
-  //               },
-  //               child: AppUtils.commonTextWidget(
-  //                   text: "OK",
-  //                   textColor: AppConstant.appPrimaryColor,
-  //                   letterSpacing: 1,
-  //                   fontWeight: FontWeight.w600),
-  //             ),
-  //           ],
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 
-  doLocalVerification(Function afterSuccessfulVerificationFnc) async {
+  doLocalVerification({required Function() afterSuccessfulVerificationFnc}) async {
     if (isBiometricAvailable) {
-      bool isAuthenticated = await _localAuthentication.authenticate(
+      bool isAuthenticated = await localAuthentication.authenticate(
           localizedReason: "Authenticate using Biometrics",
           options: const AuthenticationOptions(
               stickyAuth: true, useErrorDialogs: true));
@@ -668,6 +622,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
         // openDialogFnc("Authentication Successful");
         afterSuccessfulVerificationFnc();
+
       } else {
         if (kDebugMode) {
           print("isAuthenticated $isAuthenticated");
@@ -678,15 +633,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       if (kDebugMode) {
         print("Biometric Auth is not available on this device");
       }
-
-
       openDialogFnc("Biometric Auth is not available on this device");
-      // showDialog(
-      //   context: context,
-      //
-      // //   builder: (context) => showDialogBox(
-      // //       "Biometric Auth is not available on this device", context),
-      // // );
     }
   }
 }

@@ -104,7 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   height: 50,
                   width: 50,
                   child: ClipOval(
-                    child: AppUtils.commonNetworkImageWidget(path: profileImage),
+                    child: AppUtils.commonNetworkImageWidget(path: profileImage,),
                   ),),
                 title: AppUtils.commonTextWidget(
                     text: userName ?? "",

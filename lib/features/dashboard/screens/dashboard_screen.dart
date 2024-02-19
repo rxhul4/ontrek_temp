@@ -8,8 +8,6 @@ import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-// import 'package:mapmyindia_gl/mapmyindia_gl.dart';
-import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
@@ -32,6 +30,8 @@ class DashBoardState extends State<DashBoard> {
   late ValueNotifier<bool> isLoading;
   Set<Marker> markers = Set();
   int _selectedIndex = 0;
+  final _key = GlobalKey();
+  Size? _size;
 
   ValueNotifier<bool> isDayStarted = ValueNotifier(false);
   ValueNotifier<bool> isCheckedIn = ValueNotifier(false);
@@ -57,6 +57,9 @@ class DashBoardState extends State<DashBoard> {
         desiredAccuracy: LocationAccuracy.low,
       );
 
+      if(!mounted){
+
+      }
       setState(() {
         currentLocation = LatLng(position.latitude, position.longitude);
         print("${currentLocation}");
@@ -106,24 +109,33 @@ class DashBoardState extends State<DashBoard> {
   }
 
   List<String> lableString = [
-    "Attandance",
+    "Attendance",
     "Track",
     "Tasks",
-    "Pofile",
+    "Profile",
   ];
 
   @override
   void initState() {
     super.initState();
     draggableScrollableController = DraggableScrollableController();
-    // draggableScrollableController.addListener(() {
-    //   if(_selectedIndex == 0){
-    //     draggableScrollableController.isAttached
-    //   }
-    // });
     checkPermission();
+    // calculateSize();
+
 
   }
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    draggableScrollableController.dispose();
+    super.dispose();
+  }
+
+  // void calculateSize() =>
+  //     WidgetsBinding.instance?.addPersistentFrameCallback((_) {
+  //       _size = _key.currentContext?.size;
+  //     });
+
 
   Future checkPermission() async {
     final status = await Permission.location.status;
@@ -141,6 +153,8 @@ class DashBoardState extends State<DashBoard> {
 
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
+    print("height====${height}");
     return Scaffold(
       body: SafeArea(
         child: Stack(
@@ -166,7 +180,7 @@ class DashBoardState extends State<DashBoard> {
                 shouldCloseOnMinExtent: true,
                 snap: true,
                 expand: false,
-                snapAnimationDuration: const Duration(milliseconds: 200),
+                snapAnimationDuration: const Duration(milliseconds: 300),
                 initialChildSize:  0.4,
                 maxChildSize: 1,
                 minChildSize: 0.09,
@@ -179,6 +193,7 @@ class DashBoardState extends State<DashBoard> {
                     AttendanceScreen(
                         scrollController: scrollController,
                         onLocationFetch: (value) {
+                          if(!mounted){}
                           setState(() {
                             currentLocation = LatLng(value.latitude, value.longitude);
                           });
@@ -267,108 +282,6 @@ class DashBoardState extends State<DashBoard> {
     );
   }
 
-  // Widget _backgroundWidget() {
-  //   return Scaffold(
-  //     backgroundColor: Colors.white,
-  //     body: MapmyIndiaMap(
-  //         initialCameraPosition:
-  //         CameraPosition(target: LatLng(20.5937, 78.9629))),
-  //   );
-  // }
-
-  // Widget _previewWidget() {
-  //   return Container(
-  //     padding: const EdgeInsets.all(16),
-  //     decoration:  BoxDecoration(
-  //       color: AppConstant.whiteColor,
-  //       borderRadius: BorderRadius.only(
-  //         topLeft: Radius.circular(20),
-  //         topRight: Radius.circular(20),
-  //       ),
-  //     ),
-  //     child: Column(
-  //       children: <Widget>[
-  //         Container(
-  //           width: 40,
-  //           height: 6,
-  //           decoration: BoxDecoration(
-  //             color: AppConstant.whiteColor,
-  //             borderRadius: BorderRadius.circular(10),
-  //           ),
-  //         ),
-  //         const SizedBox(height: 8),
-  //          Text(
-  //           'Drag Me',
-  //           style: TextStyle(
-  //             color: AppConstant.whiteColor,
-  //             fontSize: 16,
-  //             fontWeight: FontWeight.bold,
-  //           ),
-  //         ),
-  //         const SizedBox(height: 16),
-  //         Row(
-  //             mainAxisAlignment: MainAxisAlignment.center,
-  //             children: icons.map((icon) {
-  //               return Container(
-  //                 width: 50,
-  //                 height: 50,
-  //                 margin: const EdgeInsets.only(right: 16),
-  //                 decoration: BoxDecoration(
-  //                   color: Colors.white,
-  //                   borderRadius: BorderRadius.circular(10),
-  //                 ),
-  //                 child: Icon(icon, color: Colors.pink, size: 40),
-  //               );
-  //             }).toList())
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  // Widget _expandedWidget() {
-  //   return Container(
-  //     padding: const EdgeInsets.all(16),
-  //     decoration:  BoxDecoration(
-  //       color: AppConstant.whiteColor,
-  //       borderRadius: BorderRadius.only(
-  //         topLeft: Radius.circular(20),
-  //         topRight: Radius.circular(20),
-  //       ),
-  //     ),
-  //     child: Column(
-  //       children: <Widget>[
-  //         const Icon(Icons.keyboard_arrow_down, size: 30, color: Colors.white),
-  //         const SizedBox(height: 8),
-  //         Text(
-  //           'Hey...I\'m expanding!!!',
-  //           style: TextStyle(
-  //             color: Colors.white,
-  //             fontSize: 16,
-  //             fontWeight: FontWeight.bold,
-  //           ),
-  //         ),
-  //         const SizedBox(height: 16),
-  //         Expanded(
-  //           child: GridView.builder(
-  //             itemCount: icons.length,
-  //             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-  //               crossAxisCount: 2,
-  //               crossAxisSpacing: 10,
-  //               mainAxisSpacing: 10,
-  //             ),
-  //             itemBuilder: (context, index) => Container(
-  //               decoration: BoxDecoration(
-  //                 color: Colors.white,
-  //                 borderRadius: BorderRadius.circular(10),
-  //               ),
-  //               child: Icon(icons[index], color: Colors.pink, size: 40),
-  //             ),
-  //           ),
-  //         )
-  //       ],
-  //     ),
-  //   );
-  // }
   final List<IconData> icons = const [
     Icons.message,
     Icons.call,

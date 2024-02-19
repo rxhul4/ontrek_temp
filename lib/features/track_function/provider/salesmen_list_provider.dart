@@ -25,7 +25,7 @@ class SalesMenListProvider extends ChangeNotifier{
 
   Future<GetSalesMenListModel?> apiCallGetSalesManList(
       {String? eventDate, String? fullName}) async {
-    // var managerId = PreferenceHelper.getInt(PreferenceHelper.EMPLOYEE_ID);
+    // var managerId = PreferenceHelper.getInt(PreferenceHelper.USER_UID);
     _isFetching = true;
     notifyListeners();
     try {

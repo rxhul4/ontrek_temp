@@ -9,5 +9,9 @@ class ApiConstants{
    static const String getSalesMentimeLine = "$baseUrl/Admin/GetTimeLine";
 
 
+  //salesMen
+   static const String addActivity = "$baseUrl/SalesMen/AddActivity";
+
+
 
 }

@@ -18,7 +18,7 @@ class PreferenceHelper {
   static const String PROFILE_PIC = "profilePic";
   static const String ROLE_NAME = "roleName";
 
-  static const String EMPLOYEE_ID = "employeeId";
+  static const String USER_UID = "userUid";
   static const String ROLE_ID = "roleId";
 
   static const String LocationPrefKey = "locationPrefKey";

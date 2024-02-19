@@ -20,17 +20,17 @@ class AppUtils {
 
 
 
-  static getAddress(double lat ,double long) async {
-    const String googelApiKey = 'AIzaSyBtIPj5XDL4wiGpUaiXrYfTyWLDLlyvgbs';
-    final bool isDebugMode = true;
-    final api = GoogleGeocodingApi(googelApiKey, isLogged: isDebugMode);
-    final reversedSearchResults = await api.reverse(
-      '${lat},${long}',
-      language: 'en',
-    );
-    print("address please111   \n${reversedSearchResults.results.first.formattedAddress}");
-    return reversedSearchResults;
-  }
+  // static getAddress(double lat ,double long) async {
+  //   const String googelApiKey = 'AIzaSyBtIPj5XDL4wiGpUaiXrYfTyWLDLlyvgbs';
+  //   final bool isDebugMode = true;
+  //   final api = GoogleGeocodingApi(googelApiKey, isLogged: isDebugMode);
+  //   final reversedSearchResults = await api.reverse(
+  //     '${lat},${long}',
+  //     language: 'en',
+  //   );
+  //   print("address please111   \n${reversedSearchResults.results.first.formattedAddress}");
+  //   return reversedSearchResults;
+  // }
 
 
 
@@ -123,7 +123,7 @@ class AppUtils {
     bool isShowBorder = false,
     bool isTopLeftRight = false,
     Color? borderColor ,
-    BoxShape boxShape = BoxShape.circle,
+    // BoxShape boxShape = BoxShape.circle,
     double borderWidth = 1,
   }) {
     return BoxDecoration(
@@ -137,7 +137,7 @@ class AppUtils {
           : circularBorderRadius(
         radius,
       ),
-      shape: boxShape,
+      // shape: boxShape,
       border: Border.all(
         width: isShowBorder ? borderWidth : 0,
         color: isShowBorder ? borderColor ?? AppConstant.transparentColor : AppConstant.transparentColor,

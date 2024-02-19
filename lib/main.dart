@@ -4,6 +4,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
+import 'package:ontrek/features/attendance/provider/attendance_provider.dart';
 import 'package:ontrek/features/authentication/providers/auth_provider.dart';
 import 'package:ontrek/features/authentication/screens/splash_screen.dart';
 import 'package:ontrek/features/salesman_tracker/provider/salesmen_tracking_timeline_provider.dart';
@@ -14,6 +15,9 @@ import 'features/track_function/provider/salesmen_list_provider.dart';
 
 List<SingleChildWidget> providers = [
 
+  ChangeNotifierProvider<AttendanceProvider>(
+    create: (_) => AttendanceProvider(),
+  ),
   ChangeNotifierProvider<AuthenticationProvider>(
     create: (_) => AuthenticationProvider(),
   ),

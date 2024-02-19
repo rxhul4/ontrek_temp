@@ -36,6 +36,17 @@ class _SplashScreenState extends State<SplashScreen> {
     print("isCheckIn $isCheckIn");
     print("status $status");
     Timer(const Duration(milliseconds: 3000), () {
+
+      // if(status.isGranted){
+      //   if(isLogIn??  false){
+      //     Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => DashBoard(),));
+      //   }else{
+      //     Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => LogInScreen(),));
+      //   }
+      // }else{
+      //   Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => LocationPermissionScreen(),));
+      // }
+
       if (status.isGranted) {
         if (isLogIn ?? false) {
           if (roleId == 3 || roleId == 4) {

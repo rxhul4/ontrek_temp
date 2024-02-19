@@ -2,9 +2,11 @@ import 'package:app_settings/app_settings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ontrek/core/common_widgets/app_scaffold.dart';
+import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
+import 'package:ontrek/features/authentication/screens/login_screen.dart';
 import 'package:ontrek/features/dashboard/screens/dashboard_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -17,6 +19,14 @@ class LocationPermissionScreen extends StatefulWidget {
 }
 
 class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
+
+  int? roleId;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    roleId = PreferenceHelper.getInt(PreferenceHelper.ROLE_ID);
+  }
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -76,11 +86,8 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
                     textColor: AppConstant.greyColor,
                   ),
                   onTap: () {
-                    Navigator.pushReplacement(
-                        context,
-                        CupertinoPageRoute(
-                          builder: (context) => DashBoard(),
-                        ));
+
+                    Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => DashBoard(),));
                   })
             ],
           ),
@@ -100,7 +107,12 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
       AppSettings.openAppSettings(type: AppSettingsType.location);
       // _showCustomPopup();
     }else{
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => DashBoard(),));
+      if(roleId == null ){
+        Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => LogInScreen(),));
+      }else{
+        Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => DashBoard(),));
+      }
+
     }
   }
 

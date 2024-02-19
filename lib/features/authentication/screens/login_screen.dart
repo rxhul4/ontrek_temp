@@ -33,17 +33,12 @@ class _LogInScreenState extends State<LogInScreen> {
   Position? locationOfLogin;
 
   callLogInApi(AuthenticationProvider postMdl,value) async{
-    GoogleGeocodingResponse address = await AppUtils.getAddress(value.latitude, value.longitude);
-    FocusScope.of(context).unfocus();
     postMdl
         .apiCallLogin(
       email: emailController.text.trim(),
       password: passwordController.text,
       latitude: locationOfLogin?.latitude,
       longitude: locationOfLogin?.longitude,
-      loginAddress: address.results.first.formattedAddress,
-
-
     )
         .then((value) {
       loginModel = value;
@@ -89,7 +84,7 @@ class _LogInScreenState extends State<LogInScreen> {
     PreferenceHelper.setString(
         PreferenceHelper.AUTH_TOKEN, loginModel?.data?.token ?? '');
     PreferenceHelper.setString(
-        PreferenceHelper.EMPLOYEE_ID, loginModel?.data?.userUid ?? "");
+        PreferenceHelper.USER_UID, loginModel?.data?.userUid ?? "");
     PreferenceHelper.setInt(
         PreferenceHelper.ROLE_ID, loginModel?.data?.roleId ?? 0);
     // PreferenceHelper.setObject(

@@ -23,7 +23,8 @@ Future callPostMethod(String url, Map<String, dynamic> params) async {
   DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
   String? authToken = PreferenceHelper.getString(PreferenceHelper.AUTH_TOKEN);
   myDeviceInfo = await deviceInfo.androidInfo;
-  print("deviceId${myDeviceInfo?.id ?? ""}");
+
+  print("deviceId_DTAAAAAAAAAAAAA${myDeviceInfo?.id ?? ""}");
   print("deviceversion${myDeviceInfo?.version.release ?? ""}");
   print("devicemodel${myDeviceInfo?.model ?? ""}");
 
@@ -34,7 +35,8 @@ Future callPostMethod(String url, Map<String, dynamic> params) async {
     'DeviceId' : myDeviceInfo?.id ?? "",
     'DeviceModel':myDeviceInfo?.model ?? "",
     'DeviceOS' :Platform.operatingSystem,
-    'OSVersion' :myDeviceInfo?.version.release ?? ""
+    'OSVersion' :myDeviceInfo?.version.release ?? "",
+    'DeviceName' :myDeviceInfo?.brand ?? ""
   };
   if (kDebugMode) {
     print("params--${jsonEncode(params)}");
