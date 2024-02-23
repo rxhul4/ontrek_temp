@@ -113,7 +113,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
             deviceId: androidInfo?.id,
             deviceName: androidInfo?.brand,
             batteryLevel: batteryLevel,
-            totTrackingEventCode: "tracking_event_check_out",
+            totTrackingEventCode: AppConstant.checkOutEvent,
             trackingAddress: "dwarkesh Business Hub",
             locAccuracy: 1,
             latitude: position.latitude,
@@ -122,7 +122,8 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
             customerName: customerNameController.text,
             customerPhoneNumber: customerPhoneNumberController.text,
             visitDiscussion: visitDiscussionNameController.text,
-            visitTypeCode: totType)
+            visitTypeCode: totType
+    )
         .then((value) {
       addActivityModel = value;
       if (addActivityModel?.code == 200) {

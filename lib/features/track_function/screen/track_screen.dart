@@ -54,10 +54,10 @@ class _TrackScreenState extends State<TrackScreen> {
 
 
   @override
-  Widget build(BuildContext context) {
+      Widget build(BuildContext context) {
     final getMdl = Provider.of<SalesMenListProvider>(context);
     return Animate(
-      effects: [
+      effects: const [
         SlideEffect(
             end: Offset(0, 0),
             curve: Curves.decelerate,

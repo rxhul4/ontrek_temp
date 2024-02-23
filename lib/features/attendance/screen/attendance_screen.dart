@@ -245,52 +245,55 @@ callAddActivityApi(
                   ),
                 ),
               ),
-              SizedBox(height: 50),
+              // SizedBox(height: 50),
               // Added vertical spacing
 
-              Column(
-                children: [
-                  ValueListenableBuilder(
-                    valueListenable: isDayEnd,
-                    builder: (context, value, child) {
-                      return Center(
-                        child:  !isDayEnd.value ? buttonWidget(postMdl) : logOut(postMdl) ,
-                      );
-                    },
-                  ),
-                  AppUtils.commonSizedBox(height: 20),
-                  !isDayStart.value
-                      ? Visibility(
-                    visible: !isTapped,
-                    child: AppUtils.commonTextWidget(
-                      text: "Press & Hold",
-                      fontSize: 14,
-                      letterSpacing: 0.2,
-                      fontWeight: FontWeight.w600,
-                      textColor: AppConstant.blackColor,
-                    ),
-                  )
-                      : GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          isDayEnd.value = !isDayEnd.value; // Toggle the value
-                        });
+              Container(
+                margin: AppUtils.edgeInsetsOnly(top: 50,bottom: 10),
 
+                child: Column(
+                  children: [
+                    ValueListenableBuilder(
+                      valueListenable: isDayEnd,
+                      builder: (context, value, child) {
+                        return Center(
+                          child:  !isDayEnd.value ? buttonWidget(postMdl) : logOut(postMdl) ,
+                        );
                       },
-                      child: Visibility(
-                        visible: !isFromLogOutButton,
-                        child: AppUtils.commonTextWidget(
-                          text:  isDayEnd.value ? "Show Hide" : "Show Off",
-                          fontSize: 14,
-                          letterSpacing: 0.2,
-                          fontWeight: FontWeight.w600,
-                          textColor:isDayEnd.value ? AppConstant.appPrimaryColor : Colors.red ,
-                        ),
-                      )),
-                ],
+                    ), 
+                    AppUtils.commonSizedBox(height: 20),
+                    !isDayStart.value
+                        ? Visibility(
+                      visible: !isTapped,
+                      child: AppUtils.commonTextWidget(
+                        text: "Press & Hold",
+                        fontSize: 14,
+                        letterSpacing: 0.2,
+                        fontWeight: FontWeight.w600,
+                        textColor: AppConstant.blackColor,
+                      ),
+                    )
+                        : GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            isDayEnd.value = !isDayEnd.value; // Toggle the value
+                          });
+
+                        },
+                        child: Visibility(
+                          visible: !isFromLogOutButton,
+                          child: AppUtils.commonTextWidget(
+                            text:  isDayEnd.value ? "Show Hide" : "Show Off",
+                            fontSize: 14,
+                            letterSpacing: 0.2,
+                            fontWeight: FontWeight.w600,
+                            textColor:isDayEnd.value ? AppConstant.appPrimaryColor : Colors.red ,
+                          ),
+                        )),
+                  ],
+                ),
               ),
 
-              SizedBox(height: 30),
               // Added vertical spacing
 
 
@@ -319,7 +322,7 @@ callAddActivityApi(
 
   Future loginFunction() async {
   try{
-    service.startService();
+    // service.startService();
     PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
     isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
   }catch(e){
@@ -382,7 +385,7 @@ callAddActivityApi(
     try {
       // bool isLocationServiceAvailable =
       // await AppUtils.checkLocationServiceAvailability();
-      service.invoke("stopService");
+      // service.invoke("stopService");
       PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
       PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
       isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
@@ -412,14 +415,14 @@ callAddActivityApi(
                   if (!isDayStart.value) {
                     doLocalVerification(afterSuccessfulVerificationFnc: () {
                       getCurrentLocation().then((value) {
-                        callAddActivityApi(postMdl: postMdl, position: value,totEventCode: "tracking_event_day_start",isFromCheckIn: false);
+                        callAddActivityApi(postMdl: postMdl, position: value,totEventCode: "AppConstant.dayStartEvent",isFromCheckIn: false);
                       });
                     },);
                   } else if (!isCheckIn.value) {
                     doLocalVerification(afterSuccessfulVerificationFnc: () {
 
                       getCurrentLocation().then((value) {
-                        callAddActivityApi(postMdl: postMdl,position: value,totEventCode: "tracking_event_check_in",isFromCheckIn: true);
+                        callAddActivityApi(postMdl: postMdl,position: value,totEventCode: AppConstant.checkInEvent,isFromCheckIn: true);
                       });
 
                     },);
@@ -583,7 +586,7 @@ callAddActivityApi(
               });
               if (isDayStart.value) {
                 getCurrentLocation().then((value) {
-                  callAddActivityApi(postMdl: postMdl,isFromLogOutBtn: true,totEventCode: "tracking_event_day_end",position: value,);
+                  callAddActivityApi(postMdl: postMdl,isFromLogOutBtn: true,totEventCode: "AppConstant.dayEndEvent",position: value,);
                 });
               }
             });

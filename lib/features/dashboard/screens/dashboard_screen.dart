@@ -175,7 +175,7 @@ class DashBoardState extends State<DashBoard> {
             ),
 
             // screens[_selectedIndex],
-            Positioned.fill(
+            SizedBox.expand(
               child: DraggableScrollableSheet(
                 shouldCloseOnMinExtent: true,
                 snap: true,
