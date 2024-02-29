@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/features/add_task/screen/add_task_screen.dart';
+import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class TaskListScreen extends StatefulWidget {
   ScrollController? scrollController;
@@ -18,8 +19,6 @@ class TaskListScreen extends StatefulWidget {
 
 class _TaskListScreenState extends State<TaskListScreen>
     with TickerProviderStateMixin {
-  DraggableScrollableController draggableScrollableController =
-      DraggableScrollableController();
   DateTime? selectedDate;
 
   Future<void> openDatePicker() async {
@@ -36,7 +35,8 @@ class _TaskListScreenState extends State<TaskListScreen>
             dialogBackgroundColor: AppConstant.whiteColor,
             scaffoldBackgroundColor: AppConstant.whiteColor,
             textSelectionTheme: TextSelectionThemeData(
-              selectionColor: AppConstant.appPrimaryColor, // Selected date color
+              selectionColor:
+                  AppConstant.appPrimaryColor, // Selected date color
             ),
             colorScheme: ColorScheme.light(
               background: Colors.white,
@@ -72,11 +72,16 @@ class _TaskListScreenState extends State<TaskListScreen>
 
   late TabController tabController;
   int selectedIndex = 0;
+  bool isRefreshing = false;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      panelController.animatePanelToSnapPoint(
+          duration: Duration(milliseconds: 0));
+    });
     tabController = TabController(length: 2, vsync: this);
     tabController.addListener(() {
       setState(() {
@@ -85,225 +90,104 @@ class _TaskListScreenState extends State<TaskListScreen>
     });
   }
 
+  PanelController panelController = PanelController();
+
   @override
   Widget build(BuildContext context) {
-    return Animate(
-      effects: const [
-        SlideEffect(
-            end: Offset(0, 0),
-            curve: Curves.decelerate,
-            begin: Offset(0, 1),
-            duration: Duration(milliseconds: 600)),
-      ],
-      child: Container(
-        decoration: AppUtils.commonBoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                spreadRadius: 0,
-                blurRadius: 8,
-                offset: Offset(0, -10), // This will create a top shadow
-              ),
-            ],
-            borderRadius: AppUtils.borderRadiousonly(topright: 18, topleft: 18),
-            color: AppConstant.whiteColor),
-        child: SingleChildScrollView(
-          controller: widget.scrollController,
-          child: Column(
-            children: [
-              AppUtils.commonContainer(
-                decoration: AppUtils.commonBoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      width: 1,
-                      color: AppConstant.greyColor.withOpacity(0.3),
-                    ),
+    double height = MediaQuery.of(context).size.height;
+    double width = MediaQuery.of(context).size.width;
+    return AppUtils.commonSlidePanel(
+      panelSnapping: true,
+      maxHeight: height,
+      minHeight: height * 0.09,
+      controller: panelController,
+      isDraggable: true,
+      snapPoint: 0.35,
+      panelBuilder: (p0) {
+        return Column(
+          children: [
+            AppUtils.buildHeader(
+                height: height,
+                width: width,
+                actionWidget: [
+                  commonIconWidget(
+                    iconData: Icons.calendar_month_rounded,
+                    onTap: openDatePicker,
                   ),
-                  borderRadius:
-                      AppUtils.borderRadiousonly(topleft: 18, topright: 18),
-                  color: Colors.white,
-                ),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: Column(
-                    children: [
-                      AppUtils.commonContainer(
-                        width: 30,
-                        height: 5,
-                        decoration: AppUtils.commonBoxDecoration(
-                            color: AppConstant.greyColor.withOpacity(0.3),
-                            borderRadius: AppUtils.borderRadiusAll(raduis: 12)),
-                      ),
-                      Row(
-                        children: [
-                          AppUtils.commonContainer(
-                            height: 45,
-                            width: 45,
-                            decoration: AppUtils.commonBoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppConstant.appPrimaryColor,
-                              border:
-                                  Border.all(color: Colors.grey, width: 1.2),
-                            ),
-                          ),
-                          AppUtils.commonSizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                AppUtils.commonTextWidget(
-                                  text: "Task",
-                                  fontWeight: FontWeight.w600,
-                                  textColor: AppConstant.blackColor,
-                                  letterSpacing: 0.2,
-                                  fontSize: 15,
-                                ),
-                                AppUtils.commonTextWidget(
-                                  text: "Select a task",
-                                  fontWeight: FontWeight.w400,
-                                  textColor:
-                                      AppConstant.blackColor.withOpacity(0.3),
-                                  letterSpacing: 0,
-                                  fontSize: 13,
-                                ),
-                              ],
-                            ),
-                          ),
-                          commonIconWidget(
-                            iconData: Icons.calendar_month,
-                            onTap: openDatePicker,
-                          ),
-                          AppUtils.commonSizedBox(width: 10),
-                          commonIconWidget(
-                            iconData: Icons.add,
-                            onTap: NavigateToAddTaskScreen,
-                          ),
-                          AppUtils.commonSizedBox(width: 10),
-                          commonIconWidget(
-                            iconData: Icons.repeat,
-                            onTap: refresh,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+                  AppUtils.commonSizedBox(width: 10),
+                  commonIconWidget(iconData: Icons.repeat, onTap: refresh),
+                ],
+                title: "Task",
+                subTitle: "Select a Task",
+                backgroundColor: AppConstant.whiteColor,
+                leadingImage:
+                    "https://media.istockphoto.com/id/1256489977/vector/tasks-check-checklist-blue-icon.jpg?s=612x612&w=0&k=20&c=dUctYWRSmMz1uiSFCCcJUKOyeoxVbvPuLugf8CLQiSo="),
+            AppUtils.commonContainer(
+              height: 30,
+              margin: EdgeInsets.only(top: 20, left: 30, right: 30,bottom: 20),
+              decoration: AppUtils.commonBoxDecoration(
+                color: AppConstant.greyColor.withOpacity(0.2),
+                borderRadius: AppUtils.borderRadiusAll(raduis: 5),
               ),
-              AppUtils.commonContainer(
-                height: 30,
-                margin: EdgeInsets.only(top: 20, left: 30, right: 30),
-                decoration: AppUtils.commonBoxDecoration(
-                  color: AppConstant.greyColor.withOpacity(0.2),
-                  borderRadius: AppUtils.borderRadiusAll(raduis: 5),
-                ),
-                child: TabBar.secondary(
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    controller: tabController,
-                    padding: AppUtils.edgeInsetsAll(allPadding: 2),
-                    // enableFeedback: true,
-                    labelColor: Colors.white,
-                    unselectedLabelStyle: TextStyle(
-                      fontFamily:  "Poppins",
-                      letterSpacing: 0.2,
-                      fontWeight: FontWeight.w400,
-                      fontSize: 12,
-                    ),
-                    indicatorWeight: 0,
-                    dividerHeight: 0,
-                    labelStyle: TextStyle(
-                      fontFamily:  "Poppins",
-                      letterSpacing: 0.2,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                    automaticIndicatorColorAdjustment: true,
-                    indicator: BoxDecoration(
-                        color: AppConstant.appPrimaryColor,
-                        borderRadius: AppUtils.borderRadiusAll(raduis: 5)),
-                    tabs: [
-                      Tab(text: 'ASSIGNED TO ME'),
-                      Tab(text: 'All TASK'),
-                    ]),
-              ),
-              SizedBox(
-                  height: MediaQuery.of(context).size.height ,
-                  child: TabBarView(
-                    controller: tabController,
-                    children: [assignedToMeTabBar(), allTaskTabBar()],
-                  ))
+              child: TabBar.secondary(
+                physics: NeverScrollableScrollPhysics(),
 
-              // Padding(
-              //   padding:
-              //       AppUtils.edgeInsetsOnly(top: 15, left: 30, right: 30),
-              //   child: Column(
-              //     children: [
-              //       AppUtils.commonContainer(
-              //           // width: MediaQuery.of(context).size.width,
-              //           // height: 30,
-              //           decoration: AppUtils.commonBoxDecoration(
-              //               color: AppConstant.greyColor.withOpacity(0.2),
-              //               borderRadius:
-              //                   AppUtils.borderRadiusAll(raduis: 5)),
-              //           child: TabBar.secondary(
-              //               controller: tabController,
-              //               indicatorWeight: 0,
-              //               dividerHeight: 0.1,
-              //               indicatorSize: TabBarIndicatorSize.tab,
-              //               padding: AppUtils.edgeInsetsAll(allPadding: 2.5),
-              //               indicator: BoxDecoration(
-              //                   color: AppConstant.appPrimaryColor,
-              //                   borderRadius:
-              //                       AppUtils.borderRadiusAll(raduis: 5)),
-              //               labelColor: Colors.white,
-              //               labelStyle: const TextStyle(
-              //                 fontWeight: FontWeight.w500,
-              //                 fontSize: 12,
-              //               ),
-              //               unselectedLabelColor: Colors.black.withOpacity(0.5),
-              //               unselectedLabelStyle: const TextStyle(
-              //                 fontWeight: FontWeight.w400,
-              //                 fontSize: 12,
-              //               ),
-              //               tabs: const [
-              //                 Tab(text: 'ASSIGNED TO ME'),
-              //                 Tab(text: 'All TASK'),
-              //               ])),
-              //       Expanded(
-              // height: MediaQuery.of(context).size.height / 1.5,
-              //         child: TabBarView(
-              //             controller: tabController,
-              //             physics: NeverScrollableScrollPhysics(),
-              //             children: <Widget>[
-              //
-              //               assignedToMeTabBar(),
-              //               allTaskTabBar(),
-              //             ]),
-              //       )
-              //     ],
-              //   ),
-              // )
-            ],
-          ),
-        ),
-      ),
+                  isScrollable: false,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  controller: tabController,
+                  padding: AppUtils.edgeInsetsAll(allPadding: 2),
+                  // enableFeedback: true,
+                  labelColor: Colors.white,
+                  unselectedLabelStyle: const TextStyle(
+                    fontFamily: "Poppins",
+                    letterSpacing: 0.2,
+                    fontWeight: FontWeight.w400,
+                    fontSize: 12,
+                  ),
+                  indicatorWeight: 0,
+                  dividerHeight: 0,
+                  labelStyle: const TextStyle(
+                    fontFamily: "Poppins",
+                    letterSpacing: 0.2,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 12,
+                  ),
+                  automaticIndicatorColorAdjustment: true,
+                  indicator: BoxDecoration(
+                      color: AppConstant.appPrimaryColor,
+                      borderRadius: AppUtils.borderRadiusAll(raduis: 5)),
+                  tabs: const [
+                    Tab(text: 'ASSIGNED TO ME'),
+                    Tab(text: 'All TASK'),
+                  ]),
+            ),
+            Expanded(
+                child: TabBarView(
+                   physics: NeverScrollableScrollPhysics(),
+              controller: tabController,
+              children: [assignedToMeTabBar(height,width,p0), allTaskTabBar(height,width,p0)],
+            ))
+          ],
+        );
+      },
     );
   }
 
 //Icon
-  Widget commonIconWidget({Function()? onTap, IconData? iconData}) {
+  Widget commonIconWidget(
+      {Function()? onTap, IconData? iconData, Color? iconColor}) {
     return InkWell(
       onTap: onTap,
       child: Icon(
         iconData,
         size: 26,
-        color: AppConstant.blackColor.withOpacity(0.6),
+        color: iconColor ?? AppConstant.blackColor.withOpacity(0.6),
       ),
     );
   }
 
   //assigned to me
-  Widget assignedToMeTabBar() {
+  Widget assignedToMeTabBar(height,width,p0) {
     return isRefreshing
         ? Padding(
             padding: const EdgeInsets.only(top: 80),
@@ -343,7 +227,7 @@ class _TaskListScreenState extends State<TaskListScreen>
   }
 
   //All Task
-  Widget allTaskTabBar() {
+  Widget allTaskTabBar(height,width,p0) {
     return isRefreshing
         ? Padding(
             padding: const EdgeInsets.only(top: 80),
@@ -378,9 +262,21 @@ class _TaskListScreenState extends State<TaskListScreen>
                   textColor: AppConstant.blackColor.withOpacity(0.5)),
             ],
           );
+    // :   ListView.builder(
+    //   controller: p0,
+    //   itemCount: 50,
+    //   shrinkWrap: true,
+    //
+    //   // physics: NeverScrollableScrollPhysics(),
+    //   padding: AppUtils.edgeInsetsOnly(
+    //       bottom: 100, left: 10,right: 10),
+    //   itemBuilder: (BuildContext context, int index) {
+    //     return Text("${index}");
+    //   },
+    // );
   }
 
-  bool isRefreshing = false;
+
 
   refresh() async {
     setState(() {

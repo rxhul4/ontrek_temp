@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:ontrek/core/utils/App_utils.dart';
-import 'package:ontrek/core/utils/app_constant.dart';
 
 class LoaderWidget extends StatefulWidget {
   Color? color;

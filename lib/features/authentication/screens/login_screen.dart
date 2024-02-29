@@ -195,7 +195,12 @@ class _LogInScreenState extends State<LogInScreen> {
                             ),
                             AppUtils.commonInkWell(
                               onTap: () {
-                                  checkValidation(postMdl);
+                                  // checkValidation(postMdl);
+                                Navigator.pushReplacement(
+                                    context,
+                                    CupertinoPageRoute(
+                                      builder: (context) => DashBoard(),
+                                    ));
                               },
                               child: AppUtils.commonContainer(
                                   height: 56,

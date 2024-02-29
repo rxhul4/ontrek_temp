@@ -8,8 +8,11 @@ const trackingIconPath = "$assetsBasePath/icons/tracking_icon.png";
 //
 const assetsBasePathImage = "assets/images";
 
+
 // const profileImage = "$assetsBasePathImage/profilePicture.png";
 const profileImage = "$assetsBasePathImage/profileImage.png";
+const mobileVerificationImage = "$assetsBasePathImage/mobile_verification.jpg";
+
 
 const loginIcon =  "$assetsBasePath/icons/logged-In.png";
 const logoutIcon =  "$assetsBasePath/icons/logged-out.png";

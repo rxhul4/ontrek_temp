@@ -57,9 +57,7 @@ class DashBoardState extends State<DashBoard> {
         desiredAccuracy: LocationAccuracy.low,
       );
 
-      if(!mounted){
-
-      }
+      if (!mounted) {}
       setState(() {
         currentLocation = LatLng(position.latitude, position.longitude);
         print("${currentLocation}");
@@ -121,9 +119,8 @@ class DashBoardState extends State<DashBoard> {
     draggableScrollableController = DraggableScrollableController();
     checkPermission();
     // calculateSize();
-
-
   }
+
   @override
   void dispose() {
     // TODO: implement dispose
@@ -136,7 +133,6 @@ class DashBoardState extends State<DashBoard> {
   //       _size = _key.currentContext?.size;
   //     });
 
-
   Future checkPermission() async {
     final status = await Permission.location.status;
     if (status.isDenied) {
@@ -148,8 +144,9 @@ class DashBoardState extends State<DashBoard> {
       await getCurrentLocation();
     }
   }
+
   DraggableScrollableController draggableScrollableController =
-  DraggableScrollableController();
+      DraggableScrollableController();
 
   @override
   Widget build(BuildContext context) {
@@ -159,53 +156,32 @@ class DashBoardState extends State<DashBoard> {
       body: SafeArea(
         child: Stack(
           children: [
-            Positioned.fill(
-              // bottom: MediaQuery.of(context).size.height ,
-              child: GoogleMap(
-                  zoomControlsEnabled: false,
-                  padding: AppUtils.edgeInsetsOnly(
-                      bottom: MediaQuery.of(context).size.height * 0.3),
-                  mapType: MapType.normal,
-                  onMapCreated: (controller) {
-                    googleMapController.complete(controller);
-                  },
-                  markers: markers,
-                  initialCameraPosition:
-                  CameraPosition(target: LatLng(0, 0), zoom: 14)),
-            ),
-
-            // screens[_selectedIndex],
-            SizedBox.expand(
-              child: DraggableScrollableSheet(
-                shouldCloseOnMinExtent: true,
-                snap: true,
-                expand: false,
-                snapAnimationDuration: const Duration(milliseconds: 300),
-                initialChildSize:  0.4,
-                maxChildSize: 1,
-                minChildSize: 0.09,
-                controller: draggableScrollableController,
-                snapSizes: [
-                  0.4
-                ] ,
-                builder: (context, scrollController) {
-                  return [
-                    AttendanceScreen(
-                        scrollController: scrollController,
-                        onLocationFetch: (value) {
-                          if(!mounted){}
-                          setState(() {
-                            currentLocation = LatLng(value.latitude, value.longitude);
-                          });
-                          getFetchedLocation(currentLocation);
-                        }),
-                    TrackScreen(scrollController: scrollController,),
-                    TaskListScreen(scrollController: scrollController),
-                    ProfileScreen(scrollController: scrollController),
-                  ][_selectedIndex];
-                },
-              ),
-            ),
+            // Positioned.fill(
+            //   // bottom: MediaQuery.of(context).size.height ,
+            //   child: GoogleMap(
+            //       zoomControlsEnabled: false,
+            //       padding: AppUtils.edgeInsetsOnly(
+            //           bottom: MediaQuery.of(context).size.height * 0.3),
+            //       mapType: MapType.normal,
+            //       onMapCreated: (controller) {
+            //         googleMapController.complete(controller);
+            //       },
+            //       markers: markers,
+            //       initialCameraPosition:
+            //           CameraPosition(target: LatLng(0, 0), zoom: 14)),
+            // ),
+            [
+              AttendanceScreen(onLocationFetch: (value) {
+                if (!mounted) {}
+                setState(() {
+                  currentLocation = LatLng(value.latitude, value.longitude);
+                });
+                getFetchedLocation(currentLocation);
+              }),
+              TrackScreen(),
+              TaskListScreen(),
+              ProfileScreen(),
+            ][_selectedIndex],
           ],
         ),
       ),
@@ -219,7 +195,7 @@ class DashBoardState extends State<DashBoard> {
           ),
         ),
         child: AppUtils.commonContainer(
-          padding: EdgeInsets.only(left: 10,right: 10),
+          padding: EdgeInsets.only(left: 10, right: 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -229,27 +205,22 @@ class DashBoardState extends State<DashBoard> {
                   HapticFeedback.vibrate();
                   getCurrentLocation();
                   setState(() {
-                    if (index == 3) {
-                      draggableScrollableController.jumpTo(1);
-                    } else {
-                      draggableScrollableController.jumpTo(0.4);
-                    }
+
                     _selectedIndex = index;
                     print("selected----${_selectedIndex}&& ${index}");
-                    print("size_of_sheet${draggableScrollableController.size}&& ${index}");
-
                     // Future.delayed(duration)
                   });
                 },
                 child: AnimatedContainer(
-
-                  padding:  index == 0 ? AppUtils.edgeInsetsOnly(left: 0,right: 0) : AppUtils.edgeInsetsOnly(left: 15,right: 15),
+                  padding: index == 0
+                      ? AppUtils.edgeInsetsOnly(left: 0, right: 0)
+                      : AppUtils.edgeInsetsOnly(left: 15, right: 15),
                   duration: const Duration(milliseconds: 300),
                   alignment: Alignment.center,
                   height: 60,
                   // width: 100,
                   color: Colors.white,
-                  child:  Column(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

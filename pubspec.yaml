@@ -61,6 +61,9 @@ dependencies:
   flutter_image_compress: ^2.1.0
   battery_plus: ^5.0.3
   loading_animation_widget: ^1.2.0+4
+  sliding_up_panel: ^2.0.0+1
+  intl_phone_field: ^3.2.0
+  otp_text_field: ^1.1.3
 
 
 

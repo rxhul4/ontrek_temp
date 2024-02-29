@@ -25,6 +25,7 @@ import 'package:provider/single_child_widget.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:http/http.dart' as http;
 
+import 'features/authentication/screens/login_with_phone_number.dart';
 import 'features/track_function/provider/salesmen_list_provider.dart';
 
 List<SingleChildWidget> providers = [
@@ -364,7 +365,7 @@ class _MyAppState extends State<MyApp> {
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home: const SplashScreen(),
+      home: const LoginScreen(),
     );
   }
 }

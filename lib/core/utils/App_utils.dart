@@ -1,10 +1,12 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_geocoding_api/google_geocoding_api.dart';
 import 'package:intl/intl.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
+import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AppUtils {
@@ -110,6 +112,128 @@ class AppUtils {
       );
   }
 
+  static Widget buildHeader({height, width,List<Widget>? actionWidget,String? title,String? subTitle,Color? loaderColor,String? leadingImage,Color? backgroundColor}) {
+    return Container(
+      alignment: Alignment.centerLeft,
+      height: height * 0.09,
+      width: width,
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            width: 1,
+            color: Colors.grey.withOpacity(0.5),
+          ),
+        ),
+        borderRadius:
+        BorderRadius.vertical(top: Radius.circular(30)),
+        color: Colors.white,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Padding(
+              padding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        margin: EdgeInsets.only(right: 5),
+                        // padding: EdgeInsets.all(18),
+                        padding: EdgeInsets.all(10),
+                        height: double.infinity,
+                        width: 45,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: backgroundColor ?? Colors.grey.withOpacity(0.5),
+                          border: Border.all(color: Colors.red, width: 1.2),
+
+                        ),
+                        child: AppUtils.commonNetworkImageWidget(path: leadingImage ?? "",boxFit: BoxFit.cover,),
+                      ),
+                      // AppUtils.commonSizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AppUtils.commonTextWidget(
+                            text: title ?? "",
+                            fontWeight: FontWeight.w600,
+                            textColor: Colors.black,
+                            letterSpacing: 0.2,
+                            fontSize: 15,
+                          ),
+                          AppUtils.commonTextWidget(
+                            text: subTitle ?? "",
+                            fontWeight: FontWeight.w500,
+                            textColor: Colors.grey.withOpacity(0.7),
+                            letterSpacing: 0.1,
+                            fontSize: 13,
+                          ),
+                        ],
+                      ),
+
+
+                    ],
+                  ),
+                  Row(
+                      children: actionWidget ?? []),
+                ],
+              ),
+            ),
+          ),
+          // LinearProgressIndicator(color: loaderColor ?? Colors.blue )
+        ],
+      ),
+    );
+  }
+  static Widget commonSlidePanel({
+    double? maxHeight,
+    double? minHeight,
+    bool? isDraggable,
+    bool? panelSnapping,
+    PanelController?  controller,
+    Widget? panel,
+    double? snapPoint,
+    Widget Function(ScrollController)? panelBuilder,
+    Function()? onPanelClosed,
+    Function()? onPanelOpened,
+    Function(double)? onPanelSlide,
+
+
+  }){
+    return Animate(
+      effects: const  [
+        SlideEffect(
+            end: Offset(0, 0),
+            curve: Curves.decelerate,
+            begin: Offset(0, 1),
+            duration: Duration(milliseconds: 700)),
+      ],
+      child: SlidingUpPanel(
+        onPanelSlide: onPanelSlide,
+        maxHeight: maxHeight ?? 1.0,
+        minHeight: minHeight ?? 0.08,
+        panelSnapping: panelSnapping ??  true,
+        panelBuilder: panelBuilder,
+        defaultPanelState: PanelState.OPEN,
+        isDraggable: isDraggable ?? true,
+        onPanelClosed: onPanelClosed,
+        onPanelOpened: onPanelOpened,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+        panel: panel,
+        controller: controller,
+        snapPoint: snapPoint,
+      ),
+    );
+
+  }
 
 
   static BoxDecoration containerDecoration({
