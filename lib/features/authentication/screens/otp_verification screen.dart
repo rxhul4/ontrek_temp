@@ -7,20 +7,18 @@ import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/features/dashboard/screens/dashboard_screen.dart';
-import 'package:otp_text_field/otp_field.dart';
-import 'package:otp_text_field/otp_text_field.dart';
-import 'package:otp_text_field/style.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
 
-class VerificationCode extends StatefulWidget {
-  const VerificationCode({super.key});
+class OTPVerificationCode extends StatefulWidget {
+  String? appUserId;
+  OTPVerificationCode({super.key,this.appUserId});
 
   @override
-  State<VerificationCode> createState() => _VerificationCodeState();
+  State<OTPVerificationCode> createState() => _OTPVerificationCodeState();
 }
 
-class _VerificationCodeState extends State<VerificationCode> {
+class _OTPVerificationCodeState extends State<OTPVerificationCode> {
   bool isUsernameEmpty = true;
-  OtpFieldController otpController = OtpFieldController();
   int secondRemaining = 30;
   bool _enableResend = false;
   Timer? _timer;
@@ -135,37 +133,14 @@ class _VerificationCodeState extends State<VerificationCode> {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      OTPTextField(
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: AppConstant.blackColor,
-                          fontFamily: "Poppins",
-                          fontWeight: FontWeight.w500,
-                        ),
-                        fieldStyle: FieldStyle.box,
-                        keyboardType: TextInputType.phone,
-                        length: 4,
-                        fieldWidth: 60,
-                        margin: EdgeInsets.only(top: 10,bottom: 10),
-                        width: double.infinity,
-                        textFieldAlignment: MainAxisAlignment.spaceEvenly,
-                        outlineBorderRadius: 5,
-                        spaceBetween: 10,
-                        contentPadding: EdgeInsets.all(20),
-                        otpFieldStyle: OtpFieldStyle(
-                          
-                          enabledBorderColor: AppConstant.greyColor,
-                          focusBorderColor: AppConstant.appPrimaryColor
-                        ),
-                        controller: otpController,
-                      ),
+                      otpView(context),
                       AppUtils.commonElevatedBtn(
                         topMargin: 20,
                         width: double.infinity,
                         height: 50,
                         text: "Verify OTP",
                         bgColor: AppConstant.appPrimaryColor.withOpacity(0.9),
-                        borderRadiusAll: 30,
+                        borderRadiusAll: 8,
                         onPressed: () {
                           // Add your onPressed logic here
                           Navigator.push(
@@ -177,35 +152,43 @@ class _VerificationCodeState extends State<VerificationCode> {
                       ),
                       !_enableResend
                           ? AppUtils.commonContainer(
-                        margin:
-                        const EdgeInsets.only(top: 110, bottom: 0),
-                        child: Row(
-                          crossAxisAlignment:
-                          CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            AppUtils.commonTextWidget(text: "00:$secondRemaining",textColor: AppConstant.appPrimaryColor,),
-                            AppUtils.commonSizedBox(
-                              width: 3,
-                            ),
-                            AppUtils.commonTextWidget(text: "resend confirmation code.",textColor: AppConstant.appPrimaryColor,fontWeight: FontWeight.w400,),
-
-                          ],
-                        ),
-                      )
+                              margin:
+                                  const EdgeInsets.only(top: 110, ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  AppUtils.commonTextWidget(
+                                    text: "Did't receive? Resend in",
+                                    textColor: AppConstant.blackColor,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                  AppUtils.commonSizedBox(
+                                    width: 3,
+                                  ),
+                                  AppUtils.commonTextWidget(
+                                    text: "00:$secondRemaining",
+                                    textColor: AppConstant.appPrimaryColor,
+                                  ),
+                                ],
+                              ),
+                            )
                           : AppUtils.commonContainer(
-                        margin: const EdgeInsets.only(
-                          top: 110,
-                        ),
-                        child: TextButton(
-                          style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero),
-                          onPressed: () {
-                            _resendCode();
-                          },
-                          child: AppUtils.commonTextWidget(text: "Resend Code",fontWeight: FontWeight.w500,textColor: AppConstant.appPrimaryColor,letterSpacing: 0.1)
-                        ),
-                      ),
+                              margin: const EdgeInsets.only(
+                                top: 110,
+                              ),
+                              child: TextButton(
+                                  style: TextButton.styleFrom(
+                                      padding: EdgeInsets.zero),
+                                  onPressed: () {
+                                    _resendCode();
+                                  },
+                                  child: AppUtils.commonTextWidget(
+                                      text: "Resend Code",
+                                      fontWeight: FontWeight.w500,
+                                      textColor: AppConstant.appPrimaryColor,
+                                      letterSpacing: 0.1)),
+                            ),
                     ],
                   ),
                 ),
@@ -213,6 +196,46 @@ class _VerificationCodeState extends State<VerificationCode> {
             ),
           );
         }),
+      ),
+    );
+  }
+  Widget otpView(BuildContext cntx) {
+    return AppUtils.commonContainer(
+      margin: AppUtils.edgeInsetsOnly(
+          right: 15, left:15),
+      child: PinCodeTextField(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        cursorColor: AppConstant.appPrimaryColor,
+        cursorHeight: 26,
+        cursorWidth: 2,
+        length: 4,
+        onChanged: (value) {
+          print(value);
+        },
+        onCompleted: (value) {
+          print("Completed: $value");
+        },
+        animationType: AnimationType.scale,
+        enablePinAutofill: true,
+        textStyle: TextStyle(
+          fontSize: 16,
+          color: AppConstant.blackColor,
+          fontFamily: "Poppins",
+          fontWeight: FontWeight.w500,
+        ),
+        pinTheme: PinTheme(
+          borderWidth: 1,
+          shape: PinCodeFieldShape.underline,
+          fieldWidth: 60,
+          activeFillColor: Colors.white,
+          inactiveFillColor: Colors.white,
+          selectedFillColor: Colors.white,
+          activeColor: AppConstant.appPrimaryColor,
+          inactiveColor: Colors.grey.withOpacity(0.8),
+          selectedColor: AppConstant.appPrimaryColor,
+        ),
+        keyboardType: TextInputType.number,
+        appContext: cntx,
       ),
     );
   }

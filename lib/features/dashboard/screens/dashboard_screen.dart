@@ -116,7 +116,6 @@ class DashBoardState extends State<DashBoard> {
   @override
   void initState() {
     super.initState();
-    draggableScrollableController = DraggableScrollableController();
     checkPermission();
     // calculateSize();
   }
@@ -200,49 +199,51 @@ class DashBoardState extends State<DashBoard> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: List.generate(iconData.length, (index) {
-              return GestureDetector(
-                onTap: () {
-                  HapticFeedback.vibrate();
-                  getCurrentLocation();
-                  setState(() {
-
-                    _selectedIndex = index;
-                    print("selected----${_selectedIndex}&& ${index}");
-                    // Future.delayed(duration)
-                  });
-                },
-                child: AnimatedContainer(
-                  padding: index == 0
-                      ? AppUtils.edgeInsetsOnly(left: 0, right: 0)
-                      : AppUtils.edgeInsetsOnly(left: 15, right: 15),
-                  duration: const Duration(milliseconds: 300),
-                  alignment: Alignment.center,
-                  height: 60,
-                  // width: 100,
-                  color: Colors.white,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        width: index == 0 || index == 1 ? 25 : 20,
-                        height: index == 0 || index == 1 ? 25 : 20,
-                        iconString[index],
-                        color: _selectedIndex == index
-                            ? AppConstant.appPrimaryColor
-                            : AppConstant.greyColor,
-                      ),
-                      AppUtils.commonTextWidget(
-                        text: lableString[index],
-                        textColor: _selectedIndex == index
-                            ? AppConstant.appPrimaryColor
-                            : AppConstant.greyColor,
-                        fontSize: 12,
-                        fontWeight: _selectedIndex == index
-                            ? FontWeight.w600
-                            : FontWeight.w400,
-                      ),
-                    ],
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    HapticFeedback.vibrate();
+                    getCurrentLocation();
+                    setState(() {
+                
+                      _selectedIndex = index;
+                      print("selected----${_selectedIndex}&& ${index}");
+                      // Future.delayed(duration)
+                    });
+                  },
+                  child: AnimatedContainer(
+                  
+                    // padding: AppUtils.edgeInsetsOnly(left: 15, right: 15),
+                    duration: const Duration(milliseconds: 300),
+                    alignment: Alignment.center,
+                    height: 60,
+                    // width: 100,
+                    color: Colors.white,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          width:  22 ,
+                          height:  22 ,
+                          iconString[index],
+                          color: _selectedIndex == index
+                              ? AppConstant.appPrimaryColor
+                              : AppConstant.greyColor,
+                        ),
+                        AppUtils.commonTextWidget(
+                          letterSpacing: 0,
+                          text: lableString[index],
+                          textColor: _selectedIndex == index
+                              ? AppConstant.appPrimaryColor
+                              : AppConstant.greyColor,
+                          fontSize: 10,
+                          fontWeight: _selectedIndex == index
+                              ? FontWeight.w500
+                              : FontWeight.w400,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );

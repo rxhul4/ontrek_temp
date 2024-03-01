@@ -285,6 +285,15 @@ class AppUtils {
     );
   }
 
+  static appTextStyle(){
+    return TextStyle(
+      fontSize: 14,
+      color: AppConstant.appPrimaryColor,
+      fontFamily: "Poppins",
+      fontWeight: FontWeight.w500,
+    );
+  }
+
   static circularTopLeftRightBorderRadius(
       double radiusTopLeft,
       double radiusBottomLeft,
@@ -348,53 +357,55 @@ class AppUtils {
 
 
   static  dialogWidget(String text, BuildContext context) {
-    return AlertDialog(
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(10))),
-      // Remove border radius
-      insetPadding: const EdgeInsets.all(40),
-      titlePadding: const EdgeInsets.all(0),
-      contentPadding:
-      const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Text(text, textAlign: TextAlign.center,),
-          AppUtils.commonTextWidget(
-              text: text,
-              textAlign: TextAlign.center,
-              textColor: AppConstant.blackColor,
-              fontWeight: FontWeight.w400),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                style: TextButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10))),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: AppUtils.commonTextWidget(
-                    text: "OK",
-                    textColor: AppConstant.appPrimaryColor,
-                    letterSpacing: 1,
-                    fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
+    return showDialog(context: context, builder: (context) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10))),
+        // Remove border radius
+        insetPadding: const EdgeInsets.all(40),
+        titlePadding: const EdgeInsets.all(0),
+        contentPadding:
+        const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Text(text, textAlign: TextAlign.center,),
+            AppUtils.commonTextWidget(
+                text: text,
+                textAlign: TextAlign.center,
+                textColor: AppConstant.blackColor,
+                fontWeight: FontWeight.w400),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  style: TextButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10))),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: AppUtils.commonTextWidget(
+                      text: "OK",
+                      textColor: AppConstant.appPrimaryColor,
+                      letterSpacing: 1,
+                      fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    },);
   }
 
-  static loaderWidget({Color? color}) {
+  static loaderWidget({Color? color,double? strokeAlign }) {
     return Center(
       child: CircularProgressIndicator(
-        strokeWidth: 4,
+        strokeWidth: 2,
         strokeCap: StrokeCap.round,
-        strokeAlign: 0.1,
+        strokeAlign: strokeAlign ?? 0.5,
 
         color: color ?? AppConstant.appPrimaryColor,
       ),
@@ -618,7 +629,9 @@ return value;
     double? height,
     Gradient? gradient,
     Color? backgroundColor,
-    Color? textColor
+    double? loaderStrokeAlign,
+    Color? textColor,
+    bool? isLoading = false
   }) {
     return commonContainer(
       height: height,
@@ -634,7 +647,7 @@ return value;
           right: rightMargin ?? 0,
           left: leftMargin ?? 0),
       child: ElevatedButton(
-        onPressed: onPressed,
+        onPressed: isLoading ?? false ? (){} : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor ?? Colors.transparent,
           shadowColor: Colors.transparent,
@@ -642,7 +655,7 @@ return value;
             borderRadius: BorderRadius.circular(borderRadiusAll ?? 10),
           ),
         ),
-        child: commonTextWidget(
+        child: isLoading ?? false ? AppUtils.loaderWidget(color: Colors.white,strokeAlign: loaderStrokeAlign ?? -3) : commonTextWidget(
           text: text ?? '',
           fontFamily: fontFamily,
           textColor:  textColor,
@@ -661,7 +674,7 @@ return value;
       SnackBar(
         duration: const Duration(milliseconds: 800),
         content: AppUtils.commonTextWidget(text: message,textColor: AppConstant.whiteColor),
-        backgroundColor: Colors.blue ?? giveColor,
+        backgroundColor:giveColor ?? Colors.blue ,
       ),
     );
   }

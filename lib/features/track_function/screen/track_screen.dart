@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:ontrek/core/common_widgets/textfield_widget.dart';
@@ -349,7 +350,7 @@ class _TrackScreenState extends State<TrackScreen> {
         print("phone number ${getSalesMenListModelData?[index].phoneNo}");
         Navigator.push(
             context,
-            MaterialPageRoute(
+            CupertinoPageRoute(
               builder: (context) => SaleManTracker(
                   index: index,
                   name: getSalesMenListModelData?[index].fullName,

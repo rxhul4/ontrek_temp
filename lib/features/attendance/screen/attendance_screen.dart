@@ -1,5 +1,6 @@
 import 'package:battery_plus/battery_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -439,7 +440,7 @@ PanelController panelController = PanelController();
       try {
         Navigator.push(
             context,
-            MaterialPageRoute(
+            CupertinoPageRoute(
               builder: (context) => CheckOutFormScreen(),
             )).then((value1) {
           isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
@@ -756,10 +757,7 @@ PanelController panelController = PanelController();
 
 
   openDialogFnc(String text) {
-    showDialog(
-      context: context,
-      builder: (context) => AppUtils.dialogWidget(text, context),
-    );
+    return AppUtils.dialogWidget(text, context);
   }
 
 

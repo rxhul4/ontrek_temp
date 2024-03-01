@@ -26,31 +26,24 @@ class AuthenticationProvider extends ChangeNotifier {
 
 
   Future<LoginModel?> apiCallLogin(
-      {String? email,
-      String? password,
-      double? latitude,
-      double? longitude,
-      String? loginAddress,
-      String? deviceId,
-      String? deviceModel,
-      String? deviceOS,
-      String? osVersion}) async {
+      {
+        int? countryCode,
+        String? phoneNumber,
+
+      }) async {
     _isLoading = true;
     notifyListeners();
-    var loginDate = AppUtils.dateFormat(
-        dateFormat: AppConstant.dateFormat, date: DateTime.now());
+    // var loginDate = AppUtils.dateFormat(
+    //     dateFormat: AppConstant.dateFormat, date: DateTime.now());
 
     Map<String, dynamic> body = {
-      "email": email,
-      "password": password,
-      "historyDate": loginDate,
-      "latitude": latitude,
-      "longitude": longitude,
+      "countryCode" :countryCode,
+      "phoneNumber": phoneNumber
     };
     try {
       loginModel = LoginModel();
       String endPoint = ApiConstants.login;
-      var response = await callPostMethod(endPoint, body);
+      final response = await callPostMethod(endPoint, body);
       loginModel = LoginModel.fromJson(json.decode(response));
       print("response : ${response}");
     } catch (e) {

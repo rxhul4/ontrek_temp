@@ -7,6 +7,7 @@ import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/features/authentication/screens/login_screen.dart';
+import 'package:ontrek/features/authentication/screens/login_with_phone_number.dart';
 import 'package:ontrek/features/dashboard/screens/dashboard_screen.dart';
 import 'package:ontrek/features/permissions/location_permission_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -52,31 +53,31 @@ class _SplashScreenState extends State<SplashScreen> {
           if (roleId == 3 || roleId == 4) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => DashBoard()),
+              CupertinoPageRoute(builder: (context) => DashBoard()),
             );
           }
           if (isDayStart ?? false) {
             if (isCheckIn ?? false) {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => DashBoard()),
+                CupertinoPageRoute(builder: (context) => DashBoard()),
               );
             } else {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => DashBoard()),
+                CupertinoPageRoute(builder: (context) => DashBoard()),
               );
             }
           } else {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => DashBoard()),
+              CupertinoPageRoute(builder: (context) => DashBoard()),
             );
           }
         } else {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => LogInScreen()),
+            CupertinoPageRoute(builder: (context) => LoginScreen()),
           );
         }
       } else {

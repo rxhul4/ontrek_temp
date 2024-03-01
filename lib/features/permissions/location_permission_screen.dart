@@ -6,7 +6,7 @@ import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
-import 'package:ontrek/features/authentication/screens/login_screen.dart';
+import 'package:ontrek/features/authentication/screens/login_with_phone_number.dart';
 import 'package:ontrek/features/dashboard/screens/dashboard_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -108,7 +108,7 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
       // _showCustomPopup();
     }else{
       if(roleId == null ){
-        Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => LogInScreen(),));
+        Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => LoginScreen(),));
       }else{
         Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => DashBoard(),));
       }

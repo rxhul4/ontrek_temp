@@ -2,12 +2,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl_phone_field/country_picker_dialog.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
-import 'package:intl_phone_field/phone_number.dart';
 import 'package:ontrek/core/common_widgets/app_scaffold.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
+import 'package:ontrek/features/authentication/models/login_model.dart';
+import 'package:ontrek/features/authentication/providers/auth_provider.dart';
 import 'package:ontrek/features/authentication/screens/otp_verification%20screen.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -17,57 +19,78 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  int? countryCode;
+  TextEditingController mobileNumberController = TextEditingController();
+  bool? isValid;
+  LoginModel? loginModel;
+
+
+  callLogInApi(AuthenticationProvider postMdl) async{
+    print("country${countryCode}");
+    print("country${mobileNumberController.text}");
+    postMdl
+        .apiCallLogin(
+      countryCode: countryCode,
+      phoneNumber: mobileNumberController.text
+    )
+        .then((value) {
+      loginModel = value;
+      if (loginModel?.isError == false && loginModel?.isValidationFailed == false) {
+        Navigator.push(
+            context,
+            CupertinoPageRoute(
+              builder: (context) => OTPVerificationCode(appUserId: loginModel?.data?.appUserId),
+            ));
+
+      } else {
+        AppUtils.dialogWidget(loginModel?.message ?? "", context);
+
+      }
+    });
+  }
+
+
   @override
   Widget build(BuildContext context) {
-
+    final postMdl = Provider.of<AuthenticationProvider>(context);
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
       },
       child: AppScaffold(
-        backgroundColor: AppConstant.whiteColor,
-        appBar: AppBar(
-          surfaceTintColor: AppConstant.transparentColor,
-          backgroundColor: Colors.white,
-          elevation: 0,
-          leading: AppUtils.commonInkWell(
-            borderRadius: BorderRadius.circular(30),
-            onTap: () {
-              Navigator.pop(context);
-            },
-            child: Container(
-              padding: EdgeInsets.all(10),
-              child: Icon(
-                Icons.arrow_back_ios_new,
-                color: AppConstant.blackColor.withOpacity(0.7),
-                size: 20,
-              ),
+          backgroundColor: AppConstant.whiteColor,
+          appBar: AppBar(
+            surfaceTintColor: AppConstant.transparentColor,
+            backgroundColor: Colors.white,
+            elevation: 0,
+            title: AppUtils.commonTextWidget(
+              text: "Mobile Number Verification",
+              textColor: AppConstant.blackColor.withOpacity(0.7),
+              fontSize: 14,
             ),
+            centerTitle: true,
           ),
-          title: AppUtils.commonTextWidget(
-            text: "Mobile Number Verification",
-            textColor: AppConstant.blackColor.withOpacity(0.7),
-            fontSize: 14,
-          ),
-          centerTitle: true,
-        ),
-        body: LayoutBuilder(
-          builder: (context,constraints) {
+          body: LayoutBuilder(builder: (context, constraints) {
             return SingleChildScrollView(
               child: Container(
-                margin: const EdgeInsets.only(left: 20,right: 20,),
+                margin: const EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                ),
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(minWidth: constraints.maxWidth, minHeight: constraints.maxHeight),
+                  constraints: BoxConstraints(
+                      minWidth: constraints.maxWidth,
+                      minHeight: constraints.maxHeight),
                   child: IntrinsicHeight(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.center,
-
                       children: [
                         Container(
-                          margin: EdgeInsets.only(bottom: 70,top: 50),
+                          margin: EdgeInsets.only(bottom: 70, top: 50),
                           child: Image.asset(
-                            mobileVerificationImage, // Update with correct image path
+                            mobileVerificationImage,
+                            // Update with correct image path
                             height: 300,
                             width: 300,
                           ),
@@ -83,73 +106,137 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        IntlPhoneField(
-                          onCountryChanged: (value) {
-                            print("value______${value.name}");
-                          },
-                          initialCountryCode: "IN",
-                          autovalidateMode: AutovalidateMode.onUserInteraction,
-                          disableLengthCheck: false,
-                          showCountryFlag: true,
-                          showDropdownIcon: false,
-                          flagsButtonMargin: EdgeInsets.only(left: 10,),
-
-                          dropdownTextStyle: TextStyle(
-                            fontSize: 14,
-                            color: AppConstant.appPrimaryColor,
-                            fontFamily: "Poppins",
-                            fontWeight: FontWeight.w500,
-                          ),
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppConstant.blackColor,
-                            fontFamily: "Poppins",
-                            fontWeight: FontWeight.w500,
-                          ),
-                          decoration: InputDecoration(
-                            hintStyle: TextStyle(
+                        Theme(
+                          data: ThemeData(
+                              dialogBackgroundColor: Colors.white,
+                              dialogTheme: DialogTheme(
+                                  backgroundColor: Colors.white,
+                                  surfaceTintColor: Colors.white)),
+                          child: IntlPhoneField(
+                            onCountryChanged: (value) {
+                              value.dialCode;
+                              mobileNumberController.clear();
+                            },
+                            initialCountryCode: "IN",
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
+                            disableLengthCheck: false,
+                            showCountryFlag: true,
+                            showDropdownIcon: false,
+                            flagsButtonMargin: EdgeInsets.only(
+                              left: 10,
+                            ),
+                            controller: mobileNumberController,
+                            onChanged: (value) {
+                              try {
+                                value.isValidNumber.call();
+                                setState(() {
+                                  countryCode = int.parse(value.countryCode);
+                                  isValid = true;
+                                });
+                                print("yes");
+                              } catch (e) {
+                                setState(() {
+                                  isValid = false;
+                                });
+                                print("no");
+                              }
+                            },
+                            pickerDialogStyle: PickerDialogStyle(
+                              searchFieldPadding:
+                                  AppUtils.edgeInsetsOnly(left: 10, right: 10),
+                              searchFieldCursorColor:
+                                  AppConstant.appPrimaryColor,
+                              listTilePadding:
+                                  AppUtils.edgeInsetsOnly(left: 10, right: 10),
+                              countryCodeStyle: AppUtils.appTextStyle(),
+                              countryNameStyle: AppUtils.appTextStyle(),
+                              // backgroundColor: Colors.white,
+                            ),
+                            dropdownTextStyle: AppUtils.appTextStyle(),
+                            style: TextStyle(
                               fontSize: 14,
-                              color: AppConstant.greyColor,
+                              color: AppConstant.blackColor,
                               fontFamily: "Poppins",
                               fontWeight: FontWeight.w500,
                             ),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: AppConstant.greyColor.withOpacity(0.5),
+                            decoration: InputDecoration(
+                              hintText: "Phone Number",
+                              hintStyle: TextStyle(
+                                fontSize: 14,
+                                color: AppConstant.greyColor,
+                                fontFamily: "Poppins",
+                                fontWeight: FontWeight.w500,
                               ),
-                              borderRadius: BorderRadius.all(Radius.circular(8)),
-                            ),
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: AppConstant.greyColor.withOpacity(0.5),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: AppConstant.greyColor.withOpacity(0.5),
+                                ),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(8)),
                               ),
-                              borderRadius: BorderRadius.all(Radius.circular(8)),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: AppConstant.appPrimaryColor.withOpacity(0.5),
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: AppConstant.greyColor.withOpacity(0.5),
+                                ),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(8)),
                               ),
-                              borderRadius: BorderRadius.all(Radius.circular(8)),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: AppConstant.appPrimaryColor
+                                      .withOpacity(0.5),
+                                ),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(8)),
+                              ),
                             ),
                           ),
                         ),
                         AppUtils.commonElevatedBtn(
+                          isLoading: postMdl.isLoading,
                           topMargin: 20,
                           width: double.infinity,
                           height: 50,
                           text: "Send OTP",
                           bgColor: AppConstant.appPrimaryColor.withOpacity(0.9),
-                          borderRadiusAll: 30,
+                          borderRadiusAll: 8,
                           onPressed: () {
-                            // Add your onPressed logic here
-                            Navigator.push(context, CupertinoPageRoute(builder: (context) => VerificationCode(),));
+                            print(
+                                "onPressed-----${mobileNumberController.text}");
+                            print("onPressed-----$countryCode");
+                            if (mobileNumberController.text.isEmpty) {
+                              AppUtils.showSnackBarWithColor(
+                                  context: context,
+                                  message: "Please Enter Phone Number",
+                                  giveColor: Colors.red);
+                            } else {
+                              if (isValid ?? false) {
+                                callLogInApi(postMdl);
+
+                              } else {
+
+                              }
+                            }
                           },
                         ),
-
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: [Container(margin: EdgeInsets.only(bottom: 10,top: 110),child: AppUtils.commonTextWidget(text: "Need help? ",fontWeight: FontWeight.w400,textColor: AppConstant.appPrimaryColor, fontSize: 14)),
-                            Container(margin: EdgeInsets.only(bottom: 10,top: 110),child: AppUtils.commonTextWidget(text: "Contact Admin",fontWeight: FontWeight.w600,textColor: AppConstant.appPrimaryColor, fontSize: 14)),
+                          children: [
+                            Container(
+                                margin: EdgeInsets.only(bottom: 10, top: 110),
+                                child: AppUtils.commonTextWidget(
+                                    text: "Need help? ",
+                                    fontWeight: FontWeight.w400,
+                                    textColor: AppConstant.appPrimaryColor,
+                                    fontSize: 14)),
+                            Container(
+                                margin: EdgeInsets.only(bottom: 10, top: 110),
+                                child: AppUtils.commonTextWidget(
+                                    text: "Contact Admin",
+                                    fontWeight: FontWeight.w600,
+                                    textColor: AppConstant.appPrimaryColor,
+                                    fontSize: 14)),
                           ],
                         )
                       ],
@@ -158,9 +245,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             );
-          }
-        )
-      ),
+          })),
     );
   }
 }

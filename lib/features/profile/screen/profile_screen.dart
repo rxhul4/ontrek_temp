@@ -6,6 +6,7 @@ import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/features/authentication/screens/login_screen.dart';
+import 'package:ontrek/features/authentication/screens/login_with_phone_number.dart';
 
 class ProfileScreen extends StatefulWidget {
   ScrollController? scrollController;
@@ -144,7 +145,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Navigator.pushReplacement(
                                   context,
                                   CupertinoPageRoute(
-                                    builder: (context) => LogInScreen(),
+                                    builder: (context) => LoginScreen(),
                                   ));
                             }
                           },

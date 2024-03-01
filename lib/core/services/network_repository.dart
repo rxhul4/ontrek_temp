@@ -12,7 +12,7 @@ import 'package:ontrek/core/utils/app_constant.dart';
 Map<String, String> header = {
   'Content-Type': 'application/json',
   'Accept': 'application/json',
-  'appLevelAuthKey': AppConstant.appLevelAuthKey,
+  // 'appLevelAuthKey': AppConstant.appLevelAuthKey,
 };
 
 
@@ -31,12 +31,12 @@ Future callPostMethod(String url, Map<String, dynamic> params) async {
   Map<String, String> commonHeaderWithToken = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'Authorization': 'Bearer ${authToken}',
-    'DeviceId' : myDeviceInfo?.id ?? "",
-    'DeviceModel':myDeviceInfo?.model ?? "",
-    'DeviceOS' :Platform.operatingSystem,
-    'OSVersion' :myDeviceInfo?.version.release ?? "",
-    'DeviceName' :myDeviceInfo?.brand ?? ""
+    // 'Authorization': 'Bearer ${authToken}',
+    // 'DeviceId' : myDeviceInfo?.id ?? "",
+    // 'DeviceModel':myDeviceInfo?.model ?? "",
+    // 'DeviceOS' :Platform.operatingSystem,
+    // 'OSVersion' :myDeviceInfo?.version.release ?? "",
+    // 'DeviceName' :myDeviceInfo?.brand ?? ""
   };
   if (kDebugMode) {
     print("params--${jsonEncode(params)}");
@@ -45,7 +45,7 @@ Future callPostMethod(String url, Map<String, dynamic> params) async {
       .post(
     Uri.parse(url),
     body: utf8.encode(json.encode(params)),
-    headers: authToken == "" || authToken == null ?  header : commonHeaderWithToken,
+    headers: /*authToken == "" || authToken == null ?  header : commonHeaderWithToken*/header,
   )
       .then((http.Response response) {
     return getResponse(response);

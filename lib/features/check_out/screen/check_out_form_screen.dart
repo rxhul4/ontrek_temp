@@ -165,10 +165,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
   }
 
   openDialogFnc(String text) {
-    showDialog(
-      context: context,
-      builder: (context) => AppUtils.dialogWidget(text, context),
-    );
+    return AppUtils.dialogWidget(text, context);
   }
 
   @override
