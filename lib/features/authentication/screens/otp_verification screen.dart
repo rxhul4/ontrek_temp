@@ -20,7 +20,7 @@ class VerificationCode extends StatefulWidget {
 
 class _VerificationCodeState extends State<VerificationCode> {
   bool isUsernameEmpty = true;
-  OtpFieldController OtpController = OtpFieldController();
+  OtpFieldController otpController = OtpFieldController();
   int secondRemaining = 30;
   bool _enableResend = false;
   Timer? _timer;
@@ -93,9 +93,9 @@ class _VerificationCodeState extends State<VerificationCode> {
             ),
           ),
           title: AppUtils.commonTextWidget(
-            text: "Otp Verification",
+            text: "OTP Verification",
             textColor: AppConstant.blackColor.withOpacity(0.7),
-            fontSize: 14,
+            fontSize: 16,
           ),
           centerTitle: true,
         ),
@@ -157,7 +157,7 @@ class _VerificationCodeState extends State<VerificationCode> {
                           enabledBorderColor: AppConstant.greyColor,
                           focusBorderColor: AppConstant.appPrimaryColor
                         ),
-                        controller: OtpController,
+                        controller: otpController,
                       ),
                       AppUtils.commonElevatedBtn(
                         topMargin: 20,
