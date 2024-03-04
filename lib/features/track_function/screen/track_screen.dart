@@ -20,13 +20,15 @@ class TrackScreen extends StatefulWidget {
   State<TrackScreen> createState() => _TrackScreenState();
 }
 
-class _TrackScreenState extends State<TrackScreen> {
+class _TrackScreenState extends State<TrackScreen>
+    with TickerProviderStateMixin {
   DraggableScrollableController draggableScrollableController =
       DraggableScrollableController();
   ScrollController gridScrollController = ScrollController();
   bool isSearchVisible = false;
-
+  int? selectedIndex = 0;
   GetSalesMenListModel? getSalesMenListModel;
+  TabController? tabController;
 
   @override
   void initState() {
@@ -35,6 +37,12 @@ class _TrackScreenState extends State<TrackScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       panelController.animatePanelToSnapPoint(
           duration: Duration(milliseconds: 0));
+      tabController = TabController(length: 3, vsync: this);
+      tabController?.addListener(() {
+        setState(() {
+          selectedIndex = tabController?.index;
+        });
+      });
       final getMdl = Provider.of<SalesMenListProvider>(context, listen: false);
       callGetSalesManListApi(getMdl, "");
     });
@@ -44,11 +52,15 @@ class _TrackScreenState extends State<TrackScreen> {
     getMdl
         .apiCallGetSalesManList(
             eventDate: AppUtils.dateFormat(
-                dateFormat: "yyyy-MM-dd", date: DateTime.now()),
-            fullName: fullName)
+                date: DateTime.now(), dateFormat: AppConstant.dateFormat),
+            filter: searchController.text,
+            managerId: "919e3ede-00e1-4502-87f2-6b2459554c9c",
+            orgId: "10bce922-213c-46dd-aa94-0c47883b76d3")
         .then((value) {
       getSalesMenListModel = value;
-      if (getSalesMenListModel?.code != 200) {
+      if (getSalesMenListModel?.isError == false &&
+          getSalesMenListModel?.isValidationFailed == false) {
+      } else {
         openDialogFnc(getSalesMenListModel?.message ?? "");
       }
     });
@@ -85,6 +97,7 @@ class _TrackScreenState extends State<TrackScreen> {
                         print("innnnnnn");
                         print("innnnnnn");
                         isSearchVisible = true;
+                        panelController.animatePanelToPosition(1.0,duration: Duration(milliseconds: 500));
                       });
                     },
                   ),
@@ -101,51 +114,139 @@ class _TrackScreenState extends State<TrackScreen> {
                 backgroundColor: AppConstant.whiteColor,
                 leadingImage:
                     "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Location_icon_from_Noun_Project.png/640px-Location_icon_from_Noun_Project.png"),
-
-            // getMdl.isFetching
-            //     ? Center(
-            //         child: Padding(
-            //           padding: AppUtils.edgeInsetsOnly(top: height *0.3 /2),
-            //           child: CircularProgressIndicator(
-            //             color: AppConstant.appPrimaryColor,
-            //           ),
-            //         ))
-            //     : (getMdl.getSalesMenListModel?.data?.length ?? 0) <= 0
-            //     ? Center(
-            //   child: Padding(
-            //     padding: AppUtils.edgeInsetsOnly(top: height *0.25 /2),
-            //     child: AppUtils.commonNoDataFound(onPressed: () {
-            //       callGetSalesManListApi(getMdl, "");
-            //     }),
-            //   ),
-            // )
-            //     :
+            isSearchVisible ? searchWidget(getMdl) : SizedBox(),
+            AppUtils.commonContainer(
+              height: 30,
+              margin: EdgeInsets.only(top: 20, left: 25, right: 25, bottom: 10),
+              decoration: AppUtils.commonBoxDecoration(
+                color: AppConstant.greyColor.withOpacity(0.2),
+                borderRadius: AppUtils.borderRadiusAll(raduis: 5),
+              ),
+              child: TabBar.secondary(
+                  physics: NeverScrollableScrollPhysics(),
+                  isScrollable: false,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  controller: tabController,
+                  padding: AppUtils.edgeInsetsAll(allPadding: 2),
+                  // enableFeedback: true,
+                  labelColor: Colors.white,
+                  onTap: (value) {
+                    callGetSalesManListApi(getMdl, "");
+                  },
+                  unselectedLabelStyle: const TextStyle(
+                    fontFamily: "Poppins",
+                    letterSpacing: 0.2,
+                    fontWeight: FontWeight.w400,
+                    fontSize: 12,
+                  ),
+                  indicatorWeight: 0,
+                  dividerHeight: 0,
+                  labelStyle: const TextStyle(
+                    fontFamily: "Poppins",
+                    letterSpacing: 0.2,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 12,
+                  ),
+                  automaticIndicatorColorAdjustment: true,
+                  indicator: BoxDecoration(
+                      color: AppConstant.appPrimaryColor,
+                      borderRadius: AppUtils.borderRadiusAll(raduis: 5)),
+                  tabs: const [
+                    Tab(text: 'All'),
+                    Tab(text: 'Present'),
+                    Tab(text: 'Absent'),
+                  ]),
+            ),
             Expanded(
-              child: SingleChildScrollView(
-                controller: p0,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    isSearchVisible ? searchWidget(getMdl) : SizedBox(),
-                    GridView.builder(
-                      itemCount: 50,
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      padding: AppUtils.edgeInsetsOnly(
-                          bottom: 80, top: height * 0.05 / 2),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 4, childAspectRatio: 4 / 4.5),
-                      itemBuilder: (BuildContext context, int index) {
-                        return saleMenList(
-                          index,
-                          getMdl.getSalesMenListModel?.data,
-                        );
-                      },
-                    ),
-                  ],
-                ),
+              child: TabBarView(
+                physics: NeverScrollableScrollPhysics(),
+                controller: tabController,
+                children: <Widget>[
+                  widgetList(
+                      controller: p0,
+                      getMdl: getMdl,
+                      height: height,
+                      getSalesMenListModelData: getSalesMenListModel?.data),
+                  widgetList(
+                      controller: p0,
+                      getMdl: getMdl,
+                      height: height,
+                      getSalesMenListModelData: getSalesMenListModel?.data
+                          ?.where((element) => element.isPresent == true)
+                          .toList()),
+                  widgetList(
+                      controller: p0,
+                      getMdl: getMdl,
+                      height: height,
+                      getSalesMenListModelData: getSalesMenListModel?.data
+                          ?.where((element) => element.isPresent == false)
+                          .toList()),
+                  // getMdl.isFetching || getMdl.getSalesMenListModel?.data == null
+                  //     ? Center(child: AppUtils.loaderWidget())
+                  //     : (getMdl.getSalesMenListModel?.data?.length ?? 0) <= 0
+                  //         ? AppUtils.commonNoDataFound(onPressed: () {
+                  //             callGetSalesManListApi(getMdl, "");
+                  //           })
+                  //         : widgetList(
+                  //             controller: p0,
+                  //             getMdl: getMdl,
+                  //             isAll: true,
+                  //             height: height,
+                  //             getSalesMenListModelData:
+                  //                 getSalesMenListModel?.data),
+                  // getMdl.isFetching ||
+                  //         getMdl.getSalesMenListModel?.data?.where(
+                  //                 (element) => element.isPresent == true) ==
+                  //             null
+                  //     ? Center(child: AppUtils.loaderWidget())
+                  //     : (getMdl.getSalesMenListModel?.data
+                  //                     ?.where((element) =>
+                  //                         element.isPresent == true)
+                  //                     .toList()
+                  //                     .length ??
+                  //                 0) <=
+                  //             0
+                  //         ? AppUtils.commonNoDataFound(onPressed: () {
+                  //             callGetSalesManListApi(getMdl, "");
+                  //           })
+                  //         : widgetList(
+                  //             getMdl: getMdl,
+                  //             getSalesMenListModelData:
+                  //                 getSalesMenListModel?.data
+                  //                     ?.where(
+                  //                       (element) => element.isPresent == true,
+                  //                     )
+                  //                     .toList(),
+                  //             isAll: false,
+                  //             height: height,
+                  //             controller: p0),
+                  // getMdl.isFetching ||
+                  //         getMdl.getSalesMenListModel?.data?.where(
+                  //                 (element) => element.isPresent == false) ==
+                  //             null
+                  //     ? Center(child: AppUtils.loaderWidget())
+                  //     : (getMdl.getSalesMenListModel?.data
+                  //                     ?.where((element) =>
+                  //                         element.isPresent == false)
+                  //                     .toList()
+                  //                     .length ??
+                  //                 0) <=
+                  //             0
+                  //         ? AppUtils.commonNoDataFound(onPressed: () {
+                  //             callGetSalesManListApi(getMdl, "");
+                  //           })
+                  //         : widgetList(
+                  //             getMdl: getMdl,
+                  //             getSalesMenListModelData: getSalesMenListModel
+                  //                 ?.data
+                  //                 ?.where(
+                  //                     (element) => element.isPresent == false)
+                  //                 .toList(),
+                  //             isAll: false,
+                  //             height: height,
+                  //             controller: p0,
+                  //           ),
+                ],
               ),
             ),
           ],
@@ -310,7 +411,7 @@ class _TrackScreenState extends State<TrackScreen> {
       child: AppTextField(
         controller: searchController,
         onChanged: (value) {
-          callGetSalesManListApi(getMdl, value ?? "");
+          callGetSalesManListApi(getMdl, value);
         },
         hintText: "Search",
         prefixIcon: Icon(Icons.search),
@@ -321,8 +422,9 @@ class _TrackScreenState extends State<TrackScreen> {
           onTap: () {
             setState(() {
               isSearchVisible = false;
+              searchController.clear();
             });
-            callGetSalesManListApi(getMdl, "");
+            callGetSalesManListApi(getMdl, searchController.text);
           },
           child: Icon(Icons.close),
         ),
@@ -343,46 +445,87 @@ class _TrackScreenState extends State<TrackScreen> {
     );
   }
 
-  Widget saleMenList(int index, List<Data>? getSalesMenListModelData) {
-    return AppUtils.commonInkWell(
-      onTap: () {
-        print("index ${index}");
-        print("phone number ${getSalesMenListModelData?[index].phoneNo}");
-        Navigator.push(
-            context,
-            CupertinoPageRoute(
-              builder: (context) => SaleManTracker(
-                  index: index,
-                  name: getSalesMenListModelData?[index].fullName,
-                  userUid: getSalesMenListModelData?[index].userUid,
-                  phoneNumber: getSalesMenListModelData?[index].phoneNo),
-            ));
-      },
-      child: Column(
-        children: [
-          AppUtils.commonContainer(
-              width: 60,
-              height: 60,
-              decoration: AppUtils.commonBoxDecoration(
-                  shape: BoxShape.circle,
-                  border:
-                      Border.all(color: AppConstant.greyColor.withOpacity(0.5)),
-                  color: AppConstant.greyColor.withOpacity(0.3)),
-              child: Icon(
-                Icons.person,
-                color: AppConstant.blackColor,
-                size: 24,
-              )),
-          AppUtils.commonSizedBox(height: 5),
-          AppUtils.commonTextWidget(
-              text: /*userList[index].name*/
-                  /*getSalesMenListModelData?[index].fullName ??*/ "Name",
-              textColor: AppConstant.blackColor,
-              fontSize: 11),
-          // AppUtils.commonTextWidget(
-          //     text: 'Last week', textColor: Colors.cyan, fontSize: 9),
-        ],
-      ),
+  Widget widgetList(
+      {List<Data>? getSalesMenListModelData,
+      bool? isAll,
+      double? height,
+      SalesMenListProvider? getMdl,
+      controller}) {
+    print("dataaaaaaaaaaaaa${getSalesMenListModelData?.length}");
+
+    return Column(
+      children: [
+        getMdl?.isFetching ?? false || getSalesMenListModelData == null
+            ?  Padding(padding: EdgeInsets.only(top: 80),child: AppUtils.loaderWidget(),)
+            : (getSalesMenListModelData?.length ?? 0) <= 0
+                ? Padding(padding: EdgeInsets.only(top: 50),child: AppUtils.commonNoDataFound(
+          onPressed: () {
+            callGetSalesManListApi(
+                getMdl ?? SalesMenListProvider(), "");
+          },
+        ),)
+                : GridView.builder(
+                    itemCount: getSalesMenListModelData?.length,
+                    shrinkWrap: true,
+                    controller: controller,
+                    padding: EdgeInsets.only(top: 20,bottom: 80,left: 20,right: 20),
+                    // padding: AppUtils.edgeInsetsOnly(
+                    //     bottom: 80, top: height ?? 0 * 0.05 / 2),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 4, childAspectRatio: 4 / 4.5),
+                    itemBuilder: (BuildContext context, int index) {
+                      return AppUtils.commonInkWell(
+                        onTap: () {
+                          print("index ${index}");
+                          print(
+                              "phone number ${getSalesMenListModelData?[index].phoneNo}");
+                          Navigator.push(
+                              context,
+                              CupertinoPageRoute(
+                                builder: (context) => SaleManTracker(
+                                    index: index,
+                                    name: getSalesMenListModelData?[index]
+                                        .userName,
+                                    userUid:
+                                        getSalesMenListModelData?[index].userId,
+                                    phoneNumber:
+                                        getSalesMenListModelData?[index]
+                                            .phoneNo),
+                              ));
+                        },
+                        child: Column(
+                          children: [
+                            AppUtils.commonContainer(
+                                width: 60,
+                                height: 60,
+                                decoration: AppUtils.commonBoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                        color: AppConstant.greyColor
+                                            .withOpacity(0.5)),
+                                    color:
+                                        AppConstant.greyColor.withOpacity(0.3)),
+                                child: Icon(
+                                  Icons.person,
+                                  color: AppConstant.blackColor,
+                                  size: 24,
+                                )),
+                            AppUtils.commonSizedBox(height: 5),
+                            AppUtils.commonTextWidget(
+                                text: /*userList[index].name*/
+                                    getSalesMenListModelData?[index].userName ??
+                                        "Name",
+                                textColor: AppConstant.blackColor,
+                                fontSize: 11),
+                            // AppUtils.commonTextWidget(
+                            //     text: 'Last week', textColor: Colors.cyan, fontSize: 9),
+                          ],
+                        ),
+                      );
+                    },
+                  )
+      ],
     );
   }
 
