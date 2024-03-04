@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_geocoding_api/google_geocoding_api.dart';
 import 'package:intl/intl.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
+import 'package:ontrek/core/utils/image_path.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -467,6 +468,66 @@ class AppUtils {
     return EdgeInsets.all(allPadding ?? 0);
   }
 
+
+  static String getImagePathFromApi(trackingStatus){
+    String imagePath = "";
+    if (trackingStatus != null) {
+      print("Tracking Status: $trackingStatus");
+
+      switch (trackingStatus) {
+        case 'Day Start':
+          imagePath = loginIcon;
+          break;
+        case 'Check In':
+          imagePath = checkInIcon;
+          break;
+        case 'Check Out':
+          imagePath = checkOutIcon;
+          break;
+        case 'Waiting Start':
+        case 'Waiting End':
+          imagePath = waitingIcon;
+          break;
+        default:
+          imagePath = logoutIcon;
+      }
+    } else {
+      // Handling null case
+      print("Tracking status is null");
+      imagePath = logoutIcon; // or provide a default image path
+    }
+    return imagePath;
+  }
+  static Color getStatusColor(trackingStatus){
+    Color statusColor;
+    if (trackingStatus != null) {
+      print("Tracking Status: $trackingStatus");
+
+      switch (trackingStatus) {
+        case 'Day Start':
+          statusColor = Colors.lightGreen;
+          break;
+        case 'Check In':
+          statusColor = AppConstant.appPrimaryColor;
+          break;
+        case 'Check Out':
+          statusColor = AppConstant.appPrimaryColor;
+          break;
+        case 'Waiting Start':
+        case 'Waiting End':
+          statusColor = Colors.orangeAccent;
+          break;
+        default:
+          statusColor = Colors.red;
+      }
+    } else {
+      // Handling null case
+      print("Tracking status is null");
+      statusColor = Colors.red; // or provide a default image path
+    }
+    return statusColor;
+  }
+
 static String switchCaseForTotType(int param){
     String value =  "";
     switch (param) {
@@ -504,7 +565,7 @@ return value;
             text: text ?? "No Data Found",textColor: AppConstant.blackColor),
         AppUtils.commonSizedBox(height: 10),
         AppUtils.commonElevatedBtn(
-          height: 50,
+          height: 45,
           text: "Refresh",
           bgColor: AppConstant.appPrimaryColor,
           textColor: AppConstant.whiteColor,

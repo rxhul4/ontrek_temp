@@ -1,11 +1,11 @@
 class ApiConstants{
-   static const String baseUrl = "http://ontrek_v1api.epistic.net";
+   static const String baseUrl = "http://ontrek_v1api.epistic.net/Admin";
 
    //Authentication Api
-      static const String login = "$baseUrl/Admin/FieldUser/Login";
+      static const String login = "$baseUrl/FieldUser/Login";
 
 
-   static const String getSalesMenList = "$baseUrl/Admin/GetSalesMenList";
+   static const String getSalesMenList = "$baseUrl/FieldUser/SalesmanList";
    static const String getSalesMentimeLine = "$baseUrl/Admin/GetTimeLine";
 
 

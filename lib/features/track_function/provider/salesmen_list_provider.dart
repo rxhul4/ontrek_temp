@@ -5,6 +5,7 @@ import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
+import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/track_function/model/salemen_list_model.dart';
 
 class SalesMenListProvider extends ChangeNotifier{
@@ -24,14 +25,22 @@ class SalesMenListProvider extends ChangeNotifier{
   GetSalesMenListModel? getSalesMenListModel;
 
   Future<GetSalesMenListModel?> apiCallGetSalesManList(
-      {String? eventDate, String? fullName}) async {
+      {String? eventDate, String? managerId,String? filter,String? orgId}) async {
     // var managerId = PreferenceHelper.getInt(PreferenceHelper.USER_UID);
     _isFetching = true;
     notifyListeners();
+
+    Map<String, dynamic> body =
+      {
+        "managerId": /*"919e3ede-00e1-4502-87f2-6b2459554c9c"*/managerId,
+        "eventDate": /*AppUtils.dateFormat(date: DateTime.now(),dateFormat: AppConstant.dateFormat)*/eventDate,
+        "fillter": filter,
+        "orgId":/*"10bce922-213c-46dd-aa94-0c47883b76d3"*/orgId
+      };
     try {
-      String endPoint = "${ApiConstants.getSalesMenList}?manager_id=7&event_date=2024-01-22&Filter=$fullName";
-      // String endPoint = "${ApiConstants.getSalesMenList}?manager_id=${7}&event_date=$eventDate&Filter=$fullName";
-      var response = await callGetMethod(endPoint);
+      String endPoint = ApiConstants.getSalesMenList;
+
+      var response = await callPostMethod(endPoint,body);
       getSalesMenListModel = GetSalesMenListModel.fromJson(json.decode(response));
       print('response ${getSalesMenListModel?.toJson()}');
     } catch (e) {
