@@ -3,6 +3,7 @@ class ApiConstants{
 
    //Authentication Api
       static const String login = "$baseUrl/FieldUser/Login";
+      static const String verifyOtp = "$baseUrl/FieldUser/VerifyOtp";
 
 
    static const String getSalesMenList = "$baseUrl/FieldUser/SalesmanList";

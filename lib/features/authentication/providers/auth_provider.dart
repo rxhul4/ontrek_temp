@@ -25,7 +25,7 @@ class AuthenticationProvider extends ChangeNotifier {
   LoginModel? loginModel;
 
 
-  Future<LoginModel?> apiCallLogin(
+  Future<LoginModel?> apiCallVerifyNumber(
       {
         int? countryCode,
         String? phoneNumber,
@@ -43,6 +43,43 @@ class AuthenticationProvider extends ChangeNotifier {
     try {
       loginModel = LoginModel();
       String endPoint = ApiConstants.login;
+      final response = await callPostMethod(endPoint, body);
+      loginModel = LoginModel.fromJson(json.decode(response));
+      print("response : ${response}");
+    } catch (e) {
+      print("inCatch ${loginModel?.message}");
+      print("inCatchE ${e}");
+      bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
+      if (!isInternetAvailable) {
+        loginModel =
+            LoginModel(message: "Internet is not available, please try again!");
+      } else {
+        loginModel = LoginModel(message: "Something went wrong!");
+      }
+    }
+    _isLoading = false;
+    notifyListeners();
+    return loginModel;
+  }
+
+  Future<LoginModel?> apiCallVerifyOtp(
+      {
+        int? otpNumber,
+        String? appUserId,
+
+      }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    Map<String, dynamic> body = {
+
+        "userId": appUserId,
+        "otp": otpNumber
+
+    };
+    try {
+      loginModel = LoginModel();
+      String endPoint = ApiConstants.verifyOtp;
       final response = await callPostMethod(endPoint, body);
       loginModel = LoginModel.fromJson(json.decode(response));
       print("response : ${response}");

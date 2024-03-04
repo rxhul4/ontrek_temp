@@ -193,9 +193,7 @@ class _TaskListScreenState extends State<TaskListScreen>
             padding: const EdgeInsets.only(top: 80),
             child: Align(
                 alignment: Alignment.topCenter,
-                child: CircularProgressIndicator(
-                  color: AppConstant.appPrimaryColor,
-                )),
+                child: AppUtils.loaderWidget()),
           )
         : Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -233,9 +231,7 @@ class _TaskListScreenState extends State<TaskListScreen>
             padding: const EdgeInsets.only(top: 80),
             child: Align(
                 alignment: Alignment.topCenter,
-                child: CircularProgressIndicator(
-                  color: AppConstant.appPrimaryColor,
-                )),
+                child: AppUtils.loaderWidget()),
           )
         : Column(
             children: [

@@ -50,12 +50,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
       if (status.isGranted) {
         if (isLogIn ?? false) {
-          if (roleId == 3 || roleId == 4) {
-            Navigator.pushReplacement(
-              context,
-              CupertinoPageRoute(builder: (context) => DashBoard()),
-            );
-          }
+          Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => DashBoard(),));
           if (isDayStart ?? false) {
             if (isCheckIn ?? false) {
               Navigator.pushReplacement(

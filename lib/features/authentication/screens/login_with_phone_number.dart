@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl_phone_field/country_picker_dialog.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:ontrek/core/common_widgets/app_scaffold.dart';
+import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
@@ -29,13 +30,14 @@ class _LoginScreenState extends State<LoginScreen> {
     print("country${countryCode}");
     print("country${mobileNumberController.text}");
     postMdl
-        .apiCallLogin(
+        .apiCallVerifyNumber(
       countryCode: countryCode,
       phoneNumber: mobileNumberController.text
     )
         .then((value) {
       loginModel = value;
       if (loginModel?.isError == false && loginModel?.isValidationFailed == false) {
+        PreferenceHelper.setString(PreferenceHelper.FULL_NAME,loginModel?.data?.userName  ?? "");
         Navigator.push(
             context,
             CupertinoPageRoute(
@@ -212,7 +214,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   giveColor: Colors.red);
                             } else {
                               if (isValid ?? false) {
-                                callLogInApi(postMdl);
+                                // callLogInApi(postMdl);
+                                Navigator.pushReplacement(context,  CupertinoPageRoute(builder: (context) => OTPVerificationCode(),));
 
                               } else {
 

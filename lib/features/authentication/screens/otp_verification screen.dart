@@ -3,15 +3,21 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ontrek/core/common_widgets/app_scaffold.dart';
+import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
+import 'package:ontrek/features/authentication/models/login_model.dart';
 import 'package:ontrek/features/dashboard/screens/dashboard_screen.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/auth_provider.dart';
 
 class OTPVerificationCode extends StatefulWidget {
   String? appUserId;
-  OTPVerificationCode({super.key,this.appUserId});
+
+  OTPVerificationCode({super.key, this.appUserId});
 
   @override
   State<OTPVerificationCode> createState() => _OTPVerificationCodeState();
@@ -22,6 +28,8 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
   int secondRemaining = 30;
   bool _enableResend = false;
   Timer? _timer;
+  TextEditingController otpController = TextEditingController();
+  LoginModel? loginModel;
 
   @override
   void initState() {
@@ -64,8 +72,50 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
     return text.trim().isEmpty;
   }
 
+  callOtpVerificationApi(AuthenticationProvider postMdl) async {
+    postMdl
+        .apiCallVerifyOtp(
+            appUserId: widget.appUserId,
+            otpNumber: int.parse(otpController.text))
+        .then((value) {
+      loginModel = value;
+      if (loginModel?.isError == false &&
+          loginModel?.isValidationFailed == false) {
+        saveDataToPref().then((value) {
+          Navigator.push(
+              context,
+              CupertinoPageRoute(
+                builder: (context) => DashBoard(),
+              ));
+        });
+      } else {
+        AppUtils.dialogWidget(loginModel?.message ?? "", context);
+      }
+    });
+  }
+
+  Future<bool> saveDataToPref() async {
+    PreferenceHelper.setBool(PreferenceHelper.IS_LOGIN, true);
+    PreferenceHelper.setString(
+        PreferenceHelper.FULL_NAME, loginModel?.data?.userName ?? '');
+    PreferenceHelper.setString(
+        PreferenceHelper.ORG_ID, loginModel?.data?.orgId ?? '');
+    PreferenceHelper.setString(
+        PreferenceHelper.EMAIL, loginModel?.data?.userEmail ?? '');
+    PreferenceHelper.setString(
+        PreferenceHelper.PHONE_NO, loginModel?.data?.phoneNo ?? '');
+    PreferenceHelper.setString(
+        PreferenceHelper.ROLE_NAME, loginModel?.data?.roleName ?? '');
+    PreferenceHelper.setString(
+        PreferenceHelper.AUTH_TOKEN, loginModel?.data?.token ?? '');
+
+    print("data : ${PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN)}");
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final postMdl = Provider.of<AuthenticationProvider>(context);
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -133,8 +183,9 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      otpView(context),
+                      otpView(context, otpController),
                       AppUtils.commonElevatedBtn(
+                        isLoading: postMdl.isLoading,
                         topMargin: 20,
                         width: double.infinity,
                         height: 50,
@@ -142,18 +193,29 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
                         bgColor: AppConstant.appPrimaryColor.withOpacity(0.9),
                         borderRadiusAll: 8,
                         onPressed: () {
-                          // Add your onPressed logic here
-                          Navigator.push(
-                              context,
-                              CupertinoPageRoute(
-                                builder: (context) => DashBoard(),
-                              ));
+                          if (otpController.text.isEmpty) {
+                            AppUtils.showSnackBarWithColor(
+                                context: context,
+                                message: "Please Enter One Time Password!",
+                                giveColor: Colors.red);
+                          } else if(otpController.text.length < 4){
+                            AppUtils.showSnackBarWithColor(
+                                context: context,
+                                message: "Please Enter 4 digit code!",
+                                giveColor: Colors.red);
+
+                          }else {
+                            // callOtpVerificationApi(postMdl);
+                            Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => DashBoard(),));
+                          }
+
                         },
                       ),
                       !_enableResend
                           ? AppUtils.commonContainer(
-                              margin:
-                                  const EdgeInsets.only(top: 110, ),
+                              margin: const EdgeInsets.only(
+                                top: 110,
+                              ),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -199,11 +261,12 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
       ),
     );
   }
-  Widget otpView(BuildContext cntx) {
+
+  Widget otpView(BuildContext cntx, TextEditingController otpController) {
     return AppUtils.commonContainer(
-      margin: AppUtils.edgeInsetsOnly(
-          right: 15, left:15),
+      margin: AppUtils.edgeInsetsOnly(right: 15, left: 15),
       child: PinCodeTextField(
+        controller: otpController,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         cursorColor: AppConstant.appPrimaryColor,
         cursorHeight: 26,

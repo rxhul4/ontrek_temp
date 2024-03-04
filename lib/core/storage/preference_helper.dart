@@ -11,6 +11,7 @@ class PreferenceHelper {
   // static const String DEVICE_ID = "DEVICE_ID";
   static const String IS_LOGIN = "isLogin";
   static const String USER_DATA = "userData";
+  static const String ORG_ID = "orgId";
 
   static const String FULL_NAME = "employeeName";
   static const String EMAIL = "email";

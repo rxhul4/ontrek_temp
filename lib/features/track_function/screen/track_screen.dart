@@ -37,23 +37,27 @@ class _TrackScreenState extends State<TrackScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       panelController.animatePanelToSnapPoint(
           duration: Duration(milliseconds: 0));
-      tabController = TabController(length: 3, vsync: this);
-      tabController?.addListener(() {
-        setState(() {
-          selectedIndex = tabController?.index;
-        });
-      });
       final getMdl = Provider.of<SalesMenListProvider>(context, listen: false);
       callGetSalesManListApi(getMdl, "");
+    });
+    tabController = TabController(length: 3, vsync: this);
+    tabController?.addListener(() {
+      setState(() {
+        selectedIndex = tabController?.index;
+      });
+
+
     });
   }
 
   callGetSalesManListApi(SalesMenListProvider getMdl, String? fullName) {
+    print("fromInit");
+
     getMdl
         .apiCallGetSalesManList(
             eventDate: AppUtils.dateFormat(
                 date: DateTime.now(), dateFormat: AppConstant.dateFormat),
-            filter: searchController.text,
+            filter: searchController.text.isEmpty ? "" : searchController.text  ,
             managerId: "919e3ede-00e1-4502-87f2-6b2459554c9c",
             orgId: "10bce922-213c-46dd-aa94-0c47883b76d3")
         .then((value) {
@@ -455,7 +459,7 @@ class _TrackScreenState extends State<TrackScreen>
 
     return Column(
       children: [
-        getMdl?.isFetching ?? false || getSalesMenListModelData == null
+        (getMdl?.isFetching ?? false)
             ?  Padding(padding: EdgeInsets.only(top: 80),child: AppUtils.loaderWidget(),)
             : (getSalesMenListModelData?.length ?? 0) <= 0
                 ? Padding(padding: EdgeInsets.only(top: 50),child: AppUtils.commonNoDataFound(
