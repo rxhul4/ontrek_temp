@@ -175,12 +175,12 @@ class _TaskListScreenState extends State<TaskListScreen>
 
 //Icon
   Widget commonIconWidget(
-      {Function()? onTap, IconData? iconData, Color? iconColor}) {
+      {Function()? onTap, IconData? iconData, Color? iconColor,double? size}) {
     return InkWell(
       onTap: onTap,
       child: Icon(
         iconData,
-        size: 26,
+        size: size ?? 26,
         color: iconColor ?? AppConstant.blackColor.withOpacity(0.6),
       ),
     );
@@ -233,46 +233,239 @@ class _TaskListScreenState extends State<TaskListScreen>
                 alignment: Alignment.topCenter,
                 child: AppUtils.loaderWidget()),
           )
-        : Column(
-            children: [
-              AppUtils.commonSizedBox(height: 15),
-              AppUtils.commonSizedBox(
-                height: 100,
-                child: const Image(
-                  image: NetworkImage(
-                      'https://img.freepik.com/free-vector/phone-customization-concept-illustration_114360-4313.jpg?w=740&t=st=1706681307~exp=1706681907~hmac=8f1c6ec99afe4718ced3a79d82c4a2ac18e02ac10e72275d713f62911d901586'),
-                ),
-              ),
-              AppUtils.commonTextWidget(
-                text: 'No task assigned!',
-                textColor: AppConstant.blackColor.withOpacity(0.6),
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0,
-              ),
-              AppUtils.commonTextWidget(
-                  letterSpacing: 0,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                  text: 'New task will be notified',
-                  textColor: AppConstant.blackColor.withOpacity(0.5)),
-            ],
-          );
-    // :   ListView.builder(
-    //   controller: p0,
-    //   itemCount: 50,
-    //   shrinkWrap: true,
-    //
-    //   // physics: NeverScrollableScrollPhysics(),
-    //   padding: AppUtils.edgeInsetsOnly(
-    //       bottom: 100, left: 10,right: 10),
-    //   itemBuilder: (BuildContext context, int index) {
-    //     return Text("${index}");
-    //   },
-    // );
+        // : Column(
+        //     children: [
+        //       AppUtils.commonSizedBox(height: 15),
+        //       AppUtils.commonSizedBox(
+        //         height: 100,
+        //         child: const Image(
+        //           image: NetworkImage(
+        //               'https://img.freepik.com/free-vector/phone-customization-concept-illustration_114360-4313.jpg?w=740&t=st=1706681307~exp=1706681907~hmac=8f1c6ec99afe4718ced3a79d82c4a2ac18e02ac10e72275d713f62911d901586'),
+        //         ),
+        //       ),
+        //       AppUtils.commonTextWidget(
+        //         text: 'No task assigned!',
+        //         textColor: AppConstant.blackColor.withOpacity(0.6),
+        //         fontSize: 14,
+        //         fontWeight: FontWeight.w500,
+        //         letterSpacing: 0,
+        //       ),
+        //       AppUtils.commonTextWidget(
+        //           letterSpacing: 0,
+        //           fontSize: 12,
+        //           fontWeight: FontWeight.w400,
+        //           text: 'New task will be notified',
+        //           textColor: AppConstant.blackColor.withOpacity(0.5)),
+        //     ],
+        //   );
+    : widgetList(controller: p0);
   }
 
 
+
+  widgetList({controller}){
+    return SingleChildScrollView(
+      controller: controller,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AppUtils.commonTextWidget(text: "Active Task",fontSize: 12,textColor: AppConstant.blackColor.withOpacity(0.9),fontWeight: FontWeight.w500),
+            ListView.builder(
+              physics: NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: 15,
+              itemBuilder:(context, index) {
+                return AppUtils.commonContainer(
+                    margin: AppUtils.edgeInsetsOnly(top: 12,),
+
+                    padding: AppUtils.edgeInsetsOnly(left: 10,right: 10,top: 12,bottom: 12),
+                    width: double.infinity,
+                    decoration: AppUtils.commonBoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: AppConstant.whiteColor,
+                        boxShadow: [
+                          BoxShadow(
+                              color: AppConstant.greyColor.withOpacity(0.5),
+                              blurRadius: 3,
+                              blurStyle: BlurStyle.solid,
+                              spreadRadius:0.05
+                          ),
+
+                        ]
+
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // AppUtils.commonContainer(
+                        //   width: 50,
+                        //   height: 50,
+                        //   color: Colors.red
+                        // ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            AppUtils.commonContainer(
+
+                                width: 8,
+                                height: 8,
+                                decoration: AppUtils.commonBoxDecoration(
+                                    color: Colors.green,
+                                    borderRadius: AppUtils.borderRadiusAll(raduis: 100)
+                                )
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            commonIconWidget(iconData: Icons.calendar_month_rounded,size: 16,iconColor: AppConstant.greyColor.withOpacity(0.8)),
+                            AppUtils.commonSizedBox(width: 5),
+                            AppUtils.commonTextWidget(text: "28 Feb 2024",textColor: AppConstant.greyColor.withOpacity(0.8),fontSize: 10,fontWeight: FontWeight.w500)
+                          ],
+                        ),
+                        AppUtils.commonSizedBox(height: 5),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            AppUtils.commonTextWidget(text: "Test Customer - Payment Collection",textColor: AppConstant.blackColor.withOpacity(0.9),fontSize: 14,fontWeight: FontWeight.w500,overflow: TextOverflow.ellipsis),
+                            AppUtils.commonTextWidget(text: "11:42 AM",textColor: AppConstant.blackColor.withOpacity(0.9),fontSize: 14,fontWeight: FontWeight.w500,overflow: TextOverflow.ellipsis),
+                          ],
+                        ),
+                        // AppUtils.commonSizedBox(height: 5),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Icon(Icons.location_on,size: 14,color: AppConstant.appPrimaryColor,),
+                                  AppUtils.commonTextWidget(text: "Tomato's Restaurant",textColor: AppConstant.greyColor.withOpacity(0.8),fontSize: 10,fontWeight: FontWeight.w500,overflow: TextOverflow.ellipsis),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Icon(Icons.person,size: 14,color: Colors.red,),
+                                  AppUtils.commonTextWidget(text: "Mahesh Patel",textColor: AppConstant.greyColor.withOpacity(0.8),fontSize: 10,fontWeight: FontWeight.w500,overflow: TextOverflow.ellipsis),
+                                ],
+                              ),
+                            ),
+                            AppUtils.commonContainer(
+                                padding: AppUtils.edgeInsetsOnly(bottom: 3,top: 3,left: 15,right: 15),
+                                decoration: AppUtils.commonBoxDecoration(
+                                    borderRadius: BorderRadius.circular(6),
+                                    color: Colors.red
+                                ),
+                                child: AppUtils.commonTextWidget(text: "Overdue",fontWeight: FontWeight.w400,textColor: AppConstant.whiteColor,fontSize: 10)
+                            )
+                          ],
+
+                        )
+                      ],
+                    )
+                );
+
+              },),
+            AppUtils.commonSizedBox(height: 15),
+            AppUtils.commonTextWidget(text: "Overdue Task",fontSize: 12,textColor: AppConstant.blackColor.withOpacity(0.9),fontWeight: FontWeight.w500),
+            ListView.builder(
+              physics: NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: 15,
+              itemBuilder:(context, index) {
+                return AppUtils.commonContainer(
+                    margin: AppUtils.edgeInsetsOnly(top: 12,),
+                    padding: AppUtils.edgeInsetsOnly(left: 10,right: 10,top: 12,bottom: 12),
+                    width: double.infinity,
+                    decoration: AppUtils.commonBoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: AppConstant.whiteColor,
+                        boxShadow: [
+                          BoxShadow(
+                              color: AppConstant.greyColor.withOpacity(0.5),
+                              blurRadius: 3,
+                              blurStyle: BlurStyle.solid,
+                              spreadRadius:0.05
+                          ),
+
+                        ]
+
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            AppUtils.commonContainer(
+
+                                width: 8,
+                                height: 8,
+                                decoration: AppUtils.commonBoxDecoration(
+                                    color: Colors.red,
+                                    borderRadius: AppUtils.borderRadiusAll(raduis: 100)
+                                )
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            commonIconWidget(iconData: Icons.calendar_month_rounded,size: 16,iconColor: AppConstant.greyColor.withOpacity(0.8)),
+                            AppUtils.commonSizedBox(width: 5),
+                            AppUtils.commonTextWidget(text: "28 Feb 2024",textColor: AppConstant.greyColor.withOpacity(0.8),fontSize: 10,fontWeight: FontWeight.w500)
+                          ],
+                        ),
+                        AppUtils.commonSizedBox(height: 5),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(child: AppUtils.commonTextWidget(text: "Test Customer - Payment Collection",textColor: AppConstant.blackColor.withOpacity(0.9),fontSize: 14,fontWeight: FontWeight.w500,overflow: TextOverflow.ellipsis)),
+                            AppUtils.commonTextWidget(text: "11:42 AM",textColor: AppConstant.blackColor.withOpacity(0.9),fontSize: 14,fontWeight: FontWeight.w500,overflow: TextOverflow.ellipsis),
+                          ],
+                        ),
+                        // AppUtils.commonSizedBox(height: 5),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Icon(Icons.location_on,size: 14,color: AppConstant.appPrimaryColor,),
+                                  AppUtils.commonTextWidget(text: "Tomato's Restaurant",textColor: AppConstant.greyColor.withOpacity(0.8),fontSize: 10,fontWeight: FontWeight.w500,overflow: TextOverflow.ellipsis),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Icon(Icons.person,size: 14,color: Colors.red,),
+                                  AppUtils.commonTextWidget(text: "Mahesh Patel",textColor: AppConstant.greyColor.withOpacity(0.8),fontSize: 10,fontWeight: FontWeight.w500,overflow: TextOverflow.ellipsis),
+                                ],
+                              ),
+                            ),
+                            AppUtils.commonContainer(
+                                padding: AppUtils.edgeInsetsOnly(bottom: 3,top: 3,left: 15,right: 15),
+                                decoration: AppUtils.commonBoxDecoration(
+                                    borderRadius: BorderRadius.circular(6),
+                                    color: Colors.red
+                                ),
+                                child: AppUtils.commonTextWidget(text: "Overdue",fontWeight: FontWeight.w400,textColor: AppConstant.whiteColor,fontSize: 10)
+                            )
+                          ],
+
+                        )
+                      ],
+                    )
+                );
+
+              },)
+          ],
+        ),
+      ),
+    );
+  }
 
   refresh() async {
     setState(() {

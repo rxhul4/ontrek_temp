@@ -7,6 +7,7 @@ class ApiConstants{
 
 
    static const String getSalesMenList = "$baseUrl/FieldUser/SalesmanList";
+   static const String getAllTaskByUserId = "$baseUrl/AppUserTask/GetAllTaskByUserId";
    static const String getSalesMentimeLine = "$baseUrl/Admin/GetTimeLine";
 
 
