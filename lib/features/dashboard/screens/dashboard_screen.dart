@@ -12,10 +12,12 @@ import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/features/attendance/screen/attendance_screen.dart';
+import 'package:ontrek/features/dashboard/provider/dashboard_provider.dart';
 import 'package:ontrek/features/profile/screen/profile_screen.dart';
 import 'package:ontrek/features/task_list/screen/task_list_screen.dart';
 import 'package:ontrek/features/track_function/screen/track_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
 
 class DashBoard extends StatefulWidget {
   const DashBoard({super.key});
@@ -25,16 +27,8 @@ class DashBoard extends StatefulWidget {
 }
 
 class DashBoardState extends State<DashBoard> {
-  late final Completer<GoogleMapController> googleMapController = Completer();
-  LatLng? currentLocation;
-  late ValueNotifier<bool> isLoading;
-  Set<Marker> markers = Set();
-  int _selectedIndex = 0;
-  final _key = GlobalKey();
-  Size? _size;
 
-  ValueNotifier<bool> isDayStarted = ValueNotifier(false);
-  ValueNotifier<bool> isCheckedIn = ValueNotifier(false);
+
 
   List<String> iconString = [
     attendanceIconPath,
@@ -50,61 +44,61 @@ class DashBoardState extends State<DashBoard> {
     Icons.person,
   ];
 
-  Future<void> getCurrentLocation() async {
-    print("innnnnnnnnnnnn");
-    try {
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.low,
-      );
+  // Future<void> getCurrentLocation() async {
+  //   print("innnnnnnnnnnnn");
+  //   try {
+  //     Position position = await Geolocator.getCurrentPosition(
+  //       desiredAccuracy: LocationAccuracy.low,
+  //     );
+  //
+  //     if (!mounted) {}
+  //     setState(() {
+  //       currentLocation = LatLng(position.latitude, position.longitude);
+  //       print("${currentLocation}");
+  //       if (currentLocation != null) {
+  //         updateCameraPosition(currentLocation ?? LatLng(0, 0));
+  //         addCurrentLocationMarker(currentLocation ?? LatLng(0, 0));
+  //       }
+  //     });
+  //   } catch (e) {
+  //     print("Error fetching location: $e");
+  //   }
+  // }
 
-      if (!mounted) {}
-      setState(() {
-        currentLocation = LatLng(position.latitude, position.longitude);
-        print("${currentLocation}");
-        if (currentLocation != null) {
-          updateCameraPosition(currentLocation ?? LatLng(0, 0));
-          addCurrentLocationMarker(currentLocation ?? LatLng(0, 0));
-        }
-      });
-    } catch (e) {
-      print("Error fetching location: $e");
-    }
-  }
+  // Future<void> getFetchedLocation(currentLocation,DashBoardProvider dashBoardProvider) async {
+  //   try {
+  //     if (currentLocation != null) {
+  //       if (dashBoardProvider.googleMapController != null) {
+  //         updateCameraPosition(currentLocation ?? LatLng(0, 0));
+  //         addCurrentLocationMarker(currentLocation ?? LatLng(0, 0));
+  //       }
+  //     }
+  //   } catch (e) {
+  //     print("catach at getFecthedLocation${e}");
+  //   }
+  // }
 
-  Future<void> getFetchedLocation(currentLocation) async {
-    try {
-      if (currentLocation != null) {
-        if (googleMapController != null) {
-          updateCameraPosition(currentLocation ?? LatLng(0, 0));
-          addCurrentLocationMarker(currentLocation ?? LatLng(0, 0));
-        }
-      }
-    } catch (e) {
-      print("catach at getFecthedLocation${e}");
-    }
-  }
+  // Future updateCameraPosition(LatLng location) async {
+  //   print("location-------${location}");
+  //   final GoogleMapController controller = await googleMapController.future;
+  //   controller.animateCamera(CameraUpdate.newCameraPosition(
+  //     CameraPosition(
+  //       target: location,
+  //       zoom: 14,
+  //     ),
+  //   ));
+  // }
 
-  Future updateCameraPosition(LatLng location) async {
-    print("location-------${location}");
-    final GoogleMapController controller = await googleMapController.future;
-    controller.animateCamera(CameraUpdate.newCameraPosition(
-      CameraPosition(
-        target: location,
-        zoom: 14,
-      ),
-    ));
-  }
-
-  void addCurrentLocationMarker(LatLng location) {
-    markers.clear(); // Clear previous markers
-    markers.add(
-      Marker(
-        markerId: MarkerId("currentLocation"),
-        position: location,
-        infoWindow: InfoWindow(title: "Current Location"),
-      ),
-    );
-  }
+  // void addCurrentLocationMarker(LatLng location) {
+  //   markers.clear(); // Clear previous markers
+  //   markers.add(
+  //     Marker(
+  //       markerId: MarkerId("currentLocation"),
+  //       position: location,
+  //       infoWindow: InfoWindow(title: "Current Location"),
+  //     ),
+  //   );
+  // }
 
   List<String> lableString = [
     "Attendance",
@@ -116,39 +110,36 @@ class DashBoardState extends State<DashBoard> {
   @override
   void initState() {
     super.initState();
-    checkPermission();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      final dashBoardProvider = Provider.of<DashBoardProvider>(context,listen: false);
+      dashBoardProvider.checkPermission();
+    });
+
     // calculateSize();
   }
 
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    draggableScrollableController.dispose();
-    super.dispose();
-  }
 
   // void calculateSize() =>
   //     WidgetsBinding.instance?.addPersistentFrameCallback((_) {
   //       _size = _key.currentContext?.size;
   //     });
 
-  Future checkPermission() async {
-    final status = await Permission.location.status;
-    if (status.isDenied) {
-      await Permission.location.request();
-    } else if (status.isPermanentlyDenied) {
-      AppSettings.openAppSettings(type: AppSettingsType.location);
-    } else {
-      // Location permission is granted
-      await getCurrentLocation();
-    }
-  }
+  // Future checkPermission(DashBoardProvider dashBoardProvider) async {
+  //   final status = await Permission.location.status;
+  //   if (status.isDenied) {
+  //     await Permission.location.request();
+  //   } else if (status.isPermanentlyDenied) {
+  //     AppSettings.openAppSettings(type: AppSettingsType.location);
+  //   } else {
+  //     await dashBoardProvider.getCurrentLocation();
+  //   }
+  // }
 
-  DraggableScrollableController draggableScrollableController =
-      DraggableScrollableController();
+
 
   @override
   Widget build(BuildContext context) {
+    final dashBoardProvider = Provider.of<DashBoardProvider>(context);
     final height = MediaQuery.of(context).size.height;
     print("height====${height}");
     return Scaffold(
@@ -163,24 +154,24 @@ class DashBoardState extends State<DashBoard> {
             //           bottom: MediaQuery.of(context).size.height * 0.3),
             //       mapType: MapType.normal,
             //       onMapCreated: (controller) {
-            //         googleMapController.complete(controller);
+            //         dashBoardProvider.googleMapController.complete(controller);
             //       },
-            //       markers: markers,
+            //       markers: dashBoardProvider.markers,
             //       initialCameraPosition:
             //           CameraPosition(target: LatLng(0, 0), zoom: 14)),
             // ),
             [
               AttendanceScreen(onLocationFetch: (value) {
                 if (!mounted) {}
-                setState(() {
-                  currentLocation = LatLng(value.latitude, value.longitude);
-                });
-                getFetchedLocation(currentLocation);
+                dashBoardProvider.getLocationFromSheet(position:  value);
+                  // dashBoardProvider.currentLocation = LatLng(value.latitude, value.longitude);
+
+                // dashBoardProvider.getFetchedLocation(dashBoardProvider.currentLocation);
               }),
               TrackScreen(),
               TaskListScreen(),
               ProfileScreen(),
-            ][_selectedIndex],
+            ][dashBoardProvider.selectedIndex],
           ],
         ),
       ),
@@ -203,13 +194,10 @@ class DashBoardState extends State<DashBoard> {
                 child: GestureDetector(
                   onTap: () {
                     HapticFeedback.vibrate();
-                    getCurrentLocation();
-                    setState(() {
-                
-                      _selectedIndex = index;
-                      print("selected----${_selectedIndex}&& ${index}");
-                      // Future.delayed(duration)
-                    });
+                    // dashBoardProvider.getCurrentLocation();
+                    if(!mounted){}
+                    dashBoardProvider.selectIndex(index);
+                    print("selected----${dashBoardProvider.selectedIndex}&& ${index}");
                   },
                   child: AnimatedContainer(
                   
@@ -227,18 +215,18 @@ class DashBoardState extends State<DashBoard> {
                           width:  22 ,
                           height:  22 ,
                           iconString[index],
-                          color: _selectedIndex == index
+                          color: dashBoardProvider.selectedIndex == index
                               ? AppConstant.appPrimaryColor
                               : AppConstant.greyColor,
                         ),
                         AppUtils.commonTextWidget(
                           letterSpacing: 0,
                           text: lableString[index],
-                          textColor: _selectedIndex == index
+                          textColor: dashBoardProvider.selectedIndex == index
                               ? AppConstant.appPrimaryColor
                               : AppConstant.greyColor,
                           fontSize: 10,
-                          fontWeight: _selectedIndex == index
+                          fontWeight: dashBoardProvider.selectedIndex == index
                               ? FontWeight.w500
                               : FontWeight.w400,
                         ),

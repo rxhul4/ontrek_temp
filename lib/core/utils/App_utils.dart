@@ -7,6 +7,7 @@ import 'package:google_geocoding_api/google_geocoding_api.dart';
 import 'package:intl/intl.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
+import 'package:ontrek/main.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -357,8 +358,8 @@ class AppUtils {
 
 
 
-  static  dialogWidget(String text, BuildContext context) {
-    return showDialog(context: context, builder: (context) {
+  static  dialogWidget(String text, BuildContext? context) {
+    return showDialog(context: context ?? navigatorKey.currentState!.context , builder: (context) {
       return AlertDialog(
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(10))),
@@ -728,10 +729,10 @@ return value;
   }
 
   static showSnackBarWithColor(
-      {required BuildContext context,
+      {BuildContext? context,
       required String message,
       Color? giveColor}) {
-    return ScaffoldMessenger.of(context).showSnackBar(
+    return ScaffoldMessenger.of(context ?? navigatorKey.currentState!.context).showSnackBar(
       SnackBar(
         duration: const Duration(milliseconds: 800),
         content: AppUtils.commonTextWidget(text: message,textColor: AppConstant.whiteColor),

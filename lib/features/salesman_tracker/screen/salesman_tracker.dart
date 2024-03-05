@@ -129,7 +129,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
         .apiCallGetTimeLine(
             eventDate: AppUtils.dateFormat(
                 date: selectedDate, dateFormat: "yyyy-MM-dd"),
-            userUid: widget.userUid)
+            userid:  widget.userUid)
         .then((value) {
       getTimeLineModel = value;
       if (getTimeLineModel?.code != 200) {

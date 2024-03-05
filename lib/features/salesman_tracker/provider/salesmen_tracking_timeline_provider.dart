@@ -23,13 +23,17 @@ class SaleMenTackingTimeLineProvider extends ChangeNotifier{
 
   GetTimeLineModel? getTimeLineModel;
 
-  Future<GetTimeLineModel?> apiCallGetTimeLine({String? userUid,String? eventDate}) async {
+  Future<GetTimeLineModel?> apiCallGetTimeLine({String? userid,String? eventDate}) async {
     _isFetching = true;
     notifyListeners();
+
+    Map<String,dynamic> body ={
+      "userId": userid,
+      "eventDate": eventDate
+    };
     try {
-      String endPoint = "${ApiConstants.getSalesMentimeLine}?user_uid=523565dc-dec1-42b2-9714-65fc396d431b&event_date=2024-01-24";
-      // String endPoint = "${ApiConstants.getSalesMentimeLine}?user_uid=$userUid&event_date=$eventDate";
-      var response = await callGetMethod(endPoint);
+      String endPoint = ApiConstants.getSalesMenTimeLine;
+      var response = await callPostMethod(endPoint,body);
       getTimeLineModel = GetTimeLineModel.fromJson(json.decode(response));
       print('response ${getTimeLineModel?.toJson()}');
     } catch (e) {

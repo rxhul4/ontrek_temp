@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'package:ontrek/core/common_widgets/app_scaffold.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
@@ -24,98 +25,36 @@ class OTPVerificationCode extends StatefulWidget {
 }
 
 class _OTPVerificationCodeState extends State<OTPVerificationCode> {
-  bool isUsernameEmpty = true;
-  int secondRemaining = 30;
-  bool _enableResend = false;
-  Timer? _timer;
-  TextEditingController otpController = TextEditingController();
-  LoginModel? loginModel;
+
+
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    startTimer();
-  }
 
-  void startTimer() {
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      if (secondRemaining != 0) {
-        setState(() {
-          secondRemaining--;
-        });
-      } else {
-        setState(() {
-          _enableResend = true;
-          _timer?.cancel();
-        });
-      }
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      final authenticationProvider = Provider.of<AuthenticationProvider>(context,listen: false);
+      authenticationProvider.userUid = widget.appUserId;
+      authenticationProvider.startTimer();
     });
-  }
-
-  void _resendCode() {
-    //other code here
-    setState(() {
-      secondRemaining = 30;
-      _enableResend = false;
-    });
-    startTimer();
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+
+    authenticationProvider.timer?.cancel();
     super.dispose();
   }
 
-  bool isFieldEmpty(String text) {
-    return text.trim().isEmpty;
-  }
 
-  callOtpVerificationApi(AuthenticationProvider postMdl) async {
-    postMdl
-        .apiCallVerifyOtp(
-            appUserId: widget.appUserId,
-            otpNumber: int.parse(otpController.text))
-        .then((value) {
-      loginModel = value;
-      if (loginModel?.isError == false &&
-          loginModel?.isValidationFailed == false) {
-        saveDataToPref().then((value) {
-          Navigator.push(
-              context,
-              CupertinoPageRoute(
-                builder: (context) => DashBoard(),
-              ));
-        });
-      } else {
-        AppUtils.dialogWidget(loginModel?.message ?? "", context);
-      }
-    });
-  }
 
-  Future<bool> saveDataToPref() async {
-    PreferenceHelper.setBool(PreferenceHelper.IS_LOGIN, true);
-    PreferenceHelper.setString(
-        PreferenceHelper.FULL_NAME, loginModel?.data?.userName ?? '');
-    PreferenceHelper.setString(
-        PreferenceHelper.ORG_ID, loginModel?.data?.orgId ?? '');
-    PreferenceHelper.setString(
-        PreferenceHelper.EMAIL, loginModel?.data?.userEmail ?? '');
-    PreferenceHelper.setString(
-        PreferenceHelper.PHONE_NO, loginModel?.data?.phoneNo ?? '');
-    PreferenceHelper.setString(
-        PreferenceHelper.ROLE_NAME, loginModel?.data?.roleName ?? '');
-    PreferenceHelper.setString(
-        PreferenceHelper.AUTH_TOKEN, loginModel?.data?.token ?? '');
 
-    print("data : ${PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN)}");
-    return true;
-  }
+late AuthenticationProvider authenticationProvider;
 
   @override
   Widget build(BuildContext context) {
-    final postMdl = Provider.of<AuthenticationProvider>(context);
+     authenticationProvider = Provider.of<AuthenticationProvider>(context);
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -183,9 +122,9 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      otpView(context, otpController),
+                      otpView(context, authenticationProvider.otpController),
                       AppUtils.commonElevatedBtn(
-                        isLoading: postMdl.isLoading,
+                        isLoading: authenticationProvider.isLoading,
                         topMargin: 20,
                         width: double.infinity,
                         height: 50,
@@ -193,25 +132,11 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
                         bgColor: AppConstant.appPrimaryColor.withOpacity(0.9),
                         borderRadiusAll: 8,
                         onPressed: () {
-                          if (otpController.text.isEmpty) {
-                            AppUtils.showSnackBarWithColor(
-                                context: context,
-                                message: "Please Enter One Time Password!",
-                                giveColor: Colors.red);
-                          } else if(otpController.text.length < 4){
-                            AppUtils.showSnackBarWithColor(
-                                context: context,
-                                message: "Please Enter 4 digit code!",
-                                giveColor: Colors.red);
-
-                          }else {
-                            // callOtpVerificationApi(postMdl);
-                            Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => DashBoard(),));
-                          }
+                          authenticationProvider.checkValidationAndCallVerifyOtpApi();
 
                         },
                       ),
-                      !_enableResend
+                      !authenticationProvider.enableResend
                           ? AppUtils.commonContainer(
                               margin: const EdgeInsets.only(
                                 top: 110,
@@ -229,7 +154,7 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
                                     width: 3,
                                   ),
                                   AppUtils.commonTextWidget(
-                                    text: "00:$secondRemaining",
+                                    text: "00:${authenticationProvider.secondRemaining}",
                                     textColor: AppConstant.appPrimaryColor,
                                   ),
                                 ],
@@ -243,7 +168,7 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
                                   style: TextButton.styleFrom(
                                       padding: EdgeInsets.zero),
                                   onPressed: () {
-                                    _resendCode();
+                                    authenticationProvider.resendCode();
                                   },
                                   child: AppUtils.commonTextWidget(
                                       text: "Resend Code",

@@ -3,13 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:intl_phone_field/country_picker_dialog.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:ontrek/core/common_widgets/app_scaffold.dart';
-import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
-import 'package:ontrek/features/authentication/models/login_model.dart';
+
 import 'package:ontrek/features/authentication/providers/auth_provider.dart';
-import 'package:ontrek/features/authentication/screens/otp_verification%20screen.dart';
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -20,41 +18,14 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  int? countryCode;
-  TextEditingController mobileNumberController = TextEditingController();
-  bool? isValid;
-  LoginModel? loginModel;
 
 
-  callLogInApi(AuthenticationProvider postMdl) async{
-    print("country${countryCode}");
-    print("country${mobileNumberController.text}");
-    postMdl
-        .apiCallVerifyNumber(
-      countryCode: countryCode,
-      phoneNumber: mobileNumberController.text
-    )
-        .then((value) {
-      loginModel = value;
-      if (loginModel?.isError == false && loginModel?.isValidationFailed == false) {
-        PreferenceHelper.setString(PreferenceHelper.FULL_NAME,loginModel?.data?.userName  ?? "");
-        Navigator.push(
-            context,
-            CupertinoPageRoute(
-              builder: (context) => OTPVerificationCode(appUserId: loginModel?.data?.appUserId),
-            ));
 
-      } else {
-        AppUtils.dialogWidget(loginModel?.message ?? "", context);
-
-      }
-    });
-  }
 
 
   @override
   Widget build(BuildContext context) {
-    final postMdl = Provider.of<AuthenticationProvider>(context);
+    final authenticationProvider = Provider.of<AuthenticationProvider>(context);
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -117,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: IntlPhoneField(
                             onCountryChanged: (value) {
                               value.dialCode;
-                              mobileNumberController.clear();
+                              authenticationProvider.mobileNumberController.clear();
                             },
                             initialCountryCode: "IN",
                             autovalidateMode:
@@ -125,22 +96,19 @@ class _LoginScreenState extends State<LoginScreen> {
                             disableLengthCheck: false,
                             showCountryFlag: true,
                             showDropdownIcon: false,
-                            flagsButtonMargin: EdgeInsets.only(
+                            flagsButtonMargin: const EdgeInsets.only(
                               left: 10,
                             ),
-                            controller: mobileNumberController,
+                            controller: authenticationProvider.mobileNumberController,
                             onChanged: (value) {
                               try {
                                 value.isValidNumber.call();
-                                setState(() {
-                                  countryCode = int.parse(value.countryCode);
-                                  isValid = true;
-                                });
+                                authenticationProvider.saveCountryCode(countryCodeFromView: value.countryCode);
+
+                                authenticationProvider.validation(isValidFromView: true);
                                 print("yes");
                               } catch (e) {
-                                setState(() {
-                                  isValid = false;
-                                });
+                                authenticationProvider.validation(isValidFromView: false);
                                 print("no");
                               }
                             },
@@ -196,7 +164,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         AppUtils.commonElevatedBtn(
-                          isLoading: postMdl.isLoading,
+                          isLoading: authenticationProvider.isLoading,
                           topMargin: 20,
                           width: double.infinity,
                           height: 50,
@@ -205,22 +173,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadiusAll: 8,
                           onPressed: () {
                             print(
-                                "onPressed-----${mobileNumberController.text}");
-                            print("onPressed-----$countryCode");
-                            if (mobileNumberController.text.isEmpty) {
-                              AppUtils.showSnackBarWithColor(
-                                  context: context,
-                                  message: "Please Enter Phone Number",
-                                  giveColor: Colors.red);
-                            } else {
-                              if (isValid ?? false) {
-                                // callLogInApi(postMdl);
-                                Navigator.pushReplacement(context,  CupertinoPageRoute(builder: (context) => OTPVerificationCode(),));
-
-                              } else {
-
-                              }
-                            }
+                                "onPressed-----${authenticationProvider.mobileNumberController.text}");
+                            print("onPressed-----${authenticationProvider.countryCode}");
+                            authenticationProvider.checkValidationAndCallLoginApi();
                           },
                         ),
                         Row(

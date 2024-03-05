@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
+import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/features/task_list/model/task_model.dart';
 
@@ -23,12 +24,12 @@ class TaskProvider extends ChangeNotifier{
   GetTaskModel? getTaskModel;
 
 
-  Future<GetTaskModel?> apiCallGetSalesManList(
+  Future<GetTaskModel?> apiCallGetTaskByIdList(
       {String? date, String? userId,String? orgId}) async {
-    // var managerId = PreferenceHelper.getInt(PreferenceHelper.USER_UID);
+    var userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
+    var orgId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
     _isFetching = true;
     notifyListeners();
-
     Map<String, dynamic> body =
     {
     "orgId": orgId,
@@ -42,7 +43,7 @@ class TaskProvider extends ChangeNotifier{
       getTaskModel = GetTaskModel.fromJson(json.decode(response));
       print('response ${getTaskModel?.toJson()}');
     } catch (e) {
-      print('catch at GetEmployee_Provider ${e}');
+      print('catch at Get Task Provider ${e}');
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
       if (!isInternetAvailable) {
         getTaskModel = GetTaskModel(
