@@ -83,7 +83,6 @@ class AuthenticationProvider extends ChangeNotifier {
         notifyListeners();
       }
     });
-
   }
 
   void resendCode() {
@@ -92,10 +91,6 @@ class AuthenticationProvider extends ChangeNotifier {
     startTimer();
     notifyListeners();
   }
-
-
-
-
 
   Future<LoginModel?> apiCallVerifyNumber() async {
     loaderFnc(true);
@@ -118,7 +113,7 @@ class AuthenticationProvider extends ChangeNotifier {
         ));
       } else {
         AppUtils.dialogWidget(
-            loginModel?.message ?? "", navigatorKey?.currentState?.context);
+            loginModel?.message ?? "", navigatorKey.currentState!.context);
       }
     } catch (e) {
       print("inCatch ${loginModel?.message}");
@@ -135,23 +130,17 @@ class AuthenticationProvider extends ChangeNotifier {
     return loginModel;
   }
 
-
   checkValidationAndCallLoginApi() {
     if (mobileNumberController.text.isEmpty) {
       AppUtils.showSnackBarWithColor(
           message: "Please Enter Phone Number", giveColor: Colors.red);
     } else {
       if (isValid ?? false) {
-        // callLogInApi(postMdl);
-        navigatePushReplacementFnc(OTPVerificationCode());
+        apiCallVerifyNumber();
+        // navigatePushReplacementFnc(OTPVerificationCode());
       }
     }
   }
-
-
-
-
-
 
   Future<LoginModel?> apiCallVerifyOtp() async {
     _isLoading = true;
@@ -167,13 +156,12 @@ class AuthenticationProvider extends ChangeNotifier {
       if (loginModel?.isError == false &&
           loginModel?.isValidationFailed == false) {
         saveDataToPref().then((value) {
-         navigatePushReplacementFnc(DashBoard());
+          navigatePushReplacementFnc(DashBoard());
         });
       } else {
         AppUtils.dialogWidget(
-            loginModel?.message ?? "", navigatorKey?.currentState?.context);
+            loginModel?.message ?? "", navigatorKey.currentState!.context);
       }
-
     } catch (e) {
       print("inCatch ${loginModel?.message}");
       print("inCatchE ${e}");
@@ -190,14 +178,12 @@ class AuthenticationProvider extends ChangeNotifier {
     return loginModel;
   }
 
-
-
-
-
   Future<bool> saveDataToPref() async {
     PreferenceHelper.setBool(PreferenceHelper.IS_LOGIN, true);
-    PreferenceHelper.setString(PreferenceHelper.FULL_NAME, loginModel?.data?.userName ?? '');
-    PreferenceHelper.setString(PreferenceHelper.USER_UID, loginModel?.data?.appUserId ?? '');
+    PreferenceHelper.setString(
+        PreferenceHelper.FULL_NAME, loginModel?.data?.userName ?? '');
+    PreferenceHelper.setString(
+        PreferenceHelper.USER_UID, loginModel?.data?.appUserId ?? '');
     PreferenceHelper.setString(
         PreferenceHelper.ORG_ID, loginModel?.data?.orgId ?? '');
     PreferenceHelper.setString(
@@ -212,20 +198,17 @@ class AuthenticationProvider extends ChangeNotifier {
     print("data : ${PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN)}");
     return true;
   }
+
   checkValidationAndCallVerifyOtpApi() {
     if (otpController.text.isEmpty) {
       AppUtils.showSnackBarWithColor(
-          message: "Please Enter One Time Password!",
-          giveColor: Colors.red);
-    } else if(otpController.text.length < 4){
+          message: "Please Enter One Time Password!", giveColor: Colors.red);
+    } else if (otpController.text.length < 4) {
       AppUtils.showSnackBarWithColor(
-
-          message: "Please Enter 4 digit code!",
-          giveColor: Colors.red);
-
-    }else {
-      // callOtpVerificationApi(postMdl);
-      navigatePushReplacementFnc(const DashBoard());
+          message: "Please Enter 4 digit code!", giveColor: Colors.red);
+    } else {
+      apiCallVerifyOtp();
+      // navigatePushReplacementFnc(const DashBoard());
     }
   }
 }

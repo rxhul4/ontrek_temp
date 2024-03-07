@@ -48,7 +48,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> with SingleTickerPr
   AndroidDeviceInfo? androidInfo;
   var battery = Battery();
   int? batteryLevel;
-  AddActivityModel? addActivityModel;
+  CreateActivityModel? createActivityModel;
   FlutterBackgroundService service = FlutterBackgroundService();
 
 
@@ -65,7 +65,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> with SingleTickerPr
     checkBiometricAvailable();
     isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
     isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
-    userUid = PreferenceHelper.getString(PreferenceHelper.USER_UID);
+    // userUid = PreferenceHelper.getString(PreferenceHelper.USER_UID);
     print("userUid====${userUid}");
     deviceInfo.androidInfo.then((value) {
       androidInfo = value;
@@ -106,12 +106,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> with SingleTickerPr
 callAddActivityApi(
     {required AttendanceProvider postMdl, dynamic position, String? totEventCode,bool? isFromCheckIn = false,bool? isFromLogOutBtn = false}){
     print("userUid${userUid}");
-    var dateOfDayStart = AppUtils.dateFormat(date: DateTime.now(), dateFormat: "yyyy-MM-dd");
+    var dateOfDayStart = AppUtils.dateFormat(date: DateTime.now(), dateFormat: AppConstant.dateFormat);
     var timeOfDayStart = AppUtils.dateFormat(date: DateTime.now(), dateFormat: AppConstant.dateFormat);
-    postMdl.apiCallAddActivity(
+    postMdl.apiCallCreateActivity(
       eventTime: timeOfDayStart,
       eventDate: dateOfDayStart,
-      userUid: userUid,
+      userId: "e6065134-5230-4c44-8d89-eabd8c1750e0",
       deviceId: androidInfo?.id,
       deviceName: androidInfo?.brand,
       batteryLevel: batteryLevel,
@@ -121,14 +121,13 @@ callAddActivityApi(
       latitude: position.latitude,
       longitude: position.longitude,
     ).then((value) {
-      addActivityModel = value;
-      if(addActivityModel?.code == 200){
+      createActivityModel = value;
+      if(createActivityModel?.isError == false && createActivityModel?.isValidationFailed == false ){
         if(isFromLogOutBtn ?? false){
           callLogOutFunction(position);
         }else{
-          // isFromCheckIn ?? false ?  callCheckInFunction(position) : callLoginFunction(position);
+          isFromCheckIn ?? false ?  callCheckInFunction(position) : callLoginFunction(position);
           if(isFromCheckIn ?? false){
-
             callCheckInFunction(position);
           }else{
             PreferenceHelper.setDouble(
@@ -150,7 +149,7 @@ callAddActivityApi(
 
       }else{
         print("day start not 200");
-        openDialogFnc(addActivityModel?.message.toString() ?? "");
+        openDialogFnc(createActivityModel?.message.toString() ?? "");
       }
     });
 }
@@ -195,15 +194,12 @@ PanelController panelController = PanelController();
                   // buttonWidget(height,width,postMdl),
                   SizedBox(height: 15,),
                   !isDayStart.value
-                      ? Visibility(
-                    visible: !isTapped,
-                        child: AppUtils.commonTextWidget(
-                          text: "Press & Hold",
-                          fontSize: 14,
-                          letterSpacing: 0.2,
-                          fontWeight: FontWeight.w600,
-                          textColor: AppConstant.blackColor,
-                        ),
+                      ? AppUtils.commonTextWidget(
+                        text: "Press & Hold",
+                        fontSize: 14,
+                        letterSpacing: 0.2,
+                        fontWeight: FontWeight.w600,
+                        textColor: AppConstant.blackColor,
                       )
                       :
                     GestureDetector(onTap: () {
@@ -492,17 +488,17 @@ PanelController panelController = PanelController();
                   controller?.reset();
                   if (!isDayStart.value) {
                     doLocalVerification(afterSuccessfulVerificationFnc: () {
-                      loginFunction();
-                      // getCurrentLocation().then((value) {
-                      //   callAddActivityApi(postMdl: postMdl, position: value,totEventCode: "AppConstant.dayStartEvent",isFromCheckIn: false);
-                      // });
+                      // loginFunction();
+                      getCurrentLocation().then((value) {
+                        callAddActivityApi(postMdl: postMdl, position: value,totEventCode: AppConstant.dayStartEvent,isFromCheckIn: false);
+                      });
                     },);
                   } else if (!isCheckIn.value) {
                     doLocalVerification(afterSuccessfulVerificationFnc: () {
-                      checkInFunction();
-                      // getCurrentLocation().then((value) {
-                      //   callAddActivityApi(postMdl: postMdl,position: value,totEventCode: AppConstant.checkInEvent,isFromCheckIn: true);
-                      // });
+                      // checkInFunction();
+                      getCurrentLocation().then((value) {
+                        callAddActivityApi(postMdl: postMdl,position: value,totEventCode: AppConstant.checkInEvent,isFromCheckIn: true);
+                      });
 
                     },);
                   } else
@@ -630,10 +626,10 @@ PanelController panelController = PanelController();
             doLocalVerification(afterSuccessfulVerificationFnc: () {
               controller?.reset();
               if (isDayStart.value) {
-                logOutFunction();
-                // getCurrentLocation().then((value) {
-                //   callAddActivityApi(postMdl: postMdl,isFromLogOutBtn: true,totEventCode: "AppConstant.dayEndEvent",position: value,);
-                // });
+                // logOutFunction();
+                getCurrentLocation().then((value) {
+                  callAddActivityApi(postMdl: postMdl,isFromLogOutBtn: true,totEventCode: AppConstant.dayEndEvent,position: value,);
+                });
               }
             });
 

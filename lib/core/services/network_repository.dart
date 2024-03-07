@@ -29,6 +29,7 @@ Future callPostMethod(String url, Map<String, dynamic> params) async {
   print("devicemodel${myDeviceInfo?.model ?? ""}");
 
   if (kDebugMode) {
+    print("baseUrl--$url");
     print("params--${jsonEncode(params)}");
     print("header----${header}");
   }

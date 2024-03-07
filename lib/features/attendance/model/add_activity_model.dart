@@ -1,111 +1,127 @@
-class AddActivityModel {
-  Data? data;
-  bool? isSuccessful;
-  int? code;
+class CreateActivityModel {
+  bool? isError;
+  bool? isValidationFailed;
+  String? errorCode;
   String? message;
+  Data? data;
 
-  AddActivityModel({this.data, this.isSuccessful, this.code, this.message});
+  CreateActivityModel(
+      {this.isError,
+        this.isValidationFailed,
+        this.errorCode,
+        this.message,
+        this.data});
 
-  AddActivityModel.fromJson(Map<String, dynamic> json) {
-    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
-    isSuccessful = json['isSuccessful'];
-    code = json['code'];
+  CreateActivityModel.fromJson(Map<String, dynamic> json) {
+    isError = json['isError'];
+    isValidationFailed = json['isValidationFailed'];
+    errorCode = json['errorCode'];
     message = json['message'];
+    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['isError'] = this.isError;
+    data['isValidationFailed'] = this.isValidationFailed;
+    data['errorCode'] = this.errorCode;
+    data['message'] = this.message;
     if (this.data != null) {
       data['data'] = this.data!.toJson();
     }
-    data['isSuccessful'] = this.isSuccessful;
-    data['code'] = this.code;
-    data['message'] = this.message;
     return data;
   }
 }
 
 class Data {
-  String? userUid;
-  double? lattitude;
-  double? longitude;
-  String? totTrackingEventCode;
-  String? eventDate;
-  String? eventTime;
+  String? trackingId;
+  String? userId;
+  String? sessionId;
+  String? parentTrackingId;
+  String? totTrackingEventId;
+  String? totTrackingValue;
   int? batteryLevel;
   String? deviceId;
   String? deviceName;
-  double? locAccuracy;
+  int? locationAccuracy;
+  bool? isFakeLocation;
   String? trackingAddress;
-  String? customerName;
-  String? picturePath;
-  String? visitDiscussion;
-  String? companyName;
-  String? customerPhoneNo;
-  String? visitTypeCode;
-  String? activityStatus;
+  String? eventDate;
+  String? durationMin;
+  bool? isActive;
+  bool? isDeleted;
+  String? createdBy;
+  String? createdOn;
+  String? modifiedBy;
+  String? modifiedOn;
 
   Data(
-      {this.userUid,
-        this.lattitude,
-        this.longitude,
-        this.totTrackingEventCode,
-        this.eventDate,
-        this.eventTime,
+      {this.trackingId,
+        this.userId,
+        this.sessionId,
+        this.parentTrackingId,
+        this.totTrackingEventId,
+        this.totTrackingValue,
         this.batteryLevel,
         this.deviceId,
         this.deviceName,
-        this.locAccuracy,
+        this.locationAccuracy,
+        this.isFakeLocation,
         this.trackingAddress,
-        this.customerName,
-        this.picturePath,
-        this.visitDiscussion,
-        this.companyName,
-        this.customerPhoneNo,
-        this.visitTypeCode,
-        this.activityStatus});
+        this.eventDate,
+        this.durationMin,
+        this.isActive,
+        this.isDeleted,
+        this.createdBy,
+        this.createdOn,
+        this.modifiedBy,
+        this.modifiedOn});
 
   Data.fromJson(Map<String, dynamic> json) {
-    userUid = json['user_uid'];
-    lattitude = json['lattitude'];
-    longitude = json['longitude'];
-    totTrackingEventCode = json['tot_tracking_event_code'];
-    eventDate = json['event_date'];
-    eventTime = json['event_time'];
-    batteryLevel = json['battery_level'];
-    deviceId = json['device_id'];
-    deviceName = json['device_name'];
-    locAccuracy = json['loc_accuracy'];
-    trackingAddress = json['tracking_address'];
-    customerName = json['customer_name'];
-    picturePath = json['picture_path'];
-    visitDiscussion = json['visit_discussion'];
-    companyName = json['company_name'];
-    customerPhoneNo = json['customer_phone_no'];
-    visitTypeCode = json['visit_type_code'];
-    activityStatus = json['activityStatus'];
+    trackingId = json['trackingId'];
+    userId = json['userId'];
+    sessionId = json['sessionId'];
+    parentTrackingId = json['parentTrackingId'];
+    totTrackingEventId = json['totTrackingEventId'];
+    totTrackingValue = json['totTrackingValue'];
+    batteryLevel = json['batteryLevel'];
+    deviceId = json['deviceId'];
+    deviceName = json['deviceName'];
+    locationAccuracy = json['locationAccuracy'];
+    isFakeLocation = json['isFakeLocation'];
+    trackingAddress = json['trackingAddress'];
+    eventDate = json['eventDate'];
+    durationMin = json['durationMin'];
+    isActive = json['isActive'];
+    isDeleted = json['isDeleted'];
+    createdBy = json['createdBy'];
+    createdOn = json['createdOn'];
+    modifiedBy = json['modifiedBy'];
+    modifiedOn = json['modifiedOn'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['user_uid'] = this.userUid;
-    data['lattitude'] = this.lattitude;
-    data['longitude'] = this.longitude;
-    data['tot_tracking_event_code'] = this.totTrackingEventCode;
-    data['event_date'] = this.eventDate;
-    data['event_time'] = this.eventTime;
-    data['battery_level'] = this.batteryLevel;
-    data['device_id'] = this.deviceId;
-    data['device_name'] = this.deviceName;
-    data['loc_accuracy'] = this.locAccuracy;
-    data['tracking_address'] = this.trackingAddress;
-    data['customer_name'] = this.customerName;
-    data['picture_path'] = this.picturePath;
-    data['visit_discussion'] = this.visitDiscussion;
-    data['company_name'] = this.companyName;
-    data['customer_phone_no'] = this.customerPhoneNo;
-    data['visit_type_code'] = this.visitTypeCode;
-    data['activityStatus'] = this.activityStatus;
+    data['trackingId'] = this.trackingId;
+    data['userId'] = this.userId;
+    data['sessionId'] = this.sessionId;
+    data['parentTrackingId'] = this.parentTrackingId;
+    data['totTrackingEventId'] = this.totTrackingEventId;
+    data['totTrackingValue'] = this.totTrackingValue;
+    data['batteryLevel'] = this.batteryLevel;
+    data['deviceId'] = this.deviceId;
+    data['deviceName'] = this.deviceName;
+    data['locationAccuracy'] = this.locationAccuracy;
+    data['isFakeLocation'] = this.isFakeLocation;
+    data['trackingAddress'] = this.trackingAddress;
+    data['eventDate'] = this.eventDate;
+    data['durationMin'] = this.durationMin;
+    data['isActive'] = this.isActive;
+    data['isDeleted'] = this.isDeleted;
+    data['createdBy'] = this.createdBy;
+    data['createdOn'] = this.createdOn;
+    data['modifiedBy'] = this.modifiedBy;
+    data['modifiedOn'] = this.modifiedOn;
     return data;
   }
 }

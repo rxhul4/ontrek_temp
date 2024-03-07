@@ -252,7 +252,7 @@ void onStart(ServiceInstance service) {
     },
   );
 }
-AddActivityModel? addActivityModel;
+CreateActivityModel? createActivityModel;
 callAddActivityApi({String? totTrackingEventCode}) async {
   try {
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
@@ -288,7 +288,7 @@ callAddActivityApi({String? totTrackingEventCode}) async {
 
 
     var request =
-    http.MultipartRequest('POST', Uri.parse(ApiConstants.addActivity));
+    http.MultipartRequest('POST', Uri.parse(ApiConstants.createActivity));
 
 
     if(totTrackingEventCode == AppConstant.gpsOffEvent && lastGpsOnTime == null || lastGpsOnTime == ""){
@@ -330,10 +330,10 @@ callAddActivityApi({String? totTrackingEventCode}) async {
     var responsed = await http.Response.fromStream(response);
     print("SUCCESS  ${responsed.body}");
     print("SUCCESS  ${json.decode(responsed.body)}");
-    addActivityModel =
-        AddActivityModel.fromJson(json.decode(responsed.body));
-    print(addActivityModel?.data);
-    if(addActivityModel?.code == 200){
+    createActivityModel =
+        CreateActivityModel.fromJson(json.decode(responsed.body));
+    print(createActivityModel?.data);
+    if(createActivityModel?.isError == false && createActivityModel?.isValidationFailed == false){
       if (totTrackingEventCode == AppConstant.internetOffEvent) {
         PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_OFF_TIME);
         PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, false);

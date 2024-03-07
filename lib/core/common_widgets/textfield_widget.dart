@@ -69,7 +69,7 @@ class AppTextField extends StatelessWidget {
       onChanged: onChanged,
       controller: controller,
       onTap: onTap,
-      autofocus: true,
+      autofocus: false,
 
       onEditingComplete: onEditingComplete,
       onTapOutside: onTapOutside,

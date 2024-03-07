@@ -12,10 +12,10 @@ class ApiConstants{
 
 
   //salesMen
-   static const String addActivity = "$baseUrl/SalesMen/AddActivity";
+   static const String createActivity = "$baseUrl/FieldUser/CreateActivity";
 
    //totapi
-   static const String getTableOfTableByType = "$baseUrl/TableOfTable/GetTableOfTableByType";
+   static const String getTotByGroupType = "http://ontrek_v1api.epistic.net/Super/Tot/GetTotByGroupType";
 
 
 }

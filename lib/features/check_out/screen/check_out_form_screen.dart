@@ -1,10 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:battery_plus/battery_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -43,9 +43,10 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
   AndroidDeviceInfo? androidInfo;
   var battery = Battery();
   int? batteryLevel;
+  String? image64;
   bool showNoDataFound = true;
-  AddActivityModel? addActivityModel;
-  CheckOutFormModel? checkOutFormModel;
+  CreateActivityModel? createActivityModel;
+  GetTotByGroupTypeModel? getTotByGroupTypeModel;
   int selectedRadio = 1;
   String? totType;
 
@@ -72,16 +73,21 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
     checkBiometricAvailable();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final getMdl = Provider.of<CheckOutProvider>(context, listen: false);
+      print("firstinit${totType}");
+      totType = getTotByGroupTypeModel?.data?.first.totId;
+      print("second_init${totType}");
+
       callGetTotByType(getMdl);
     });
-    totType = AppUtils.switchCaseForTotType(selectedRadio);
+    // totType = AppUtils.switchCaseForTotType(selectedRadio);
   }
 
   callGetTotByType(CheckOutProvider getMdl) {
     getMdl.apiCallGetTotByType().then((value) {
-      checkOutFormModel = value;
-      if (checkOutFormModel?.code != 200) {
-        openDialogFnc(checkOutFormModel?.message ?? "");
+      getTotByGroupTypeModel = value;
+      if (getTotByGroupTypeModel?.isValidationFailed == true &&
+          getTotByGroupTypeModel?.isError == true) {
+        openDialogFnc(getTotByGroupTypeModel?.message ?? "");
         setState(() {
           showNoDataFound = true;
         });
@@ -90,7 +96,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
           showNoDataFound = false;
         });
         selectedRadio =
-            checkOutFormModel?.data?.map((e) => e.totSeq).first ?? 1;
+            getTotByGroupTypeModel?.data?.map((e) => e.totSequence).first ?? 1;
       }
     });
   }
@@ -100,16 +106,17 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
     dynamic position,
   }) {
     print("userUid${userUid}");
-    var dateOfDayStart =
-        AppUtils.dateFormat(date: DateTime.now(), dateFormat: "yyyy-MM-dd");
+    var dateOfDayStart = AppUtils.dateFormat(
+        date: DateTime.now(), dateFormat: AppConstant.dateFormat);
     var timeOfDayStart = AppUtils.dateFormat(
         date: DateTime.now(), dateFormat: AppConstant.dateFormat);
     postMdl
-        .apiCallAddActivity(
-      imageFile: _image,
+        .apiCallCreateActivity(
+            // imageFile: "image64",
+      picturePath: "image64",
             eventTime: timeOfDayStart,
             eventDate: dateOfDayStart,
-            userUid: userUid,
+            userId: userUid,
             deviceId: androidInfo?.id,
             deviceName: androidInfo?.brand,
             batteryLevel: batteryLevel,
@@ -122,16 +129,16 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
             customerName: customerNameController.text,
             customerPhoneNumber: customerPhoneNumberController.text,
             visitDiscussion: visitDiscussionNameController.text,
-            visitTypeCode: totType
-    )
+            visitTypeCode: totType)
         .then((value) {
-      addActivityModel = value;
-      if (addActivityModel?.code == 200) {
+      createActivityModel = value;
+      if (createActivityModel?.isError == false &&
+          createActivityModel?.isValidationFailed == false) {
         PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
         Navigator.pop(context);
       } else {
         print("day start not 200");
-        openDialogFnc(addActivityModel?.message.toString() ?? "");
+        openDialogFnc(createActivityModel?.message.toString() ?? "");
       }
     });
   }
@@ -345,57 +352,42 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                                               textColor: AppConstant.blackColor,
                                               fontWeight: FontWeight.w500,
                                               fontSize: 16),
-                                          SizedBox(
+                                          const SizedBox(
                                             height: 5,
                                           ),
                                           GridView.builder(
                                             physics:
-                                                NeverScrollableScrollPhysics(),
+                                                const NeverScrollableScrollPhysics(),
                                             shrinkWrap: true,
                                             padding: EdgeInsets.zero,
-                                            itemCount: checkOutFormModel
+                                            itemCount: getTotByGroupTypeModel
                                                     ?.data?.length ??
                                                 0,
                                             gridDelegate:
-                                                SliverGridDelegateWithFixedCrossAxisCount(
+                                                const SliverGridDelegateWithFixedCrossAxisCount(
                                               crossAxisSpacing: 30,
                                               mainAxisExtent: 60,
                                               crossAxisCount: 2,
                                             ),
                                             itemBuilder: (context, index) {
                                               print(
-                                                  "data${checkOutFormModel?.data?[index].totSeq}");
+                                                  "data${getTotByGroupTypeModel?.data?[index].totSequence}");
 
                                               return GestureDetector(
                                                 onTap: () {
                                                   setState(() {
                                                     selectedRadio =
-                                                        checkOutFormModel
+                                                        getTotByGroupTypeModel
                                                                 ?.data?[index]
-                                                                .totSeq ??
+                                                                .totSequence ??
                                                             1;
-                                                    // switch (selectedRadio) {
-                                                    //   case 1:
-                                                    //     totType =
-                                                    //         "visit_type_1";
-                                                    //     break;
-                                                    //   case 2:
-                                                    //     totType = "visit_type_2";
-                                                    //     break;
-                                                    //   case 3:
-                                                    //     totType =
-                                                    //         "visit_type_3";
-                                                    //     break;
-                                                    //   case 4:
-                                                    //     totType = "visit_type_4";
-                                                    //     break;
-                                                    //   default:
-                                                    //     totType =
-                                                    //         "visit_type_5";
-                                                    //     break;
-                                                    // }
-                                                    totType =  AppUtils.switchCaseForTotType(selectedRadio);
-                                                    print("totType${totType}");
+                                                    totType =
+                                                        getTotByGroupTypeModel
+                                                                ?.data?[index]
+                                                                .totId ??
+                                                            "";
+                                                    print("totType$totType");
+                                                    print("totType$selectedRadio");
                                                   });
                                                 },
                                                 child: Row(
@@ -410,13 +402,26 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                                                       activeColor: AppConstant
                                                           .appPrimaryColor,
                                                       // Customize your active color
-                                                      value: checkOutFormModel
-                                                          ?.data?[index].totSeq,
+                                                      value:
+                                                          getTotByGroupTypeModel
+                                                              ?.data?[index]
+                                                              .totSequence,
                                                       groupValue: selectedRadio,
                                                       onChanged: (value) {
+                                                        print("value${value}");
                                                         setState(() {
                                                           selectedRadio =
-                                                              value ?? 1;
+                                                              getTotByGroupTypeModel
+                                                                  ?.data?[index]
+                                                                  .totSequence ??
+                                                                  1;
+                                                          totType =
+                                                              getTotByGroupTypeModel
+                                                                  ?.data?[index]
+                                                                  .totId ??
+                                                                  "";
+                                                          print("totType value$totType");
+                                                          print("totType value$selectedRadio");
                                                         });
                                                       },
                                                     ),
@@ -429,7 +434,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                                                         fontWeight:
                                                             FontWeight.w500,
                                                         text:
-                                                            "${checkOutFormModel?.data?[index].totValue}",
+                                                            "${getTotByGroupTypeModel?.data?[index].totValue}",
                                                       ),
                                                     ),
                                                   ],
@@ -510,7 +515,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
   var imageFull;
   File? _image;
 
-  Future getImage() async {
+  Future<String?> getImage() async {
     var status1 = await Permission.camera.request();
     if (status1.isDenied || status1.isPermanentlyDenied) {
       print(status1.isPermanentlyDenied);
@@ -523,13 +528,16 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
         source: ImageSource.camera,
       );
 
-
       if (imageFull?.path != null) {
+        final bytes = File(imageFull.path).readAsBytesSync();
+        image64 = "data:image/png;base64,"+base64Encode(bytes);
+        print(image64);
         setState(() {
           _image = File(imageFull?.path ?? '');
         });
       }
     }
+    return image64;
   }
 
   Future getCurrentLocation() async {

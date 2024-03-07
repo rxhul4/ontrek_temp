@@ -4,9 +4,11 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:ontrek/core/services/api_constants.dart';
+import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/features/attendance/model/add_activity_model.dart';
+import 'package:ontrek/main.dart';
 
 class AttendanceProvider extends ChangeNotifier {
   bool _isFetching = false;
@@ -22,13 +24,36 @@ class AttendanceProvider extends ChangeNotifier {
 
   bool get isAdding => _isAdding;
 
-  AddActivityModel? addActivityModel;
+  CreateActivityModel? createActivityModel;
+
+  loaderFnc(bool isLoading) {
+    _isLoading = isLoading;
+    notifyListeners();
+  }
+
+  fetchingFnc(bool isLoading) {
+    _isFetching = isLoading;
+    notifyListeners();
+  }
+
+
+  void navigatePushReplacementFnc(Widget screen) {
+    navigatorKey.currentState!.pushReplacement(CupertinoPageRoute(
+      builder: (context) => screen,
+    ));
+  }
+
+  void navigatePushFnc(Widget screen) {
+    navigatorKey.currentState!.push(CupertinoPageRoute(
+      builder: (context) => screen,
+    ));
+  }
 
 
 
-  Future<AddActivityModel?> apiCallAddActivity({
-    File? imageFile,
-    String? userUid,
+  Future<CreateActivityModel?> apiCallCreateActivity({
+    String? picturePath,
+    String? userId,
     double? latitude,
     double? longitude,
     String? totTrackingEventCode,
@@ -45,66 +70,56 @@ class AttendanceProvider extends ChangeNotifier {
     String? customerPhoneNumber,
     String? visitTypeCode,
     String? activityStatus,
-  }) async {
+
+}) async {
+    loaderFnc(true);
+    Map<String, dynamic> body = {
+      "userId": userId,
+      "lattitude": latitude,
+      "longitude": longitude,
+      "totTrackingEventId": totTrackingEventCode,
+      "eventDate": eventDate,
+      "eventTime": eventTime,
+      "batteryLevel": 50,
+      "trackingAddress": "Dwarkesh Business Hub",
+      "customerName": customerName,
+      "picturePath": picturePath,
+      "visitDiscussion": visitDiscussion,
+      "companyName": companyName,
+      "customerPhoneNo": customerPhoneNumber,
+      "totVisitTypeId": visitTypeCode,
+      "activityStatus": activityStatus
+    };
     try {
-      _isLoading = true;
-      notifyListeners();
-      String? userUid = PreferenceHelper.getString(PreferenceHelper.USER_UID);
 
-      var request =
-          http.MultipartRequest('POST', Uri.parse(ApiConstants.addActivity));
-      if (imageFile != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-            "picture_path", imageFile.path ?? ''));
-      }
-      if(userUid != null){
-        request.fields['user_uid'] = userUid;
-      }
-
-      request.fields['lattitude'] = latitude.toString();
-      request.fields['longitude'] = longitude.toString();
-      request.fields['tot_tracking_event_code'] = totTrackingEventCode.toString();
-      request.fields['event_date'] = eventDate.toString();
-      request.fields['event_time'] = eventTime.toString();
-      request.fields['battery_level'] = batteryLevel.toString();
-      request.fields['device_id'] = deviceId.toString();
-      request.fields['device_name'] = deviceName.toString();
-      request.fields['loc_accuracy'] = locAccuracy.toString();
-      request.fields['tracking_address'] = trackingAddress.toString();
-      request.fields['customer_name'] = customerName.toString();
-      request.fields['visit_discussion'] = visitDiscussion.toString();
-      request.fields['company_name'] = companyName.toString();
-      request.fields['customer_phone_no'] = customerPhoneNumber.toString();
-      request.fields['visit_type_code'] = visitTypeCode.toString();
-      request.fields['ActivityStatus'] = activityStatus.toString();
-
-      print("request is ${request.fields}");
-      print("request is ${request.url}");
-      var response = await request.send();
-      print('---------response$response');
-      var responsed = await http.Response.fromStream(response);
-      print("SUCCESS  ${responsed.body}");
-      print("SUCCESS  ${json.decode(responsed.body)}");
-      addActivityModel =
-          AddActivityModel.fromJson(json.decode(responsed.body));
-      print(addActivityModel?.data);
-
-      _isLoading = false;
-      notifyListeners();
+      String endPoint = ApiConstants.createActivity;
+      final response = await callPostMethod(endPoint, body);
+      createActivityModel = CreateActivityModel.fromJson(json.decode(response));
+      print("response : ${response}");
+      // if (createActivityModel?.isError == false &&
+      //     createActivityModel?.isValidationFailed == false) {
+      //
+      // } else {
+      //   AppUtils.dialogWidget(
+      //       createActivityModel?.message ?? "", navigatorKey.currentState!.context);
+      // }
     } catch (e) {
-      print("inCatch ${addActivityModel?.message}");
+      print("inCatch ${createActivityModel?.message}");
       print("inCatchE ${e}");
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
       if (!isInternetAvailable) {
-        addActivityModel = AddActivityModel(
-            message: "Internet is not available, please try again!");
+        createActivityModel =
+            CreateActivityModel(message: "Internet is not available, please try again!");
       } else {
-        addActivityModel =
-            AddActivityModel(message: "Something went wrong!");
+        createActivityModel = CreateActivityModel(message: "Something went wrong!");
       }
-
     }
-    return addActivityModel;
+    loaderFnc(false);
+    return createActivityModel;
   }
+
+
+
+
 
 }
