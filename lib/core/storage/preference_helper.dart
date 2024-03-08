@@ -33,7 +33,8 @@ class PreferenceHelper {
   static const String LAST_LONG = "LAST_LONG";
   static const String LAST_ADD_ROUTE_DATETIME = "LAST_ADD_ROUTE_DATETIME";
   static const String CHECK_END_TIME = "CHECK_END_TIME";
-  static const String WAITING_LAST_TIME = "WAITING_LAST_TIME";
+  static const String WAITING_START_TIME = "WAITING_START_TIME";
+  static const String ISWAITING = "isWaiting";
 
 
 

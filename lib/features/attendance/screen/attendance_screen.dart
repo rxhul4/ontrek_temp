@@ -65,7 +65,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> with SingleTickerPr
     checkBiometricAvailable();
     isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
     isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
-    // userUid = PreferenceHelper.getString(PreferenceHelper.USER_UID);
+    userUid = PreferenceHelper.getString(PreferenceHelper.USER_UID);
     print("userUid====${userUid}");
     deviceInfo.androidInfo.then((value) {
       androidInfo = value;
@@ -395,7 +395,7 @@ PanelController panelController = PanelController();
 
   Future loginFunction() async {
   try{
-    // service.startService();
+    service.startService();
     PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
     isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
   }catch(e){
@@ -410,8 +410,10 @@ PanelController panelController = PanelController();
     // bool isLocationServiceAvailable =
     // await AppUtils.checkLocationServiceAvailability();
     try{
+
       PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
       isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+
     }catch(e){
       print("try_again_later");
     }
@@ -458,7 +460,7 @@ PanelController panelController = PanelController();
     try {
       // bool isLocationServiceAvailable =
       // await AppUtils.checkLocationServiceAvailability();
-      // service.invoke("stopService");
+      service.invoke("stopService");
       PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
       PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
       isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
