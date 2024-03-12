@@ -10,6 +10,7 @@ import 'package:ontrek/core/storage/preference_helper.dart';
 AndroidDeviceInfo? myDeviceInfo;
 
 final userName = PreferenceHelper.getString(PreferenceHelper.FULL_NAME);
+final authToken = PreferenceHelper.getString(PreferenceHelper.AUTH_TOKEN);
 
 
 Map<String, String> header = {
@@ -18,6 +19,13 @@ Map<String, String> header = {
   'current-User' : userName ?? "",
   'time-zone' : DateTime.now().timeZoneOffset.inMinutes.toString()
   // 'token' : "Bariar ${}"
+};
+Map<String, String> headerWithToken = {
+  'Content-Type': 'application/json',
+  'Accept': 'application/json',
+  'current-User' : userName ?? "",
+  'time-zone' : DateTime.now().timeZoneOffset.inMinutes.toString(),
+  'token' : "Bariar $authToken"
 };
 
 Future callPostMethod(String url, Map<String, dynamic> params) async {
@@ -37,7 +45,7 @@ Future callPostMethod(String url, Map<String, dynamic> params) async {
       .post(
     Uri.parse(url),
     body: utf8.encode(json.encode(params)),
-    headers: header,
+    headers: authToken != null ? headerWithToken : header,
   )
       .then((http.Response response) {
     return getResponse(response);

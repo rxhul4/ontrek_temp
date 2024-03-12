@@ -105,7 +105,7 @@ class AttendanceProvider extends ChangeNotifier {
       // }
     } catch (e) {
       print("inCatch ${createActivityModel?.message}");
-      print("inCatchE ${e}");
+      print("inCatchE $e");
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
       if (!isInternetAvailable) {
         createActivityModel =

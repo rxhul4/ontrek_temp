@@ -35,6 +35,7 @@ class PreferenceHelper {
   static const String CHECK_END_TIME = "CHECK_END_TIME";
   static const String WAITING_START_TIME = "WAITING_START_TIME";
   static const String ISWAITING = "isWaiting";
+  static const String UNIVERSAL_LAST_SAVED_TIME = "UNIVERSAL_LAST_SAVED_TIME";
 
 
 

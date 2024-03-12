@@ -36,7 +36,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> with SingleTickerPr
   DraggableScrollableController();
   LocalAuthentication localAuthentication = LocalAuthentication();
   bool isBiometricAvailable = false;
-  String? userUid;
+  String? userId;
   ValueNotifier<bool> isDayStart = ValueNotifier(false);
   ValueNotifier<bool> isCheckIn = ValueNotifier(false);
   ValueNotifier<bool> isDayEnd = ValueNotifier(false);
@@ -65,8 +65,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> with SingleTickerPr
     checkBiometricAvailable();
     isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
     isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
-    userUid = PreferenceHelper.getString(PreferenceHelper.USER_UID);
-    print("userUid====${userUid}");
+    userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
+    print("userUid====${userId}");
     deviceInfo.androidInfo.then((value) {
       androidInfo = value;
     });
@@ -105,13 +105,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> with SingleTickerPr
 
 callAddActivityApi(
     {required AttendanceProvider postMdl, dynamic position, String? totEventCode,bool? isFromCheckIn = false,bool? isFromLogOutBtn = false}){
-    print("userUid${userUid}");
+    print("userUid${userId}");
     var dateOfDayStart = AppUtils.dateFormat(date: DateTime.now(), dateFormat: AppConstant.dateFormat);
     var timeOfDayStart = AppUtils.dateFormat(date: DateTime.now(), dateFormat: AppConstant.dateFormat);
     postMdl.apiCallCreateActivity(
       eventTime: timeOfDayStart,
       eventDate: dateOfDayStart,
-      userId: "e6065134-5230-4c44-8d89-eabd8c1750e0",
+      userId: userId,
       deviceId: androidInfo?.id,
       deviceName: androidInfo?.brand,
       batteryLevel: batteryLevel,
@@ -122,7 +122,14 @@ callAddActivityApi(
       longitude: position.longitude,
     ).then((value) {
       createActivityModel = value;
+
       if(createActivityModel?.isError == false && createActivityModel?.isValidationFailed == false ){
+        PreferenceHelper.setDouble(
+            PreferenceHelper.LAST_LAT, position.latitude ?? 0);
+        PreferenceHelper.setDouble(
+            PreferenceHelper.LAST_LONG, position.longitude ?? 0);
+        PreferenceHelper.setString(
+            PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
         if(isFromLogOutBtn ?? false){
           callLogOutFunction(position);
         }else{
@@ -130,19 +137,17 @@ callAddActivityApi(
           if(isFromCheckIn ?? false){
             callCheckInFunction(position);
           }else{
-            PreferenceHelper.setDouble(
-                PreferenceHelper.LAST_LAT, position.latitude ?? 0);
-            PreferenceHelper.setDouble(
-                PreferenceHelper.LAST_LONG, position.longitude ?? 0);
+
             print("day start 200");
             // PreferenceHelper.setInt(PreferenceHelper.DAY_START_DAY_END_ID,
             //     addDayStartDayEndModel?.data?.dayStartDayEndId ?? 0);
-            PreferenceHelper.setString(
-                PreferenceHelper.LAST_ADD_ROUTE_DATETIME, DateTime.now().toString());
-            PreferenceHelper.setString(
-                PreferenceHelper.LAST_DAY_START_DATETIME,
-                AppUtils.dateFormat(
-                    dateFormat: "yyyy-MM-dd 23:59:59", date: DateTime.now()));
+            // PreferenceHelper.setString(
+            //     PreferenceHelper.LAST_ADD_ROUTE_DATETIME, DateTime.now().toString());
+            // PreferenceHelper.setString(
+            //     PreferenceHelper.LAST_DAY_START_DATETIME,
+            //     AppUtils.dateFormat(
+            //         dateFormat: "yyyy-MM-dd 23:59:59", date: DateTime.now()));
+
             callLoginFunction(position);
           }
         }
@@ -405,30 +410,57 @@ PanelController panelController = PanelController();
 
 
   }
+  Future<void> checkInFunction() async {
+    try {
+      if (await service.isRunning()) {
 
-  Future checkInFunction() async {
-    // bool isLocationServiceAvailable =
-    // await AppUtils.checkLocationServiceAvailability();
-    try{
+         service.invoke("stopService");
+
+
+        await Future.delayed(const Duration(milliseconds: 300)); // Adjust the duration as needed
+
+
+        await service.startService();
+      }
 
       PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
       isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
-
-    }catch(e){
-      print("try_again_later");
+    } catch (e) {
+      print("Error: $e");
     }
-
-
-    // if (isLocationServiceAvailable) {
-    //   try {
-    //     Position position = await Geolocator.getCurrentPosition(
-    //         desiredAccuracy: LocationAccuracy.medium);
-    //     return position;
-    //   } catch (e) {
-    //     print("Catch at DayStart${e}");
-    //   }
-    // }
   }
+
+
+  // Future checkInFunction() async {
+  //   // bool isLocationServiceAvailable =
+  //   // await AppUtils.checkLocationServiceAvailability();
+  //   try{
+  //
+  //       service.invoke("stopService");
+  //       // PreferenceHelper.setBool(PreferenceHelper.ISWAITING, false);
+  //       PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
+  //       isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+  //       await service.startService();
+  //
+  //
+  //
+  //
+  //
+  //   }catch(e){
+  //     print("try_again_later");
+  //   }
+  //
+  //
+  //   // if (isLocationServiceAvailable) {
+  //   //   try {
+  //   //     Position position = await Geolocator.getCurrentPosition(
+  //   //         desiredAccuracy: LocationAccuracy.medium);
+  //   //     return position;
+  //   //   } catch (e) {
+  //   //     print("Catch at DayStart${e}");
+  //   //   }
+  //   // }
+  // }
 
   Future checkOutFunction() async {
     bool isLocationServiceAvailable =

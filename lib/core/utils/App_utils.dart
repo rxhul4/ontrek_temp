@@ -155,7 +155,7 @@ class AppUtils {
                           shape: BoxShape.circle,
                           color: backgroundColor ?? Colors.grey.withOpacity(0.5),
                           border: Border.all(color: Colors.red, width: 1.2),
-
+                      
                         ),
                         child: AppUtils.commonNetworkImageWidget(path: leadingImage ?? "",boxFit: BoxFit.cover,),
                       ),
@@ -180,8 +180,8 @@ class AppUtils {
                           ),
                         ],
                       ),
-
-
+            
+            
                     ],
                   ),
                   Row(

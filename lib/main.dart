@@ -7,6 +7,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
@@ -62,6 +63,7 @@ List<SingleChildWidget> providers = [
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   PreferenceHelper.load().then((value) {
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     runApp(MultiProvider(providers: providers, child: const MyApp()));
   });
   await initializeService();
@@ -110,7 +112,7 @@ void onStart(ServiceInstance service) {
           );
         }
       }
-
+      PreferenceHelper.setString(PreferenceHelper.UNIVERSAL_LAST_SAVED_TIME, DateTime.now().toString());
       final connectivityResult = await Connectivity().checkConnectivity();
       var isInternetAvailable =
           connectivityResult == ConnectivityResult.mobile ||
@@ -121,12 +123,13 @@ void onStart(ServiceInstance service) {
       try {
         if (isGPSEnabled && isInternetAvailable) {
           print("BackGround Service is Running");
-          PreferenceHelper.load().then((value) {
+          PreferenceHelper.load().then((value) async{
+            bool? checkIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
             String? userId = value?.getString(PreferenceHelper.USER_UID);
             print("userId${userId}");
-
-            bool gpsBool = PreferenceHelper.getBool(PreferenceHelper.GPS_BOOL);
-            bool internetBool =
+            print("checkIn${checkIn}");
+            bool? gpsBool = PreferenceHelper.getBool(PreferenceHelper.GPS_BOOL);
+            bool? internetBool =
                 PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
 
             if (gpsBool) {
@@ -140,111 +143,101 @@ void onStart(ServiceInstance service) {
                         date: DateTime.now(),
                         dateFormat: AppConstant.dateFormat));
               }
-              // callAddDataOffHistoryApi("GPS");
+              print("is_Gps_bool $gpsBool");
+              await callInternetAndGpsActivityApi(userId: userId,isGps: true,isGpsOn: false,isInternet: false,isInternetOn: false,);
+              await callInternetAndGpsActivityApi(userId: userId,isGps: true,isGpsOn: true,isInternet: false,isInternetOn: false,);
             }
             if (internetBool) {
-              print("uuuuuuuuuuuuuuuuuuuuuu ");
-              // callAddDataOffHistoryApi("Internet");
-            }
+              print("is_internet_bool $internetBool");
+              await callInternetAndGpsActivityApi(userId: userId,isGps: false,isGpsOn: false,isInternet: true,isInternetOn: false,);
 
-            callCreateRouteHistory(userId: userId);
-            // callCreateWaitingActivityApi(userId: userId);
-          }
-          );
+              await callInternetAndGpsActivityApi(userId: userId,isGps: false,isGpsOn: false,isInternet: true,isInternetOn: true,);
+
+            }
+            await callCreateRouteHistory(userId: userId);
+          });
         } else if (isGPSEnabled && !isInternetAvailable) {
-          // print("internet is not available ");
-          // bool internetBool =
-          //     PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
-          // if (internetBool == false) {
-          //   Position positionData = await Geolocator.getCurrentPosition(
-          //       desiredAccuracy: LocationAccuracy.medium);
-          //
-          //   PreferenceHelper.setString(
-          //       PreferenceHelper.LAST_INTERNET_OFF_TIME,
-          //       AppUtils.dateFormat(
-          //           date: DateTime.now(), dateFormat: AppConstant.dateFormat));
-          //   PreferenceHelper.setDouble(
-          //       PreferenceHelper.LAST_INTERNET_OFF_LAT, positionData.latitude);
-          //   PreferenceHelper.setDouble(PreferenceHelper.LAST_INTERNET_OFF_LONG,
-          //       positionData.longitude);
-          //
-          //   PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, true);
-          // }
-          //
-          // String? lastGpsTime =
-          //     PreferenceHelper.getString(PreferenceHelper.LAST_GPS_OFF_TIME);
-          // if (lastGpsTime != "" && lastGpsTime != null) {
-          //   PreferenceHelper.setString(
-          //       PreferenceHelper.LAST_GPS_ON_TIME,
-          //       AppUtils.dateFormat(
-          //           date: DateTime.now(), dateFormat: AppConstant.dateFormat));
-          // }
+
+          print("internet is not available ");
+          bool internetBool =
+              PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
+          if (internetBool == false) {
+            Position positionData = await Geolocator.getCurrentPosition(
+                desiredAccuracy: LocationAccuracy.medium);
+            PreferenceHelper.setString(
+                PreferenceHelper.LAST_INTERNET_OFF_TIME,
+                AppUtils.dateFormat(
+                    date: DateTime.now(), dateFormat: AppConstant.dateFormat));
+
+            PreferenceHelper.setDouble(
+                PreferenceHelper.LAST_INTERNET_OFF_LAT, positionData.latitude);
+            PreferenceHelper.setDouble(PreferenceHelper.LAST_INTERNET_OFF_LONG,
+                positionData.longitude);
+            PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, true);
+          }
+
+          String? lastGpsTime =
+              PreferenceHelper.getString(PreferenceHelper.LAST_GPS_OFF_TIME);
+          if (lastGpsTime != "" && lastGpsTime != null) {
+            PreferenceHelper.setString(
+                PreferenceHelper.LAST_GPS_ON_TIME,
+                AppUtils.dateFormat(
+                    date: DateTime.now(), dateFormat: AppConstant.dateFormat));
+          }
         } else if (!isGPSEnabled && isInternetAvailable) {
-          // // internetOnTime = DateTime.now();
-          // print("gps is not available");
-          //
-          // bool gpsBool = PreferenceHelper.getBool(PreferenceHelper.GPS_BOOL);
-          // // bool internetBool =
-          // //     PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
-          // if (gpsBool == false) {
-          //   Position? positionData = await Geolocator.getLastKnownPosition();
-          //   PreferenceHelper.setString(
-          //       PreferenceHelper.LAST_GPS_OFF_TIME,
-          //       AppUtils.dateFormat(
-          //           date: DateTime.now(), dateFormat: AppConstant.dateFormat));
-          //   PreferenceHelper.setDouble(
-          //       PreferenceHelper.LAST_GPS_OFF_LAT, positionData?.latitude ?? 0);
-          //   PreferenceHelper.setDouble(PreferenceHelper.LAST_GPS_OFF_LONG,
-          //       positionData?.longitude ?? 0);
-          //   PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, true);
-          // }
-          // // if(gpsBool ){
-          // //   callAddDataOffHistoryApi("GPS");
-          // // }
-          // // if (internetBool) {
-          // //   callAddDataOffHistoryApi("Internet");
-          // // }
+          // internetOnTime = DateTime.now();
+          print("gps is not available");
+          print("call gps off data api");
+          bool gpsBool = PreferenceHelper.getBool(PreferenceHelper.GPS_BOOL);
+          if (gpsBool == false) {
+            Position? positionData = await Geolocator.getLastKnownPosition();
+            print("latLong$positionData");
+            PreferenceHelper.setString(
+                PreferenceHelper.LAST_GPS_OFF_TIME,
+                AppUtils.dateFormat(
+                    date: DateTime.now(), dateFormat: AppConstant.dateFormat));
+            PreferenceHelper.setDouble(
+                PreferenceHelper.LAST_GPS_OFF_LAT, positionData?.latitude ?? 0);
+            PreferenceHelper.setDouble(PreferenceHelper.LAST_GPS_OFF_LONG,
+                positionData?.longitude ?? 0);
+            PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, true);
+          }
         } else if (!isGPSEnabled && !isInternetAvailable) {
-          // bool gpsBool = PreferenceHelper.getBool(PreferenceHelper.GPS_BOOL);
-          // if (gpsBool == false) {
-          //   PreferenceHelper.setString(
-          //       PreferenceHelper.LAST_GPS_OFF_TIME,
-          //       AppUtils.dateFormat(
-          //           date: DateTime.now(), dateFormat: AppConstant.dateFormat));
-          //   double? lastLat =
-          //       PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-          //   double? lastLong =
-          //       PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
-          //   PreferenceHelper.setDouble(
-          //       PreferenceHelper.LAST_GPS_OFF_LAT, lastLat ?? 0);
-          //   PreferenceHelper.setDouble(
-          //       PreferenceHelper.LAST_GPS_OFF_LONG, lastLong ?? 0);
-          //
-          //   PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, true);
-          // }
-          //
-          // bool internetBool =
-          //     PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
-          // if (internetBool == false) {
-          //   PreferenceHelper.setString(
-          //       PreferenceHelper.LAST_INTERNET_OFF_TIME,
-          //       AppUtils.dateFormat(
-          //           date: DateTime.now(), dateFormat: AppConstant.dateFormat));
-          //   // Position positionData = await Geolocator.getCurrentPosition(
-          //   //     desiredAccuracy: LocationAccuracy.best);
-          //
-          //   double? lastLat =
-          //       PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-          //   double? lastLong =
-          //       PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
-          //
-          //   PreferenceHelper.setDouble(
-          //       PreferenceHelper.LAST_INTERNET_OFF_LAT, lastLat ?? 0);
-          //   PreferenceHelper.setDouble(
-          //       PreferenceHelper.LAST_INTERNET_OFF_LONG, lastLong ?? 0);
-          //
-          //   PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, true);
-          // }
+          bool gpsBool = PreferenceHelper.getBool(PreferenceHelper.GPS_BOOL);
+          if (gpsBool == false) {
+            PreferenceHelper.setString(
+                PreferenceHelper.LAST_GPS_OFF_TIME,
+                AppUtils.dateFormat(
+                    date: DateTime.now(), dateFormat: AppConstant.dateFormat));
+            double? lastLat =
+                PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+            double? lastLong =
+                PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
+            PreferenceHelper.setDouble(
+                PreferenceHelper.LAST_GPS_OFF_LAT, lastLat ?? 0);
+            PreferenceHelper.setDouble(
+                PreferenceHelper.LAST_GPS_OFF_LONG, lastLong ?? 0);
+            PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, true);
+          }
+
+          bool internetBool =
+              PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
+          if (internetBool == false) {
+            PreferenceHelper.setString(
+                PreferenceHelper.LAST_INTERNET_OFF_TIME,
+                AppUtils.dateFormat(
+                    date: DateTime.now(), dateFormat: AppConstant.dateFormat));
+            double? lastLat =
+                PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+            double? lastLong =
+                PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
+            PreferenceHelper.setDouble(
+                PreferenceHelper.LAST_GPS_OFF_LAT, lastLat ?? 0);
+            PreferenceHelper.setDouble(
+                PreferenceHelper.LAST_GPS_OFF_LONG, lastLong ?? 0);
+            PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, true);
+          }
+
           print("internet and gps is not available ");
         } else {
           print("do nothing");
@@ -283,18 +276,18 @@ callCreteRouteHistoryApi({String? userId, Position? position}) async {
     if (createRouteHistoryModel?.isError == false &&
         createRouteHistoryModel?.isValidationFailed == false) {
       bool isWaiting = PreferenceHelper.getBool(PreferenceHelper.ISWAITING);
-      if(isWaiting == true){
-
-      }else{
-        PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
+      if (isWaiting == true) {
+      } else {
+        PreferenceHelper.setString(
+            PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
       }
 
       PreferenceHelper.setDouble(
           PreferenceHelper.LAST_LAT, position?.latitude ?? 0);
       PreferenceHelper.setDouble(
           PreferenceHelper.LAST_LONG, position?.longitude ?? 0);
-      PreferenceHelper.setString(
-          PreferenceHelper.LAST_ADD_ROUTE_DATETIME, DateTime.now().toString());
+      // PreferenceHelper.setString(
+      //     PreferenceHelper.LAST_ADD_ROUTE_DATETIME, DateTime.now().toString());
     }
   } catch (e) {
     print("inCatch ${createRouteHistoryModel?.message}");
@@ -302,20 +295,32 @@ callCreteRouteHistoryApi({String? userId, Position? position}) async {
   }
 }
 
-callCreateWaitingActivityApi({String? userId,bool? isWaitingEnd,Position? position}) async {
+callCreateWaitingActivityApi(
+    {String? userId, bool? isWaitingStart, Position? position}) async {
   try {
     Map<String, dynamic> body = {};
     double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
     double? lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
+    String? waitingStartTime =
+        PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
+
     body = {
       "userId": userId,
-      "lattitude": isWaitingEnd ?? false ? position?.latitude : lastLat,
-      "longitude":isWaitingEnd ?? false ? position?.longitude : lastLong,
-      "totTrackingEventId": isWaitingEnd ?? false ? AppConstant.trackingWaitingStopEvent : AppConstant.trackingWaitingStartEvent,
-      "eventDate": AppUtils.dateFormat(
-          date: DateTime.now(), dateFormat: AppConstant.dateFormat),
-      "eventTime": AppUtils.dateFormat(
-          date: DateTime.now(), dateFormat: AppConstant.dateFormat),
+      "lattitude": isWaitingStart ?? false ? lastLat : position?.latitude,
+      "longitude": isWaitingStart ?? false ? lastLong : position?.longitude,
+      "totTrackingEventId": isWaitingStart ?? false
+          ? AppConstant.trackingWaitingStartEvent
+          : AppConstant.trackingWaitingStopEvent,
+      "eventDate": isWaitingStart ?? false
+          ? AppUtils.getDate(
+              date: waitingStartTime ?? "", format: AppConstant.dateFormat)
+          : AppUtils.getDate(
+              date: DateTime.now().toString(), format: AppConstant.dateFormat),
+      "eventTime": isWaitingStart ?? false
+          ? AppUtils.getDate(
+              date: waitingStartTime ?? "", format: AppConstant.dateFormat)
+          : AppUtils.getDate(
+              date: DateTime.now().toString(), format: AppConstant.dateFormat),
       "batteryLevel": 50,
       "trackingAddress": "Business Hub",
       "activityStatus": null
@@ -324,9 +329,14 @@ callCreateWaitingActivityApi({String? userId,bool? isWaitingEnd,Position? positi
     String endPoint = ApiConstants.createActivity;
     var response = await callPostMethod(endPoint, body);
     createActivityModel = CreateActivityModel?.fromJson(json.decode(response));
-    if (createActivityModel?.isError == false && createActivityModel?.isValidationFailed == false) {
-      PreferenceHelper.setBool(PreferenceHelper.CHECK_END_TIME, false);
-      isWaitingEnd  ?? false ? PreferenceHelper.setBool(PreferenceHelper.ISWAITING, false ):PreferenceHelper.setBool(PreferenceHelper.ISWAITING, true);
+    if (createActivityModel?.isError == false &&
+        createActivityModel?.isValidationFailed == false) {
+      isWaitingStart ?? false
+          ? PreferenceHelper.setBool(PreferenceHelper.ISWAITING, true)
+          : PreferenceHelper.setBool(PreferenceHelper.ISWAITING, false);
+
+      bool isWaiting = PreferenceHelper.getBool(PreferenceHelper.ISWAITING);
+      print("getData$isWaiting");
     }
     print("response at main : $response");
   } catch (e) {
@@ -334,77 +344,151 @@ callCreateWaitingActivityApi({String? userId,bool? isWaitingEnd,Position? positi
   }
 }
 
+callInternetAndGpsActivityApi(
+    {bool? isInternet,
+    bool? isGps,
+    String? userId,
+    bool? isInternetOn,
+    bool? isGpsOn}) async {
+  String? lastInternetOffTime =
+      PreferenceHelper.getString(PreferenceHelper.UNIVERSAL_LAST_SAVED_TIME);
+  String? lastGpsOffTime =
+      PreferenceHelper.getString(PreferenceHelper.UNIVERSAL_LAST_SAVED_TIME);
+
+  double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+  double? lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
+
+  Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.best);
+print("innnnnnnnnnnnnnn");
+  Map<String, dynamic> body = {};
+
+  if (isInternet == true) {
+    print("innnnnnnnnnnnnnn2");
+    body = {
+      "userId": userId,
+      "lattitude": isInternetOn ?? false ? position.latitude : lastLat,
+      "longitude": isInternetOn ?? false ? position.longitude : lastLong,
+      "totTrackingEventId": isInternetOn ?? false
+          ? AppConstant.internetOnEvent
+          : AppConstant.internetOffEvent,
+      "eventDate": isInternetOn ?? false
+          ? AppUtils.getDate(
+              date: DateTime.now().toString(), format: AppConstant.dateFormat)
+          : AppUtils.getDate(
+              date: lastInternetOffTime ?? "", format: AppConstant.dateFormat),
+      "eventTime": isInternetOn ?? false
+          ? AppUtils.getDate(
+              date: DateTime.now().toString(), format: AppConstant.dateFormat)
+          : AppUtils.getDate(
+              date: lastInternetOffTime ?? "", format: AppConstant.dateFormat),
+      "batteryLevel": 50,
+      "trackingAddress": "Business Hub",
+      "activityStatus": null
+    };
+  }
+
+  if (isGps == true) {
+    body = {
+      "userId": userId,
+      "lattitude": isGpsOn ?? false ? position.latitude : lastLat,
+      "longitude": isGpsOn ?? false ? position.longitude : lastLong,
+      "totTrackingEventId":
+          isGpsOn ?? false ? AppConstant.gpsOnEvent : AppConstant.gpsOffEvent,
+      "eventDate": isGpsOn ?? false
+          ? AppUtils.getDate(
+              date: DateTime.now().toString(), format: AppConstant.dateFormat)
+          : AppUtils.getDate(
+              date: lastGpsOffTime ?? "", format: AppConstant.dateFormat),
+      "eventTime": isGpsOn ?? false
+          ? AppUtils.getDate(
+              date: DateTime.now().toString(), format: AppConstant.dateFormat)
+          : AppUtils.getDate(
+              date: lastGpsOffTime ?? "", format: AppConstant.dateFormat),
+      "batteryLevel": 50,
+      "trackingAddress": "Business Hub",
+      "activityStatus": null
+    };
+
+  }
+
+  try {
+    String endPoint = ApiConstants.createActivity;
+    var response = await callPostMethod(endPoint, body);
+    createActivityModel = CreateActivityModel?.fromJson(json.decode(response));
+    if(createActivityModel?.isError == false && createActivityModel?.isValidationFailed == false){
+      if(isInternet ?? false){
+        PreferenceHelper.remove(PreferenceHelper.UNIVERSAL_LAST_SAVED_TIME);
+        PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, false);
+      }else{
+        PreferenceHelper.remove(PreferenceHelper.LAST_GPS_OFF_TIME);
+        PreferenceHelper.remove(PreferenceHelper.LAST_GPS_ON_TIME);
+        PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, false);
+      }
+    }else{
+
+    }
+  } catch (e) {
+    print("catch at dataOffHistory$e");
+
+  }
+}
+
 callCreateRouteHistory({String? userId}) async {
-
-
   Position position;
   double distance = 51;
+  bool isWaiting = PreferenceHelper.getBool(PreferenceHelper.ISWAITING);
   try {
     print("start testing");
-    position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
-    double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-    double? lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
-
-    distance = Geolocator.distanceBetween(lastLat ?? 0, lastLong ?? 0,
-        position.latitude, position.longitude); // distance in meter
-    print("distance-- ${distance}");
-  } catch (e) {
     position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.best);
-    print("catch at get latLong pref $e");
-  }
-  if ((distance) > 50) {
-    bool isWaiting = PreferenceHelper.getBool(PreferenceHelper.ISWAITING);
-    if(isWaiting == true){
-      callCreateWaitingActivityApi(userId: userId,isWaitingEnd: true,position: position);
-    }
-    callCreteRouteHistoryApi(userId: userId, position: position);
-  } else {
-    PreferenceHelper.load().then((value) {
-      bool? isCheckIn = value?.getBool(PreferenceHelper.checkIn);
-      print("isCheckIn : $isCheckIn");
-      if (isCheckIn == true) {
+    double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+    double? lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
+    distance = Geolocator.distanceBetween(lastLat ?? 0, lastLong ?? 0,
+        position.latitude, position.longitude); // distance in meter
+    print("distance-- $distance");
 
+    if ((distance) > 50) {
+      if (isWaiting) {
+        callCreateWaitingActivityApi(
+            userId: userId, position: position, isWaitingStart: false);
       }
-      else{
-        bool isWaiting = PreferenceHelper.getBool(PreferenceHelper.ISWAITING);
-        if (kDebugMode) {
-          // print("checkEndTime??? $checkEndTime");
-          print("isWaiting??? $isWaiting");
-        }
-        if (isWaiting == false) {
-          String? waitingStartTime = PreferenceHelper.getString(
-              PreferenceHelper.WAITING_START_TIME);
-          print("waiting_seconds_${DateTime
-              .now()
-              .difference(DateTime.parse(waitingStartTime ?? ' '))
-              .inSeconds}");
-          print("waiting_seconds_condition ${DateTime
-              .now()
-              .difference(DateTime.parse(waitingStartTime ?? ' '))
-              .inSeconds > 30}");
-          if (DateTime
-              .now()
-              .difference(DateTime.parse(waitingStartTime ?? ' '))
-              .inSeconds > 30) {
-            print("after 30 seconds");
-            callCreateWaitingActivityApi(
-                userId: userId, position: position, isWaitingEnd: false);
+      callCreteRouteHistoryApi(userId: userId, position: position);
+    } else {
+      bool checkIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+      if (checkIn) {
+        print("checkin________$checkIn");
+      } else {
+        String? waitingStartTime =
+            PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
+        print("waitingStartTime_________$waitingStartTime");
+        if (waitingStartTime != null) {
+          print("waiting_________$isWaiting");
+
+          if (!isWaiting) {
+            print("isWaiting__________$isWaiting");
+            if (DateTime.now()
+                    .difference(DateTime.parse(waitingStartTime ?? ''))
+                    .inSeconds >
+                30) {
+              print(
+                  "data${DateTime.now().difference(DateTime.parse(waitingStartTime ?? '')).inSeconds}");
+              callCreateWaitingActivityApi(
+                  userId: userId, position: position, isWaitingStart: true);
+            } else {
+              print("not===30 second");
+            }
           }
-        }
-        else {
-          bool checkEndTime = PreferenceHelper.getBool(
-              PreferenceHelper.CHECK_END_TIME);
-          if (checkEndTime == true) {
-            PreferenceHelper.setString(PreferenceHelper.LAST_ADD_ROUTE_DATETIME,
-                DateTime.now().toString());
-          }
+        } else {
           PreferenceHelper.setString(
               PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
         }
       }
-    });
-
+    }
+  } catch (e) {
+    position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.best);
+    print("catch at get latLong pref $e");
   }
 }
 

@@ -34,6 +34,7 @@ class _TaskListScreenState extends State<TaskListScreen>
   void initState() {
     // TODO: implement initState
     super.initState();
+    selectedDate = DateTime.now();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       panelController.animatePanelToSnapPoint(
           duration: Duration(milliseconds: 0));

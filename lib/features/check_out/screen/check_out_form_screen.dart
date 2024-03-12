@@ -5,6 +5,7 @@ import 'package:battery_plus/battery_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -49,6 +50,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
   GetTotByGroupTypeModel? getTotByGroupTypeModel;
   int selectedRadio = 1;
   String? totType;
+  FlutterBackgroundService service = FlutterBackgroundService();
 
   checkBiometricAvailable() async {
     isBiometricAvailable = await _localAuthentication.canCheckBiometrics;
@@ -133,15 +135,31 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
         .then((value) {
       createActivityModel = value;
       if (createActivityModel?.isError == false &&
-          createActivityModel?.isValidationFailed == false) {
-        PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-        Navigator.pop(context);
+          createActivityModel?.isValidationFailed == false){
+        checkOutFunction();
       } else {
         print("day start not 200");
         openDialogFnc(createActivityModel?.message.toString() ?? "");
       }
     });
   }
+
+
+  checkOutFunction()async{
+    if (await service.isRunning()) {
+    // If service is running, stop it
+    service.invoke("stopService");
+
+    // Wait for 1 or 2 seconds before starting the service again
+    await Future.delayed(const Duration(milliseconds: 300)); // Adjust the duration as needed
+
+    // Start the service
+    await service.startService();
+    }
+    PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+    Navigator.pop(context);
+  }
+
 
   doLocalVerification(
       {required Function() afterSuccessfulVerificationFnc}) async {
