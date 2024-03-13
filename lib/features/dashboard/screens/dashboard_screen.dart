@@ -13,6 +13,7 @@ import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/features/attendance/screen/attendance_screen.dart';
 import 'package:ontrek/features/dashboard/provider/dashboard_provider.dart';
+import 'package:ontrek/features/leads/screen/lead_screen.dart';
 import 'package:ontrek/features/profile/screen/profile_screen.dart';
 import 'package:ontrek/features/task_list/screen/task_list_screen.dart';
 import 'package:ontrek/features/track_function/screen/track_screen.dart';
@@ -30,19 +31,8 @@ class DashBoardState extends State<DashBoard> {
 
 
 
-  List<String> iconString = [
-    attendanceIconPath,
-    trackingIconPath,
-    taskIconPath,
-    profileIconPath
-  ];
 
-  List<IconData> iconData = [
-    Icons.location_history_sharp,
-    Icons.track_changes_outlined,
-    Icons.task,
-    Icons.person,
-  ];
+
 
   // Future<void> getCurrentLocation() async {
   //   print("innnnnnnnnnnnn");
@@ -104,7 +94,15 @@ class DashBoardState extends State<DashBoard> {
     "Attendance",
     "Track",
     "Tasks",
+    "Leads",
     "Profile",
+  ];
+  List<String> iconString = [
+    attendanceIconPath,
+    trackingIconPath,
+    taskIconPath,
+    leadIconPath,
+    profileIconPath,
   ];
 
   @override
@@ -115,26 +113,7 @@ class DashBoardState extends State<DashBoard> {
       dashBoardProvider.checkPermission();
     });
 
-    // calculateSize();
   }
-
-
-  // void calculateSize() =>
-  //     WidgetsBinding.instance?.addPersistentFrameCallback((_) {
-  //       _size = _key.currentContext?.size;
-  //     });
-
-  // Future checkPermission(DashBoardProvider dashBoardProvider) async {
-  //   final status = await Permission.location.status;
-  //   if (status.isDenied) {
-  //     await Permission.location.request();
-  //   } else if (status.isPermanentlyDenied) {
-  //     AppSettings.openAppSettings(type: AppSettingsType.location);
-  //   } else {
-  //     await dashBoardProvider.getCurrentLocation();
-  //   }
-  // }
-
 
 
   @override
@@ -164,12 +143,10 @@ class DashBoardState extends State<DashBoard> {
               AttendanceScreen(onLocationFetch: (value) {
                 if (!mounted) {}
                 dashBoardProvider.getLocationFromSheet(position:  value);
-                  // dashBoardProvider.currentLocation = LatLng(value.latitude, value.longitude);
-
-                // dashBoardProvider.getFetchedLocation(dashBoardProvider.currentLocation);
               }),
               TrackScreen(),
               TaskListScreen(),
+              LeadScreen(),
               ProfileScreen(),
             ][dashBoardProvider.selectedIndex],
           ],
@@ -189,7 +166,8 @@ class DashBoardState extends State<DashBoard> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
-            children: List.generate(iconData.length, (index) {
+            children: List.generate(
+                lableString.length, (index) {
               return Expanded(
                 child: GestureDetector(
                   onTap: () {
@@ -197,15 +175,12 @@ class DashBoardState extends State<DashBoard> {
                     // dashBoardProvider.getCurrentLocation();
                     if(!mounted){}
                     dashBoardProvider.selectIndex(index);
-                    print("selected----${dashBoardProvider.selectedIndex}&& ${index}");
+                    print("selected----${dashBoardProvider.selectedIndex}&& $index");
                   },
                   child: AnimatedContainer(
-                  
-                    // padding: AppUtils.edgeInsetsOnly(left: 15, right: 15),
                     duration: const Duration(milliseconds: 300),
                     alignment: Alignment.center,
                     height: 60,
-                    // width: 100,
                     color: Colors.white,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -242,11 +217,4 @@ class DashBoardState extends State<DashBoard> {
     );
   }
 
-  final List<IconData> icons = const [
-    Icons.message,
-    Icons.call,
-    Icons.mail,
-    Icons.notifications,
-    Icons.settings,
-  ];
 }

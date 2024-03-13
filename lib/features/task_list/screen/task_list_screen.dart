@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
+import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/features/add_task/screen/add_task_screen.dart';
 import 'package:ontrek/features/task_list/model/task_model.dart';
 import 'package:ontrek/features/task_list/provider/task_provider.dart';
@@ -98,7 +99,7 @@ class _TaskListScreenState extends State<TaskListScreen>
                 subTitle: "Select a Task",
                 backgroundColor: AppConstant.whiteColor,
                 leadingImage:
-                    "https://media.istockphoto.com/id/1256489977/vector/tasks-check-checklist-blue-icon.jpg?s=612x612&w=0&k=20&c=dUctYWRSmMz1uiSFCCcJUKOyeoxVbvPuLugf8CLQiSo="),
+                    taskIconPath),
             AppUtils.commonContainer(
               height: 30,
               margin: EdgeInsets.only(top: 20, left: 30, right: 30, bottom: 20),
@@ -287,10 +288,11 @@ class _TaskListScreenState extends State<TaskListScreen>
                 color: AppConstant.whiteColor,
                 boxShadow: [
                   BoxShadow(
-                      color: AppConstant.greyColor.withOpacity(0.5),
-                      blurRadius: 3,
+                      color: AppConstant.greyColor.withOpacity(0.2),
+                      blurRadius: 8,
                       blurStyle: BlurStyle.solid,
-                      spreadRadius: 0.05),
+                      spreadRadius: 0.1
+                  ),
                 ]),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -418,10 +420,11 @@ class _TaskListScreenState extends State<TaskListScreen>
                 color: AppConstant.whiteColor,
                 boxShadow: [
                   BoxShadow(
-                      color: AppConstant.greyColor.withOpacity(0.5),
-                      blurRadius: 3,
+                      color: AppConstant.greyColor.withOpacity(0.2),
+                      blurRadius: 8,
                       blurStyle: BlurStyle.solid,
-                      spreadRadius: 0.05),
+                      spreadRadius: 0.1
+                  ),
                 ]),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

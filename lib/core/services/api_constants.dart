@@ -17,6 +17,9 @@ class ApiConstants{
 
    //totapi
    static const String getTotByGroupType = "http://ontrek_v1api.epistic.net/Super/Tot/GetTotByGroupType";
+   //lead
+   static const String getAllLeads = "$baseUrl/Super/Lead/GetAll";
+
 
 
 }

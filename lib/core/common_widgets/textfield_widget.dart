@@ -71,6 +71,8 @@ class AppTextField extends StatelessWidget {
       onTap: onTap,
       autofocus: false,
 
+
+
       onEditingComplete: onEditingComplete,
       onTapOutside: onTapOutside,
       style: TextStyle(
@@ -81,7 +83,7 @@ class AppTextField extends StatelessWidget {
         fontFamily:fontFamily ?? "Poppins",
       ),
       keyboardType: textInputType ?? TextInputType.text,
-      cursorColor:  cursorColor ?? AppConstant.primaryColor,
+      cursorColor:  cursorColor ?? AppConstant.appPrimaryColor,
       maxLines: maxLines ?? 1,
       decoration: InputDecoration(
         prefixIcon: prefixIcon,

@@ -12,6 +12,7 @@ import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/features/attendance/model/add_activity_model.dart';
 import 'package:ontrek/features/attendance/provider/attendance_provider.dart';
 
@@ -223,7 +224,7 @@ PanelController panelController = PanelController();
                 ],
               ),
             ),
-            AppUtils.buildHeader(height: height,width: width,title: "Vatsal",subTitle: "Epistic interiour Pvt Ltd",),
+            AppUtils.buildHeader(height: height,width: width,title: "Vatsal",subTitle: "Epistic interiour Pvt Ltd",leadingImage: profileImage,borderColor: Colors.red,iconColor: AppConstant.appPrimaryColor,backgroundColor: Colors.white),
 
 
 

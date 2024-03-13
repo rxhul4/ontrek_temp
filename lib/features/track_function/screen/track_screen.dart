@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:ontrek/core/common_widgets/textfield_widget.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
+import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/features/salesman_tracker/local_model.dart';
 import 'package:ontrek/features/salesman_tracker/screen/salesman_tracker.dart';
 import 'package:ontrek/features/track_function/model/salemen_list_model.dart';
@@ -90,6 +91,7 @@ class _TrackScreenState extends State<TrackScreen>
             AppUtils.buildHeader(
                 height: height,
                 width: width,
+
                 actionWidget: [
                   commonIconWidget(
                     iconData: Icons.search,
@@ -114,7 +116,7 @@ class _TrackScreenState extends State<TrackScreen>
                 subTitle: "Select a user to Locate",
                 backgroundColor: AppConstant.whiteColor,
                 leadingImage:
-                    "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Location_icon_from_Noun_Project.png/640px-Location_icon_from_Noun_Project.png"),
+                    trackingIconPath ),
             salesMenListProvider.isSearchVisible
                 ? searchWidget(salesMenListProvider)
                 : SizedBox(),

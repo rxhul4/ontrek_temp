@@ -12,7 +12,6 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AppUtils {
-
   static Future<void> launchToBrowser(Uri url) async {
     if (!await launchUrl(
       url,
@@ -22,7 +21,34 @@ class AppUtils {
     }
   }
 
+  static PreferredSizeWidget? commonAppBar(
+      {required BuildContext context, String? title, Color? textColor}){
+    return AppBar(
 
+      surfaceTintColor: AppConstant.transparentColor,
+      backgroundColor: Colors.white,
+      elevation: 0,
+      leading: InkWell(
+          onTap: () {
+            Navigator.pop(context!);
+          },
+          child: Icon(Icons.arrow_back_ios_new,color: AppConstant.blackColor.withOpacity(0.7),size: 24,)),
+      title: AppUtils.commonTextWidget(text: title ?? "",textColor: textColor ?? AppConstant.blackColor.withOpacity(0.7),fontSize: 16,fontWeight: FontWeight.w500 ),
+      centerTitle: true,
+      bottom: PreferredSize(
+        preferredSize: Size.zero,
+        child: AppUtils.commonContainer(
+            decoration: AppUtils.commonBoxDecoration(
+                border: Border(
+                    bottom: BorderSide(color: AppConstant.blackColor.withOpacity(0.4),width: 0.3)
+                )
+            )
+
+        ),
+      ),
+
+    );
+  }
 
   // static getAddress(double lat ,double long) async {
   //   const String googelApiKey = 'AIzaSyBtIPj5XDL4wiGpUaiXrYfTyWLDLlyvgbs';
@@ -36,8 +62,6 @@ class AppUtils {
   //   return reversedSearchResults;
   // }
 
-
-
   static bool validateEmail(String value) {
     Pattern pattern =
         r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
@@ -45,17 +69,16 @@ class AppUtils {
     return regex.hasMatch(value);
   }
 
-
   static Widget commonNetworkImageWidget(
       {String? path,
-        double? width,
-        double? height,
-        Alignment? alignment,
-        Color? iconColor,
-        Color? loaderBackgroundColor,
-        Color? loaderColor,
-        // BaseCacheManager? cacheManager,
-        BoxFit? boxFit}) {
+      double? width,
+      double? height,
+      Alignment? alignment,
+      Color? iconColor,
+      Color? loaderBackgroundColor,
+      Color? loaderColor,
+      // BaseCacheManager? cacheManager,
+      BoxFit? boxFit}) {
     // DefaultCacheManager cm = DefaultCacheManager();
     // cm.emptyCache();
     return /*CachedNetworkImage(
@@ -85,36 +108,65 @@ class AppUtils {
       color: iconColor,
       fit: boxFit ?? BoxFit.cover,
     ) */
-      Image.network(
-        path ?? "",
-        width: width,
-        loadingBuilder: ((context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Container(
+        Image.asset(
+      path ?? "",
+
+      width: width,
+      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+        if (wasSynchronouslyLoaded == true) return child;
+        return Container(
             // padding: EdgeInsets.all(AppConstants.twenty),
-              decoration: AppUtils.containerDecoration(
-                // radius: 14,
-                borderWidth: 0,
-                borderColor: Colors.transparent,
-                color: loaderBackgroundColor ??
-                    AppConstant.whiteColor.withOpacity(0.70),
+            decoration: AppUtils.containerDecoration(
+              // radius: 14,
+              borderWidth: 0,
+              borderColor: Colors.transparent,
+              color: loaderBackgroundColor ??
+                  AppConstant.whiteColor.withOpacity(0.70),
+            ),
+            child: Center(
+              child: CircularProgressIndicator(
+                color: loaderColor ?? AppConstant.appPrimaryColor,
+                strokeWidth: 1.0,
               ),
-              child: Center(
-                child: CircularProgressIndicator(
-                  color: loaderColor ?? AppConstant.appPrimaryColor,
-                  strokeWidth: 1.0,
-                ),
-              ));
-        }),
-        errorBuilder: (context, error, stackTrace) => Icon(Icons.person),
-        height: height,
-        // alignment: alignment ?? Alignment.center,
-        color: iconColor,
-        fit: boxFit ?? BoxFit.cover,
-      );
+            ));
+      },
+      // loadingBuilder: ((context, child, loadingProgress) {
+      //   if (loadingProgress == null) return child;
+      //   return Container(
+      //     // padding: EdgeInsets.all(AppConstants.twenty),
+      //       decoration: AppUtils.containerDecoration(
+      //         // radius: 14,
+      //         borderWidth: 0,
+      //         borderColor: Colors.transparent,
+      //         color: loaderBackgroundColor ??
+      //             AppConstant.whiteColor.withOpacity(0.70),
+      //       ),
+      //       child: Center(
+      //         child: CircularProgressIndicator(
+      //           color: loaderColor ?? AppConstant.appPrimaryColor,
+      //           strokeWidth: 1.0,
+      //         ),
+      //       ));
+      // }),
+      errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.person)),
+      height: height,
+      // alignment: alignment ?? Alignment.center,
+      color: iconColor,
+      fit: boxFit ?? BoxFit.cover,
+    );
   }
 
-  static Widget buildHeader({height, width,List<Widget>? actionWidget,String? title,String? subTitle,Color? loaderColor,String? leadingImage,Color? backgroundColor}) {
+  static Widget buildHeader(
+      {height,
+      width,
+      List<Widget>? actionWidget,
+      String? title,
+      String? subTitle,
+      Color? loaderColor,
+      String? leadingImage,
+      Color? backgroundColor,
+      Color? borderColor,
+      Color? iconColor}) {
     return Container(
       alignment: Alignment.centerLeft,
       height: height * 0.09,
@@ -126,8 +178,7 @@ class AppUtils {
             color: Colors.grey.withOpacity(0.5),
           ),
         ),
-        borderRadius:
-        BorderRadius.vertical(top: Radius.circular(30)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
         color: Colors.white,
       ),
       child: Column(
@@ -135,8 +186,7 @@ class AppUtils {
         children: [
           Expanded(
             child: Padding(
-              padding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -153,11 +203,16 @@ class AppUtils {
                         width: 45,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: backgroundColor ?? Colors.grey.withOpacity(0.5),
-                          border: Border.all(color: Colors.red, width: 1.2),
-                      
+                          color:
+                              backgroundColor ?? Colors.grey.withOpacity(0.5),
+                          border: Border.all(color: borderColor ?? Colors.grey.withOpacity(0.7), width: 2),
                         ),
-                        child: AppUtils.commonNetworkImageWidget(path: leadingImage ?? "",boxFit: BoxFit.cover,),
+                        child: Center(
+                          child: AppUtils.commonNetworkImageWidget(
+                              path: leadingImage ?? "",
+                              boxFit: BoxFit.cover,
+                              iconColor: iconColor ?? AppConstant.appPrimaryColor,height: 25,width: 25),
+                        ),
                       ),
                       // AppUtils.commonSizedBox(width: 10),
                       Column(
@@ -166,26 +221,23 @@ class AppUtils {
                         children: [
                           AppUtils.commonTextWidget(
                             text: title ?? "",
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w500,
                             textColor: Colors.black,
-                            letterSpacing: 0.2,
-                            fontSize: 15,
+                            letterSpacing: 0.3,
+                            fontSize: 14,
                           ),
                           AppUtils.commonTextWidget(
                             text: subTitle ?? "",
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w400,
                             textColor: Colors.grey.withOpacity(0.7),
-                            letterSpacing: 0.1,
-                            fontSize: 13,
+                            letterSpacing: 0.0,
+                            fontSize: 12,
                           ),
                         ],
                       ),
-            
-            
                     ],
                   ),
-                  Row(
-                      children: actionWidget ?? []),
+                  Row(children: actionWidget ?? []),
                 ],
               ),
             ),
@@ -195,23 +247,22 @@ class AppUtils {
       ),
     );
   }
+
   static Widget commonSlidePanel({
     double? maxHeight,
     double? minHeight,
     bool? isDraggable,
     bool? panelSnapping,
-    PanelController?  controller,
+    PanelController? controller,
     Widget? panel,
     double? snapPoint,
     Widget Function(ScrollController)? panelBuilder,
     Function()? onPanelClosed,
     Function()? onPanelOpened,
     Function(double)? onPanelSlide,
-
-
-  }){
+  }) {
     return Animate(
-      effects: const  [
+      effects: const [
         SlideEffect(
             end: Offset(0, 0),
             curve: Curves.decelerate,
@@ -222,7 +273,7 @@ class AppUtils {
         onPanelSlide: onPanelSlide,
         maxHeight: maxHeight ?? 1.0,
         minHeight: minHeight ?? 0.08,
-        panelSnapping: panelSnapping ??  true,
+        panelSnapping: panelSnapping ?? true,
         panelBuilder: panelBuilder,
         defaultPanelState: PanelState.OPEN,
         isDraggable: isDraggable ?? true,
@@ -234,9 +285,7 @@ class AppUtils {
         snapPoint: snapPoint,
       ),
     );
-
   }
-
 
   static BoxDecoration containerDecoration({
     double radius = 13,
@@ -244,50 +293,53 @@ class AppUtils {
     double radiusBottomLeft = 0,
     double radiusTopRight = 0,
     double radiusBottomRight = 0,
-    Color? color ,
+    Color? color,
     bool isBoxShadow = false,
     bool isShowBorder = false,
     bool isTopLeftRight = false,
-    Color? borderColor ,
+    Color? borderColor,
     // BoxShape boxShape = BoxShape.circle,
     double borderWidth = 1,
   }) {
     return BoxDecoration(
       borderRadius: isTopLeftRight
           ? circularTopLeftRightBorderRadius(
-        radiusTopLeft,
-        radiusBottomLeft,
-        radiusTopRight,
-        radiusBottomRight,
-      )
+              radiusTopLeft,
+              radiusBottomLeft,
+              radiusTopRight,
+              radiusBottomRight,
+            )
           : circularBorderRadius(
-        radius,
-      ),
+              radius,
+            ),
       // shape: boxShape,
       border: Border.all(
         width: isShowBorder ? borderWidth : 0,
-        color: isShowBorder ? borderColor ?? AppConstant.transparentColor : AppConstant.transparentColor,
+        color: isShowBorder
+            ? borderColor ?? AppConstant.transparentColor
+            : AppConstant.transparentColor,
       ),
       color: color,
       boxShadow: isBoxShadow
           ? [
-        BoxShadow(
-          color: borderColor ?? AppConstant.transparentColor,
-          offset: Offset(0, 2),
-          blurRadius:5,
-          spreadRadius: 2,
-        ),
-      ]
+              BoxShadow(
+                color: borderColor ?? AppConstant.transparentColor,
+                offset: Offset(0, 2),
+                blurRadius: 5,
+                spreadRadius: 2,
+              ),
+            ]
           : [],
     );
   }
+
   static circularBorderRadius(double radius) {
     return BorderRadius.circular(
       radius,
     );
   }
 
-  static appTextStyle(){
+  static appTextStyle() {
     return TextStyle(
       fontSize: 14,
       color: AppConstant.appPrimaryColor,
@@ -297,11 +349,11 @@ class AppUtils {
   }
 
   static circularTopLeftRightBorderRadius(
-      double radiusTopLeft,
-      double radiusBottomLeft,
-      double radiusTopRight,
-      double radiusBottomRight,
-      ) {
+    double radiusTopLeft,
+    double radiusBottomLeft,
+    double radiusTopRight,
+    double radiusBottomRight,
+  ) {
     return BorderRadius.only(
       topLeft: circularRadius(
         radiusTopLeft,
@@ -324,21 +376,18 @@ class AppUtils {
     );
   }
 
-
-
-  static Widget commonTextWidget({
-    required String text,
-    Color? textColor,
-    double? fontSize,
-    double? letterSpacing,
-    FontWeight? fontWeight,
-    double? height,
-    String? fontFamily,
-    TextAlign? textAlign,
-    EdgeInsets? margin,
-    TextDecoration? decoration,
-    TextOverflow? overflow
-  }) {
+  static Widget commonTextWidget(
+      {required String text,
+      Color? textColor,
+      double? fontSize,
+      double? letterSpacing,
+      FontWeight? fontWeight,
+      double? height,
+      String? fontFamily,
+      TextAlign? textAlign,
+      EdgeInsets? margin,
+      TextDecoration? decoration,
+      TextOverflow? overflow}) {
     return Text(
       textAlign: textAlign,
       text,
@@ -347,7 +396,7 @@ class AppUtils {
         decoration: decoration,
         color: textColor ?? Colors.white,
         fontSize: fontSize ?? 14,
-        letterSpacing: letterSpacing ??0.2 ,
+        letterSpacing: letterSpacing ?? 0.2,
         fontWeight: fontWeight,
         height: height,
         fontFamily: "Poppins",
@@ -355,64 +404,64 @@ class AppUtils {
     );
   }
 
-
-
-
-  static  dialogWidget(String text, BuildContext? context) {
-    return showDialog(context: context ?? navigatorKey.currentState!.context , builder: (context) {
-      return AlertDialog(
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(10))),
-        // Remove border radius
-        insetPadding: const EdgeInsets.all(40),
-        titlePadding: const EdgeInsets.all(0),
-        contentPadding:
-        const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Text(text, textAlign: TextAlign.center,),
-            AppUtils.commonTextWidget(
-                text: text,
-                textAlign: TextAlign.center,
-                textColor: AppConstant.blackColor,
-                fontWeight: FontWeight.w400),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  style: TextButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10))),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: AppUtils.commonTextWidget(
-                      text: "OK",
-                      textColor: AppConstant.appPrimaryColor,
-                      letterSpacing: 1,
-                      fontWeight: FontWeight.w600),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-    },);
+  static dialogWidget(String text, BuildContext? context) {
+    return showDialog(
+      context: context ?? navigatorKey.currentState!.context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(10))),
+          // Remove border radius
+          insetPadding: const EdgeInsets.all(40),
+          titlePadding: const EdgeInsets.all(0),
+          contentPadding:
+              const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Text(text, textAlign: TextAlign.center,),
+              AppUtils.commonTextWidget(
+                  text: text,
+                  textAlign: TextAlign.center,
+                  textColor: AppConstant.blackColor,
+                  fontWeight: FontWeight.w400),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    style: TextButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10))),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: AppUtils.commonTextWidget(
+                        text: "OK",
+                        textColor: AppConstant.appPrimaryColor,
+                        letterSpacing: 1,
+                        fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
-  static loaderWidget({Color? color,double? strokeAlign }) {
+  static loaderWidget({Color? color, double? strokeAlign}) {
     return Center(
       child: CircularProgressIndicator(
         strokeWidth: 2,
         strokeCap: StrokeCap.round,
         strokeAlign: strokeAlign ?? 0.5,
-
         color: color ?? AppConstant.appPrimaryColor,
       ),
     );
   }
+
   static Widget commonSizedBox({
     double? height,
     double? width,
@@ -429,20 +478,24 @@ class AppUtils {
     bool isInternetAvailable = false;
 
     final connectivityResult = await Connectivity().checkConnectivity();
-    isInternetAvailable = connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi;
+    isInternetAvailable = connectivityResult == ConnectivityResult.mobile ||
+        connectivityResult == ConnectivityResult.wifi;
 
     return isInternetAvailable;
   }
+
   static Future<bool> checkLocationServiceAvailability() async {
     bool isLocationServiceAvailable = false;
     isLocationServiceAvailable = await Geolocator.isLocationServiceEnabled();
     return isLocationServiceAvailable;
   }
+
   static dateFormat({
     DateTime? date,
     String? dateFormat,
-  }){
-    return DateFormat(dateFormat ?? AppConstant.dateFormat).format(date ?? DateTime.now());
+  }) {
+    return DateFormat(dateFormat ?? AppConstant.dateFormat)
+        .format(date ?? DateTime.now());
   }
 
   static EdgeInsets edgeInsetsOnly({
@@ -469,8 +522,7 @@ class AppUtils {
     return EdgeInsets.all(allPadding ?? 0);
   }
 
-
-  static String getImagePathFromApi(trackingStatus){
+  static String getImagePathFromApi(trackingStatus) {
     String imagePath = "";
     if (trackingStatus != null) {
       print("Tracking Status: $trackingStatus");
@@ -499,7 +551,8 @@ class AppUtils {
     }
     return imagePath;
   }
-  static Color getStatusColor(trackingStatus){
+
+  static Color getStatusColor(trackingStatus) {
     Color statusColor;
     if (trackingStatus != null) {
       print("Tracking Status: $trackingStatus");
@@ -529,19 +582,17 @@ class AppUtils {
     return statusColor;
   }
 
-static String switchCaseForTotType(int param){
-    String value =  "";
+  static String switchCaseForTotType(int param) {
+    String value = "";
     switch (param) {
       case 1:
-        value =
-        "visit_type_1";
+        value = "visit_type_1";
         break;
       case 2:
         value = "visit_type_2";
         break;
       case 3:
-        value =
-        "visit_type_3";
+        value = "visit_type_3";
         break;
       case 4:
         value = "visit_type_4";
@@ -550,20 +601,18 @@ static String switchCaseForTotType(int param){
         value = "visit_type_5";
         break;
       default:
-        value =
-        "";
+        value = "";
         break;
     }
-return value;
-}
+    return value;
+  }
 
-
-  static Widget commonNoDataFound({String? text,VoidCallback? onPressed}){
+  static Widget commonNoDataFound({String? text, VoidCallback? onPressed}) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         AppUtils.commonTextWidget(
-            text: text ?? "No Data Found",textColor: AppConstant.blackColor),
+            text: text ?? "No Data Found", textColor: AppConstant.blackColor),
         AppUtils.commonSizedBox(height: 10),
         AppUtils.commonElevatedBtn(
           height: 45,
@@ -622,7 +671,11 @@ return value;
     double? bottomleft,
     double? bottomright,
   }) {
-    return  BorderRadius.only(topLeft: Radius.circular(topleft ?? 0),topRight: Radius.circular(topright ?? 0),bottomLeft: Radius.circular(bottomleft ?? 0),bottomRight:  Radius.circular(bottomright ?? 0));
+    return BorderRadius.only(
+        topLeft: Radius.circular(topleft ?? 0),
+        topRight: Radius.circular(topright ?? 0),
+        bottomLeft: Radius.circular(bottomleft ?? 0),
+        bottomRight: Radius.circular(bottomright ?? 0));
   }
 
   static Widget commonInkWell({
@@ -642,7 +695,7 @@ return value;
       BoxBorder? border,
       Gradient? gradient,
       BoxShape? shape,
-        List<BoxShadow>? boxShadow,
+      List<BoxShadow>? boxShadow,
       DecorationImage? image,
       BorderRadiusGeometry? borderRadius}) {
     return BoxDecoration(
@@ -675,26 +728,25 @@ return value;
     return BorderRadius.all(Radius.circular(raduis ?? 12));
   }
 
-  static Widget commonElevatedBtn({
-    double? width,
-    Color? bgColor,
-    double? borderRadiusAll,
-    double? bottomMargin,
-    double? topMargin,
-    double? rightMargin,
-    double? leftMargin,
-    VoidCallback? onPressed,
-    String? text,
-    String? fontFamily,
-    double? fontSize,
-    double? letterSpacing,
-    double? height,
-    Gradient? gradient,
-    Color? backgroundColor,
-    double? loaderStrokeAlign,
-    Color? textColor,
-    bool? isLoading = false
-  }) {
+  static Widget commonElevatedBtn(
+      {double? width,
+      Color? bgColor,
+      double? borderRadiusAll,
+      double? bottomMargin,
+      double? topMargin,
+      double? rightMargin,
+      double? leftMargin,
+      VoidCallback? onPressed,
+      String? text,
+      String? fontFamily,
+      double? fontSize,
+      double? letterSpacing,
+      double? height,
+      Gradient? gradient,
+      Color? backgroundColor,
+      double? loaderStrokeAlign,
+      Color? textColor,
+      bool? isLoading = false}) {
     return commonContainer(
       height: height,
       width: width,
@@ -709,7 +761,7 @@ return value;
           right: rightMargin ?? 0,
           left: leftMargin ?? 0),
       child: ElevatedButton(
-        onPressed: isLoading ?? false ? (){} : onPressed,
+        onPressed: isLoading ?? false ? () {} : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor ?? Colors.transparent,
           shadowColor: Colors.transparent,
@@ -717,26 +769,29 @@ return value;
             borderRadius: BorderRadius.circular(borderRadiusAll ?? 10),
           ),
         ),
-        child: isLoading ?? false ? AppUtils.loaderWidget(color: Colors.white,strokeAlign: loaderStrokeAlign ?? -3) : commonTextWidget(
-          text: text ?? '',
-          fontFamily: fontFamily,
-          textColor:  textColor,
-          fontSize: fontSize ?? 14,
-          letterSpacing: letterSpacing,
-        ),
+        child: isLoading ?? false
+            ? AppUtils.loaderWidget(
+                color: Colors.white, strokeAlign: loaderStrokeAlign ?? -3)
+            : commonTextWidget(
+                text: text ?? '',
+                fontFamily: fontFamily,
+                textColor: textColor,
+                fontSize: fontSize ?? 14,
+                letterSpacing: letterSpacing,
+              ),
       ),
     );
   }
 
   static showSnackBarWithColor(
-      {BuildContext? context,
-      required String message,
-      Color? giveColor}) {
-    return ScaffoldMessenger.of(context ?? navigatorKey.currentState!.context).showSnackBar(
+      {BuildContext? context, required String message, Color? giveColor}) {
+    return ScaffoldMessenger.of(context ?? navigatorKey.currentState!.context)
+        .showSnackBar(
       SnackBar(
         duration: const Duration(milliseconds: 800),
-        content: AppUtils.commonTextWidget(text: message,textColor: AppConstant.whiteColor),
-        backgroundColor:giveColor ?? Colors.blue ,
+        content: AppUtils.commonTextWidget(
+            text: message, textColor: AppConstant.whiteColor),
+        backgroundColor: giveColor ?? Colors.blue,
       ),
     );
   }

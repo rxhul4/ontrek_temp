@@ -23,15 +23,13 @@ import 'package:ontrek/features/authentication/providers/auth_provider.dart';
 import 'package:ontrek/features/authentication/screens/splash_screen.dart';
 import 'package:ontrek/features/check_out/provider/check_out_form_provider.dart';
 import 'package:ontrek/features/dashboard/provider/dashboard_provider.dart';
+import 'package:ontrek/features/leads/provider/lead_provider.dart';
 import 'package:ontrek/features/salesman_tracker/provider/salesmen_tracking_timeline_provider.dart';
 import 'package:ontrek/features/task_list/provider/task_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
-import 'package:http/http.dart' as http;
-
-import 'features/authentication/screens/login_with_phone_number.dart';
 import 'features/track_function/provider/salesmen_list_provider.dart';
 
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -57,6 +55,9 @@ List<SingleChildWidget> providers = [
   ),
   ChangeNotifierProvider<DashBoardProvider>(
     create: (_) => DashBoardProvider(),
+  ),
+  ChangeNotifierProvider<LeadProvider>(
+    create: (_) => LeadProvider(),
   ),
 ];
 
