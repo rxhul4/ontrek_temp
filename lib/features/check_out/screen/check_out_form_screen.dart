@@ -108,23 +108,14 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
     dynamic position,
   }) {
     print("userUid${userUid}");
-    var dateOfDayStart = AppUtils.dateFormat(
-        date: DateTime.now(), dateFormat: AppConstant.dateFormat);
-    var timeOfDayStart = AppUtils.dateFormat(
-        date: DateTime.now(), dateFormat: AppConstant.dateFormat);
+
     postMdl
         .apiCallCreateActivity(
-            // imageFile: "image64",
-      picturePath: "image64",
-            eventTime: timeOfDayStart,
-            eventDate: dateOfDayStart,
+            picturePath: "image64",
+            isFromCheckOut: true,
             userId: userUid,
-            deviceId: androidInfo?.id,
-            deviceName: androidInfo?.brand,
             batteryLevel: batteryLevel,
             totTrackingEventCode: AppConstant.checkOutEvent,
-            trackingAddress: "dwarkesh Business Hub",
-            locAccuracy: 1,
             latitude: position.latitude,
             longitude: position.longitude,
             companyName: companyNameController.text,
@@ -135,7 +126,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
         .then((value) {
       createActivityModel = value;
       if (createActivityModel?.isError == false &&
-          createActivityModel?.isValidationFailed == false){
+          createActivityModel?.isValidationFailed == false) {
         checkOutFunction();
       } else {
         print("day start not 200");
@@ -144,22 +135,21 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
     });
   }
 
-
-  checkOutFunction()async{
+  checkOutFunction() async {
     if (await service.isRunning()) {
-    // If service is running, stop it
-    service.invoke("stopService");
+      // If service is running, stop it
+      service.invoke("stopService");
 
-    // Wait for 1 or 2 seconds before starting the service again
-    await Future.delayed(const Duration(milliseconds: 300)); // Adjust the duration as needed
+      // Wait for 1 or 2 seconds before starting the service again
+      await Future.delayed(
+          const Duration(milliseconds: 300)); // Adjust the duration as needed
 
-    // Start the service
-    await service.startService();
+      // Start the service
+      await service.startService();
     }
     PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
     Navigator.pop(context);
   }
-
 
   doLocalVerification(
       {required Function() afterSuccessfulVerificationFnc}) async {
@@ -405,7 +395,8 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                                                                 .totId ??
                                                             "";
                                                     print("totType$totType");
-                                                    print("totType$selectedRadio");
+                                                    print(
+                                                        "totType$selectedRadio");
                                                   });
                                                 },
                                                 child: Row(
@@ -430,16 +421,20 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                                                         setState(() {
                                                           selectedRadio =
                                                               getTotByGroupTypeModel
-                                                                  ?.data?[index]
-                                                                  .totSequence ??
+                                                                      ?.data?[
+                                                                          index]
+                                                                      .totSequence ??
                                                                   1;
                                                           totType =
                                                               getTotByGroupTypeModel
-                                                                  ?.data?[index]
-                                                                  .totId ??
+                                                                      ?.data?[
+                                                                          index]
+                                                                      .totId ??
                                                                   "";
-                                                          print("totType value$totType");
-                                                          print("totType value$selectedRadio");
+                                                          print(
+                                                              "totType value$totType");
+                                                          print(
+                                                              "totType value$selectedRadio");
                                                         });
                                                       },
                                                     ),
@@ -548,7 +543,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
 
       if (imageFull?.path != null) {
         final bytes = File(imageFull.path).readAsBytesSync();
-        image64 = "data:image/png;base64,"+base64Encode(bytes);
+        image64 = "data:image/png;base64," + base64Encode(bytes);
         print(image64);
         setState(() {
           _image = File(imageFull?.path ?? '');

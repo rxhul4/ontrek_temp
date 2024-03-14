@@ -107,18 +107,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> with SingleTickerPr
 callAddActivityApi(
     {required AttendanceProvider postMdl, dynamic position, String? totEventCode,bool? isFromCheckIn = false,bool? isFromLogOutBtn = false}){
     print("userUid${userId}");
-    var dateOfDayStart = AppUtils.dateFormat(date: DateTime.now(), dateFormat: AppConstant.dateFormat);
-    var timeOfDayStart = AppUtils.dateFormat(date: DateTime.now(), dateFormat: AppConstant.dateFormat);
     postMdl.apiCallCreateActivity(
-      eventTime: timeOfDayStart,
-      eventDate: dateOfDayStart,
       userId: userId,
-      deviceId: androidInfo?.id,
-      deviceName: androidInfo?.brand,
-      batteryLevel: batteryLevel,
       totTrackingEventCode: totEventCode,
-      trackingAddress: "dwarkesh Business Hub",
-      locAccuracy: 1,
+      isFromCheckOut: false,
+      batteryLevel: batteryLevel,
       latitude: position.latitude,
       longitude: position.longitude,
     ).then((value) {

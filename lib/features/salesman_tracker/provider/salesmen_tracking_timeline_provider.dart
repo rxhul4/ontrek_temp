@@ -5,6 +5,9 @@ import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/features/salesman_tracker/model/salesmen_tracking_detailes.dart';
+import 'package:ontrek/main.dart';
+
+
 
 class SaleMenTackingTimeLineProvider extends ChangeNotifier{
 
@@ -22,10 +25,31 @@ class SaleMenTackingTimeLineProvider extends ChangeNotifier{
   bool get isAdding => _isAdding;
 
   GetTimeLineModel? getTimeLineModel;
+  loaderFnc(bool isLoading) {
+    _isLoading = isLoading;
+    notifyListeners();
+  }
+
+  fetchingFnc(bool isLoading) {
+    _isFetching = isLoading;
+    notifyListeners();
+  }
+
+  void navigatePushReplacementFnc(Widget screen) {
+    navigatorKey.currentState!.pushReplacement(CupertinoPageRoute(
+      builder: (context) => screen,
+    ));
+  }
+
+  void navigatePushFnc(Widget screen) {
+    navigatorKey.currentState!.push(CupertinoPageRoute(
+      builder: (context) => screen,
+    ));
+  }
+
 
   Future<GetTimeLineModel?> apiCallGetTimeLine({String? userid,String? eventDate}) async {
-    _isFetching = true;
-    notifyListeners();
+
 
     Map<String,dynamic> body ={
       "userId": userid,

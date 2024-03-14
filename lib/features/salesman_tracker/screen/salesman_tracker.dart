@@ -107,45 +107,45 @@ class _SaleManTrackerState extends State<SaleManTracker> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final getMdl =
           Provider.of<SaleMenTackingTimeLineProvider>(context, listen: false);
-      callGetTimeline(getMdl);
+      // callGetTimeline(getMdl);
       // setIconFunction();
     });
   }
+  //
+  // countCheckins() {
+  //   List<String?>? trackingStatus =
+  //       getTimeLineModel?.data?.map((e) => e.trackingStatus).toList();
+  //   setState(() {
+  //     checkInCount =
+  //         trackingStatus?.where((element) => element == "Check In")?.length;
+  //   });
 
-  countCheckins() {
-    List<String?>? trackingStatus =
-        getTimeLineModel?.data?.map((e) => e.trackingStatus).toList();
-    setState(() {
-      checkInCount =
-          trackingStatus?.where((element) => element == "Check In")?.length;
-    });
+  //   print("cehckiinnn${checkInCount}");
+  //   return checkInCount;
+  // }
 
-    print("cehckiinnn${checkInCount}");
-    return checkInCount;
-  }
-
-  callGetTimeline(SaleMenTackingTimeLineProvider getMdl) {
-    getMdl
-        .apiCallGetTimeLine(
-            eventDate: AppUtils.dateFormat(
-                date: selectedDate, dateFormat: "yyyy-MM-dd"),
-            userid:  widget.userUid)
-        .then((value) {
-      getTimeLineModel = value;
-      if (getTimeLineModel?.code != 200) {
-        openCustomDialog(getTimeLineModel?.message ?? "");
-      } else {
-        // getTimeLineModel = GetTimeLineModel();
-        countCheckins();
-        // setIconFunction();
-      }
-    });
-  }
-
-  Future onClickLocateOnMap(LatLng location) async {
-    await updateCameraPosition(location);
-    addUpdatedLocationMarker(location);
-  }
+  // callGetTimeline(SaleMenTackingTimeLineProvider getMdl) {
+  //   getMdl
+  //       .apiCallGetTimeLine(
+  //           eventDate: AppUtils.dateFormat(
+  //               date: selectedDate, dateFormat: "yyyy-MM-dd"),
+  //           userid:  widget.userUid)
+  //       .then((value) {
+  //     getTimeLineModel = value;
+  //     if (getTimeLineModel?.code != 200) {
+  //       openCustomDialog(getTimeLineModel?.message ?? "");
+  //     } else {
+  //       // getTimeLineModel = GetTimeLineModel();
+  //       countCheckins();
+  //       // setIconFunction();
+  //     }
+  //   });
+  // }
+  //
+  // Future onClickLocateOnMap(LatLng location) async {
+  //   await updateCameraPosition(location);
+  //   addUpdatedLocationMarker(location);
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -317,21 +317,21 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                               isFromSheet: true, getMdl: getMdl),
                         ),
                         AppUtils.commonSizedBox(height: 20),
-                        getMdl.isFetching
-                            ? AppUtils.loaderWidget()
-                            : getMdl.getTimeLineModel?.data == null ||
-                                    (getMdl.getTimeLineModel?.data?.length ??
-                                            0) <=
-                                        0
-                                ? AppUtils.commonNoDataFound(
-                                    onPressed: () {
-                                      callGetTimeline(getMdl);
-                                    },
-                                  )
-                                : ListView.builder(
+                        // getMdl.isFetching
+                        //     ? AppUtils.loaderWidget()
+                        //     : getMdl.getTimeLineModel?.data == null ||
+                        //             (getMdl.getTimeLineModel?.data?.length ??
+                        //                     0) <=
+                        //                 0
+                        //         ? AppUtils.commonNoDataFound(
+                        //             onPressed: () {
+                        //               // callGetTimeline(getMdl);
+                        //             },
+                        //           )
+                        //         :
+                        ListView.builder(
                                     itemCount:
-                                        getMdl.getTimeLineModel?.data?.length ??
-                                            0,
+                                        10,
                                     physics:
                                         const NeverScrollableScrollPhysics(),
                                     shrinkWrap: true,
@@ -340,14 +340,15 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                                         hasIndicator: true,
                                         axis: TimelineAxis.vertical,
                                         lineXY: 0.5,
-                                        isLast: index ==
-                                            (getMdl.getTimeLineModel?.data
-                                                        ?.length ??
-                                                    0) -
-                                                1,
-                                        isFirst: index ==
-                                            getMdl
-                                                .getTimeLineModel?.data?.length,
+                                        isLast: index== 10 - 1,
+                                        // ==
+                                        //     (getMdl.getTimeLineModel?.data
+                                        //                 ?.length ??
+                                        //             0) -
+                                        //         1,
+                                        isFirst: index ==10,
+                                            // getMdl
+                                            //     .getTimeLineModel?.data?.length,
                                         indicatorStyle: IndicatorStyle(
                                           indicatorXY: 0,
                                           drawGap: true,
@@ -361,10 +362,10 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                                             ),
                                             child: Center(
                                                 child: Image.asset(
-                                              AppUtils.getImagePathFromApi(
-                                                  getTimeLineModel?.data?[index]
-                                                      .trackingStatus),
-                                            )),
+                                                  loginIcon,
+                                              // AppUtils.getImagePathFromApi(getTimeLineModel?.data?[index].trackingStatus),
+                                            )
+                                            ),
                                           ),
                                         ),
                                         beforeLineStyle: LineStyle(
@@ -385,25 +386,27 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               AppUtils.commonTextWidget(
-                                                  text: AppUtils.getDate(
-                                                      date: getMdl
-                                                              .getTimeLineModel
-                                                              ?.data?[index]
-                                                              .eventTime ??
-                                                          "",
-                                                      format: "d MMM y"),
+                                                text: "12 jan 2024",
+                                                  // text: AppUtils.getDate(
+                                                  //     date: getMdl
+                                                  //             .getTimeLineModel
+                                                  //             ?.data?[index]
+                                                  //             .eventTime ??
+                                                  //         "",
+                                                  //     format: "d MMM y"),
                                                   textColor:
                                                       AppConstant.greyColor,
                                                   fontWeight: FontWeight.w400,
                                                   fontSize: 16),
                                               AppUtils.commonTextWidget(
-                                                  text: AppUtils.getDate(
-                                                      date: getMdl
-                                                              .getTimeLineModel
-                                                              ?.data?[index]
-                                                              .eventTime ??
-                                                          "",
-                                                      format: "HH:mm aa"),
+                                                  text:  "12:12 PM",
+                                                  // AppUtils.getDate(
+                                                  //     date: getMdl
+                                                  //             .getTimeLineModel
+                                                  //             ?.data?[index]
+                                                  //             .eventTime ??
+                                                  //         "",
+                                                  //     format: "HH:mm aa"),
                                                   textColor:
                                                       AppConstant.blackColor,
                                                   fontWeight: FontWeight.w400,
@@ -413,24 +416,24 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                                         ),
                                         endChild: AppUtils.commonInkWell(
                                           onTap: () {
-                                            draggableScrollableController
-                                                .animateTo(0.23,
-                                                    duration: Duration(
-                                                        milliseconds: 1000),
-                                                    curve: Curves.decelerate);
-                                            onClickLocateOnMap(LatLng(
-                                                    getTimeLineModel
-                                                            ?.data?[index]
-                                                            .lattitude ??
-                                                        0,
-                                                    getTimeLineModel
-                                                            ?.data?[index]
-                                                            .longitude ??
-                                                        0))
-                                                .then((value) {
-                                              draggableScrollableController
-                                                  .reset();
-                                            });
+                                            // draggableScrollableController
+                                            //     .animateTo(0.23,
+                                            //         duration: Duration(
+                                            //             milliseconds: 1000),
+                                            //         curve: Curves.decelerate);
+                                            // onClickLocateOnMap(LatLng(
+                                            //         getTimeLineModel
+                                            //                 ?.data?[index]
+                                            //                 .lattitude ??
+                                            //             0,
+                                            //         getTimeLineModel
+                                            //                 ?.data?[index]
+                                            //                 .longitude ??
+                                            //             0))
+                                            //     .then((value) {
+                                            //   draggableScrollableController
+                                            //       .reset();
+                                            // });
                                           },
                                           child: AppUtils.commonContainer(
                                             padding:
@@ -444,24 +447,24 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 AppUtils.commonTextWidget(
-                                                    text: getMdl
+                                                    text: "LogIn"/*getMdl
                                                             .getTimeLineModel
                                                             ?.data?[index]
                                                             .trackingStatus ??
-                                                        "",
-                                                    textColor:
-                                                        AppUtils.getStatusColor(
-                                                            getTimeLineModel
-                                                                ?.data?[index]
-                                                                .trackingStatus),
+                                                        ""*/,
+                                                    textColor:  AppConstant.appPrimaryColor,
+                                                        // AppUtils.getStatusColor(
+                                                        //     getTimeLineModel
+                                                        //         ?.data?[index]
+                                                        //         .trackingStatus),
                                                     fontWeight: FontWeight.w400,
                                                     fontSize: 16),
                                                 AppUtils.commonTextWidget(
-                                                    text: getMdl
+                                                    text: /*getMdl
                                                             .getTimeLineModel
                                                             ?.data?[index]
-                                                            .trackingAddress ??
-                                                        "",
+                                                            .trackingAddress ??*/
+                                                        "12,Jashoda Nagar Ahmedabad",
                                                     textColor:
                                                         AppConstant.blackColor,
                                                     fontWeight: FontWeight.w400,
@@ -630,7 +633,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
                 setState(() {
                   selectedDate = selectedDate?.subtract(Duration(days: 1));
                 });
-                callGetTimeline(getMdl);
+                // callGetTimeline(getMdl);
               },
               child: AppUtils.commonContainer(
                 width: 40,
@@ -657,7 +660,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
               setState(() {
                 selectedDate = selectedDate?.add(Duration(days: 1));
               });
-              callGetTimeline(getMdl);
+              // callGetTimeline(getMdl);
             },
             child: AppUtils.commonContainer(
               width: 40,

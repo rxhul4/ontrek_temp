@@ -18,7 +18,7 @@ class AppConstant {
 
 
   // date format
-  static const String dateFormat= "yyyy-MM-dd'T'HH:mm:ss+05:30";
+  static const String dateFormat= "yyyy-MM-dd'T'HH:mm:ss";
 
   // api method constant
 

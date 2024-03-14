@@ -132,7 +132,9 @@ late AuthenticationProvider authenticationProvider;
                         bgColor: AppConstant.appPrimaryColor.withOpacity(0.9),
                         borderRadiusAll: 8,
                         onPressed: () {
-                          authenticationProvider.checkValidationAndCallVerifyOtpApi();
+                          PreferenceHelper.setBool(PreferenceHelper.IS_LOGIN, true);
+                          authenticationProvider.navigatePushReplacementFnc(const DashBoard());
+                          // authenticationProvider.checkValidationAndCallVerifyOtpApi();
 
                         },
                       ),

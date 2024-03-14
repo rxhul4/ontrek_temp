@@ -22,9 +22,8 @@ class AppUtils {
   }
 
   static PreferredSizeWidget? commonAppBar(
-      {required BuildContext context, String? title, Color? textColor}){
+      {required BuildContext context, String? title, Color? textColor}) {
     return AppBar(
-
       surfaceTintColor: AppConstant.transparentColor,
       backgroundColor: Colors.white,
       elevation: 0,
@@ -32,21 +31,26 @@ class AppUtils {
           onTap: () {
             Navigator.pop(context!);
           },
-          child: Icon(Icons.arrow_back_ios_new,color: AppConstant.blackColor.withOpacity(0.7),size: 24,)),
-      title: AppUtils.commonTextWidget(text: title ?? "",textColor: textColor ?? AppConstant.blackColor.withOpacity(0.7),fontSize: 16,fontWeight: FontWeight.w500 ),
+          child: Icon(
+            Icons.arrow_back_ios_new,
+            color: AppConstant.blackColor.withOpacity(0.7),
+            size: 24,
+          )),
+      title: AppUtils.commonTextWidget(
+          text: title ?? "",
+          textColor: textColor ?? AppConstant.blackColor.withOpacity(0.7),
+          fontSize: 16,
+          fontWeight: FontWeight.w500),
       centerTitle: true,
       bottom: PreferredSize(
         preferredSize: Size.zero,
         child: AppUtils.commonContainer(
             decoration: AppUtils.commonBoxDecoration(
                 border: Border(
-                    bottom: BorderSide(color: AppConstant.blackColor.withOpacity(0.4),width: 0.3)
-                )
-            )
-
-        ),
+                    bottom: BorderSide(
+                        color: AppConstant.blackColor.withOpacity(0.4),
+                        width: 0.3)))),
       ),
-
     );
   }
 
@@ -112,24 +116,24 @@ class AppUtils {
       path ?? "",
 
       width: width,
-      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-        if (wasSynchronouslyLoaded == true) return child;
-        return Container(
-            // padding: EdgeInsets.all(AppConstants.twenty),
-            decoration: AppUtils.containerDecoration(
-              // radius: 14,
-              borderWidth: 0,
-              borderColor: Colors.transparent,
-              color: loaderBackgroundColor ??
-                  AppConstant.whiteColor.withOpacity(0.70),
-            ),
-            child: Center(
-              child: CircularProgressIndicator(
-                color: loaderColor ?? AppConstant.appPrimaryColor,
-                strokeWidth: 1.0,
-              ),
-            ));
-      },
+      // frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+      //   if (wasSynchronouslyLoaded == true) return child;
+      //   return Container(
+      //       // padding: EdgeInsets.all(AppConstants.twenty),
+      //       decoration: AppUtils.containerDecoration(
+      //         // radius: 14,
+      //         borderWidth: 0,
+      //         borderColor: Colors.transparent,
+      //         color: loaderBackgroundColor ??
+      //             AppConstant.whiteColor.withOpacity(0.70),
+      //       ),
+      //       child: Center(
+      //         child: CircularProgressIndicator(
+      //           color: loaderColor ?? AppConstant.appPrimaryColor,
+      //           strokeWidth: 1.0,
+      //         ),
+      //       ));
+      // },
       // loadingBuilder: ((context, child, loadingProgress) {
       //   if (loadingProgress == null) return child;
       //   return Container(
@@ -148,7 +152,8 @@ class AppUtils {
       //         ),
       //       ));
       // }),
-      errorBuilder: (context, error, stackTrace) => Center(child: Icon(Icons.person)),
+      errorBuilder: (context, error, stackTrace) =>
+          Center(child: Icon(Icons.person)),
       height: height,
       // alignment: alignment ?? Alignment.center,
       color: iconColor,
@@ -205,13 +210,19 @@ class AppUtils {
                           shape: BoxShape.circle,
                           color:
                               backgroundColor ?? Colors.grey.withOpacity(0.5),
-                          border: Border.all(color: borderColor ?? Colors.grey.withOpacity(0.7), width: 2),
+                          border: Border.all(
+                              color:
+                                  borderColor ?? Colors.grey.withOpacity(0.7),
+                              width: 2),
                         ),
                         child: Center(
                           child: AppUtils.commonNetworkImageWidget(
                               path: leadingImage ?? "",
                               boxFit: BoxFit.cover,
-                              iconColor: iconColor ?? AppConstant.appPrimaryColor,height: 25,width: 25),
+                              iconColor:
+                                  iconColor ?? AppConstant.appPrimaryColor,
+                              height: 25,
+                              width: 25),
                         ),
                       ),
                       // AppUtils.commonSizedBox(width: 10),
@@ -260,6 +271,7 @@ class AppUtils {
     Function()? onPanelClosed,
     Function()? onPanelOpened,
     Function(double)? onPanelSlide,
+    Widget? body,
   }) {
     return Animate(
       effects: const [
@@ -270,6 +282,7 @@ class AppUtils {
             duration: Duration(milliseconds: 700)),
       ],
       child: SlidingUpPanel(
+        body: body,
         onPanelSlide: onPanelSlide,
         maxHeight: maxHeight ?? 1.0,
         minHeight: minHeight ?? 0.08,

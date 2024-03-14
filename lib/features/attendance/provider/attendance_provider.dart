@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
+import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/attendance/model/add_activity_model.dart';
 import 'package:ontrek/main.dart';
 
@@ -21,6 +23,8 @@ class AttendanceProvider extends ChangeNotifier {
   bool get isAdding => _isAdding;
 
   CreateActivityModel? createActivityModel;
+  final Battery battery = Battery();
+  int batteryPercentage = 0;
 
   loaderFnc(bool isLoading) {
     _isLoading = isLoading;
@@ -31,7 +35,6 @@ class AttendanceProvider extends ChangeNotifier {
     _isFetching = isLoading;
     notifyListeners();
   }
-
 
   void navigatePushReplacementFnc(Widget screen) {
     navigatorKey.currentState!.pushReplacement(CupertinoPageRoute(
@@ -45,49 +48,55 @@ class AttendanceProvider extends ChangeNotifier {
     ));
   }
 
+  Future<int?> getBatteryLevel() async {
+    try {
+      final batteryLevel = await battery.batteryLevel;
 
+      batteryPercentage = batteryLevel;
+      notifyListeners();
+      return batteryPercentage;
+    } catch (e) {
+      print("Failed to get battery level: $e");
+    }
+  }
 
   Future<CreateActivityModel?> apiCallCreateActivity({
+    bool? isFromCheckOut = false,
     String? picturePath,
     String? userId,
     double? latitude,
     double? longitude,
     String? totTrackingEventCode,
-    String? eventDate,
-    String? eventTime,
+    String? activityDateTime,
     int? batteryLevel,
-    String? deviceId,
-    String? deviceName,
-    double? locAccuracy,
-    String? trackingAddress,
     String? customerName,
     String? visitDiscussion,
     String? companyName,
     String? customerPhoneNumber,
     String? visitTypeCode,
-    String? activityStatus,
-
-}) async {
+  }) async {
     loaderFnc(true);
-    Map<String, dynamic> body = {
-      "userId": userId,
-      "lattitude": latitude,
-      "longitude": longitude,
-      "totTrackingEventId": totTrackingEventCode,
-      "eventDate": eventDate,
-      "eventTime": eventTime,
-      "batteryLevel": 50,
-      "trackingAddress": "Dwarkesh Business Hub",
+
+    Map<String, dynamic> checkOutDataBody = {
       "customerName": customerName,
-      "picturePath": picturePath,
+      "picturePath": "test.jpg",
       "visitDiscussion": visitDiscussion,
       "companyName": companyName,
       "customerPhoneNo": customerPhoneNumber,
       "totVisitTypeId": visitTypeCode,
-      "activityStatus": activityStatus
+    };
+    Map<String, dynamic> body = {
+      "userId": /*userId ??*/ "22235050-456f-4e45-9781-c27d8d2f4c39",
+      "longitude": latitude,
+      "lattitude": longitude,
+      "totTrackingEventId": totTrackingEventCode,
+      "activityDateTime": activityDateTime ??
+          AppUtils.dateFormat(
+              date: DateTime.now(), dateFormat: AppConstant.dateFormat),
+      "batteryLevel": batteryLevel,
+      "visitNoteRequestForm": isFromCheckOut ?? false ? checkOutDataBody : null
     };
     try {
-
       String endPoint = ApiConstants.createActivity;
       final response = await callPostMethod(endPoint, body);
       createActivityModel = CreateActivityModel.fromJson(json.decode(response));
@@ -104,18 +113,14 @@ class AttendanceProvider extends ChangeNotifier {
       print("inCatchE $e");
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
       if (!isInternetAvailable) {
-        createActivityModel =
-            CreateActivityModel(message: "Internet is not available, please try again!");
+        createActivityModel = CreateActivityModel(
+            message: "Internet is not available, please try again!");
       } else {
-        createActivityModel = CreateActivityModel(message: "Something went wrong!");
+        createActivityModel =
+            CreateActivityModel(message: "Something went wrong!");
       }
     }
     loaderFnc(false);
     return createActivityModel;
   }
-
-
-
-
-
 }

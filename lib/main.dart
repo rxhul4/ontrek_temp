@@ -146,12 +146,14 @@ void onStart(ServiceInstance service) {
               }
               print("is_Gps_bool $gpsBool");
               await callInternetAndGpsActivityApi(userId: userId,isGps: true,isGpsOn: false,isInternet: false,isInternetOn: false,);
+              Future.delayed(Duration(milliseconds: 500));
               await callInternetAndGpsActivityApi(userId: userId,isGps: true,isGpsOn: true,isInternet: false,isInternetOn: false,);
             }
+            Future.delayed(const Duration(milliseconds: 500));
             if (internetBool) {
               print("is_internet_bool $internetBool");
               await callInternetAndGpsActivityApi(userId: userId,isGps: false,isGpsOn: false,isInternet: true,isInternetOn: false,);
-
+              Future.delayed(const Duration(milliseconds: 500));
               await callInternetAndGpsActivityApi(userId: userId,isGps: false,isGpsOn: false,isInternet: true,isInternetOn: true,);
 
             }
@@ -252,6 +254,8 @@ void onStart(ServiceInstance service) {
 
 CreateActivityModel? createActivityModel;
 CreateRouteHistoryModel? createRouteHistoryModel;
+final Battery battery = Battery();
+
 
 callCreteRouteHistoryApi({String? userId, Position? position}) async {
   if (kDebugMode) {
@@ -299,6 +303,7 @@ callCreteRouteHistoryApi({String? userId, Position? position}) async {
 callCreateWaitingActivityApi(
     {String? userId, bool? isWaitingStart, Position? position}) async {
   try {
+
     Map<String, dynamic> body = {};
     double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
     double? lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
@@ -312,19 +317,12 @@ callCreateWaitingActivityApi(
       "totTrackingEventId": isWaitingStart ?? false
           ? AppConstant.trackingWaitingStartEvent
           : AppConstant.trackingWaitingStopEvent,
-      "eventDate": isWaitingStart ?? false
+      "activityDateTime": isWaitingStart ?? false
           ? AppUtils.getDate(
               date: waitingStartTime ?? "", format: AppConstant.dateFormat)
           : AppUtils.getDate(
               date: DateTime.now().toString(), format: AppConstant.dateFormat),
-      "eventTime": isWaitingStart ?? false
-          ? AppUtils.getDate(
-              date: waitingStartTime ?? "", format: AppConstant.dateFormat)
-          : AppUtils.getDate(
-              date: DateTime.now().toString(), format: AppConstant.dateFormat),
-      "batteryLevel": 50,
-      "trackingAddress": "Business Hub",
-      "activityStatus": null
+      "batteryLevel": battery.batteryLevel,
     };
 
     String endPoint = ApiConstants.createActivity;
@@ -373,19 +371,12 @@ print("innnnnnnnnnnnnnn");
       "totTrackingEventId": isInternetOn ?? false
           ? AppConstant.internetOnEvent
           : AppConstant.internetOffEvent,
-      "eventDate": isInternetOn ?? false
-          ? AppUtils.getDate(
-              date: DateTime.now().toString(), format: AppConstant.dateFormat)
-          : AppUtils.getDate(
-              date: lastInternetOffTime ?? "", format: AppConstant.dateFormat),
-      "eventTime": isInternetOn ?? false
+      "activityDateTime": isInternetOn ?? false
           ? AppUtils.getDate(
               date: DateTime.now().toString(), format: AppConstant.dateFormat)
           : AppUtils.getDate(
               date: lastInternetOffTime ?? "", format: AppConstant.dateFormat),
       "batteryLevel": 50,
-      "trackingAddress": "Business Hub",
-      "activityStatus": null
     };
   }
 
@@ -396,19 +387,12 @@ print("innnnnnnnnnnnnnn");
       "longitude": isGpsOn ?? false ? position.longitude : lastLong,
       "totTrackingEventId":
           isGpsOn ?? false ? AppConstant.gpsOnEvent : AppConstant.gpsOffEvent,
-      "eventDate": isGpsOn ?? false
-          ? AppUtils.getDate(
-              date: DateTime.now().toString(), format: AppConstant.dateFormat)
-          : AppUtils.getDate(
-              date: lastGpsOffTime ?? "", format: AppConstant.dateFormat),
-      "eventTime": isGpsOn ?? false
+      "activityDateTime": isGpsOn ?? false
           ? AppUtils.getDate(
               date: DateTime.now().toString(), format: AppConstant.dateFormat)
           : AppUtils.getDate(
               date: lastGpsOffTime ?? "", format: AppConstant.dateFormat),
       "batteryLevel": 50,
-      "trackingAddress": "Business Hub",
-      "activityStatus": null
     };
 
   }
@@ -439,6 +423,7 @@ callCreateRouteHistory({String? userId}) async {
   Position position;
   double distance = 51;
   bool isWaiting = PreferenceHelper.getBool(PreferenceHelper.ISWAITING);
+  print("batteryLevel${battery.batteryLevel}");
   try {
     print("start testing");
     position = await Geolocator.getCurrentPosition(

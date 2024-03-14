@@ -7,6 +7,7 @@ import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/features/salesman_tracker/local_model.dart';
 import 'package:ontrek/features/salesman_tracker/screen/salesman_tracker.dart';
+import 'package:ontrek/features/salesman_tracker/screen/timeline_screen.dart';
 import 'package:ontrek/features/track_function/model/salemen_list_model.dart';
 import 'package:ontrek/features/track_function/provider/salesmen_list_provider.dart';
 import 'package:provider/provider.dart';
@@ -134,7 +135,6 @@ class _TrackScreenState extends State<TrackScreen>
                       indicatorSize: TabBarIndicatorSize.tab,
                       controller: tabController,
                       padding: AppUtils.edgeInsetsAll(allPadding: 2),
-                      // enableFeedback: true,
                       labelColor: Colors.white,
                       onTap: (value) {
                         salesMenListProvider.apiCallGetSalesManList();
@@ -210,6 +210,7 @@ class _TrackScreenState extends State<TrackScreen>
       child: AppTextField(
         controller: salesMenListProvider.searchController,
         onChanged: (value) {
+
           salesMenListProvider.apiCallGetSalesManList();
         },
         hintText: "Search",
@@ -219,9 +220,15 @@ class _TrackScreenState extends State<TrackScreen>
         fillColor: AppConstant.whiteColor,
         suffixIcon: InkWell(
           onTap: () {
-            salesMenListProvider.showAndHideSearchWidget(false);
-            salesMenListProvider.searchController.clear();
-            salesMenListProvider.apiCallGetSalesManList();
+            if(salesMenListProvider.searchController.text.isEmpty) {
+              salesMenListProvider.showAndHideSearchWidget(false);
+              salesMenListProvider.searchController.clear();
+            }else{
+              salesMenListProvider.showAndHideSearchWidget(false);
+              salesMenListProvider.searchController.clear();
+              salesMenListProvider.apiCallGetSalesManList();
+            }
+
           },
           child: Icon(Icons.close),
         ),
@@ -285,16 +292,19 @@ class _TrackScreenState extends State<TrackScreen>
                           Navigator.push(
                               context,
                               CupertinoPageRoute(
-                                builder: (context) => SaleManTracker(
-                                    index: index,
+                                builder: (context) => TimeLineScreen(
+                                   /* index: index,
                                     name: getSalesMenListModelData?[index].userName,
                                     userUid:
                                         getSalesMenListModelData?[index].userId,
                                     phoneNumber:
-                                        getSalesMenListModelData?[index].phoneNo),
+                                        getSalesMenListModelData?[index].phoneNo*/
+                                ),
                               ));
                         },
                         child: Column(
+                          // mainAxisAlignment: MainAxisAlignment.center,
+                          // crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             AppUtils.commonContainer(
                                 width: 60,
@@ -316,7 +326,7 @@ class _TrackScreenState extends State<TrackScreen>
                                     getSalesMenListModelData?[index].userName ??
                                         "Name",
                                 textColor: AppConstant.blackColor,
-                                fontSize: 11),
+                                fontSize: 11,textAlign: TextAlign.center),
                             // AppUtils.commonTextWidget(
                             //     text: 'Last week', textColor: Colors.cyan, fontSize: 9),
                           ],

@@ -1,136 +1,352 @@
 class GetTimeLineModel {
-  List<Data>? data;
-  bool? isSuccessful;
-  int? code;
+  bool? isError;
+  bool? isValidationFailed;
+  String? errorCode;
   String? message;
+  Data? data;
 
-  GetTimeLineModel({this.data, this.isSuccessful, this.code, this.message});
+  GetTimeLineModel(
+      {this.isError,
+        this.isValidationFailed,
+        this.errorCode,
+        this.message,
+        this.data});
 
   GetTimeLineModel.fromJson(Map<String, dynamic> json) {
-    if (json['data'] != null) {
-      data = <Data>[];
-      json['data'].forEach((v) {
-        data!.add(new Data.fromJson(v));
-      });
-    }
-    isSuccessful = json['isSuccessful'];
-    code = json['code'];
+    isError = json['isError'];
+    isValidationFailed = json['isValidationFailed'];
+    errorCode = json['errorCode'];
     message = json['message'];
+    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.data != null) {
-      data['data'] = this.data!.map((v) => v.toJson()).toList();
-    }
-    data['isSuccessful'] = this.isSuccessful;
-    data['code'] = this.code;
+    data['isError'] = this.isError;
+    data['isValidationFailed'] = this.isValidationFailed;
+    data['errorCode'] = this.errorCode;
     data['message'] = this.message;
+    if (this.data != null) {
+      data['data'] = this.data!.toJson();
+    }
     return data;
   }
 }
 
 class Data {
-  String? userUid;
-  int? trackingId;
-  String? trackingStatus;
-  double? lattitude;
-  double? longitude;
-  String? totTrackingEventCode;
-  String? eventDate;
-  String? sessionUid;
-  String? eventTime;
-  String? parentTrackingId;
-  String? durationMin;
-  int? batteryLevel;
-  String? deviceId;
-  String? deviceName;
-  int? locAccuracy;
-  String? trackingAddress;
-  int? formVisitId;
-  String? customerName;
-  String? picturePath;
-  String? visitDiscussion;
-  String? companyName;
-  String? customerPhoneNo;
-  String? totVisitTypeCode;
+  String? fieldUserId;
+  String? fieldUserName;
+  String? userPhoneNo;
+  String? timeLineDate;
+  int? totalKmTravel;
+  int? totalCheckIn;
+  String? totalDuration;
+  FieldUserLastActivity? fieldUserLastActivity;
+  FieldUserDeviceInfo? fieldUserDeviceInfo;
+  List<SessionTimeLine>? sessionTimeLine;
 
   Data(
-      {this.userUid,
-        this.trackingId,
-        this.trackingStatus,
-        this.lattitude,
-        this.longitude,
-        this.totTrackingEventCode,
-        this.eventDate,
-        this.sessionUid,
-        this.eventTime,
-        this.parentTrackingId,
-        this.durationMin,
-        this.batteryLevel,
-        this.deviceId,
-        this.deviceName,
-        this.locAccuracy,
-        this.trackingAddress,
-        this.formVisitId,
-        this.customerName,
-        this.picturePath,
-        this.visitDiscussion,
-        this.companyName,
-        this.customerPhoneNo,
-        this.totVisitTypeCode});
+      {this.fieldUserId,
+        this.fieldUserName,
+        this.userPhoneNo,
+        this.timeLineDate,
+        this.totalKmTravel,
+        this.totalCheckIn,
+        this.totalDuration,
+        this.fieldUserLastActivity,
+        this.fieldUserDeviceInfo,
+        this.sessionTimeLine});
 
   Data.fromJson(Map<String, dynamic> json) {
-    userUid = json['user_uid'];
-    trackingId = json['tracking_id'];
-    trackingStatus = json['trackingStatus'];
-    lattitude = json['lattitude'];
-    longitude = json['longitude'];
-    totTrackingEventCode = json['tot_tracking_event_code'];
-    eventDate = json['event_date'];
-    sessionUid = json['session_uid'];
-    eventTime = json['event_time'];
-    parentTrackingId = json['parent_tracking_id'];
-    durationMin = json['duration_min'];
-    batteryLevel = json['battery_level'];
-    deviceId = json['device_id'];
-    deviceName = json['device_name'];
-    locAccuracy = json['loc_accuracy'];
-    trackingAddress = json['tracking_address'];
-    formVisitId = json['form_visit_id'];
-    customerName = json['customer_name'];
-    picturePath = json['picture_path'];
-    visitDiscussion = json['visit_discussion'];
-    companyName = json['company_name'];
-    customerPhoneNo = json['customer_phone_no'];
-    totVisitTypeCode = json['tot_visit_type_code'];
+    fieldUserId = json['fieldUserId'];
+    fieldUserName = json['fieldUserName'];
+    userPhoneNo = json['userPhoneNo'];
+    timeLineDate = json['timeLineDate'];
+    totalKmTravel = json['totalKmTravel'];
+    totalCheckIn = json['totalCheckIn'];
+    totalDuration = json['totalDuration'];
+    fieldUserLastActivity = json['fieldUserLastActivity'] != null
+        ? new FieldUserLastActivity.fromJson(json['fieldUserLastActivity'])
+        : null;
+    fieldUserDeviceInfo = json['fieldUserDeviceInfo'] != null
+        ? new FieldUserDeviceInfo.fromJson(json['fieldUserDeviceInfo'])
+        : null;
+    if (json['sessionTimeLine'] != null) {
+      sessionTimeLine = <SessionTimeLine>[];
+      json['sessionTimeLine'].forEach((v) {
+        sessionTimeLine!.add(new SessionTimeLine.fromJson(v));
+      });
+    }
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['user_uid'] = this.userUid;
-    data['tracking_id'] = this.trackingId;
-    data['trackingStatus'] = this.trackingStatus;
-    data['lattitude'] = this.lattitude;
-    data['longitude'] = this.longitude;
-    data['tot_tracking_event_code'] = this.totTrackingEventCode;
-    data['event_date'] = this.eventDate;
-    data['session_uid'] = this.sessionUid;
-    data['event_time'] = this.eventTime;
-    data['parent_tracking_id'] = this.parentTrackingId;
-    data['duration_min'] = this.durationMin;
-    data['battery_level'] = this.batteryLevel;
-    data['device_id'] = this.deviceId;
-    data['device_name'] = this.deviceName;
-    data['loc_accuracy'] = this.locAccuracy;
-    data['tracking_address'] = this.trackingAddress;
-    data['form_visit_id'] = this.formVisitId;
-    data['customer_name'] = this.customerName;
-    data['picture_path'] = this.picturePath;
-    data['visit_discussion'] = this.visitDiscussion;
-    data['company_name'] = this.companyName;
-    data['customer_phone_no'] = this.customerPhoneNo;
-    data['tot_visit_type_code'] = this.totVisitTypeCode;
+    data['fieldUserId'] = this.fieldUserId;
+    data['fieldUserName'] = this.fieldUserName;
+    data['userPhoneNo'] = this.userPhoneNo;
+    data['timeLineDate'] = this.timeLineDate;
+    data['totalKmTravel'] = this.totalKmTravel;
+    data['totalCheckIn'] = this.totalCheckIn;
+    data['totalDuration'] = this.totalDuration;
+    if (this.fieldUserLastActivity != null) {
+      data['fieldUserLastActivity'] = this.fieldUserLastActivity!.toJson();
+    }
+    if (this.fieldUserDeviceInfo != null) {
+      data['fieldUserDeviceInfo'] = this.fieldUserDeviceInfo!.toJson();
+    }
+    if (this.sessionTimeLine != null) {
+      data['sessionTimeLine'] =
+          this.sessionTimeLine!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
+}
+
+class FieldUserLastActivity {
+  String? fieldUserId;
+  String? trackingEventId;
+  String? activityName;
+  String? activityCode;
+  String? lastTrackingActivityTime;
+  int? lastActivityLat;
+  int? lastActivityLong;
+  String? lastActivityPlace;
+  int? lastBatteryPercentage;
+
+  FieldUserLastActivity(
+      {this.fieldUserId,
+        this.trackingEventId,
+        this.activityName,
+        this.activityCode,
+        this.lastTrackingActivityTime,
+        this.lastActivityLat,
+        this.lastActivityLong,
+        this.lastActivityPlace,
+        this.lastBatteryPercentage});
+
+  FieldUserLastActivity.fromJson(Map<String, dynamic> json) {
+    fieldUserId = json['fieldUserId'];
+    trackingEventId = json['trackingEventId'];
+    activityName = json['activityName'];
+    activityCode = json['activityCode'];
+    lastTrackingActivityTime = json['lastTrackingActivityTime'];
+    lastActivityLat = json['lastActivityLat'];
+    lastActivityLong = json['lastActivityLong'];
+    lastActivityPlace = json['lastActivityPlace'];
+    lastBatteryPercentage = json['lastBatteryPercentage'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['fieldUserId'] = this.fieldUserId;
+    data['trackingEventId'] = this.trackingEventId;
+    data['activityName'] = this.activityName;
+    data['activityCode'] = this.activityCode;
+    data['lastTrackingActivityTime'] = this.lastTrackingActivityTime;
+    data['lastActivityLat'] = this.lastActivityLat;
+    data['lastActivityLong'] = this.lastActivityLong;
+    data['lastActivityPlace'] = this.lastActivityPlace;
+    data['lastBatteryPercentage'] = this.lastBatteryPercentage;
+    return data;
+  }
+}
+
+class FieldUserDeviceInfo {
+  String? deviceId;
+  String? deviceModel;
+  String? deviceOs;
+  String? osVersion;
+
+  FieldUserDeviceInfo(
+      {this.deviceId, this.deviceModel, this.deviceOs, this.osVersion});
+
+  FieldUserDeviceInfo.fromJson(Map<String, dynamic> json) {
+    deviceId = json['deviceId'];
+    deviceModel = json['deviceModel'];
+    deviceOs = json['deviceOs'];
+    osVersion = json['osVersion'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['deviceId'] = this.deviceId;
+    data['deviceModel'] = this.deviceModel;
+    data['deviceOs'] = this.deviceOs;
+    data['osVersion'] = this.osVersion;
+    return data;
+  }
+}
+
+class SessionTimeLine {
+  String? sessionId;
+  int? sessionNo;
+  String? sessionStartDateTime;
+  String? sessionEndDateTime;
+  int? totalKmTravel;
+  int? totalCheckIn;
+  String? totalDuration;
+  List<SessionEvents>? sessionEvents;
+  SessionRouteHistory? sessionRouteHistory;
+
+  SessionTimeLine(
+      {this.sessionId,
+        this.sessionNo,
+        this.sessionStartDateTime,
+        this.sessionEndDateTime,
+        this.totalKmTravel,
+        this.totalCheckIn,
+        this.totalDuration,
+        this.sessionEvents,
+        this.sessionRouteHistory});
+
+  SessionTimeLine.fromJson(Map<String, dynamic> json) {
+    sessionId = json['sessionId'];
+    sessionNo = json['sessionNo'];
+    sessionStartDateTime = json['sessionStartDateTime'];
+    sessionEndDateTime = json['sessionEndDateTime'];
+    totalKmTravel = json['totalKmTravel'];
+    totalCheckIn = json['totalCheckIn'];
+    totalDuration = json['totalDuration'];
+    if (json['sessionEvents'] != null) {
+      sessionEvents = <SessionEvents>[];
+      json['sessionEvents'].forEach((v) {
+        sessionEvents!.add(new SessionEvents.fromJson(v));
+      });
+    }
+    sessionRouteHistory = json['sessionRouteHistory'] != null
+        ? new SessionRouteHistory.fromJson(json['sessionRouteHistory'])
+        : null;
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['sessionId'] = this.sessionId;
+    data['sessionNo'] = this.sessionNo;
+    data['sessionStartDateTime'] = this.sessionStartDateTime;
+    data['sessionEndDateTime'] = this.sessionEndDateTime;
+    data['totalKmTravel'] = this.totalKmTravel;
+    data['totalCheckIn'] = this.totalCheckIn;
+    data['totalDuration'] = this.totalDuration;
+    if (this.sessionEvents != null) {
+      data['sessionEvents'] =
+          this.sessionEvents!.map((v) => v.toJson()).toList();
+    }
+    if (this.sessionRouteHistory != null) {
+      data['sessionRouteHistory'] = this.sessionRouteHistory!.toJson();
+    }
+    return data;
+  }
+}
+
+class SessionEvents {
+  String? sessionId;
+  int? sessionNo;
+  String? eventId;
+  String? eventName;
+  String? eventCode;
+  int? eventLat;
+  int? eventLong;
+  String? eventActivityPlace;
+  String? eventStartDate;
+  String? eventEndDate;
+  String? eventDuration;
+  int? batteryPercentage;
+  String? visitFormId;
+
+  SessionEvents(
+      {this.sessionId,
+        this.sessionNo,
+        this.eventId,
+        this.eventName,
+        this.eventCode,
+        this.eventLat,
+        this.eventLong,
+        this.eventActivityPlace,
+        this.eventStartDate,
+        this.eventEndDate,
+        this.eventDuration,
+        this.batteryPercentage,
+        this.visitFormId});
+
+  SessionEvents.fromJson(Map<String, dynamic> json) {
+    sessionId = json['sessionId'];
+    sessionNo = json['sessionNo'];
+    eventId = json['eventId'];
+    eventName = json['eventName'];
+    eventCode = json['eventCode'];
+    eventLat = json['eventLat'];
+    eventLong = json['eventLong'];
+    eventActivityPlace = json['eventActivityPlace'];
+    eventStartDate = json['eventStartDate'];
+    eventEndDate = json['eventEndDate'];
+    eventDuration = json['eventDuration'];
+    batteryPercentage = json['batteryPercentage'];
+    visitFormId = json['visitFormId'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['sessionId'] = this.sessionId;
+    data['sessionNo'] = this.sessionNo;
+    data['eventId'] = this.eventId;
+    data['eventName'] = this.eventName;
+    data['eventCode'] = this.eventCode;
+    data['eventLat'] = this.eventLat;
+    data['eventLong'] = this.eventLong;
+    data['eventActivityPlace'] = this.eventActivityPlace;
+    data['eventStartDate'] = this.eventStartDate;
+    data['eventEndDate'] = this.eventEndDate;
+    data['eventDuration'] = this.eventDuration;
+    data['batteryPercentage'] = this.batteryPercentage;
+    data['visitFormId'] = this.visitFormId;
+    return data;
+  }
+}
+
+class SessionRouteHistory {
+  String? sessionId;
+  int? sessionNo;
+  List<LatlongArray>? latlongArray;
+
+  SessionRouteHistory({this.sessionId, this.sessionNo, this.latlongArray});
+
+  SessionRouteHistory.fromJson(Map<String, dynamic> json) {
+    sessionId = json['sessionId'];
+    sessionNo = json['sessionNo'];
+    if (json['latlongArray'] != null) {
+      latlongArray = <LatlongArray>[];
+      json['latlongArray'].forEach((v) {
+        latlongArray!.add(new LatlongArray.fromJson(v));
+      });
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['sessionId'] = this.sessionId;
+    data['sessionNo'] = this.sessionNo;
+    if (this.latlongArray != null) {
+      data['latlongArray'] = this.latlongArray!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
+}
+
+class LatlongArray {
+  int? x;
+  int? y;
+
+  LatlongArray({this.x, this.y});
+
+  LatlongArray.fromJson(Map<String, dynamic> json) {
+    x = json['x'];
+    y = json['y'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['x'] = this.x;
+    data['y'] = this.y;
     return data;
   }
 }

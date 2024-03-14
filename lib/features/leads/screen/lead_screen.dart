@@ -24,6 +24,7 @@ class _LeadScreenState extends State<LeadScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final leadProvider = Provider.of<LeadProvider>(context, listen: false);
+
       callGetAllLeadApi(leadProvider);
     });
   }
