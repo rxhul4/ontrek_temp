@@ -293,11 +293,11 @@ class _TrackScreenState extends State<TrackScreen>
                               context,
                               CupertinoPageRoute(
                                 builder: (context) => TimeLineScreen(
-                                   /* index: index,
+                                    index: index,
                                     name: getSalesMenListModelData?[index].userName,
-                                    userUid:
+                                    userId:
                                         getSalesMenListModelData?[index].userId,
-                                    phoneNumber:
+                                    /*phoneNumber:
                                         getSalesMenListModelData?[index].phoneNo*/
                                 ),
                               ));

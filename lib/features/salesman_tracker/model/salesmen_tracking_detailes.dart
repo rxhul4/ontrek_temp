@@ -38,7 +38,7 @@ class Data {
   String? fieldUserName;
   String? userPhoneNo;
   String? timeLineDate;
-  int? totalKmTravel;
+  double? totalKmTravel;
   int? totalCheckIn;
   String? totalDuration;
   FieldUserLastActivity? fieldUserLastActivity;
@@ -108,8 +108,8 @@ class FieldUserLastActivity {
   String? activityName;
   String? activityCode;
   String? lastTrackingActivityTime;
-  int? lastActivityLat;
-  int? lastActivityLong;
+  double? lastActivityLat;
+  double? lastActivityLong;
   String? lastActivityPlace;
   int? lastBatteryPercentage;
 
@@ -182,7 +182,7 @@ class SessionTimeLine {
   int? sessionNo;
   String? sessionStartDateTime;
   String? sessionEndDateTime;
-  int? totalKmTravel;
+  double? totalKmTravel;
   int? totalCheckIn;
   String? totalDuration;
   List<SessionEvents>? sessionEvents;
@@ -244,8 +244,8 @@ class SessionEvents {
   String? eventId;
   String? eventName;
   String? eventCode;
-  int? eventLat;
-  int? eventLong;
+  double? eventLat;
+  double? eventLong;
   String? eventActivityPlace;
   String? eventStartDate;
   String? eventEndDate;
@@ -333,8 +333,8 @@ class SessionRouteHistory {
 }
 
 class LatlongArray {
-  int? x;
-  int? y;
+  double? x;
+  double? y;
 
   LatlongArray({this.x, this.y});
 

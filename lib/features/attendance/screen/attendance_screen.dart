@@ -418,6 +418,7 @@ PanelController panelController = PanelController();
       }
 
       PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
+      // PreferenceHelper.setBool(PreferenceHelper.ISWAITING, false);
       isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
     } catch (e) {
       print("Error: $e");
@@ -498,7 +499,7 @@ PanelController panelController = PanelController();
     }
   }
 
-  Widget buttonWidget(postMdl,height,width) {
+  Widget buttonWidget(AttendanceProvider postMdl,height,width) {
     return ValueListenableBuilder(
       valueListenable: isDayStart,
       builder: (context, value, child) {
@@ -523,14 +524,27 @@ PanelController panelController = PanelController();
                     },);
                   } else if (!isCheckIn.value) {
                     doLocalVerification(afterSuccessfulVerificationFnc: () {
+
                       // checkInFunction();
-                      getCurrentLocation().then((value) {
-                        callAddActivityApi(postMdl: postMdl,position: value,totEventCode: AppConstant.checkInEvent,isFromCheckIn: true);
+                      getCurrentLocation().then((value1) {
+                        bool isWaiting = PreferenceHelper.getBool(PreferenceHelper.ISWAITING);
+                        if(isWaiting){
+                          postMdl.callCreateWaitingActivityApi(userId: userId,isWaitingStart: false,position: value1).then((value) async{
+                            await callAddActivityApi(postMdl: postMdl,position: value1,totEventCode: AppConstant.checkInEvent,isFromCheckIn: true);
+                          });
+                        }else{
+                          print("waiting___$isWaiting");
+                          callAddActivityApi(postMdl: postMdl,position: value1,totEventCode: AppConstant.checkInEvent,isFromCheckIn: true);
+
+                        }
+
                       });
 
                     },);
-                  } else
+                  } else{
                     checkOutFunction();
+                  }
+
                 });
               },
               onTapUp: (details) {
@@ -651,8 +665,8 @@ PanelController panelController = PanelController();
           });
           controller?.forward().whenComplete(() {
             HapticFeedback.vibrate();
+            controller?.reset();
             doLocalVerification(afterSuccessfulVerificationFnc: () {
-              controller?.reset();
               if (isDayStart.value) {
                 // logOutFunction();
                 getCurrentLocation().then((value) {

@@ -44,8 +44,8 @@ List<SingleChildWidget> providers = [
   ChangeNotifierProvider<SalesMenListProvider>(
     create: (_) => SalesMenListProvider(),
   ),
-  ChangeNotifierProvider<SaleMenTackingTimeLineProvider>(
-    create: (_) => SaleMenTackingTimeLineProvider(),
+  ChangeNotifierProvider<SalemenTimeLineProvider>(
+    create: (_) => SalemenTimeLineProvider(),
   ),
   ChangeNotifierProvider<CheckOutProvider>(
     create: (_) => CheckOutProvider(),
@@ -322,7 +322,7 @@ callCreateWaitingActivityApi(
               date: waitingStartTime ?? "", format: AppConstant.dateFormat)
           : AppUtils.getDate(
               date: DateTime.now().toString(), format: AppConstant.dateFormat),
-      "batteryLevel": battery.batteryLevel,
+      "batteryLevel": 50,
     };
 
     String endPoint = ApiConstants.createActivity;
@@ -350,9 +350,9 @@ callInternetAndGpsActivityApi(
     bool? isInternetOn,
     bool? isGpsOn}) async {
   String? lastInternetOffTime =
-      PreferenceHelper.getString(PreferenceHelper.UNIVERSAL_LAST_SAVED_TIME);
+      PreferenceHelper.getString(PreferenceHelper.LAST_INTERNET_OFF_TIME);
   String? lastGpsOffTime =
-      PreferenceHelper.getString(PreferenceHelper.UNIVERSAL_LAST_SAVED_TIME);
+      PreferenceHelper.getString(PreferenceHelper.LAST_GPS_OFF_TIME);
 
   double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
   double? lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
@@ -444,6 +444,12 @@ callCreateRouteHistory({String? userId}) async {
       bool checkIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
       if (checkIn) {
         print("checkin________$checkIn");
+        print("checkin________$isWaiting");
+        // if (isWaiting) {
+        //   callCreateWaitingActivityApi(
+        //       userId: userId, position: position, isWaitingStart: false);
+        // }
+
       } else {
         String? waitingStartTime =
             PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);

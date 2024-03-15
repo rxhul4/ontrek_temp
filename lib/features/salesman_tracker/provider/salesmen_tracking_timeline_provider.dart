@@ -4,12 +4,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
+import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/salesman_tracker/model/salesmen_tracking_detailes.dart';
 import 'package:ontrek/main.dart';
 
 
 
-class SaleMenTackingTimeLineProvider extends ChangeNotifier{
+class SalemenTimeLineProvider extends ChangeNotifier{
 
   bool _isFetching = false;
   bool _isLoading = false;
@@ -48,12 +49,12 @@ class SaleMenTackingTimeLineProvider extends ChangeNotifier{
   }
 
 
-  Future<GetTimeLineModel?> apiCallGetTimeLine({String? userid,String? eventDate}) async {
+  Future<GetTimeLineModel?> apiCallGetTimeLine({String? userid}) async {
 
 
     Map<String,dynamic> body ={
       "userId": userid,
-      "eventDate": eventDate
+      "eventDate": AppUtils.getDate(date: DateTime.now().toString(),format:  AppConstant.dateFormat)
     };
     try {
       String endPoint = ApiConstants.getSalesMenTimeLine;
@@ -61,7 +62,7 @@ class SaleMenTackingTimeLineProvider extends ChangeNotifier{
       getTimeLineModel = GetTimeLineModel.fromJson(json.decode(response));
       print('response ${getTimeLineModel?.toJson()}');
     } catch (e) {
-      print('catch at GetEmployee_Provider2 ${e}');
+      print('catch at GetTimeLineProvider ${e}');
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
       if (!isInternetAvailable) {
         getTimeLineModel = GetTimeLineModel(

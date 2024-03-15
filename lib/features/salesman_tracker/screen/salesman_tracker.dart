@@ -106,7 +106,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
     selectedDate = DateTime.now();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final getMdl =
-          Provider.of<SaleMenTackingTimeLineProvider>(context, listen: false);
+          Provider.of<SalemenTimeLineProvider>(context, listen: false);
       // callGetTimeline(getMdl);
       // setIconFunction();
     });
@@ -149,7 +149,7 @@ class _SaleManTrackerState extends State<SaleManTracker> {
 
   @override
   Widget build(BuildContext context) {
-    final getMdl = Provider.of<SaleMenTackingTimeLineProvider>(context);
+    final getMdl = Provider.of<SalemenTimeLineProvider>(context);
 
     return Scaffold(
       body: SafeArea(

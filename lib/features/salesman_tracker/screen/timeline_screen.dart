@@ -6,12 +6,16 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
+import 'package:ontrek/features/salesman_tracker/provider/salesmen_tracking_timeline_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 
 class TimeLineScreen extends StatefulWidget {
+  int? index;
   String? userId;
-  TimeLineScreen({super.key,this.userId});
+  String? name;
+  TimeLineScreen({super.key,this.userId,this.name,this.index});
 
   @override
   State<TimeLineScreen> createState() => _TimeLineScreenState();
@@ -23,8 +27,6 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
   PanelController panelController = PanelController();
   Set<Marker> markers = Set();
   late final Completer<GoogleMapController> googleMapController = Completer();
-
-
 
 
   Future<void> getCurrentLocation() async {
@@ -69,6 +71,19 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
     );
   }
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final saleMenTimeLineProvider =
+      Provider.of<SalemenTimeLineProvider>(context, listen: false);
+      if(!mounted){
+
+      }
+      saleMenTimeLineProvider.apiCallGetTimeLine(userid: widget.userId);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -161,7 +176,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         AppUtils.commonTextWidget(
-                                          text: "widget.name" ?? "",
+                                          text: widget.name ?? "",
                                           fontWeight: FontWeight.w600,
                                           textColor: AppConstant.blackColor,
                                           letterSpacing: 0.2,
@@ -505,7 +520,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
 
   Widget dateSelectionWidget({bool? isFromSheet, getMdl}) {
     return AppUtils.commonContainer(
-      // width: 210,
+      width: 210,
       margin: AppUtils.edgeInsetsOnly(
           top: isFromSheet == true ? 0 : 10, bottom: 10, right: 20, left: 20),
       padding: AppUtils.edgeInsetsAll(allPadding: 8),

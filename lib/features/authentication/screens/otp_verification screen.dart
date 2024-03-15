@@ -133,8 +133,8 @@ late AuthenticationProvider authenticationProvider;
                         borderRadiusAll: 8,
                         onPressed: () {
                           PreferenceHelper.setBool(PreferenceHelper.IS_LOGIN, true);
-                          authenticationProvider.navigatePushReplacementFnc(const DashBoard());
-                          // authenticationProvider.checkValidationAndCallVerifyOtpApi();
+                          // authenticationProvider.navigatePushReplacementFnc(const DashBoard());
+                          authenticationProvider.checkValidationAndCallVerifyOtpApi();
 
                         },
                       ),
