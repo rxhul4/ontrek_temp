@@ -541,17 +541,17 @@ class AppUtils {
       print("Tracking Status: $trackingStatus");
 
       switch (trackingStatus) {
-        case 'Day Start':
+        case 'tracking_event_day_start':
           imagePath = loginIcon;
           break;
-        case 'Check In':
+        case 'tracking_event_check_in':
           imagePath = checkInIcon;
           break;
-        case 'Check Out':
+        case 'tracking_event_check_out':
           imagePath = checkOutIcon;
           break;
-        case 'Waiting Start':
-        case 'Waiting End':
+        case 'tracking_event_waiting_start':
+        case 'tracking_event_waiting_end':
           imagePath = waitingIcon;
           break;
         default:
@@ -571,17 +571,17 @@ class AppUtils {
       print("Tracking Status: $trackingStatus");
 
       switch (trackingStatus) {
-        case 'Day Start':
+        case 'tracking_event_day_start':
           statusColor = Colors.lightGreen;
           break;
-        case 'Check In':
+        case 'tracking_event_check_in':
           statusColor = AppConstant.appPrimaryColor;
           break;
-        case 'Check Out':
+        case 'tracking_event_check_out':
           statusColor = AppConstant.appPrimaryColor;
           break;
-        case 'Waiting Start':
-        case 'Waiting End':
+        case 'tracking_event_waiting_start':
+        case 'tracking_event_waiting_end':
           statusColor = Colors.orangeAccent;
           break;
         default:

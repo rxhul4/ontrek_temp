@@ -26,6 +26,9 @@ class SalemenTimeLineProvider extends ChangeNotifier{
   bool get isAdding => _isAdding;
 
   GetTimeLineModel? getTimeLineModel;
+
+  Map<String,dynamic> sessionEventList = {};
+  List<Map<String, dynamic>> eventDataList = [];
   loaderFnc(bool isLoading) {
     _isLoading = isLoading;
     notifyListeners();
@@ -49,18 +52,46 @@ class SalemenTimeLineProvider extends ChangeNotifier{
   }
 
 
-  Future<GetTimeLineModel?> apiCallGetTimeLine({String? userid}) async {
+  Future<GetTimeLineModel?> apiCallGetTimeLine({String? userid, String? date}) async {
 
 
     Map<String,dynamic> body ={
       "userId": userid,
-      "eventDate": AppUtils.getDate(date: DateTime.now().toString(),format:  AppConstant.dateFormat)
+      "eventDate": AppUtils.getDate(date: date ?? "",format:  AppConstant.dateFormat)
+      // "userId": "082e75ff-5ed5-4c92-9181-02a52a1a5087",
+      // "eventDate": "2024-03-15T00:00:00"
     };
     try {
       String endPoint = ApiConstants.getSalesMenTimeLine;
       var response = await callPostMethod(endPoint,body);
       getTimeLineModel = GetTimeLineModel.fromJson(json.decode(response));
       print('response ${getTimeLineModel?.toJson()}');
+      if(getTimeLineModel?.isError == false && getTimeLineModel?.isValidationFailed == false){
+        eventDataList.clear();
+        getTimeLineModel?.data?.sessionTimeLine?.forEach((session) {
+          session.sessionEvents?.forEach((event) {
+
+            String eventName = event.eventName ?? "";
+            String eventDateTime = event.eventStartDate ?? "";
+            String eventCode = event.eventCode ?? "";
+            String eventActivityPlace = event.eventActivityPlace ?? "";
+            Map<String,dynamic> body = {
+              "eventName": eventName,
+              "eventDate": eventDateTime,
+              "eventCode": eventCode,
+              "eventActivityPlace" : eventActivityPlace
+            };
+            if (eventName.isNotEmpty && eventDateTime.isNotEmpty) {
+              eventDataList.add(body);
+            }
+          });
+        });
+
+        print("Event Map: $eventDataList");
+
+      }else{
+
+      }
     } catch (e) {
       print('catch at GetTimeLineProvider ${e}');
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();

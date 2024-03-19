@@ -528,13 +528,14 @@ PanelController panelController = PanelController();
                       // checkInFunction();
                       getCurrentLocation().then((value1) {
                         bool isWaiting = PreferenceHelper.getBool(PreferenceHelper.ISWAITING);
-                        if(isWaiting){
+                        print("waiting___$isWaiting");
+                        if(isWaiting == true){
                           postMdl.callCreateWaitingActivityApi(userId: userId,isWaitingStart: false,position: value1).then((value) async{
                             await callAddActivityApi(postMdl: postMdl,position: value1,totEventCode: AppConstant.checkInEvent,isFromCheckIn: true);
                           });
                         }else{
-                          print("waiting___$isWaiting");
-                          callAddActivityApi(postMdl: postMdl,position: value1,totEventCode: AppConstant.checkInEvent,isFromCheckIn: true);
+                          // print("waiting___$isWaiting");
+                          // callAddActivityApi(postMdl: postMdl,position: value1,totEventCode: AppConstant.checkInEvent,isFromCheckIn: true);
 
                         }
 
