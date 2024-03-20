@@ -54,7 +54,9 @@ class SalemenTimeLineProvider extends ChangeNotifier{
 
   Future<GetTimeLineModel?> apiCallGetTimeLine({String? userid, String? date}) async {
 
-
+    _isFetching = true;
+    eventDataList.clear();
+    notifyListeners();
     Map<String,dynamic> body ={
       "userId": userid,
       "eventDate": AppUtils.getDate(date: date ?? "",format:  AppConstant.dateFormat)
@@ -67,7 +69,7 @@ class SalemenTimeLineProvider extends ChangeNotifier{
       getTimeLineModel = GetTimeLineModel.fromJson(json.decode(response));
       print('response ${getTimeLineModel?.toJson()}');
       if(getTimeLineModel?.isError == false && getTimeLineModel?.isValidationFailed == false){
-        eventDataList.clear();
+
         getTimeLineModel?.data?.sessionTimeLine?.forEach((session) {
           session.sessionEvents?.forEach((event) {
 

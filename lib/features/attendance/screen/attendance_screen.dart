@@ -24,23 +24,24 @@ class AttendanceScreen extends StatefulWidget {
   double? height;
   Function(Position)? onLocationFetch;
 
-  AttendanceScreen(
-      {super.key, this.height, this.onLocationFetch});
+  AttendanceScreen({super.key, this.height, this.onLocationFetch});
 
   @override
   State<AttendanceScreen> createState() => _AttendanceScreenState();
 }
 
-class _AttendanceScreenState extends State<AttendanceScreen> with SingleTickerProviderStateMixin {
+class _AttendanceScreenState extends State<AttendanceScreen>
+    with SingleTickerProviderStateMixin {
   AnimationController? controller;
   DraggableScrollableController draggableScrollableController =
-  DraggableScrollableController();
+      DraggableScrollableController();
   LocalAuthentication localAuthentication = LocalAuthentication();
   bool isBiometricAvailable = false;
   String? userId;
   ValueNotifier<bool> isDayStart = ValueNotifier(false);
   ValueNotifier<bool> isCheckIn = ValueNotifier(false);
   ValueNotifier<bool> isDayEnd = ValueNotifier(false);
+  ValueNotifier<bool> isWaiting = ValueNotifier(false);
   bool isTapped = false;
   bool isFromLogOutButton = false;
   bool isLoading = false;
@@ -52,16 +53,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> with SingleTickerPr
   CreateActivityModel? createActivityModel;
   FlutterBackgroundService service = FlutterBackgroundService();
 
-
   @override
   void initState() {
     // TODO: implement initState
     initAnimateController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if(!mounted){
-
-      }
-      panelController.animatePanelToPosition(0.99,duration: Duration(milliseconds: 500),curve: Curves.linear);
+      if (!mounted) {}
+      panelController.animatePanelToPosition(0.99,
+          duration: Duration(milliseconds: 500), curve: Curves.linear);
     });
     checkBiometricAvailable();
     isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
@@ -77,6 +76,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> with SingleTickerPr
     });
     super.initState();
   }
+
   @override
   void dispose() {
     // TODO: implement dispose
@@ -89,9 +89,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> with SingleTickerPr
     controller =
         AnimationController(vsync: this, duration: Duration(seconds: 1));
     controller?.addListener(() {
-      if(!mounted){
-
-      }
+      if (!mounted) {}
       setState(() {});
     });
   }
@@ -103,35 +101,42 @@ class _AttendanceScreenState extends State<AttendanceScreen> with SingleTickerPr
     }
   }
 
-
-callAddActivityApi(
-    {required AttendanceProvider postMdl, dynamic position, String? totEventCode,bool? isFromCheckIn = false,bool? isFromLogOutBtn = false}){
+  callAddActivityApi(
+      {required AttendanceProvider postMdl,
+      dynamic position,
+      String? totEventCode,
+      bool? isFromCheckIn = false,
+      bool? isFromLogOutBtn = false}) {
     print("userUid${userId}");
-    postMdl.apiCallCreateActivity(
+    postMdl
+        .apiCallCreateActivity(
       userId: userId,
       totTrackingEventCode: totEventCode,
       isFromCheckOut: false,
       batteryLevel: batteryLevel,
       latitude: position.latitude,
       longitude: position.longitude,
-    ).then((value) {
+    )
+        .then((value) {
       createActivityModel = value;
 
-      if(createActivityModel?.isError == false && createActivityModel?.isValidationFailed == false ){
+      if (createActivityModel?.isError == false &&
+          createActivityModel?.isValidationFailed == false) {
         PreferenceHelper.setDouble(
             PreferenceHelper.LAST_LAT, position.latitude ?? 0);
         PreferenceHelper.setDouble(
             PreferenceHelper.LAST_LONG, position.longitude ?? 0);
         PreferenceHelper.setString(
             PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
-        if(isFromLogOutBtn ?? false){
+        if (isFromLogOutBtn ?? false) {
           callLogOutFunction(position);
-        }else{
-          isFromCheckIn ?? false ?  callCheckInFunction(position) : callLoginFunction(position);
-          if(isFromCheckIn ?? false){
+        } else {
+          isFromCheckIn ?? false
+              ? callCheckInFunction(position)
+              : callLoginFunction(position);
+          if (isFromCheckIn ?? false) {
             callCheckInFunction(position);
-          }else{
-
+          } else {
             print("day start 200");
             // PreferenceHelper.setInt(PreferenceHelper.DAY_START_DAY_END_ID,
             //     addDayStartDayEndModel?.data?.dayStartDayEndId ?? 0);
@@ -145,39 +150,31 @@ callAddActivityApi(
             callLoginFunction(position);
           }
         }
-
-      }else{
+      } else {
         print("day start not 200");
         openDialogFnc(createActivityModel?.message.toString() ?? "");
       }
     });
-}
+  }
 
-PanelController panelController = PanelController();
+  PanelController panelController = PanelController();
 
   @override
   Widget build(BuildContext context) {
-    double height = MediaQuery
-        .of(context)
-        .size
-        .height;
-    double width = MediaQuery
-        .of(context)
-        .size
-        .width;
+    double height = MediaQuery.of(context).size.height;
+    double width = MediaQuery.of(context).size.width;
     final postMdl = Provider.of<AttendanceProvider>(context);
     return AppUtils.commonSlidePanel(
-        maxHeight: height *0.4,
-        minHeight:  height *0.09,
+        maxHeight: height * 0.4,
+        minHeight: height * 0.09,
         controller: panelController,
         isDraggable: true,
         // snapPoint: 0.01,
         panel: Stack(
           children: [
             Container(
-              padding: EdgeInsets.only(top: height *0.2 /2),
+              padding: EdgeInsets.only(top: height * 0.2 / 2),
               alignment: Alignment.center,
-
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -186,44 +183,54 @@ PanelController panelController = PanelController();
                     valueListenable: isDayEnd,
                     builder: (context, value, child) {
                       return Center(
-                        child:  !isDayEnd.value ? buttonWidget(postMdl,height,width) : logOut(postMdl,height,width) ,
+                        child: !isDayEnd.value
+                            ? buttonWidget(postMdl, height, width)
+                            : logOut(postMdl, height, width),
                       );
                     },
                   ),
                   // buttonWidget(height,width,postMdl),
-                  SizedBox(height: 15,),
+                  SizedBox(
+                    height: 15,
+                  ),
                   !isDayStart.value
                       ? AppUtils.commonTextWidget(
-                        text: "Press & Hold",
-                        fontSize: 14,
-                        letterSpacing: 0.2,
-                        fontWeight: FontWeight.w600,
-                        textColor: AppConstant.blackColor,
-                      )
-                      :
-                    GestureDetector(onTap: () {
-                        setState(() {
-                          isDayEnd.value = !isDayEnd.value; // Toggle the value
-                        });
-
-                      },
-                      child: AppUtils.commonTextWidget(
-                        text:  isDayEnd.value ? "Show Hide" : "Show Off",
-                        fontSize: 14,
-                        letterSpacing: 0.2,
-                        fontWeight: FontWeight.w600,
-                        textColor: isDayEnd.value ? AppConstant.appPrimaryColor : Colors.red ,
-                      )),
+                          text: "Press & Hold",
+                          fontSize: 14,
+                          letterSpacing: 0.2,
+                          fontWeight: FontWeight.w600,
+                          textColor: AppConstant.blackColor,
+                        )
+                      : GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              isDayEnd.value =
+                                  !isDayEnd.value; // Toggle the value
+                            });
+                          },
+                          child: AppUtils.commonTextWidget(
+                            text: isDayEnd.value ? "Show Hide" : "Show Off",
+                            fontSize: 14,
+                            letterSpacing: 0.2,
+                            fontWeight: FontWeight.w600,
+                            textColor: isDayEnd.value
+                                ? AppConstant.appPrimaryColor
+                                : Colors.red,
+                          )),
                 ],
               ),
             ),
-            AppUtils.buildHeader(height: height,width: width,title: "Vatsal",subTitle: "Epistic interiour Pvt Ltd",leadingImage: profileImage,borderColor: Colors.red,iconColor: AppConstant.appPrimaryColor,backgroundColor: Colors.white),
-
-
-
+            AppUtils.buildHeader(
+                height: height,
+                width: width,
+                title: "Vatsal",
+                subTitle: "Epistic interiour Pvt Ltd",
+                leadingImage: profileImage,
+                borderColor: Colors.red,
+                iconColor: AppConstant.appPrimaryColor,
+                backgroundColor: Colors.white),
           ],
-        )
-    );
+        ));
     // return Animate(
     //   effects: const  [
     //     SlideEffect(
@@ -378,7 +385,7 @@ PanelController panelController = PanelController();
 
   Future getCurrentLocation() async {
     bool isLocationServiceAvailable =
-    await AppUtils.checkLocationServiceAvailability();
+        await AppUtils.checkLocationServiceAvailability();
 
     if (isLocationServiceAvailable) {
       try {
@@ -393,26 +400,22 @@ PanelController panelController = PanelController();
   }
 
   Future loginFunction() async {
-  try{
-    service.startService();
-    PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-    isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
-  }catch(e){
-    print("loginFunction_is_in_catch");
+    try {
+      service.startService();
+      PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+      isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+    } catch (e) {
+      print("loginFunction_is_in_catch");
+    }
   }
 
-
-
-  }
   Future<void> checkInFunction() async {
     try {
       if (await service.isRunning()) {
+        service.invoke("stopService");
 
-         service.invoke("stopService");
-
-
-        await Future.delayed(const Duration(milliseconds: 300)); // Adjust the duration as needed
-
+        await Future.delayed(
+            const Duration(milliseconds: 300)); // Adjust the duration as needed
 
         await service.startService();
       }
@@ -424,7 +427,6 @@ PanelController panelController = PanelController();
       print("Error: $e");
     }
   }
-
 
   // Future checkInFunction() async {
   //   // bool isLocationServiceAvailable =
@@ -459,7 +461,7 @@ PanelController panelController = PanelController();
 
   Future checkOutFunction() async {
     bool isLocationServiceAvailable =
-    await AppUtils.checkLocationServiceAvailability();
+        await AppUtils.checkLocationServiceAvailability();
 
     if (isLocationServiceAvailable) {
       try {
@@ -493,13 +495,12 @@ PanelController panelController = PanelController();
       isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
       isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
       isDayEnd.value = false;
-
     } catch (e) {
       print("catch at dayEnd ${e}");
     }
   }
 
-  Widget buttonWidget(AttendanceProvider postMdl,height,width) {
+  Widget buttonWidget(AttendanceProvider postMdl, height, width) {
     return ValueListenableBuilder(
       valueListenable: isDayStart,
       builder: (context, value, child) {
@@ -516,36 +517,47 @@ PanelController panelController = PanelController();
 
                   controller?.reset();
                   if (!isDayStart.value) {
-                    doLocalVerification(afterSuccessfulVerificationFnc: () {
-                      // loginFunction();
-                      getCurrentLocation().then((value) {
-                        callAddActivityApi(postMdl: postMdl, position: value,totEventCode: AppConstant.dayStartEvent,isFromCheckIn: false);
-                      });
-                    },);
+                    doLocalVerification(
+                      afterSuccessfulVerificationFnc: () {
+                        // loginFunction();
+                        getCurrentLocation().then((value) {
+                          callAddActivityApi(
+                              postMdl: postMdl,
+                              position: value,
+                              totEventCode: AppConstant.dayStartEvent,
+                              isFromCheckIn: false);
+                        });
+                      },
+                    );
                   } else if (!isCheckIn.value) {
-                    doLocalVerification(afterSuccessfulVerificationFnc: () {
+                    doLocalVerification(
+                      afterSuccessfulVerificationFnc: () {
+                        // checkInFunction();
+                        getCurrentLocation().then((value1) {
+                          isWaiting.value = PreferenceHelper.getBool(
+                              PreferenceHelper.ISWAITING);
+                          print("waiting___$isWaiting");
 
-                      // checkInFunction();
-                      getCurrentLocation().then((value1) {
-                        bool isWaiting = PreferenceHelper.getBool(PreferenceHelper.ISWAITING);
-                        print("waiting___$isWaiting");
-                        if(isWaiting == true){
-                          postMdl.callCreateWaitingActivityApi(userId: userId,isWaitingStart: false,position: value1).then((value) async{
-                            await callAddActivityApi(postMdl: postMdl,position: value1,totEventCode: AppConstant.checkInEvent,isFromCheckIn: true);
-                          });
-                        }else{
-                          // print("waiting___$isWaiting");
-                          // callAddActivityApi(postMdl: postMdl,position: value1,totEventCode: AppConstant.checkInEvent,isFromCheckIn: true);
-
-                        }
-
-                      });
-
-                    },);
-                  } else{
+                          if (isWaiting.value) {
+                            postMdl
+                                .callCreateWaitingActivityApi(
+                                    userId: userId,
+                                    isWaitingStart: false,
+                                    position: value1)
+                                .then((value) async {
+                              await callAddActivityApi(
+                                  postMdl: postMdl,
+                                  position: value1,
+                                  totEventCode: AppConstant.checkInEvent,
+                                  isFromCheckIn: true);
+                            });
+                          }
+                        });
+                      },
+                    );
+                  } else {
                     checkOutFunction();
                   }
-
                 });
               },
               onTapUp: (details) {
@@ -576,21 +588,25 @@ PanelController panelController = PanelController();
                   child: Stack(
                     alignment: Alignment.center,
                     children: <Widget>[
-                      postMdl.isLoading ? LoaderWidget(color: !isDayStart.value
-                          ? Colors.lightGreen
-                          : Colors.blue,) : Positioned.fill(
-                        // scale: isTapped ? 4 : 3.6,
-                        // Adjust the scale factor as needed
-                        child: CircularProgressIndicator(
-                          value: controller?.value,
-                          strokeCap: StrokeCap.round,
-                          strokeWidth: 8,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              !isDayStart.value
+                      postMdl.isLoading
+                          ? LoaderWidget(
+                              color: !isDayStart.value
                                   ? Colors.lightGreen
-                                  : Colors.blue),
-                        ),
-                      ),
+                                  : Colors.blue,
+                            )
+                          : Positioned.fill(
+                              // scale: isTapped ? 4 : 3.6,
+                              // Adjust the scale factor as needed
+                              child: CircularProgressIndicator(
+                                value: controller?.value,
+                                strokeCap: StrokeCap.round,
+                                strokeWidth: 8,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    !isDayStart.value
+                                        ? Colors.lightGreen
+                                        : Colors.blue),
+                              ),
+                            ),
                       Positioned.fill(
                         // scale: isTapped ? 4 : 3.6,
                         // Adjust the scale factor as needed
@@ -599,8 +615,7 @@ PanelController panelController = PanelController();
                           strokeWidth: 8,
                           strokeCap: StrokeCap.round,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                              AppConstant.greyColor.withOpacity(0.2)
-                          ),
+                              AppConstant.greyColor.withOpacity(0.2)),
                         ),
                       ),
                       AnimatedContainer(
@@ -608,8 +623,8 @@ PanelController panelController = PanelController();
                         curve: Curves.decelerate,
                         margin: EdgeInsets.all(2.8),
                         duration: const Duration(milliseconds: 300),
-                        height: isTapped ? 120: 100,
-                        width: isTapped ? 120: 100,
+                        height: isTapped ? 120 : 100,
+                        width: isTapped ? 120 : 100,
                         decoration: BoxDecoration(
                           color: !isDayStart.value
                               ? Colors.lightGreen.withOpacity(0.8)
@@ -631,8 +646,8 @@ PanelController panelController = PanelController();
                             text: !isDayStart.value
                                 ? "In"
                                 : !isCheckIn.value
-                                ? "Check-In"
-                                : "Check-Out",
+                                    ? "Check-In"
+                                    : "Check-Out",
                             fontSize: !isDayStart.value ? 20 : 12,
                             textColor: Colors.white,
                             fontWeight: FontWeight.w600,
@@ -649,7 +664,8 @@ PanelController panelController = PanelController();
       },
     );
   }
-  Widget logOut(postMdl,height,width) {
+
+  Widget logOut(postMdl, height, width) {
     return Animate(
       effects: const [
         ScaleEffect(
@@ -671,11 +687,15 @@ PanelController panelController = PanelController();
               if (isDayStart.value) {
                 // logOutFunction();
                 getCurrentLocation().then((value) {
-                  callAddActivityApi(postMdl: postMdl,isFromLogOutBtn: true,totEventCode: AppConstant.dayEndEvent,position: value,);
+                  callAddActivityApi(
+                    postMdl: postMdl,
+                    isFromLogOutBtn: true,
+                    totEventCode: AppConstant.dayEndEvent,
+                    position: value,
+                  );
                 });
               }
             });
-
           });
         },
         onTapUp: (details) {
@@ -701,16 +721,19 @@ PanelController panelController = PanelController();
             child: Stack(
               alignment: Alignment.center,
               children: <Widget>[
-                postMdl.isLoading ? LoaderWidget(color: Colors.red) : Positioned.fill(
-                  // scale: isFromLogOutButton ? 4 : 3.6,
-                  // Adjust the scale factor as needed
-                  child: CircularProgressIndicator(
-                    value: controller?.value,
-                    strokeCap: StrokeCap.round,
-                    strokeWidth: 8,
-                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
-                  ),
-                ),
+                postMdl.isLoading
+                    ? LoaderWidget(color: Colors.red)
+                    : Positioned.fill(
+                        // scale: isFromLogOutButton ? 4 : 3.6,
+                        // Adjust the scale factor as needed
+                        child: CircularProgressIndicator(
+                          value: controller?.value,
+                          strokeCap: StrokeCap.round,
+                          strokeWidth: 8,
+                          valueColor:
+                              const AlwaysStoppedAnimation<Color>(Colors.red),
+                        ),
+                      ),
                 Positioned.fill(
                   // scale: isFromLogOutButton ? 4 : 3.6,
                   // Adjust the scale factor as needed
@@ -720,10 +743,10 @@ PanelController panelController = PanelController();
                     strokeCap: StrokeCap.round,
                     valueColor: AlwaysStoppedAnimation<Color>(
                         AppConstant.greyColor.withOpacity(0.2)
-                      // dayEnd == true ? Colors.red :!isDayStart.value
-                      //     ? AppConstant.greyColor
-                      //     : Colors.blue
-                    ),
+                        // dayEnd == true ? Colors.red :!isDayStart.value
+                        //     ? AppConstant.greyColor
+                        //     : Colors.blue
+                        ),
                   ),
                 ),
                 AnimatedContainer(
@@ -771,14 +794,14 @@ PanelController panelController = PanelController();
   }
 
   callLoginFunction(dynamic position) {
-
     return loginFunction().then((value) {
       if (widget.onLocationFetch != null) {
         widget.onLocationFetch!(position);
       }
     });
   }
-  callLogOutFunction(dynamic position){
+
+  callLogOutFunction(dynamic position) {
     return logOutFunction().then((value) {
       if (widget.onLocationFetch != null) {
         widget.onLocationFetch!(position);
@@ -791,16 +814,12 @@ PanelController panelController = PanelController();
     });
   }
 
-
-
-
-
   openDialogFnc(String text) {
     return AppUtils.dialogWidget(text, context);
   }
 
-
-  doLocalVerification({required Function() afterSuccessfulVerificationFnc}) async {
+  doLocalVerification(
+      {required Function() afterSuccessfulVerificationFnc}) async {
     if (isBiometricAvailable) {
       bool isAuthenticated = await localAuthentication.authenticate(
           localizedReason: "Authenticate using Biometrics",
@@ -813,7 +832,6 @@ PanelController panelController = PanelController();
 
         // openDialogFnc("Authentication Successful");
         afterSuccessfulVerificationFnc();
-
       } else {
         if (kDebugMode) {
           print("isAuthenticated $isAuthenticated");

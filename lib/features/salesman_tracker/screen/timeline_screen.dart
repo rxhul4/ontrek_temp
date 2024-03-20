@@ -84,6 +84,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
       final saleMenTimeLineProvider =
           Provider.of<SalemenTimeLineProvider>(context, listen: false);
       if (!mounted) {}
+      saleMenTimeLineProvider.eventDataList.clear();
       saleMenTimeLineProvider.apiCallGetTimeLine(
           userid: widget.userId, date: selectedDate.toString());
     });
@@ -142,7 +143,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                       ),
                       informationBar(),
                       datePickerWidget(true),
-                      timeLineWidget(scrollController: p0,listOfData: saleMenTimeLineProvider.eventDataList),
+                      timeLineWidget(scrollController: p0,listOfData: saleMenTimeLineProvider.eventDataList,),
                     ],
                   ),
                 ),
@@ -208,21 +209,22 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
   }
 
   Widget timeLineWidget({ScrollController? scrollController,List? listOfData}) {
-    return // getMdl.isFetching
-        //     ? AppUtils.loaderWidget()
-        //     : getMdl.getTimeLineModel?.data == null ||
-        //             (getMdl.getTimeLineModel?.data?.length ??
-        //                     0) <=
-        //                 0
-        //         ? AppUtils.commonNoDataFound(
-        //             onPressed: () {
-        //               // callGetTimeline(getMdl);
-        //             },
-        //           )
-        //         :
+    return
         Expanded(
-      child: ListView.builder(
-        itemCount: listOfData?.length,
+      child: saleMenTimeLineProvider.isFetching
+          ? AppUtils.loaderWidget()
+          : listOfData == null ||
+          (listOfData.length ??
+              0) <=
+              0
+          ? AppUtils.commonNoDataFound(
+        text: saleMenTimeLineProvider.getTimeLineModel?.message,
+        onPressed: () {
+          // callGetTimeline(getMdl);
+        },
+      )
+          :ListView.builder(
+        itemCount: listOfData.length,
         physics: const BouncingScrollPhysics(),
         controller: scrollController,
         shrinkWrap: true,
@@ -267,7 +269,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                   AppUtils.commonTextWidget(
                       // text: "12 jan 2024",
                       text: AppUtils.getDate(
-                          date: listOfData?[index]["eventDate"] ??
+                          date: listOfData[index]["eventDate"] ??
                               "",
                           format: "d MMM y"),
                       textColor: AppConstant.greyColor,
