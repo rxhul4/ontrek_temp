@@ -1,4 +1,4 @@
-package com.example.ontrek
+package com.ontrek
 
 //import io.flutter.embedding.android.FlutterActivity
 

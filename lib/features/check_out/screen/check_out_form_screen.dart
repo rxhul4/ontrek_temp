@@ -136,17 +136,6 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
   }
 
   checkOutFunction() async {
-    if (await service.isRunning()) {
-      // If service is running, stop it
-      service.invoke("stopService");
-
-      // Wait for 1 or 2 seconds before starting the service again
-      await Future.delayed(
-          const Duration(milliseconds: 300)); // Adjust the duration as needed
-
-      // Start the service
-      await service.startService();
-    }
     PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
     Navigator.pop(context);
   }

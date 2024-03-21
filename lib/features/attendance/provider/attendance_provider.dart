@@ -27,6 +27,7 @@ class AttendanceProvider extends ChangeNotifier {
   CreateActivityModel? createActivityModel;
   final Battery battery = Battery();
   int batteryPercentage = 0;
+  bool? isWaiting;
 
   loaderFnc(bool isLoading) {
     _isLoading = isLoading;
@@ -62,6 +63,13 @@ class AttendanceProvider extends ChangeNotifier {
     }
   }
 
+  updateWaitingValue(){
+    print("${ PreferenceHelper.getBool(PreferenceHelper.ISWAITING)}");
+    isWaiting =  PreferenceHelper.getBool(PreferenceHelper.ISWAITING);
+    notifyListeners();
+    return isWaiting;
+  }
+
   Future<CreateActivityModel?> apiCallCreateActivity({
     bool? isFromCheckOut = false,
     String? picturePath,
@@ -89,8 +97,8 @@ class AttendanceProvider extends ChangeNotifier {
     };
     Map<String, dynamic> body = {
       "userId": userId ?? "",
-      "longitude": latitude,
-      "lattitude": longitude,
+      "longitude": longitude,
+      "lattitude": latitude,
       "totTrackingEventId": totTrackingEventCode,
       "activityDateTime": activityDateTime ??
           AppUtils.dateFormat(

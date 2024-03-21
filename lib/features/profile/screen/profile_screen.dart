@@ -7,19 +7,19 @@ import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/features/authentication/screens/login_screen.dart';
 import 'package:ontrek/features/authentication/screens/login_with_phone_number.dart';
+import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class ProfileScreen extends StatefulWidget {
-  ScrollController? scrollController;
 
-  ProfileScreen({super.key, this.scrollController});
+  ProfileScreen({super.key});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  DraggableScrollableController draggableScrollableController =
-      DraggableScrollableController();
+  PanelController panelController =
+  PanelController();
   String? userName;
   String? profileImage;
 
@@ -29,150 +29,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     userName = PreferenceHelper.getString(PreferenceHelper.FULL_NAME);
     profileImage = PreferenceHelper.getString(PreferenceHelper.PROFILE_PIC);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Animate(
-      effects: const [
-        SlideEffect(
-            end: Offset(0, 0),
-            curve: Curves.decelerate,
-            begin: Offset(0, 1),
-            duration: Duration(milliseconds: 600)),
-      ],
-      child: Container(
-        decoration: AppUtils.commonBoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                spreadRadius: 0,
-                blurRadius: 8,
-                offset: Offset(0, -10), // This will create a top shadow
-              ),
-            ],
-            borderRadius: AppUtils.borderRadiousonly(topright: 18, topleft: 18),
-            color: AppConstant.whiteColor),
-        child: Column(
-          children: [
-            AppUtils.commonContainer(
-              height: MediaQuery.of(context).size.height / 3,
-              width: double.infinity,
-              color: AppConstant.whiteColor.withOpacity(0.3),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Stack(
-                    alignment: Alignment.topRight,
-                    children: [
-                     SizedBox(
-                       height: 80,
-                       width: 80,
-                       child: ClipOval(
-                         child: AppUtils.commonNetworkImageWidget(path: profileImage),
-                       ),
-                     ),
-                      AppUtils.commonContainer(
-                        padding: EdgeInsets.all(5),
-                        decoration: AppUtils.commonBoxDecoration(
-                            color: Colors.white, shape: BoxShape.circle),
-                        child: Icon(Icons.edit, size: 15),
-                      )
-                    ],
-                  ),
-                  AppUtils.commonSizedBox(height: 10),
-                  AppUtils.commonTextWidget(
-                      text: userName ?? "",
-                      textColor: AppConstant.blackColor,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 18),
-                  AppUtils.commonTextWidget(
-                      text: 'Epist Interior Pvt Ltd',
-                      textColor: AppConstant.blackColor.withOpacity(0.6),
-                      fontSize: 12),
-                ],
-              ),
-            ),
-            AppUtils.commonContainer(
-              decoration: AppUtils.commonBoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: AppConstant.greyColor, width: 0),
-                ),
-              ),
-              child: ListTile(
-                contentPadding: EdgeInsets.only(left: 10, right: 10),
-                leading:SizedBox(
-                  height: 50,
-                  width: 50,
-                  child: ClipOval(
-                    child: AppUtils.commonNetworkImageWidget(path: profileImage,),
-                  ),),
-                title: AppUtils.commonTextWidget(
-                    text: userName ?? "",
-                    textColor: AppConstant.blackColor,
-                    fontWeight: FontWeight.w500),
-                subtitle: AppUtils.commonTextWidget(
-                    text: 'Reporting Manager',
-                    textColor: AppConstant.blackColor.withOpacity(0.6),
-                    fontSize: 12),
-                trailing: IconButton(
-                  onPressed: () {
-                    openDialogFnc();
-                  },
-                  icon: Icon(Icons.call, color: Colors.blue.shade800),
-                ),
-              ),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ListView.builder(
-                      controller: widget.scrollController,
-                      itemCount: profileOptionsList.length,
-                      shrinkWrap: true,
-                      // scrollDirection: Axis.vertical,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemBuilder: (context, index) {
-                        return InkWell(
-                          onTap: () {
-                            print("index${index}");
-                            print(profileOptionsList[index]);
-                            if (index == 7) {
-                              PreferenceHelper.clear();
-                              Navigator.pushReplacement(
-                                  context,
-                                  CupertinoPageRoute(
-                                    builder: (context) => LoginScreen(),
-                                  ));
-                            }
-                          },
-                          child: profileOptions(
-                            icon: profileOptionsListIcons[index],
-                            text: profileOptionsList[index],
-                            index: index,
-                            itemCount: profileOptionsList.length,
-                          ),
-                        );
-                      },
-                    ),
-                    const Divider(),
-                    Padding(
-                      padding: AppUtils.edgeInsetsOnly(left: 10, bottom: 8),
-                      child: AppUtils.commonTextWidget(
-                          text: 'Version', textColor: AppConstant.blackColor),
-                    ),
-                    // Text('${infoOfDevice?.version.release.toString()}')
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   List<String> profileOptionsList = [
@@ -195,6 +51,146 @@ class _ProfileScreenState extends State<ProfileScreen> {
     Icons.app_settings_alt,
     Icons.logout,
   ];
+
+  @override
+  Widget build(BuildContext context) {
+    double height = MediaQuery.of(context).size.height;
+    double width = MediaQuery.of(context).size.width;
+    return AppUtils.commonSlidePanel(
+      controller: panelController,
+      maxHeight: height,
+      minHeight: height,
+      isDraggable: false,
+      panelSnapping: false,
+      panelBuilder: (p0) {
+        return Column(
+          children: [
+            AppUtils.commonContainer(
+              height: MediaQuery.of(context).size.height / 3,
+              width: double.infinity,
+              color: AppConstant.whiteColor.withOpacity(0.3),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Stack(
+                    alignment: Alignment.topRight,
+                    children: [
+                      SizedBox(
+                        height: 80,
+                        width: 80,
+                        child: ClipOval(
+                          child: AppUtils.commonNetworkImageWidget(
+                              path: profileImage),
+                        ),
+                      ),
+                      AppUtils.commonContainer(
+                        padding: EdgeInsets.all(5),
+                        decoration: AppUtils.commonBoxDecoration(
+                            color: Colors.white, shape: BoxShape.circle),
+                        child: Icon(Icons.edit, size: 15),
+                      )
+                    ],
+                  ),
+                  AppUtils.commonSizedBox(height: 10),
+                  AppUtils.commonTextWidget(
+                      text: "Kuldeep Chauhan",
+                      textColor: AppConstant.blackColor,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 18),
+                  AppUtils.commonTextWidget(
+                      text: 'Epist Interior Pvt Ltd',
+                      textColor: AppConstant.blackColor.withOpacity(0.6),
+                      fontSize: 12),
+                ],
+              ),
+            ),
+            AppUtils.commonContainer(
+              decoration: AppUtils.commonBoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: AppConstant.greyColor, width: 0),
+                ),
+              ),
+              child: ListTile(
+                contentPadding: const EdgeInsets.only(left: 10, right: 10),
+                leading: SizedBox(
+                  height: 50,
+                  width: 50,
+                  child: ClipOval(
+                    child: AppUtils.commonNetworkImageWidget(
+                      path: profileImage,
+                    ),
+                  ),
+                ),
+                title: AppUtils.commonTextWidget(
+                    text: "Kuldeep Chauhan",
+                    textColor: AppConstant.blackColor,
+                    fontWeight: FontWeight.w500),
+                subtitle: AppUtils.commonTextWidget(
+                    text: 'Reporting Manager',
+                    textColor: AppConstant.blackColor.withOpacity(0.6),
+                    fontSize: 12),
+                trailing: IconButton(
+                  onPressed: () {
+                    openDialogFnc();
+                  },
+                  icon: Icon(Icons.call, color: Colors.blue.shade800),
+                ),
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                controller: p0,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      height: height - (MediaQuery.of(context).size.height / 3) - 80, // Adjust the height accordingly
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: profileOptionsList.length,
+                        itemBuilder: (context, index) {
+                          return InkWell(
+                            onTap: () {
+                              print("index${index}");
+                              print(profileOptionsList[index]);
+                              if (index == 7) {
+                                PreferenceHelper.clear();
+                                Navigator.pushReplacement(
+                                  context,
+                                  CupertinoPageRoute(
+                                    builder: (context) => LoginScreen(),
+                                  ),
+                                );
+                              }
+                            },
+                            child: profileOptions(
+                              icon: profileOptionsListIcons[index],
+                              text: profileOptionsList[index],
+                              index: index,
+                              itemCount: profileOptionsList.length,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const Divider(),
+                    Padding(
+                      padding: AppUtils.edgeInsetsOnly(left: 10, bottom: 8),
+                      child: AppUtils.commonTextWidget(
+                          text: 'Version',
+                          textColor: AppConstant.blackColor
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          ],
+        );
+      },
+    );
+  }
 
   Widget profileOptions({
     IconData? icon,

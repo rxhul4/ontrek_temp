@@ -71,16 +71,17 @@ animatePanel(){
     notifyListeners();
   }
   Future<GetSalesMenListModel?> apiCallGetSalesManList() async {
-    // var managerId = PreferenceHelper.getInt(PreferenceHelper.USER_UID);
+    var managerId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
+    var orgId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
     _isFetching = true;
     notifyListeners();
 
     Map<String, dynamic> body = {
-      "managerId": "919e3ede-00e1-4502-87f2-6b2459554c9c",
+      "managerId": managerId,
       "eventDate": AppUtils.dateFormat(
           date: DateTime.now(), dateFormat: AppConstant.dateFormat),
       "fillter": searchController.text,
-      "orgId": "10bce922-213c-46dd-aa94-0c47883b76d3"
+      "orgId": orgId
     };
     try {
       String endPoint = ApiConstants.getSalesMenList;

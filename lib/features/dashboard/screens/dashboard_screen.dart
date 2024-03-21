@@ -29,67 +29,6 @@ class DashBoard extends StatefulWidget {
 
 class DashBoardState extends State<DashBoard> {
 
-
-
-
-
-
-  // Future<void> getCurrentLocation() async {
-  //   print("innnnnnnnnnnnn");
-  //   try {
-  //     Position position = await Geolocator.getCurrentPosition(
-  //       desiredAccuracy: LocationAccuracy.low,
-  //     );
-  //
-  //     if (!mounted) {}
-  //     setState(() {
-  //       currentLocation = LatLng(position.latitude, position.longitude);
-  //       print("${currentLocation}");
-  //       if (currentLocation != null) {
-  //         updateCameraPosition(currentLocation ?? LatLng(0, 0));
-  //         addCurrentLocationMarker(currentLocation ?? LatLng(0, 0));
-  //       }
-  //     });
-  //   } catch (e) {
-  //     print("Error fetching location: $e");
-  //   }
-  // }
-
-  // Future<void> getFetchedLocation(currentLocation,DashBoardProvider dashBoardProvider) async {
-  //   try {
-  //     if (currentLocation != null) {
-  //       if (dashBoardProvider.googleMapController != null) {
-  //         updateCameraPosition(currentLocation ?? LatLng(0, 0));
-  //         addCurrentLocationMarker(currentLocation ?? LatLng(0, 0));
-  //       }
-  //     }
-  //   } catch (e) {
-  //     print("catach at getFecthedLocation${e}");
-  //   }
-  // }
-
-  // Future updateCameraPosition(LatLng location) async {
-  //   print("location-------${location}");
-  //   final GoogleMapController controller = await googleMapController.future;
-  //   controller.animateCamera(CameraUpdate.newCameraPosition(
-  //     CameraPosition(
-  //       target: location,
-  //       zoom: 14,
-  //     ),
-  //   ));
-  // }
-
-  // void addCurrentLocationMarker(LatLng location) {
-  //   markers.clear(); // Clear previous markers
-  //   markers.add(
-  //     Marker(
-  //       markerId: MarkerId("currentLocation"),
-  //       position: location,
-  //       infoWindow: InfoWindow(title: "Current Location"),
-  //     ),
-  //   );
-  // }
-
   List<String> lableString = [
     "Attendance",
     "Track",
@@ -114,7 +53,6 @@ class DashBoardState extends State<DashBoard> {
     });
 
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -146,6 +84,7 @@ class DashBoardState extends State<DashBoard> {
               }),
               TrackScreen(),
               TaskListScreen(),
+
               LeadScreen(),
               ProfileScreen(),
             ][dashBoardProvider.selectedIndex],

@@ -33,15 +33,13 @@ class AttendanceScreen extends StatefulWidget {
 class _AttendanceScreenState extends State<AttendanceScreen>
     with SingleTickerProviderStateMixin {
   AnimationController? controller;
-  DraggableScrollableController draggableScrollableController =
-      DraggableScrollableController();
   LocalAuthentication localAuthentication = LocalAuthentication();
   bool isBiometricAvailable = false;
   String? userId;
   ValueNotifier<bool> isDayStart = ValueNotifier(false);
   ValueNotifier<bool> isCheckIn = ValueNotifier(false);
   ValueNotifier<bool> isDayEnd = ValueNotifier(false);
-  ValueNotifier<bool> isWaiting = ValueNotifier(false);
+  bool? isWaiting;
   bool isTapped = false;
   bool isFromLogOutButton = false;
   bool isLoading = false;
@@ -87,7 +85,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   initAnimateController() {
     controller =
-        AnimationController(vsync: this, duration: Duration(seconds: 1));
+        AnimationController(vsync: this, duration: Duration(seconds: 2));
     controller?.addListener(() {
       if (!mounted) {}
       setState(() {});
@@ -411,17 +409,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   Future<void> checkInFunction() async {
     try {
-      if (await service.isRunning()) {
-        service.invoke("stopService");
-
-        await Future.delayed(
-            const Duration(milliseconds: 300)); // Adjust the duration as needed
-
-        await service.startService();
-      }
 
       PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
-      // PreferenceHelper.setBool(PreferenceHelper.ISWAITING, false);
+      PreferenceHelper.setBool(PreferenceHelper.ISWAITING, false);
       isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
     } catch (e) {
       print("Error: $e");
@@ -531,27 +521,36 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     );
                   } else if (!isCheckIn.value) {
                     doLocalVerification(
-                      afterSuccessfulVerificationFnc: () {
-                        // checkInFunction();
-                        getCurrentLocation().then((value1) {
-                          isWaiting.value = PreferenceHelper.getBool(
-                              PreferenceHelper.ISWAITING);
-                          print("waiting___$isWaiting");
+                      afterSuccessfulVerificationFnc: () async{
 
-                          if (isWaiting.value) {
-                            postMdl
-                                .callCreateWaitingActivityApi(
+                        getCurrentLocation().then((value1) {
+                          PreferenceHelper.reload().then((value){
+                            Future.delayed(Duration(seconds: 1));
+                            print("${value?.getBool(PreferenceHelper.ISWAITING)}");
+                            isWaiting =  value?.getBool(PreferenceHelper.ISWAITING);
+                            print("waiting__$isWaiting");
+
+
+                            if(isWaiting != null){
+                              if (isWaiting ?? false) {
+                                postMdl
+                                    .callCreateWaitingActivityApi(
                                     userId: userId,
                                     isWaitingStart: false,
                                     position: value1)
-                                .then((value) async {
-                              await callAddActivityApi(
-                                  postMdl: postMdl,
-                                  position: value1,
-                                  totEventCode: AppConstant.checkInEvent,
-                                  isFromCheckIn: true);
-                            });
-                          }
+                                    .then((value) async {
+                                  await callAddActivityApi(
+                                      postMdl: postMdl,
+                                      position: value1,
+                                      totEventCode: AppConstant.checkInEvent,
+                                      isFromCheckIn: true
+                                  );
+                                });
+                              }
+                            }
+                          });
+
+
                         });
                       },
                     );
@@ -686,6 +685,15 @@ class _AttendanceScreenState extends State<AttendanceScreen>
             doLocalVerification(afterSuccessfulVerificationFnc: () {
               if (isDayStart.value) {
                 // logOutFunction();
+                setState(() {
+                  PreferenceHelper.load().then((value) {
+                    print("logout_Waiting${value?.getBool(PreferenceHelper.ISWAITING)}");
+                    isWaiting = value?.getBool(PreferenceHelper.ISWAITING);
+                  });
+
+
+                  print("logout_Waiting$isWaiting");
+                });
                 getCurrentLocation().then((value) {
                   callAddActivityApi(
                     postMdl: postMdl,

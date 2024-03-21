@@ -60,6 +60,7 @@ class PreferenceHelper {
   static SharedPreferences? _prefs;
   static Map<String, dynamic> _memoryPrefs = Map<String, dynamic>();
 
+
   static Future<SharedPreferences?> load() async {
     if (_prefs == null) {
       _prefs = await SharedPreferences.getInstance();
@@ -71,6 +72,8 @@ class PreferenceHelper {
     _prefs?.setString(key, value);
     _memoryPrefs[key] = value;
   }
+
+
 
   static void remove(String? key) {
     if (key != null) {
@@ -184,5 +187,6 @@ class PreferenceHelper {
   }
   static Future<SharedPreferences?> reload() async{
     await _prefs?.reload();
+    return _prefs;
   }
 }

@@ -235,8 +235,8 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
 
             axis: TimelineAxis.vertical,
             lineXY: 0.5,
-            isLast: index == (listOfData?.length ?? 0) - 1,
-            isFirst: index == listOfData?.length,
+            isLast: index == (listOfData.length) - 1,
+            isFirst: index == listOfData.length,
             indicatorStyle: IndicatorStyle(
               indicatorXY: 0,
               drawGap: true,
@@ -248,7 +248,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                 ),
                 child: Center(
                     child: Image.asset(
-                  AppUtils.getImagePathFromApi(listOfData?[index]["eventCode"]),
+                  AppUtils.getImagePathFromApi(listOfData[index]["eventCode"]),
                 )),
               ),
             ),

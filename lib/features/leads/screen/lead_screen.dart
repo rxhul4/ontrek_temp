@@ -23,6 +23,7 @@ class _LeadScreenState extends State<LeadScreen> {
     // TODO: implement initState
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+
       final leadProvider = Provider.of<LeadProvider>(context, listen: false);
 
       callGetAllLeadApi(leadProvider);
@@ -30,6 +31,7 @@ class _LeadScreenState extends State<LeadScreen> {
   }
 
   callGetAllLeadApi(LeadProvider leadProvider) {
+    if(!mounted){}
     leadProvider.apiCallGetAllLead();
   }
 
@@ -55,6 +57,7 @@ class _LeadScreenState extends State<LeadScreen> {
                 commonIconWidget(
                   iconData: Icons.search,
                   onTap: () {
+                    if(!mounted){}
                     leadProvider.showAndHideSearchWidget(true);
                   },
                 ),
@@ -83,14 +86,18 @@ class _LeadScreenState extends State<LeadScreen> {
                 ? searchWidget(leadProvider)
                 : const SizedBox(),
             Expanded(
-              child: leadProvider.isLoading
+              child: leadProvider.isFetching
                   ? Center(
                       child: AppUtils.loaderWidget(),
                     )
                   : leadProvider.getAllLeadModel?.data == null ||
                           (leadProvider.getAllLeadModel?.data?.length ?? 0) <= 0
                       ? AppUtils.commonNoDataFound(
-                          onPressed: callGetAllLeadApi(leadProvider))
+                          onPressed: () {
+                            if(!mounted){}
+                            callGetAllLeadApi(leadProvider);
+                          },
+              )
                       : ListView.builder(
                           controller: p0,
                           physics: const BouncingScrollPhysics(),
