@@ -38,7 +38,7 @@ class Data {
   String? fieldUserName;
   String? userPhoneNo;
   String? timeLineDate;
-  double? totalKmTravel;
+  num? totalKmTravel;
   int? totalCheckIn;
   String? totalDuration;
   FieldUserLastActivity? fieldUserLastActivity;
@@ -182,7 +182,7 @@ class SessionTimeLine {
   int? sessionNo;
   String? sessionStartDateTime;
   String? sessionEndDateTime;
-  double? totalKmTravel;
+  num? totalKmTravel;
   int? totalCheckIn;
   String? totalDuration;
   List<SessionEvents>? sessionEvents;

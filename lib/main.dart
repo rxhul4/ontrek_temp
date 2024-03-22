@@ -114,8 +114,7 @@ void onStart(ServiceInstance service) {
           );
         }
       }
-      PreferenceHelper.setString(PreferenceHelper.UNIVERSAL_LAST_SAVED_TIME,
-          DateTime.now().toString());
+
       final connectivityResult = await Connectivity().checkConnectivity();
       var isInternetAvailable =
           connectivityResult == ConnectivityResult.mobile ||
@@ -182,7 +181,7 @@ void onStart(ServiceInstance service) {
                 isInternetOn: true,
               );
             }
-            await callCreateRouteHistory();
+            await callCreateRouteHistory(userId: userId);
           });
         } else if (isGPSEnabled && !isInternetAvailable) {
           print("internet is not available ");
@@ -279,7 +278,7 @@ void onStart(ServiceInstance service) {
 CreateActivityModel? createActivityModel;
 CreateRouteHistoryModel? createRouteHistoryModel;
 final Battery battery = Battery();
-var storage = const FlutterSecureStorage();
+
 
 callCreteRouteHistoryApi({String? userId, Position? position}) async {
   if (kDebugMode) {
@@ -304,19 +303,19 @@ callCreteRouteHistoryApi({String? userId, Position? position}) async {
 
     if (createRouteHistoryModel?.isError == false &&
         createRouteHistoryModel?.isValidationFailed == false) {
-      bool isWaiting = PreferenceHelper.getBool(PreferenceHelper.ISWAITING);
-      if (isWaiting == true) {
-      } else {
-        PreferenceHelper.setString(
-            PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
-      }
+      PreferenceHelper.reload().then((value) {
+        bool? isWaiting = PreferenceHelper.getBool(PreferenceHelper.ISWAITING);
+        if (isWaiting == true) {
+        } else {
+          PreferenceHelper.setString(
+              PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
+        }
 
-      PreferenceHelper.setDouble(
-          PreferenceHelper.LAST_LAT, position?.latitude ?? 0);
-      PreferenceHelper.setDouble(
-          PreferenceHelper.LAST_LONG, position?.longitude ?? 0);
-      // PreferenceHelper.setString(
-      //     PreferenceHelper.LAST_ADD_ROUTE_DATETIME, DateTime.now().toString());
+        PreferenceHelper.setDouble(
+            PreferenceHelper.LAST_LAT, position?.latitude ?? 0);
+        PreferenceHelper.setDouble(
+            PreferenceHelper.LAST_LONG, position?.longitude ?? 0);
+      });
     }
   } catch (e) {
     print("inCatch ${createRouteHistoryModel?.message}");
@@ -328,6 +327,7 @@ callCreateWaitingActivityApi(
     {String? userId, bool? isWaitingStart, Position? position}) async {
   try {
     Map<String, dynamic> body = {};
+
     double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
     double? lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
     String? waitingStartTime =
@@ -439,71 +439,65 @@ callInternetAndGpsActivityApi(
   }
 }
 
-callCreateRouteHistory() async {
+callCreateRouteHistory({String? userId}) async {
   Position position;
   double distance = 51;
-  PreferenceHelper.reload().then((value) async {
-    bool? isWaiting = value?.getBool(PreferenceHelper.ISWAITING);
-    String? userId = value?.getString(PreferenceHelper.USER_UID);
+  bool? isWaiting = PreferenceHelper.getBool(PreferenceHelper.ISWAITING);
+  PreferenceHelper.reload().then((value) async{
+    bool? checkIn = value?.getBool(PreferenceHelper.checkIn);
+
 
     try {
       print("start testing");
       position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.best);
 
-      double? lastLat = value?.getDouble(PreferenceHelper.LAST_LAT);
-      double? lastLong = value?.getDouble(PreferenceHelper.LAST_LONG);
+      double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+      double? lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
       distance = Geolocator.distanceBetween(lastLat ?? 0, lastLong ?? 0,
           position.latitude, position.longitude); // distance in meter
       print("distance-- $distance");
 
       if ((distance) > 50) {
-        if (isWaiting ?? false) {
-          callCreateWaitingActivityApi(
-              userId: userId, position: position, isWaitingStart: false);
-        }
-        PreferenceHelper.reload().then((value) {
-          String? userId = value?.getString(PreferenceHelper.USER_UID);
-          callCreteRouteHistoryApi(userId: userId, position: position);
-        });
-      } else {
-        PreferenceHelper.reload().then((value) {
-          bool? checkIn = value?.getBool(PreferenceHelper.checkIn);
+        if(checkIn == false){
           print("checkin________$checkIn");
+          if (isWaiting) {
+            callCreateWaitingActivityApi(
+                userId: userId, position: position, isWaitingStart: false);
+          }
+          callCreteRouteHistoryApi(userId: userId, position: position);
+        }
 
+      } else {
+        PreferenceHelper.reload().then((pref) {
+          bool? checkIn = pref?.getBool(PreferenceHelper.checkIn);
+          bool? isWaiting = pref?.getBool(PreferenceHelper.ISWAITING);
+          print("checkin________$checkIn");
+          print("waiting---$isWaiting");
           if (checkIn ?? false) {
             print("checkin________$checkIn");
-            print("checkin________$isWaiting");
-            // if (isWaiting) {
-            //   callCreateWaitingActivityApi(
-            //       userId: userId, position: position, isWaitingStart: false);
-            // }
+            print("waiting------$isWaiting");
+
           } else {
-            String? waitingStartTime =
-                PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
+            String? waitingStartTime = pref?.getString(PreferenceHelper.WAITING_START_TIME);
             print("waitingStartTime_________$waitingStartTime");
             if (waitingStartTime != null) {
               print("waiting_________$isWaiting");
-              if (isWaiting != null) {
-                if (isWaiting == false) {
-                  print("isWaiting__________$isWaiting");
-                  if (DateTime.now()
-                          .difference(DateTime.parse(waitingStartTime ?? ''))
-                          .inSeconds >
-                      30) {
-                    print(
-                        "data${DateTime.now().difference(DateTime.parse(waitingStartTime ?? '')).inSeconds}");
-                    callCreateWaitingActivityApi(
-                        userId: userId,
-                        position: position,
-                        isWaitingStart: true);
-                  } else {
-                    print("not===30 second");
-                  }
+              if (isWaiting == false) {
+                print("isWaiting__________$isWaiting");
+                if (DateTime.now()
+                    .difference(DateTime.parse(waitingStartTime ?? ''))
+                    .inSeconds >
+                    30) {
+                  print(
+                      "data${DateTime.now().difference(DateTime.parse(waitingStartTime ?? '')).inSeconds}");
+                  callCreateWaitingActivityApi(
+                      userId: userId,
+                      position: position,
+                      isWaitingStart: true);
+                } else {
+                  print("not===30 second");
                 }
-              }
-              else{
-                isWaiting = value?.getBool(PreferenceHelper.ISWAITING);
               }
             } else {
               PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME,
@@ -518,6 +512,8 @@ callCreateRouteHistory() async {
       print("catch at get latLong pref $e");
     }
   });
+
+
 }
 
 class MyApp extends StatefulWidget {

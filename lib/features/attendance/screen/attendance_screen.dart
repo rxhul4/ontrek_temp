@@ -411,7 +411,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     try {
 
       PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
-      PreferenceHelper.setBool(PreferenceHelper.ISWAITING, false);
       isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
     } catch (e) {
       print("Error: $e");
@@ -685,22 +684,42 @@ class _AttendanceScreenState extends State<AttendanceScreen>
             doLocalVerification(afterSuccessfulVerificationFnc: () {
               if (isDayStart.value) {
                 // logOutFunction();
-                setState(() {
-                  PreferenceHelper.load().then((value) {
+                getCurrentLocation().then((value1) {
+                  PreferenceHelper.reload().then((value) {
+                    Future.delayed(Duration(seconds: 1));
                     print("logout_Waiting${value?.getBool(PreferenceHelper.ISWAITING)}");
                     isWaiting = value?.getBool(PreferenceHelper.ISWAITING);
+                    print("logout_Waiting$isWaiting");
+
+                    if(isWaiting != null){
+                      if (isWaiting ?? false) {
+                        postMdl
+                            .callCreateWaitingActivityApi(
+                            userId: userId,
+                            isWaitingStart: false,
+                            position: value1)
+                            .then((value) async {
+                          await callAddActivityApi(
+                            postMdl: postMdl,
+                            isFromLogOutBtn: true,
+                            totEventCode: AppConstant.dayEndEvent,
+                            position: value1,
+                          );
+                        });
+                      }else{
+                        callAddActivityApi(
+                          postMdl: postMdl,
+                          isFromLogOutBtn: true,
+                          totEventCode: AppConstant.dayEndEvent,
+                          position: value1,
+                        );
+                      }
+                    }
+
+
                   });
 
 
-                  print("logout_Waiting$isWaiting");
-                });
-                getCurrentLocation().then((value) {
-                  callAddActivityApi(
-                    postMdl: postMdl,
-                    isFromLogOutBtn: true,
-                    totEventCode: AppConstant.dayEndEvent,
-                    position: value,
-                  );
                 });
               }
             });

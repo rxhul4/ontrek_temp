@@ -168,7 +168,7 @@ class AttendanceProvider extends ChangeNotifier {
         isWaitingStart ?? false
             ? PreferenceHelper.setBool(PreferenceHelper.ISWAITING, true)
             : PreferenceHelper.setBool(PreferenceHelper.ISWAITING, false);
-
+        notifyListeners();
         bool isWaiting = PreferenceHelper.getBool(PreferenceHelper.ISWAITING);
         print("getData$isWaiting");
       }

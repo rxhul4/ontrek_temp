@@ -137,6 +137,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
 
   checkOutFunction() async {
     PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+    PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
     Navigator.pop(context);
   }
 
