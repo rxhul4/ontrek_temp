@@ -4,7 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
-import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/check_out/model/check_out_form_model.dart';
 
 class CheckOutProvider extends ChangeNotifier {

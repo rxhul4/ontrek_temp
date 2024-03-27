@@ -53,25 +53,6 @@ class _TrackScreenState extends State<TrackScreen>
     });
   }
 
-  // callGetSalesManListApi(SalesMenListProvider salesMenListProvider, String? fullName) {
-  //   print("fromInit");
-  //
-  //   salesMenListProvider
-  //       .apiCallGetSalesManList(
-  //           eventDate: AppUtils.dateFormat(
-  //               date: DateTime.now(), dateFormat: AppConstant.dateFormat),
-  //           filter: searchController.text.isEmpty ? "" : searchController.text  ,
-  //           managerId: "919e3ede-00e1-4502-87f2-6b2459554c9c",
-  //           orgId: "10bce922-213c-46dd-aa94-0c47883b76d3")
-  //       .then((value) {
-  //     getSalesMenListModel = value;
-  //     if (getSalesMenListModel?.isError == false &&
-  //         getSalesMenListModel?.isValidationFailed == false) {
-  //     } else {
-  //       openDialogFnc(getSalesMenListModel?.message ?? "");
-  //     }
-  //   });
-  // }
   late SalesMenListProvider salesMenListProvider;
 
   @override

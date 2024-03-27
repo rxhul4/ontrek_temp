@@ -71,13 +71,13 @@ animatePanel(){
     notifyListeners();
   }
   Future<GetSalesMenListModel?> apiCallGetSalesManList() async {
-    var managerId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
+    var userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
     var orgId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
     _isFetching = true;
     notifyListeners();
 
     Map<String, dynamic> body = {
-      "managerId": managerId,
+      "userId": userId,
       "eventDate": AppUtils.dateFormat(
           date: DateTime.now(), dateFormat: AppConstant.dateFormat),
       "fillter": searchController.text,

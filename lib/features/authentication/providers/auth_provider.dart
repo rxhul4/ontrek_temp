@@ -1,14 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
-import 'package:ontrek/core/utils/app_constant.dart';
+
 import 'package:ontrek/features/authentication/models/login_model.dart';
 import 'package:ontrek/features/authentication/screens/otp_verification%20screen.dart';
 import 'package:ontrek/features/dashboard/screens/dashboard_screen.dart';

@@ -7,7 +7,7 @@ class AppConstant {
   //tot tracking events
   static const String  dayStartEvent = "826c88aa-d18e-46f4-967b-4f973126765e" ;
   static const String  dayEndEvent = "a2864068-8305-472f-a3a9-16d9e1d0e2dd" ;
-  static const String  checkInEvent = "52bc86a1-403d-4d08-9293-a8204c84de31" ;
+  static const String  checkInEvent = "52bc86a1-403d-4d08-9293-a8204c84de31";
   static const String  checkOutEvent = "8a2b4e10-c17f-4f07-ae9d-f290555e17ed" ;
   static const String  internetOffEvent = "09f33108-8188-49c9-a7a4-6e350fe31b87" ;
   static const String  internetOnEvent = "269dc119-c567-43e0-8330-f26dfc09bfda" ;

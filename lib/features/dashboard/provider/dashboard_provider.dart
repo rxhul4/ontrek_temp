@@ -69,7 +69,7 @@ class DashBoardProvider extends ChangeNotifier{
 
 
   Future<void> getCurrentLocation() async {
-    print("innnnnnnnnnnnn");
+
     try {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.low,
@@ -102,7 +102,7 @@ class DashBoardProvider extends ChangeNotifier{
 
 
   Future updateCameraPosition(LatLng location) async {
-    print("location-------${location}");
+
     final GoogleMapController controller = await googleMapController.future;
     controller.animateCamera(CameraUpdate.newCameraPosition(
       CameraPosition(
