@@ -19,6 +19,7 @@ import 'package:local_auth/local_auth.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/features/attendance/model/add_activity_model.dart';
 import 'package:ontrek/features/attendance/provider/attendance_provider.dart';
+import 'package:ontrek/features/authentication/providers/auth_provider.dart';
 
 import 'package:ontrek/features/check_out/screen/check_out_form_screen.dart';
 import 'package:provider/provider.dart';
@@ -40,12 +41,6 @@ class AttendanceScreen extends StatefulWidget {
 class _AttendanceScreenState extends State<AttendanceScreen>
     with SingleTickerProviderStateMixin {
   AnimationController? controller;
-  LocalAuthentication localAuthentication = LocalAuthentication();
-  bool isBiometricAvailable = false;
-  String? userId;
-  ValueNotifier<bool> isDayStart = ValueNotifier(false);
-  ValueNotifier<bool> isCheckIn = ValueNotifier(false);
-  ValueNotifier<bool> isDayEnd = ValueNotifier(false);
   bool? isWaiting;
   bool isTapped = false;
   bool isFromLogOutButton = false;
@@ -53,362 +48,184 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   Position? position;
   DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
   AndroidDeviceInfo? androidInfo;
-  var battery = Battery();
-  int? batteryLevel;
   CreateActivityModel? createActivityModel;
   FlutterBackgroundService service = FlutterBackgroundService();
   final databaseService = DatabaseService();
+  late AttendanceProvider attendanceProvider;
 
   @override
   void initState() {
     // TODO: implement initState
-
     initAnimateController();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {}
-      panelController.animatePanelToPosition(0.99,
-          duration: Duration(milliseconds: 500), curve: Curves.linear);
+      final attendanceProvider = Provider.of<AttendanceProvider>(context, listen: false);
+      attendanceProvider.panelController.animatePanelToPosition(0.99);
+      attendanceProvider.checkBiometricAvailable();
+      attendanceProvider.isDayStart.value =
+          PreferenceHelper.getBool(PreferenceHelper.DayStart);
+      attendanceProvider.isCheckIn.value =
+          PreferenceHelper.getBool(PreferenceHelper.checkIn);
+      batteryPercentage();
     });
-    checkBiometricAvailable();
-    isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
-    isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
-    userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
 
-    deviceInfo.androidInfo.then((value) {
-      androidInfo = value;
-    });
-    battery.batteryLevel.then((value) {
-      batteryLevel = value;
-    });
     super.initState();
   }
 
   @override
   void dispose() {
     // TODO: implement dispose
-
     controller?.dispose();
     super.dispose();
   }
 
+  batteryPercentage() async {
+    attendanceProvider.battery = await AppUtils.getBatteryLevel();
+  }
+
   initAnimateController() {
     controller =
-        AnimationController(vsync: this, duration: Duration(seconds: 2));
+        AnimationController(vsync: this, duration: const Duration(seconds: 1));
     controller?.addListener(() {
       if (!mounted) {}
       setState(() {});
     });
   }
 
-  checkBiometricAvailable() async {
-    isBiometricAvailable = await localAuthentication.canCheckBiometrics;
+  checkBiometricAvailable(AttendanceProvider attendanceProvider) async {
+    attendanceProvider.isBiometricAvailable = await attendanceProvider.localAuthentication.canCheckBiometrics;
   }
 
-  CreateActivityModel? callAddActivityApi({
-    required AttendanceProvider postMdl,
-    dynamic position,
-    String? totEventCode,
-  }) {
+  //call General api
+  Future<CreateActivityModel?> callCreateActivityApi(
+      {AttendanceProvider? attendanceProvider,
+      String? totTrackingEventCode,
+      Position? position}) async {
     try {
-      postMdl
-          .apiCallCreateActivity(
+      String? userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
+      CreateActivityModel? createActivityModel =
+          await attendanceProvider?.apiCallCreateActivity(
         userId: userId,
-        totTrackingEventCode: totEventCode,
+        totTrackingEventCode: totTrackingEventCode,
         isFromCheckOut: false,
-        batteryLevel: batteryLevel,
-        latitude: position.latitude,
-        longitude: position.longitude,
-      )
-          .then((value) {
-        createActivityModel = value;
+        latitude: position?.latitude,
+        longitude: position?.longitude,
+        batteryLevel: attendanceProvider.battery,
+      );
+      return createActivityModel;
+    } catch (e) {}
 
-        if (createActivityModel?.isError == false &&
-            createActivityModel?.isValidationFailed == false) {
-          PreferenceHelper.setDouble(
-              PreferenceHelper.LAST_LAT, position.latitude ?? 0);
-          PreferenceHelper.setDouble(
-              PreferenceHelper.LAST_LONG, position.longitude ?? 0);
-          PreferenceHelper.setString(
-              PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
-
-          if (totEventCode == AppConstant.checkInEvent) {
-
-            callCheckInFunction(position);
-          }
-
-          if (totEventCode == AppConstant.dayEndEvent) {
-            callLogOutFunction(position);
-          }
-
-          if (totEventCode == AppConstant.dayStartEvent) {
-            callLoginFunction(position);
-          }
-        } else {
-          openDialogFnc(createActivityModel?.message.toString() ?? "");
-        }
-      });
-    } catch (e) {
-      rethrow;
-    }
     return createActivityModel;
   }
 
-  PanelController panelController = PanelController();
+  callDayStartApiAndUpdateUI(AttendanceProvider? attendanceProvider) {
+    //getCurrent Location for UI and api
+    attendanceProvider?.getCurrentLocation().then((value) async {
+      // then call Api
+      var response = await callCreateActivityApi(
+          totTrackingEventCode: AppConstant.dayStartEvent,
+          position: value,
+          attendanceProvider: attendanceProvider);
 
-  @override
-  Widget build(BuildContext context) {
-    double height = MediaQuery.of(context).size.height;
-    double width = MediaQuery.of(context).size.width;
-    final postMdl = Provider.of<AttendanceProvider>(context);
-      return AppUtils.commonSlidePanel(
-          maxHeight: height * 0.4,
-          minHeight: height * 0.09,
-          controller: panelController,
-          isDraggable: true,
-          // snapPoint: 0.01,
-          panel: Stack(
-            children: [
-              Container(
-                padding: EdgeInsets.only(top: height * 0.2 / 2),
-                alignment: Alignment.center,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    ValueListenableBuilder(
-                      valueListenable: isDayEnd,
-                      builder: (context, value, child) {
-                        return Center(
-                          child: !isDayEnd.value
-                              ? buttonWidget(postMdl, height, width)
-                              : logOut(postMdl, height, width),
-                        );
-                      },
-                    ),
-                    // buttonWidget(height,width,postMdl),
-                    SizedBox(
-                      height: 15,
-                    ),
-                    !isDayStart.value
-                        ? AppUtils.commonTextWidget(
-                            text: "Press & Hold",
-                            fontSize: 14,
-                            letterSpacing: 0.2,
-                            fontWeight: FontWeight.w600,
-                            textColor: AppConstant.blackColor,
-                          )
-                        : GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                isDayEnd.value =
-                                    !isDayEnd.value; // Toggle the value
-                              });
-                            },
-                            child: AppUtils.commonTextWidget(
-                              text: isDayEnd.value ? "Show Hide" : "Show Off",
-                              fontSize: 14,
-                              letterSpacing: 0.2,
-                              fontWeight: FontWeight.w600,
-                              textColor: isDayEnd.value
-                                  ? AppConstant.appPrimaryColor
-                                  : Colors.red,
-                            )),
-                  ],
-                ),
-              ),
-              AppUtils.buildHeader(
-                  height: height,
-                  width: width,
-                  title: "Vatsal",
-                  subTitle: "Epistic interiour Pvt Ltd",
-                  leadingImage: profileImage,
-                  borderColor: Colors.red,
-                  iconColor: AppConstant.appPrimaryColor,
-                  backgroundColor: Colors.white),
-            ],
-          ));
-    // return Animate(
-    //   effects: const  [
-    //     SlideEffect(
-    //         end: Offset(0, 0),
-    //         curve: Curves.decelerate,
-    //         begin: Offset(0, 1),
-    //         duration: Duration(milliseconds: 600)),
-    //   ],
-    //   child: Container(
-    //     decoration: AppUtils.commonBoxDecoration(
-    //       boxShadow: [
-    //         BoxShadow(
-    //           color: Colors.black.withOpacity(0.15),
-    //           spreadRadius: 0,
-    //           blurRadius: 8,
-    //
-    //           offset: Offset(0, -10), // This will create a top shadow
-    //         ),
-    //       ],
-    //       borderRadius: AppUtils.borderRadiousonly(topright: 18, topleft: 18),
-    //       color: AppConstant.whiteColor,
-    //     ),
-    //     child: SingleChildScrollView(
-    //       controller: widget.scrollController,
-    //       physics: NeverScrollableScrollPhysics() ,
-    //
-    //
-    //       child: Column(
-    //         mainAxisAlignment: MainAxisAlignment.spaceAround,
-    //
-    //         children: [
-    //           AppUtils.commonContainer(
-    //             decoration: AppUtils.commonBoxDecoration(
-    //               border: Border(
-    //                 bottom: BorderSide(
-    //                   width: 1,
-    //                   color: AppConstant.greyColor.withOpacity(0.3),
-    //                 ),
-    //               ),
-    //               borderRadius:
-    //               AppUtils.borderRadiousonly(topleft: 18, topright: 18),
-    //               color: Colors.white,
-    //             ),
-    //             child: Padding(
-    //               padding:
-    //               const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-    //               child: Column(
-    //                 children: [
-    //                   AppUtils.commonContainer(
-    //                     width: 30,
-    //                     height: 5,
-    //                     decoration: AppUtils.commonBoxDecoration(
-    //                         color: AppConstant.greyColor.withOpacity(0.3),
-    //                         borderRadius:
-    //                         AppUtils.borderRadiusAll(raduis: 12)),
-    //                   ),
-    //                   Row(
-    //                     children: [
-    //                       AppUtils.commonContainer(
-    //                         height: 45,
-    //                         width: 45,
-    //                         decoration: AppUtils.commonBoxDecoration(
-    //                           shape: BoxShape.circle,
-    //                           color: AppConstant.greyColor,
-    //                           border: Border.all(color: Colors.red, width: 1.2),
-    //                         ),
-    //                       ),
-    //                       AppUtils.commonSizedBox(width: 10),
-    //                       Column(
-    //                         crossAxisAlignment: CrossAxisAlignment.start,
-    //                         children: [
-    //                           AppUtils.commonTextWidget(
-    //                             text: "Vatsal",
-    //                             fontWeight: FontWeight.w600,
-    //                             textColor: AppConstant.blackColor,
-    //                             letterSpacing: 0.2,
-    //                             fontSize: 15,
-    //                           ),
-    //                           AppUtils.commonTextWidget(
-    //                             text: "Epistic interiour Pvt Ltd",
-    //                             fontWeight: FontWeight.w500,
-    //                             textColor: AppConstant.blackColor.withOpacity(0.7),
-    //                             letterSpacing: 0.1,
-    //                             fontSize: 13,
-    //                           ),
-    //                         ],
-    //                       )
-    //                     ],
-    //                   ),
-    //                 ],
-    //               ),
-    //             ),
-    //           ),
-    //           // SizedBox(height: 50),
-    //           // Added vertical spacing
-    //
-    //           Container(
-    //             margin: AppUtils.edgeInsetsOnly(top: 50,bottom: 10),
-    //
-    //             child: Column(
-    //               children: [
-    //                 ValueListenableBuilder(
-    //                   valueListenable: isDayEnd,
-    //                   builder: (context, value, child) {
-    //                     return Center(
-    //                       child:  !isDayEnd.value ? buttonWidget(postMdl) : logOut(postMdl) ,
-    //                     );
-    //                   },
-    //                 ),
-    //                 AppUtils.commonSizedBox(height: 20),
-    //                 !isDayStart.value
-    //                     ? Visibility(
-    //                   visible: !isTapped,
-    //                   child: AppUtils.commonTextWidget(
-    //                     text: "Press & Hold",
-    //                     fontSize: 14,
-    //                     letterSpacing: 0.2,
-    //                     fontWeight: FontWeight.w600,
-    //                     textColor: AppConstant.blackColor,
-    //                   ),
-    //                 )
-    //                     : GestureDetector(
-    //                     onTap: () {
-    //                       setState(() {
-    //                         isDayEnd.value = !isDayEnd.value; // Toggle the value
-    //                       });
-    //
-    //                     },
-    //                     child: Visibility(
-    //                       visible: !isFromLogOutButton,
-    //                       child: AppUtils.commonTextWidget(
-    //                         text:  isDayEnd.value ? "Show Hide" : "Show Off",
-    //                         fontSize: 14,
-    //                         letterSpacing: 0.2,
-    //                         fontWeight: FontWeight.w600,
-    //                         textColor:isDayEnd.value ? AppConstant.appPrimaryColor : Colors.red ,
-    //                       ),
-    //                     )),
-    //               ],
-    //             ),
-    //           ),
-    //
-    //           // Added vertical spacing
-    //
-    //
-    //         ],
-    //       ),
-    //     ),
-    //   ),
-    // );
+      //check api success or not
+      if (response?.isError == false && response?.isValidationFailed == false) {
+        //after success update UI
+
+        callLoginFunction(value);
+      }
+    });
   }
 
-  Future getCurrentLocation() async {
-    bool isLocationServiceAvailable =
-        await AppUtils.checkLocationServiceAvailability();
+  callCheckInApiAndUpdateUI(AttendanceProvider? attendanceProvider) {
+    //getCurrent Location for UI and api
+    attendanceProvider?.getCurrentLocation().then((value) async {
+      // then call Api
+      var response = await callCreateActivityApi(
+          totTrackingEventCode: AppConstant.checkInEvent,
+          position: value,
+          attendanceProvider: attendanceProvider);
 
-    if (isLocationServiceAvailable) {
-      try {
-        Position position = await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.medium);
-        return position;
-      } catch (e) {
-        openDialogFnc("Please Enable Your Location Service");
+      //check api success or not
+      if (response?.isError == false && response?.isValidationFailed == false) {
+        //after success update UI
+        callCheckInFunction(value);
       }
+    });
+  }
+
+  callDayEndApiAndUpdateUI(AttendanceProvider? attendanceProvider) {
+    //getCurrent Location for UI and api
+    attendanceProvider?.getCurrentLocation().then((value) async {
+      // then call Api
+      var response = await callCreateActivityApi(
+          totTrackingEventCode: AppConstant.dayEndEvent,
+          position: value,
+          attendanceProvider: attendanceProvider);
+
+      //check api success or not
+      if (response?.isError == false && response?.isValidationFailed == false) {
+        //after success update UI
+        callDayEndFunction(value);
+      }
+    });
+  }
+
+  callWaitingEndApi(AttendanceProvider? postMdl, Position? position) async {
+    // then call Api
+    var response = await callCreateActivityApi(
+        totTrackingEventCode: AppConstant.trackingWaitingStopEvent,
+        position: position,
+        attendanceProvider: postMdl);
+
+    //check api success or not
+    if (response?.isError == false && response?.isValidationFailed == false) {
+      //after success delete waiting flag from database
+      await databaseService.deleteWaiting();
     }
   }
 
-  Future loginFunction() async {
+  callCheckInFunction(dynamic position) {
+    return checkInAndUpdateUIFunction().then((value) {
+      if (widget.onLocationFetch != null) {
+        widget.onLocationFetch!(position);
+      }
+    });
+  }
+
+  callLoginFunction(dynamic position) {
+    return dayStartAndUpdateUIFunction().then((value) {
+      if (widget.onLocationFetch != null) {
+        widget.onLocationFetch!(position);
+      }
+    });
+  }
+
+  callDayEndFunction(dynamic position) {
+    return logOutAndUpdateUIFunction().then((value) {
+      if (widget.onLocationFetch != null) {
+        widget.onLocationFetch!(position);
+        isFromLogOutButton = false;
+      }
+      attendanceProvider.isDayEnd.value = false;
+    });
+  }
+
+
+  Future dayStartAndUpdateUIFunction() async {
     try {
       service.startService();
       PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-      isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+      attendanceProvider.isDayStart.value =
+          PreferenceHelper.getBool(PreferenceHelper.DayStart);
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<void> checkInFunction() async {
+  Future<void> checkInAndUpdateUIFunction() async {
     try {
       PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
-      isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+      attendanceProvider.isCheckIn.value =
+          PreferenceHelper.getBool(PreferenceHelper.checkIn);
     } catch (e) {
       rethrow;
     }
@@ -416,7 +233,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   Future checkOutFunction() async {
     bool isLocationServiceAvailable =
-        await AppUtils.checkLocationServiceAvailability();
+    await AppUtils.checkLocationServiceAvailability();
 
     if (isLocationServiceAvailable) {
       try {
@@ -425,8 +242,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
             CupertinoPageRoute(
               builder: (context) => CheckOutFormScreen(),
             )).then((value1) {
-          isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
-          getCurrentLocation().then((value) {
+          attendanceProvider.isCheckIn.value =
+              PreferenceHelper.getBool(PreferenceHelper.checkIn);
+          attendanceProvider?.getCurrentLocation().then((value) {
             if (widget.onLocationFetch != null) {
               widget.onLocationFetch!(value);
             }
@@ -440,25 +258,107 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     return position;
   }
 
-  Future logOutFunction() async {
+  Future logOutAndUpdateUIFunction() async {
     try {
       service.invoke("stopService");
       PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
       PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
-      isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
-      isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
-      isDayEnd.value = false;
+      attendanceProvider.isDayStart.value =
+          PreferenceHelper.getBool(PreferenceHelper.DayStart);
+      attendanceProvider.isCheckIn.value =
+          PreferenceHelper.getBool(PreferenceHelper.checkIn);
+      attendanceProvider.isDayEnd.value = false;
     } catch (e) {
       rethrow;
     }
   }
 
+  @override
+  Widget build(BuildContext context) {
+    double height = MediaQuery.of(context).size.height;
+    double width = MediaQuery.of(context).size.width;
+    attendanceProvider = Provider.of<AttendanceProvider>(context);
+    return AppUtils.commonSlidePanel(
+        maxHeight: height * 0.4,
+        minHeight: height * 0.09,
+        controller: attendanceProvider.panelController,
+        isDraggable: true,
+        panel: Stack(
+          children: [
+            Container(
+              padding: EdgeInsets.only(top: height * 0.2 / 2),
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  ValueListenableBuilder(
+                    valueListenable: attendanceProvider.isDayEnd,
+                    builder: (context, value, child) {
+                      return Center(
+                        child: !attendanceProvider.isDayEnd.value
+                            ? buttonWidget(attendanceProvider, height, width)
+                            : logOut(attendanceProvider, height, width),
+                      );
+                    },
+                  ),
+                  // buttonWidget(height,width,postMdl),
+                  SizedBox(
+                    height: 15,
+                  ),
+                  !attendanceProvider.isDayStart.value
+                      ? AppUtils.commonTextWidget(
+                          text: "Press & Hold",
+                          fontSize: 14,
+                          letterSpacing: 0.2,
+                          fontWeight: FontWeight.w600,
+                          textColor: AppConstant.blackColor,
+                        )
+                      : GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              attendanceProvider.isDayEnd.value =
+                                  !attendanceProvider
+                                      .isDayEnd.value; // Toggle the value
+                            });
+                          },
+                          child: AppUtils.commonTextWidget(
+                            text: attendanceProvider.isDayEnd.value
+                                ? "Show Hide"
+                                : "Show Off",
+                            fontSize: 14,
+                            letterSpacing: 0.2,
+                            fontWeight: FontWeight.w600,
+                            textColor: attendanceProvider.isDayEnd.value
+                                ? AppConstant.appPrimaryColor
+                                : Colors.red,
+                          )),
+                ],
+              ),
+            ),
+            AppUtils.buildHeader(
+                height: height,
+                width: width,
+                title: "Vatsal",
+                subTitle: "Epistic interiour Pvt Ltd",
+                leadingImage: profileImage,
+                borderColor: Colors.red,
+                iconColor: AppConstant.appPrimaryColor,
+                backgroundColor: Colors.white),
+          ],
+        ));
+  }
+
+
+
+
+
   Widget buttonWidget(AttendanceProvider postMdl, height, width) {
     return ValueListenableBuilder(
-      valueListenable: isDayStart,
+      valueListenable: attendanceProvider.isDayStart,
       builder: (context, value, child) {
         return ValueListenableBuilder(
-          valueListenable: isCheckIn,
+          valueListenable: attendanceProvider.isCheckIn,
           builder: (context, value, child) {
             return GestureDetector(
               onTapDown: (details) {
@@ -469,49 +369,25 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   HapticFeedback.vibrate();
 
                   controller?.reset();
-                  if (!isDayStart.value) {
-                    doLocalVerification(
-                      afterSuccessfulVerificationFnc: () {
-                        // loginFunction();
-                        getCurrentLocation().then((value)async {
-                          await callAddActivityApi(
-                            postMdl: postMdl,
-                            position: value,
-                            totEventCode: AppConstant.dayStartEvent,
-                          );
-                        });
+                  if (!attendanceProvider.isDayStart.value) {
+                    attendanceProvider.doLocalVerification(
+                      afterSuccessfulVerificationFnc: () async {
+                        callDayStartApiAndUpdateUI(postMdl);
                       },
                     );
-                  } else if (!isCheckIn.value) {
+                  } else if (!attendanceProvider.isCheckIn.value) {
                     isWaiting = await databaseService.getWaitingStatus();
-
-                    doLocalVerification(
+                    print("isWaiting$isWaiting");
+                    attendanceProvider.doLocalVerification(
                       afterSuccessfulVerificationFnc: () async {
-                        PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
-                        getCurrentLocation().then((value1) async {
-                          if (isWaiting == true) {
-                            var response = await callAddActivityApi(
-                              postMdl: postMdl,
-                              position: value1,
-                              totEventCode:
-                                  AppConstant.trackingWaitingStopEvent,
-                            );
 
-                            if (response?.isError == false &&
-                                response?.isValidationFailed == false) {
-                              await databaseService.deleteWaiting();
-                              isWaiting =
-                                  await databaseService.getWaitingStatus();
-                            } else {
-                              return;
-                            }
+                        attendanceProvider.getCurrentLocation().then((position) async {
+                          if (isWaiting == true) {
+                            await callWaitingEndApi(postMdl, position);
+                            await callCheckInApiAndUpdateUI(postMdl);
                           }
 
-                          // await callAddActivityApi(
-                          //   postMdl: postMdl,
-                          //   position: value1,
-                          //   totEventCode: AppConstant.checkInEvent,
-                          // );
+                          await callCheckInApiAndUpdateUI(postMdl);
                         });
                       },
                     );
@@ -550,7 +426,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     children: <Widget>[
                       postMdl.isLoading
                           ? LoaderWidget(
-                              color: !isDayStart.value
+                              color: !attendanceProvider.isDayStart.value
                                   ? Colors.lightGreen
                                   : Colors.blue,
                             )
@@ -562,7 +438,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                 strokeCap: StrokeCap.round,
                                 strokeWidth: 8,
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                    !isDayStart.value
+                                    !attendanceProvider.isDayStart.value
                                         ? Colors.lightGreen
                                         : Colors.blue),
                               ),
@@ -586,13 +462,13 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         height: isTapped ? 120 : 100,
                         width: isTapped ? 120 : 100,
                         decoration: BoxDecoration(
-                          color: !isDayStart.value
+                          color: !attendanceProvider.isDayStart.value
                               ? Colors.lightGreen.withOpacity(0.8)
                               : Colors.blue.withOpacity(0.7),
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: !isDayStart.value
+                              color: !attendanceProvider.isDayStart.value
                                   ? Colors.lightGreen.withOpacity(0.3)
                                   : Colors.blue.withOpacity(0.3),
                               spreadRadius: isTapped ? 1 : 2,
@@ -603,12 +479,13 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         ),
                         child: Center(
                           child: AppUtils.commonTextWidget(
-                            text: !isDayStart.value
+                            text: !attendanceProvider.isDayStart.value
                                 ? "In"
-                                : !isCheckIn.value
+                                : !attendanceProvider.isCheckIn.value
                                     ? "Check-In"
                                     : "Check-Out",
-                            fontSize: !isDayStart.value ? 20 : 12,
+                            fontSize:
+                                !attendanceProvider.isDayStart.value ? 20 : 12,
                             textColor: Colors.white,
                             fontWeight: FontWeight.w600,
                           ),
@@ -643,30 +520,15 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           controller?.forward().whenComplete(() {
             HapticFeedback.vibrate();
             controller?.reset();
-            doLocalVerification(afterSuccessfulVerificationFnc: () {
-              if (isDayStart.value) {
-                getCurrentLocation().then((value1) async {
+            attendanceProvider.doLocalVerification(afterSuccessfulVerificationFnc: () {
+              if (attendanceProvider.isDayStart.value) {
+                attendanceProvider.getCurrentLocation().then((value1) async {
                   if (isWaiting == true) {
-                    var response = await callAddActivityApi(
-                      postMdl: postMdl,
-                      position: value1,
-                      totEventCode:
-                      AppConstant.trackingWaitingStopEvent,
-                    );
-                    if (response?.isError == false &&
-                        response?.isValidationFailed == false) {
-                      await databaseService.deleteWaiting();
-                      isWaiting =
-                      await databaseService.getWaitingStatus();
-                    } else {
-                      return;
-                    }
+                    await callWaitingEndApi(postMdl, value1);
+                    await callDayEndApiAndUpdateUI(postMdl);
                   }
-                  await callAddActivityApi(
-                    postMdl: postMdl,
-                    position: value1,
-                    totEventCode: AppConstant.dayEndEvent,
-                  );
+
+                  await callDayEndApiAndUpdateUI(postMdl);
                 });
               }
             });
@@ -759,54 +621,24 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     );
   }
 
-  callCheckInFunction(dynamic position) {
-    return checkInFunction().then((value) {
-      if (widget.onLocationFetch != null) {
-        widget.onLocationFetch!(position);
-      }
-    });
-  }
-
-  callLoginFunction(dynamic position) {
-    return loginFunction().then((value) {
-      if (widget.onLocationFetch != null) {
-        widget.onLocationFetch!(position);
-      }
-    });
-  }
-
-  callLogOutFunction(dynamic position) {
-    return logOutFunction().then((value) {
-      if (widget.onLocationFetch != null) {
-        widget.onLocationFetch!(position);
-        isFromLogOutButton = false;
-      }
-      isDayEnd.value = false;
-      setState(() {
-        isLoading = false;
-      });
-    });
-  }
-
   openDialogFnc(String text) {
     return AppUtils.dialogWidget(text, context);
   }
 
-  doLocalVerification(
-      {required Function() afterSuccessfulVerificationFnc}) async {
-    if (isBiometricAvailable) {
-      bool isAuthenticated = await localAuthentication.authenticate(
-          localizedReason: "Authenticate using Biometrics",
-          options: const AuthenticationOptions(
-              stickyAuth: true, useErrorDialogs: true));
-      if (isAuthenticated) {
-        afterSuccessfulVerificationFnc();
-      } else {
-        openDialogFnc("Authentication Fail! Please Try Again");
-      }
-    } else {
-      openDialogFnc("Biometric Auth is not available on this device");
-    }
-  }
-
+  // doLocalVerification(
+  //     {required Function() afterSuccessfulVerificationFnc}) async {
+  //   if (attendanceProvider.isBiometricAvailable) {
+  //     bool isAuthenticated = await attendanceProvider.localAuthentication.authenticate(
+  //         localizedReason: "Authenticate using Biometrics",
+  //         options: const AuthenticationOptions(
+  //             stickyAuth: true, useErrorDialogs: true));
+  //     if (isAuthenticated) {
+  //       afterSuccessfulVerificationFnc();
+  //     } else {
+  //       openDialogFnc("Authentication Fail! Please Try Again");
+  //     }
+  //   } else {
+  //     openDialogFnc("Biometric Auth is not available on this device");
+  //   }
+  // }
 }

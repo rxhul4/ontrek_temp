@@ -32,9 +32,10 @@ class BackgroundService {
 }
 
 @pragma('vm:entry-point')
-String userId ="";
+String userId = "";
+
 void onStart(ServiceInstance service) async {
-  userId = PreferenceHelper.getString(PreferenceHelper.USER_UID)?? "";
+  userId = PreferenceHelper.getString(PreferenceHelper.USER_UID) ?? "";
 
   WidgetsFlutterBinding.ensureInitialized();
   if (service is AndroidServiceInstance) {
@@ -67,14 +68,16 @@ void onStart(ServiceInstance service) async {
         double? lastLong;
         String? userId;
         bool? checkIn;
+        String? waitingStartTime;
 
         PreferenceHelper.load().then((value) {
           lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
           lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
           userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
+        });
+        PreferenceHelper.reload().then((value) {
           checkIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
         });
-
 
         final connectivityResult = await Connectivity().checkConnectivity();
 
@@ -86,33 +89,58 @@ void onStart(ServiceInstance service) async {
             await Permission.locationAlways.serviceStatus.isEnabled &&
                 await Permission.location.serviceStatus.isEnabled;
 
-
         Position position;
         double distance = 51;
         position = await Geolocator.getCurrentPosition(
             desiredAccuracy: LocationAccuracy.best);
 
-        distance = Geolocator.distanceBetween(lastLat ?? 0, lastLong ?? 0,
-            position.latitude, position.longitude);
+        distance = Geolocator.distanceBetween(
+            lastLat ?? 0, lastLong ?? 0, position.latitude, position.longitude);
 
         print("_print_userId$userId");
         print("_print_checkIn$checkIn");
-        if(isInternetAvailable && isGPSEnabled)
-        {
-
-
-          if((distance) > 50 && checkIn == true){
+        if (isInternetAvailable && isGPSEnabled) {
+          final databaseService = DatabaseService();
+          bool? isWaiting = await databaseService.getWaitingStatus();
+          handleInternetAndGPSApi(userId: userId);
+          if ((distance) > 50) {
             print("_print_checkIn ttrue");
-            await UpdateRouteHistory();
+            await updateRouteHistory();
+            if (isWaiting == true && checkIn == false) {
+              await waitingEndApi();
+            }
+          } else {
+            PreferenceHelper.reload().then((value) async{
+             checkIn = value?.getBool(PreferenceHelper.checkIn);
+              String? waitingStartTime =
+                  value?.getString(PreferenceHelper.WAITING_START_TIME);
+              if (checkIn == false && isWaiting == false) {
+                if (DateTime.now().difference(DateTime.parse(waitingStartTime.toString() )).inSeconds > 30) {
+                  await waitingStartApi();
+                }
+              }
+
+            });
 
           }
-
           print("_print_checkIn ffalse");
-
+        } else if (isGPSEnabled && !isInternetAvailable) {
+          handleGpsAndInternetOffData(serviceType: "internet");
+        } else if (!isGPSEnabled && isInternetAvailable) {
+          handleGpsAndInternetOffData(serviceType: "gps");
+        } else {
+          bool gpsBool = PreferenceHelper.getBool(PreferenceHelper.GPS_BOOL);
+          bool internetBool =
+              PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
+          if (internetBool == false) {
+            handleGpsAndInternetOffData(serviceType: "internet");
+          }
+          if (gpsBool == false) {
+            handleGpsAndInternetOffData(serviceType: "gps");
+          }
         }
 
-
-        await callCreateRouteHistory();
+        // await callCreateRouteHistory();
         // if (isGPSEnabled && isInternetAvailable) {
         //    await handleInternetAndGPS(userId: PreferenceHelper.getString(PreferenceHelper.USER_UID));
         //   await callCreateRouteHistory(userId: userId);
@@ -134,92 +162,64 @@ void onStart(ServiceInstance service) async {
         //       isGps: false,
         //       isGpsOn: false);
         // }
-
       } catch (e) {
         rethrow;
       }
     },
   );
+}
 
+handleGpsAndInternetOffData({String? serviceType}) async {
+  Position positionData = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.medium);
+  if (serviceType == "internet") {
+    bool internetBool =
+        PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
+    if (internetBool == false) {
+      PreferenceHelper.setString(
+          PreferenceHelper.LAST_INTERNET_OFF_TIME,
+          AppUtils.dateFormat(
+              date: DateTime.now(), dateFormat: AppConstant.dateFormat));
+      PreferenceHelper.setDouble(
+          PreferenceHelper.LAST_INTERNET_OFF_LAT, positionData.latitude);
+      PreferenceHelper.setDouble(
+          PreferenceHelper.LAST_INTERNET_OFF_LONG, positionData.longitude);
+      PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, true);
+    }
+  }
+
+  if (serviceType == "gps") {
+    bool gpsBool = PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
+    if (gpsBool == false) {
+      PreferenceHelper.setString(
+          PreferenceHelper.LAST_GPS_OFF_TIME,
+          AppUtils.dateFormat(
+              date: DateTime.now(), dateFormat: AppConstant.dateFormat));
+      PreferenceHelper.setDouble(
+          PreferenceHelper.LAST_GPS_OFF_LAT, positionData.latitude);
+      PreferenceHelper.setDouble(
+          PreferenceHelper.LAST_GPS_OFF_LONG, positionData.longitude);
+      PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, true);
+    }
+  }
 }
 
 CreateRouteHistoryModel? createRouteHistoryModel;
-Future<void> callCreateRouteHistory() async {
-  double distance = 51;
-  bool? checkIn;
-    final databaseService = DatabaseService();
-    var isWaiting = await databaseService.getWaitingStatus();
-    String? userId="";
-
-    PreferenceHelper.load().then((value) {
-      userId= PreferenceHelper.getString(PreferenceHelper.USER_UID) ?? "";
-    });
-    Position? position =await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
-
-    try {
-      position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.best);
-
-      double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-      double? lastLong =
-      PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
-      distance = Geolocator.distanceBetween(lastLat ?? 0, lastLong ?? 0,
-          position.latitude, position.longitude); // distance in meter
-
-      if ((distance) > 50) {
-        if (checkIn == false) {
-          if (isWaiting) {
-            await callCreateWaitingActivityApi();
-          }
-        }
-       await  callCreteRouteHistoryApi();
-      } else {
-        PreferenceHelper.reload().then((pref) async {
-          bool? checkIn = pref?.getBool(PreferenceHelper.checkIn);
-          isWaiting = await databaseService.getWaitingStatus();
-
-          if (checkIn == true) {
-            String? waitingStartTime =
-            pref?.getString(PreferenceHelper.WAITING_START_TIME);
-
-            if (waitingStartTime != null) {
-              if (isWaiting == false) {
-                if (DateTime.now()
-                    .difference(DateTime.parse(waitingStartTime ?? ''))
-                    .inSeconds >
-                    30) {
-                  await callCreateWaitingActivityApi();
-                } else {}
-              }
-            } else {
-              PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME,
-                  DateTime.now().toString());
-            }
-          }
-        });
-      }
-    } catch (e) {
-      position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.best);
-      rethrow;
-    }
-
-}
-Future<void> callCreteRouteHistoryApi() async {
+Future<void> updateRouteHistory() async {
   try {
-    String? userId="";
+    String? userId = "";
     PreferenceHelper.load().then((value) {
-      userId= PreferenceHelper.getString(PreferenceHelper.USER_UID) ?? "";
+      userId = PreferenceHelper.getString(PreferenceHelper.USER_UID) ?? "";
     });
-    Position? position =await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
+    Position? position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.best);
 
-    if(position==null || userId=="")
-      return;
+    if (position == null || userId == "") return;
 
     Map<String, dynamic> body = {
       "userId": userId,
-      "lattitude": position?.latitude,
-      "longitude": position?.longitude,
+      "lattitude": position.latitude,
+      "longitude": position.longitude,
       "modifiedOn": AppUtils.dateFormat(
           date: DateTime.now(), dateFormat: AppConstant.dateFormat)
     };
@@ -228,203 +228,168 @@ Future<void> callCreteRouteHistoryApi() async {
 
     var response = await callPostMethod(endPoint, body);
 
-    createRouteHistoryModel = CreateRouteHistoryModel.fromJson(json.decode(response));
+    createRouteHistoryModel =
+        CreateRouteHistoryModel.fromJson(json.decode(response));
 
     if (createRouteHistoryModel?.isError == false &&
         createRouteHistoryModel?.isValidationFailed == false) {
-
-
+      PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT, position.latitude);
       PreferenceHelper.setDouble(
-          PreferenceHelper.LAST_LAT, position?.latitude ?? 0);
-      PreferenceHelper.setDouble(
-          PreferenceHelper.LAST_LONG, position?.longitude ?? 0);
+          PreferenceHelper.LAST_LONG, position.longitude);
+      PreferenceHelper.setString(
+          PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
     }
   } catch (e) {
     print("print_route_history_catch_$e");
   }
 }
-Future<void> callCreateWaitingActivityApi() async {
-  try {
 
-    final databaseService = DatabaseService();
-    var isWaitingStart =await databaseService.getWaitingStatus();
-    String? userId="";
-    PreferenceHelper.load().then((value) {
-      userId= PreferenceHelper.getString(PreferenceHelper.USER_UID) ?? "";
-    });
-    Position? position =await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
+Future<void> waitingStartApi() async {
+  final databaseService = DatabaseService();
+  Position? position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.best);
 
-    double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-    double? lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
-    String? waitingStartTime =
-    PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
+  PreferenceHelper.load().then((value) {
+    userId = PreferenceHelper.getString(PreferenceHelper.USER_UID) ?? "";
+  });
+  Map<String, dynamic> body = {};
+  body = {
+    "userId": userId,
+    "lattitude": position.latitude,
+    "longitude": position.longitude,
+    "totTrackingEventId": AppConstant.trackingWaitingStartEvent,
+    "activityDateTime": AppUtils.getDate(
+        date: DateTime.now().toString(), format: AppConstant.dateFormat),
+    "batteryLevel": AppUtils.getBatteryLevel(),
+  };
 
-    Map<String, dynamic> body = {};
+  String endPoint = ApiConstants.createActivity;
+  var response = await callPostMethod(endPoint, body);
+  CreateActivityModel? createActivityModel =
+      CreateActivityModel?.fromJson(json.decode(response));
+
+  if (createActivityModel.isError == false &&
+      createActivityModel.isValidationFailed == false) {
+    await databaseService.startWaiting();
+  }
+}
+
+Future<void> waitingEndApi() async {
+  final databaseService = DatabaseService();
+  double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+  double? lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
+  String? waitingStartTime =
+      PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
+
+  PreferenceHelper.load().then((value) {
+    userId = PreferenceHelper.getString(PreferenceHelper.USER_UID) ?? "";
+  });
+  Map<String, dynamic> body = {};
+  body = {
+    "userId": userId,
+    "lattitude": lastLat,
+    "longitude": lastLong,
+    "totTrackingEventId": AppConstant.trackingWaitingStartEvent,
+    "activityDateTime": AppUtils.getDate(
+        date: waitingStartTime.toString(), format: AppConstant.dateFormat),
+    "batteryLevel": AppUtils.getBatteryLevel(),
+  };
+
+  String endPoint = ApiConstants.createActivity;
+  var response = await callPostMethod(endPoint, body);
+  CreateActivityModel? createActivityModel =
+      CreateActivityModel?.fromJson(json.decode(response));
+
+  if (createActivityModel.isError == false &&
+      createActivityModel.isValidationFailed == false) {
+    await databaseService.deleteWaiting();
+  }
+}
+
+Future<void> handleInternetAndGPSApi({
+  required String? userId,
+}) async {
+  bool? gpsBool = PreferenceHelper.getBool(PreferenceHelper.GPS_BOOL);
+  bool? internetBool = PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
+  if (gpsBool) {
+    await callInternetAndGpsActivityApi(userId: userId,isGps: true,isGpsOn: false);
+    await callInternetAndGpsActivityApi(userId: userId, isGps: true, isGpsOn: true);
+  }
+  if (internetBool) {
+    await callInternetAndGpsActivityApi(userId: userId,isInternet: true,isInternetOn: false);
+    await callInternetAndGpsActivityApi(userId: userId, isInternet: true, isInternetOn: true);
+  }
+}
+
+Future<void> callInternetAndGpsActivityApi({
+  required String? userId,
+  bool? isInternet,
+  bool? isGps,
+  bool? isInternetOn,
+  bool? isGpsOn,
+}) async {
+  String? lastInternetOffTime =
+      PreferenceHelper.getString(PreferenceHelper.LAST_INTERNET_OFF_TIME);
+  String? lastGpsOffTime =
+      PreferenceHelper.getString(PreferenceHelper.LAST_GPS_OFF_TIME);
+
+  double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+  double? lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
+
+  Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.best);
+  Map<String, dynamic> body = {};
+
+  if (isInternet == true) {
     body = {
       "userId": userId,
-      "lattitude": isWaitingStart ?? false ? lastLat : position?.latitude,
-      "longitude": isWaitingStart ?? false ? lastLong : position?.longitude,
-      "totTrackingEventId": isWaitingStart ?? false
-          ? AppConstant.trackingWaitingStartEvent
-          : AppConstant.trackingWaitingStopEvent,
-      "activityDateTime": isWaitingStart ?? false
+      "lattitude": isInternetOn ?? false ? position.latitude : lastLat,
+      "longitude": isInternetOn ?? false ? position.longitude : lastLong,
+      "totTrackingEventId": isInternetOn ?? false
+          ? AppConstant.internetOnEvent
+          : AppConstant.internetOffEvent,
+      "activityDateTime": isInternetOn ?? false
           ? AppUtils.getDate(
-          date: waitingStartTime ?? "", format: AppConstant.dateFormat)
+              date: DateTime.now().toString(), format: AppConstant.dateFormat)
           : AppUtils.getDate(
-          date: DateTime.now().toString(), format: AppConstant.dateFormat),
-      "batteryLevel": 50,
+              date: lastInternetOffTime ?? "", format: AppConstant.dateFormat),
+      "batteryLevel": AppUtils.getBatteryLevel(),
     };
+  }
 
+  if (isGps == true) {
+    body = {
+      "userId": userId,
+      "lattitude": isGpsOn ?? false ? position.latitude : lastLat,
+      "longitude": isGpsOn ?? false ? position.longitude : lastLong,
+      "totTrackingEventId":
+          isGpsOn ?? false ? AppConstant.gpsOnEvent : AppConstant.gpsOffEvent,
+      "activityDateTime": isGpsOn ?? false
+          ? AppUtils.getDate(
+              date: DateTime.now().toString(), format: AppConstant.dateFormat)
+          : AppUtils.getDate(
+              date: lastGpsOffTime ?? "", format: AppConstant.dateFormat),
+      "batteryLevel": AppUtils.getBatteryLevel(),
+    };
+  }
+
+  try {
     String endPoint = ApiConstants.createActivity;
     var response = await callPostMethod(endPoint, body);
     CreateActivityModel? createActivityModel =
-    CreateActivityModel?.fromJson(json.decode(response));
+        CreateActivityModel?.fromJson(json.decode(response));
     if (createActivityModel.isError == false &&
         createActivityModel.isValidationFailed == false) {
-      if (databaseService != null) {
-        isWaitingStart ?? false
-            ? await databaseService.startWaiting()
-            : await databaseService.deleteWaiting();
+      if (isInternet ?? false) {
+        PreferenceHelper.remove(PreferenceHelper.UNIVERSAL_LAST_SAVED_TIME);
+        PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, false);
+      } else {
+        PreferenceHelper.remove(PreferenceHelper.LAST_GPS_OFF_TIME);
+        PreferenceHelper.remove(PreferenceHelper.LAST_GPS_ON_TIME);
+        PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, false);
       }
-    }
+    } else {}
   } catch (e) {
     rethrow;
   }
 }
-
-Future<void> UpdateRouteHistory() async
-{
-  try {
-    String? userId="";
-    PreferenceHelper.load().then((value) {
-      userId= PreferenceHelper.getString(PreferenceHelper.USER_UID) ?? "";
-    });
-    Position? position =await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
-
-    if(position==null || userId=="")
-      return;
-
-    Map<String, dynamic> body = {
-      "userId": userId,
-      "lattitude": position?.latitude,
-      "longitude": position?.longitude,
-      "modifiedOn": AppUtils.dateFormat(
-          date: DateTime.now(), dateFormat: AppConstant.dateFormat)
-    };
-
-    String endPoint = ApiConstants.createRouteHistory;
-
-    var response = await callPostMethod(endPoint, body);
-
-    createRouteHistoryModel = CreateRouteHistoryModel.fromJson(json.decode(response));
-
-    if (createRouteHistoryModel?.isError == false &&
-        createRouteHistoryModel?.isValidationFailed == false) {
-
-
-      PreferenceHelper.setDouble(
-          PreferenceHelper.LAST_LAT, position?.latitude ?? 0);
-      PreferenceHelper.setDouble(
-          PreferenceHelper.LAST_LONG, position?.longitude ?? 0);
-    }
-  } catch (e) {
-    print("print_route_history_catch_$e");
-  }
-}
-
-// Future<void> handleInternetAndGPS({
-//   required String? userId,
-//   bool isInternet = true,
-//   bool isGps = true,
-//   bool isInternetOn = true,
-//   bool isGpsOn = true,
-// }) async {
-//   if (isInternet) {
-//     await callInternetAndGpsActivityApi(
-//         userId: userId, isInternet: true, isInternetOn: true);
-//   }
-//
-//   if (isGps) {
-//     await callInternetAndGpsActivityApi(
-//         userId: userId, isGps: true, isGpsOn: isGpsOn);
-//   }
-// }
-
-// Future<void> callInternetAndGpsActivityApi({
-//   required String? userId,
-//   bool? isInternet,
-//   bool? isGps,
-//   bool? isInternetOn,
-//   bool? isGpsOn,
-// }) async {
-//   String? lastInternetOffTime =
-//       PreferenceHelper.getString(PreferenceHelper.LAST_INTERNET_OFF_TIME);
-//   String? lastGpsOffTime =
-//       PreferenceHelper.getString(PreferenceHelper.LAST_GPS_OFF_TIME);
-//
-//   double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-//   double? lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
-//
-//   Position position = await Geolocator.getCurrentPosition(
-//       desiredAccuracy: LocationAccuracy.best);
-//   Map<String, dynamic> body = {};
-//
-//   if (isInternet == true) {
-//     body = {
-//       "userId": userId,
-//       "lattitude": isInternetOn ?? false ? position.latitude : lastLat,
-//       "longitude": isInternetOn ?? false ? position.longitude : lastLong,
-//       "totTrackingEventId": isInternetOn ?? false
-//           ? AppConstant.internetOnEvent
-//           : AppConstant.internetOffEvent,
-//       "activityDateTime": isInternetOn ?? false
-//           ? AppUtils.getDate(
-//               date: DateTime.now().toString(), format: AppConstant.dateFormat)
-//           : AppUtils.getDate(
-//               date: lastInternetOffTime ?? "", format: AppConstant.dateFormat),
-//       "batteryLevel": 50,
-//     };
-//   }
-//
-//   if (isGps == true) {
-//     body = {
-//       "userId": userId,
-//       "lattitude": isGpsOn ?? false ? position.latitude : lastLat,
-//       "longitude": isGpsOn ?? false ? position.longitude : lastLong,
-//       "totTrackingEventId":
-//           isGpsOn ?? false ? AppConstant.gpsOnEvent : AppConstant.gpsOffEvent,
-//       "activityDateTime": isGpsOn ?? false
-//           ? AppUtils.getDate(
-//               date: DateTime.now().toString(), format: AppConstant.dateFormat)
-//           : AppUtils.getDate(
-//               date: lastGpsOffTime ?? "", format: AppConstant.dateFormat),
-//       "batteryLevel": 50,
-//     };
-//   }
-//
-//   try {
-//     String endPoint = ApiConstants.createActivity;
-//     var response = await callPostMethod(endPoint, body);
-//     CreateActivityModel? createActivityModel =
-//         CreateActivityModel?.fromJson(json.decode(response));
-//     if (createActivityModel.isError == false &&
-//         createActivityModel.isValidationFailed == false) {
-//       if (isInternet ?? false) {
-//         PreferenceHelper.remove(PreferenceHelper.UNIVERSAL_LAST_SAVED_TIME);
-//         PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, false);
-//       } else {
-//         PreferenceHelper.remove(PreferenceHelper.LAST_GPS_OFF_TIME);
-//         PreferenceHelper.remove(PreferenceHelper.LAST_GPS_ON_TIME);
-//         PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, false);
-//       }
-//     } else {}
-//   } catch (e) {
-//     rethrow;
-//   }
-// }
-
-
-
-
-
-

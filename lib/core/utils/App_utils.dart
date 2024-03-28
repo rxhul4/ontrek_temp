@@ -1,3 +1,4 @@
+import 'package:battery_plus/battery_plus.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,21 @@ class AppUtils {
     )) {
       throw Exception('Could not launch $url');
     }
+  }
+
+
+  static Future<int?> getBatteryLevel() async {
+    var battery = Battery();
+    int batteryLevel = 0; // Default value
+
+    try {
+      final value = await battery.batteryLevel;
+      batteryLevel = value; // If value is null, assign 0
+    } catch (e) {
+      print("Error getting battery level: $e");
+    }
+
+    return batteryLevel;
   }
 
   static PreferredSizeWidget? commonAppBar(

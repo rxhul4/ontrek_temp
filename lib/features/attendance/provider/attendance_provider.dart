@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
@@ -11,6 +12,7 @@ import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/attendance/model/add_activity_model.dart';
 import 'package:ontrek/main.dart';
+import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class AttendanceProvider extends ChangeNotifier {
   bool _isFetching = false;
@@ -27,12 +29,15 @@ class AttendanceProvider extends ChangeNotifier {
   bool get isAdding => _isAdding;
 
   CreateActivityModel? createActivityModel;
-  final Battery battery = Battery();
-  int batteryPercentage = 0;
+  int? battery;
   bool? isWaiting;
-   DatabaseService? databaseService;
-
-
+  DatabaseService? databaseService;
+  PanelController panelController = PanelController();
+  ValueNotifier<bool> isDayStart = ValueNotifier(false);
+  ValueNotifier<bool> isCheckIn = ValueNotifier(false);
+  ValueNotifier<bool> isDayEnd = ValueNotifier(false);
+  LocalAuthentication localAuthentication = LocalAuthentication();
+  bool isBiometricAvailable = false;
 
   loaderFnc(bool isLoading) {
     _isLoading = isLoading;
@@ -56,22 +61,49 @@ class AttendanceProvider extends ChangeNotifier {
     ));
   }
 
-  Future<int?> getBatteryLevel() async {
-    try {
-      final batteryLevel = await battery.batteryLevel;
-
-      batteryPercentage = batteryLevel;
-      notifyListeners();
-      return batteryPercentage;
-    } catch (e) {
-      rethrow;
-    }
-  }
 
   updateWaitingValue(){
     isWaiting =  PreferenceHelper.getBool(PreferenceHelper.ISWAITING);
     notifyListeners();
     return isWaiting;
+  }
+
+
+  checkBiometricAvailable() async {
+    isBiometricAvailable = await localAuthentication.canCheckBiometrics;
+  }
+
+  doLocalVerification(
+      {required Function() afterSuccessfulVerificationFnc}) async {
+    if (isBiometricAvailable) {
+      bool isAuthenticated = await localAuthentication.authenticate(
+          localizedReason: "Authenticate using Biometrics",
+          options: const AuthenticationOptions(
+              stickyAuth: true, useErrorDialogs: true));
+      if (isAuthenticated) {
+        afterSuccessfulVerificationFnc();
+      } else {
+
+        AppUtils.dialogWidget("Authentication Fail! Please Try Again",navigatorKey.currentContext);
+      }
+    } else {
+      AppUtils.dialogWidget("Biometric Auth is not available on this device",navigatorKey.currentContext);
+    }
+  }
+
+  Future getCurrentLocation() async {
+    bool isLocationServiceAvailable =
+    await AppUtils.checkLocationServiceAvailability();
+
+    if (isLocationServiceAvailable) {
+      try {
+        Position position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.medium);
+        return position;
+      } catch (e) {
+        AppUtils.dialogWidget("Please Enable Your Location Service",navigatorKey!.currentState?.context);
+      }
+    }
   }
 
   Future<CreateActivityModel?> apiCallCreateActivity({
