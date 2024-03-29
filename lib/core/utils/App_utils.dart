@@ -23,7 +23,7 @@ class AppUtils {
   }
 
 
-  static Future<int?> getBatteryLevel() async {
+  static getBatteryLevel() async {
     var battery = Battery();
     int batteryLevel = 0; // Default value
 

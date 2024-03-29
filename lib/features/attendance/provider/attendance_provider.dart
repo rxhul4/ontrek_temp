@@ -63,7 +63,7 @@ class AttendanceProvider extends ChangeNotifier {
 
 
   updateWaitingValue(){
-    isWaiting =  PreferenceHelper.getBool(PreferenceHelper.ISWAITING);
+    isWaiting =  PreferenceHelper.getBool(PreferenceHelper.NEWISWAITING);
     notifyListeners();
     return isWaiting;
   }
@@ -91,19 +91,23 @@ class AttendanceProvider extends ChangeNotifier {
     }
   }
 
-  Future getCurrentLocation() async {
+  Future<Position?> getCurrentLocation() async {
     bool isLocationServiceAvailable =
     await AppUtils.checkLocationServiceAvailability();
+    Position? position;
 
     if (isLocationServiceAvailable) {
       try {
-        Position position = await Geolocator.getCurrentPosition(
+        position  = await Geolocator.getCurrentPosition(
             desiredAccuracy: LocationAccuracy.medium);
-        return position;
+
       } catch (e) {
         AppUtils.dialogWidget("Please Enable Your Location Service",navigatorKey!.currentState?.context);
       }
+
     }
+    return position;
+
   }
 
   Future<CreateActivityModel?> apiCallCreateActivity({
