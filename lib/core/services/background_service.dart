@@ -20,8 +20,6 @@ import 'package:flutter_background_service_android/flutter_background_service_an
 import 'package:shared_preferences/shared_preferences.dart';
 
 class BackgroundService {
-
-
   Future<void> initializeService() async {
     final service = FlutterBackgroundService();
     await service.configure(
@@ -32,25 +30,22 @@ class BackgroundService {
         isForegroundMode: true,
       ),
     );
-
   }
 }
 
 @pragma('vm:entry-point')
 String userId = "";
 
-
 void onStart(ServiceInstance service) async {
   WidgetsFlutterBinding.ensureInitialized();
 
   service.on("update").listen((event) {
     print("data_received${event?["isWaiting"]}");
-    if(event != null){
+    if (event != null) {
       bool isWaiting = event["isWaiting"];
       PreferenceHelper.setBool(PreferenceHelper.isWaiting, isWaiting);
       // BackgroundService().isWaiting.value = isWaiting;
     }
-
   });
   if (service is AndroidServiceInstance) {
     service.on('setAsForeground').listen((event) {
@@ -77,9 +72,7 @@ void onStart(ServiceInstance service) async {
         }
       }
 
-
       try {
-
         final connectivityResult = await Connectivity().checkConnectivity();
         var isInternetAvailable =
             connectivityResult == ConnectivityResult.mobile ||
@@ -92,20 +85,18 @@ void onStart(ServiceInstance service) async {
         position = await Geolocator.getCurrentPosition(
             desiredAccuracy: LocationAccuracy.best);
 
-        double? lastLat =  PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-        double?  lastLong =  PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
+        double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+        double? lastLong =
+            PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
         ValueNotifier<bool?> isWaiting = ValueNotifier(false);
-
-
 
         distance = Geolocator.distanceBetween(
             lastLat ?? 0, lastLong ?? 0, position.latitude, position.longitude);
 
         if (isInternetAvailable && isGPSEnabled) {
           PreferenceHelper.reload().then((value) async {
-
-            bool? checkIn = value?.getBool(PreferenceHelper.checkIn)?? false;
-            if(value != null){
+            bool? checkIn = value?.getBool(PreferenceHelper.checkIn) ?? false;
+            if (value != null) {
               isWaiting.value = value.getBool(PreferenceHelper.isWaiting);
             }
 
@@ -122,29 +113,28 @@ void onStart(ServiceInstance service) async {
               }
             } else {
               bool? checkIn = value?.getBool(PreferenceHelper.checkIn) ?? false;
-              isWaiting.value = PreferenceHelper.getBool(PreferenceHelper.isWaiting);
+              isWaiting.value =
+                  PreferenceHelper.getBool(PreferenceHelper.isWaiting);
 
               print("checkInn$checkIn");
               print("newWaiting: ${isWaiting.value}");
 
               print("isWaiting${isWaiting.value}");
 
-              String? waitingStartTime = value?.getString(PreferenceHelper.WAITING_START_TIME);
+              String? waitingStartTime =
+                  value?.getString(PreferenceHelper.WAITING_START_TIME);
               print("waitingStartTimedata$waitingStartTime");
-
-
-              if (checkIn == false && isWaiting.value== false ) {
+              if (checkIn == false && isWaiting.value == false) {
                 try {
                   if (DateTime.now()
                           .difference(DateTime.parse(waitingStartTime ?? ""))
                           .inSeconds >
                       30) {
-                    print("waiting_time${DateTime.now()
-                        .difference(DateTime.parse(waitingStartTime ?? ""))
-                        .inSeconds}");
+                    print(
+                        "waiting_time${DateTime.now().difference(DateTime.parse(waitingStartTime ?? "")).inSeconds}");
                     print("call_after_30 seconds${isWaiting.value}");
                     await waitingStartApi(service);
-                  }else{
+                  } else {
                     print("waiting_start_in_30 seconds");
                   }
                 } catch (e) {
@@ -174,8 +164,6 @@ void onStart(ServiceInstance service) async {
     },
   );
 }
-
-
 
 handleGpsAndInternetOffData({String? serviceType}) async {
   Position positionData = await Geolocator.getCurrentPosition(
@@ -240,14 +228,11 @@ Future<void> updateRouteHistory() async {
     createRouteHistoryModel =
         CreateRouteHistoryModel.fromJson(json.decode(response));
     PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT, position.latitude);
-    PreferenceHelper.setDouble(
-        PreferenceHelper.LAST_LONG, position.longitude);
+    PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, position.longitude);
     PreferenceHelper.setString(
         PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
     if (createRouteHistoryModel?.isError == false &&
-        createRouteHistoryModel?.isValidationFailed == false) {
-
-    }
+        createRouteHistoryModel?.isValidationFailed == false) {}
   } catch (e) {
     print("print_route_history_catch_$e");
   }
@@ -260,7 +245,7 @@ Future<void> waitingStartApi(ServiceInstance service) async {
   int batteryLevel = await AppUtils.getBatteryLevel();
   print("battery_Level${batteryLevel}");
 
-  PreferenceHelper.load().then((value)async {
+  PreferenceHelper.load().then((value) async {
     String? userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
     Map<String, dynamic> body = {};
     body = {
@@ -276,7 +261,7 @@ Future<void> waitingStartApi(ServiceInstance service) async {
     String endPoint = ApiConstants.createActivity;
     var response = await callPostMethod(endPoint, body);
     CreateActivityModel? createActivityModel =
-    CreateActivityModel?.fromJson(json.decode(response));
+        CreateActivityModel?.fromJson(json.decode(response));
 
     if (createActivityModel.isError == false &&
         createActivityModel.isValidationFailed == false) {
@@ -284,11 +269,9 @@ Future<void> waitingStartApi(ServiceInstance service) async {
       service.invoke("update", {"isWaiting": true});
     }
   });
-
 }
 
 Future<void> waitingEndApi(ServiceInstance service) async {
-
   double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
   double? lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
   String? waitingStartTime =
@@ -329,24 +312,24 @@ Future<void> waitingEndApi(ServiceInstance service) async {
 }
 
 Future<void> handleInternetAndGPSApi() async {
-  PreferenceHelper.load().then((value)async {
+  PreferenceHelper.load().then((value) async {
     String? userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
     bool? gpsBool = PreferenceHelper.getBool(PreferenceHelper.GPS_BOOL);
-    bool? internetBool = PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
+    bool? internetBool =
+        PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
     if (gpsBool) {
       await callInternetAndGpsActivityApi(
-      userId: userId, isGps: true, isGpsOn: false);
+          userId: userId, isGps: true, isGpsOn: false);
       await callInternetAndGpsActivityApi(
-      userId: userId, isGps: true, isGpsOn: true);
+          userId: userId, isGps: true, isGpsOn: true);
     }
     if (internetBool) {
       await callInternetAndGpsActivityApi(
-      userId: userId, isInternet: true, isInternetOn: false);
+          userId: userId, isInternet: true, isInternetOn: false);
       await callInternetAndGpsActivityApi(
-      userId: userId, isInternet: true, isInternetOn: true);
+          userId: userId, isInternet: true, isInternetOn: true);
     }
   });
-
 }
 
 Future<void> callInternetAndGpsActivityApi({
@@ -424,5 +407,5 @@ Future<void> callInternetAndGpsActivityApi({
 
 Future<void> setWaitingState(bool isWaiting) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.setBool(PreferenceHelper.isWaiting,isWaiting);
+  await prefs.setBool(PreferenceHelper.isWaiting, isWaiting);
 }
