@@ -27,9 +27,7 @@ class PreferenceHelper {
   static const String DayStart = "dayStart";
   // static const String DayEnd = "dayEnd";
   static const String checkIn = "checkIn";
-  static const String NEWISWAITING = "newIsWaiting";
-  // static const String checkOut = "checkOut";
-  // static const String TASK_ID = "TaskId";
+  static const String isWaiting = 'is_waiting';
   static const String LAST_LAT = "LAST_LAT";
   static const String LAST_LONG = "LAST_LONG";
   static const String LAST_ADD_ROUTE_DATETIME = "LAST_ADD_ROUTE_DATETIME";

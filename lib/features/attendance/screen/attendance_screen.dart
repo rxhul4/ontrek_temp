@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:isolate';
 import 'dart:ui';
 
@@ -41,7 +42,6 @@ class AttendanceScreen extends StatefulWidget {
 class _AttendanceScreenState extends State<AttendanceScreen>
     with SingleTickerProviderStateMixin {
   AnimationController? controller;
-  bool? isWaiting;
   bool isTapped = false;
   bool isFromLogOutButton = false;
   bool isLoading = false;
@@ -198,11 +198,10 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     //check api success or not
     if (response?.isError == false && response?.isValidationFailed == false) {
       //after success delete waiting flag from database
-      PreferenceHelper.setBool(PreferenceHelper.NEWISWAITING, false);/////////////////////////////////////////////////
-      // PreferenceHelper.setBool(PreferenceHelper.ISWAITING, false);
-      FlutterBackgroundService().invoke("update",{
-        "isWaiting": false,
-      });
+      PreferenceHelper.setBool(PreferenceHelper.isWaiting,false);
+      attendanceProvider.isWaiting.value =
+          PreferenceHelper.getBool(PreferenceHelper.isWaiting);
+      service.invoke("update", {"isWaiting": false});
     }
   }
 
@@ -392,7 +391,8 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       stream: FlutterBackgroundService().on("update"),
       builder: (context, snapshot) {
         if(snapshot.hasData){
-          PreferenceHelper.setBool(PreferenceHelper.NEWISWAITING, snapshot.data?["isWaiting"]);
+          print("waiting_data${snapshot.data?["isWaiting"]}");
+          PreferenceHelper.setBool(PreferenceHelper.isWaiting, snapshot.data?["isWaiting"]);
         }
 
         return ValueListenableBuilder(
@@ -418,14 +418,16 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         );
                       } else if (!attendanceProvider.isCheckIn.value) {
                         PreferenceHelper.reload().then((value) {
-                          isWaiting = value?.getBool(PreferenceHelper.NEWISWAITING);
+                          print("value_new_isWaiting${value?.getBool(
+                              PreferenceHelper.isWaiting)}");
+                          attendanceProvider.isWaiting.value = value?.getBool(PreferenceHelper.isWaiting) ?? false;
                           attendanceProvider.doLocalVerification(
                             afterSuccessfulVerificationFnc: () async {
 
-                              print("isWaiting_from_UI$isWaiting");
+                              print("isWaiting_from_UI${attendanceProvider.isWaiting.value}");
 
                               attendanceProvider.getCurrentLocation().then((position) async {
-                                if (isWaiting == true) {
+                                if (attendanceProvider.isWaiting.value == true) {
                                   await callWaitingEndApi(postMdl, position);
                                   await callCheckInApiAndUpdateUI(postMdl);
                                 }else{
@@ -553,124 +555,132 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   }
 
   Widget logOut(postMdl, height, width) {
-    return Animate(
-      effects: const [
-        ScaleEffect(
-            begin: Offset(0, 0),
-            duration: Duration(
-              milliseconds: 300,
-            ),
-            curve: Curves.easeOut)
-      ],
-      child: GestureDetector(
-        onTapDown: (details) {
-          setState(() {
-            isFromLogOutButton = true;
-          });
-          controller?.forward().whenComplete(() {
-            HapticFeedback.vibrate();
-            controller?.reset();
-            attendanceProvider.doLocalVerification(
-                afterSuccessfulVerificationFnc: () {
-                  if (attendanceProvider.isDayStart.value) {
-                    attendanceProvider.getCurrentLocation().then((
-                        value1) async {
-                      if (isWaiting == true) {
-                        await callWaitingEndApi(postMdl, value1);
-                        await callDayEndApiAndUpdateUI(postMdl);
-                      } else {
-                        await callDayEndApiAndUpdateUI(postMdl);
-                      }
-                    });
-                  }
-                });
-          });
-        },
-        onTapUp: (details) {
-          setState(() {
-            isFromLogOutButton = false;
-          });
-          controller?.reverse();
-        },
+    return StreamBuilder<Map<String,dynamic>?>(
+      stream: FlutterBackgroundService().on("update"), builder: (context, snapshot) {
+        if(snapshot.hasData){
+          print("waiting_data${snapshot.data?["isWaiting"]}");
+          PreferenceHelper.setBool(PreferenceHelper.isWaiting, snapshot.data?["isWaiting"]);
+        }
+      return  Animate(
+        effects: const [
+          ScaleEffect(
+              begin: Offset(0, 0),
+              duration: Duration(
+                milliseconds: 300,
+              ),
+              curve: Curves.easeOut)
+        ],
+        child: GestureDetector(
+          onTapDown: (details) {
+            setState(() {
+              isFromLogOutButton = true;
+            });
+            controller?.forward().whenComplete(() {
+              HapticFeedback.vibrate();
+              controller?.reset();
+              attendanceProvider.isWaiting.value = PreferenceHelper.getBool(PreferenceHelper.isWaiting);
+              attendanceProvider.doLocalVerification(
+                  afterSuccessfulVerificationFnc: () {
+                    if (attendanceProvider.isDayStart.value) {
+                      attendanceProvider.getCurrentLocation().then((
+                          value1) async {
+                        if (attendanceProvider.isWaiting.value == true) {
+                          await callWaitingEndApi(postMdl, value1);
+                          await callDayEndApiAndUpdateUI(postMdl);
+                        } else {
+                          await callDayEndApiAndUpdateUI(postMdl);
+                        }
+                      });
+                    }
+                  });
+            });
+          },
+          onTapUp: (details) {
+            setState(() {
+              isFromLogOutButton = false;
+            });
+            controller?.reverse();
+          },
 
-        child: Animate(
-          effects: const [
-            ScaleEffect(
-                begin: Offset(0, 0),
-                duration: Duration(
-                  milliseconds: 300,
-                ),
-                curve: Curves.easeOut)
-          ],
-          child: AppUtils.commonContainer(
-            decoration: AppUtils.commonBoxDecoration(
-              shape: BoxShape.circle,
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: <Widget>[
-                postMdl.isLoading
-                    ? LoaderWidget(color: Colors.red)
-                    : Positioned.fill(
-                  // scale: isFromLogOutButton ? 4 : 3.6,
-                  // Adjust the scale factor as needed
-                  child: CircularProgressIndicator(
-                    value: controller?.value,
-                    strokeCap: StrokeCap.round,
-                    strokeWidth: 8,
-                    valueColor:
-                    const AlwaysStoppedAnimation<Color>(Colors.red),
+          child: Animate(
+            effects: const [
+              ScaleEffect(
+                  begin: Offset(0, 0),
+                  duration: Duration(
+                    milliseconds: 300,
                   ),
-                ),
-                Positioned.fill(
-                  // scale: isFromLogOutButton ? 4 : 3.6,
-                  // Adjust the scale factor as needed
-                  child: CircularProgressIndicator(
-                    value: 1.0,
-                    strokeWidth: 8,
-                    strokeCap: StrokeCap.round,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                        AppConstant.greyColor.withOpacity(0.2)
-                      // dayEnd == true ? Colors.red :!isDayStart.value
-                      //     ? AppConstant.greyColor
-                      //     : Colors.blue
+                  curve: Curves.easeOut)
+            ],
+            child: AppUtils.commonContainer(
+              decoration: AppUtils.commonBoxDecoration(
+                shape: BoxShape.circle,
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: <Widget>[
+                  postMdl.isLoading
+                      ? LoaderWidget(color: Colors.red)
+                      : Positioned.fill(
+                    // scale: isFromLogOutButton ? 4 : 3.6,
+                    // Adjust the scale factor as needed
+                    child: CircularProgressIndicator(
+                      value: controller?.value,
+                      strokeCap: StrokeCap.round,
+                      strokeWidth: 8,
+                      valueColor:
+                      const AlwaysStoppedAnimation<Color>(Colors.red),
                     ),
                   ),
-                ),
-                AnimatedContainer(
-                  margin: const EdgeInsets.all(2.8),
-                  duration: const Duration(milliseconds: 300),
-                  height: isFromLogOutButton ? 120 : 100,
-                  width: isFromLogOutButton ? 120 : 100,
-                  decoration: AppUtils.commonBoxDecoration(
-                    color: Colors.red.withOpacity(0.8),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.red.withOpacity(0.3),
-                        spreadRadius: isFromLogOutButton ? 1 : 2,
-                        blurRadius: isFromLogOutButton ? 1 : 2,
-                        offset: Offset(0, 0),
+                  Positioned.fill(
+                    // scale: isFromLogOutButton ? 4 : 3.6,
+                    // Adjust the scale factor as needed
+                    child: CircularProgressIndicator(
+                      value: 1.0,
+                      strokeWidth: 8,
+                      strokeCap: StrokeCap.round,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          AppConstant.greyColor.withOpacity(0.2)
+                        // dayEnd == true ? Colors.red :!isDayStart.value
+                        //     ? AppConstant.greyColor
+                        //     : Colors.blue
                       ),
-                    ],
-                  ),
-                  child: Center(
-                    child: AppUtils.commonTextWidget(
-                      text: "Out",
-                      fontSize: 18,
-                      textColor: Colors.white,
-                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                ),
-              ],
+                  AnimatedContainer(
+                    margin: const EdgeInsets.all(2.8),
+                    duration: const Duration(milliseconds: 300),
+                    height: isFromLogOutButton ? 120 : 100,
+                    width: isFromLogOutButton ? 120 : 100,
+                    decoration: AppUtils.commonBoxDecoration(
+                      color: Colors.red.withOpacity(0.8),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.red.withOpacity(0.3),
+                          spreadRadius: isFromLogOutButton ? 1 : 2,
+                          blurRadius: isFromLogOutButton ? 1 : 2,
+                          offset: Offset(0, 0),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: AppUtils.commonTextWidget(
+                        text: "Out",
+                        fontSize: 18,
+                        textColor: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
+          //   },
+          // ),
         ),
-        //   },
-        // ),
-      ),
-    );
+      );
+    },);
   }
 
   openDialogFnc(String text) {

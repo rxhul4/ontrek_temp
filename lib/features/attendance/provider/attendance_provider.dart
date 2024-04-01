@@ -12,6 +12,7 @@ import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/attendance/model/add_activity_model.dart';
 import 'package:ontrek/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class AttendanceProvider extends ChangeNotifier {
@@ -30,12 +31,12 @@ class AttendanceProvider extends ChangeNotifier {
 
   CreateActivityModel? createActivityModel;
   int? battery;
-  bool? isWaiting;
   DatabaseService? databaseService;
   PanelController panelController = PanelController();
   ValueNotifier<bool> isDayStart = ValueNotifier(false);
   ValueNotifier<bool> isCheckIn = ValueNotifier(false);
   ValueNotifier<bool> isDayEnd = ValueNotifier(false);
+  ValueNotifier<bool> isWaiting = ValueNotifier(false);
   LocalAuthentication localAuthentication = LocalAuthentication();
   bool isBiometricAvailable = false;
 
@@ -62,10 +63,15 @@ class AttendanceProvider extends ChangeNotifier {
   }
 
 
-  updateWaitingValue(){
-    isWaiting =  PreferenceHelper.getBool(PreferenceHelper.NEWISWAITING);
+  Future<void> setWaitingState(bool isWaiting) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(PreferenceHelper.isWaiting, isWaiting);
+  }
+
+  Future<bool?> getWaitingValue()async{
+    isWaiting.value =  await PreferenceHelper.getBool(PreferenceHelper.isWaiting);
     notifyListeners();
-    return isWaiting;
+    return isWaiting.value;
   }
 
 

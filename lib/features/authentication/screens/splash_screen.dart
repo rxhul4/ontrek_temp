@@ -23,30 +23,22 @@ class _SplashScreenState extends State<SplashScreen> {
   int? roleId;
   bool? isDayStart;
   bool? isCheckIn;
+  bool? isWaiting;
 
   gotoLogin() async {
     isLogIn = PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN);
     roleId = PreferenceHelper.getInt(PreferenceHelper.ROLE_ID);
     isDayStart = PreferenceHelper.getBool(PreferenceHelper.DayStart);
     isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+    isWaiting = PreferenceHelper.getBool(PreferenceHelper.isWaiting);
     var status = await Permission.location.status;
     print("isLogIn $isLogIn");
     print("roleId $roleId");
     print("isDayStart $isDayStart");
     print("isCheckIn $isCheckIn");
+    print("isWaiting $isWaiting");
     print("status $status");
     Timer(const Duration(milliseconds: 3000), () {
-
-      // if(status.isGranted){
-      //   if(isLogIn??  false){
-      //     Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => DashBoard(),));
-      //   }else{
-      //     Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => LogInScreen(),));
-      //   }
-      // }else{
-      //   Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => LocationPermissionScreen(),));
-      // }
-
       if (status.isGranted) {
         if (isLogIn ?? false) {
           Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => DashBoard(),));
