@@ -13,6 +13,7 @@ class ApiConstants{
 
   //salesMen
    static const String createActivity = "$baseUrl/FieldUser/CreateActivity";
+   static const String getLastActivity = "$baseUrl/FieldUser/GetLastActivity";
    static const String createRouteHistory = "$baseUrl/FieldUser/CreateRoutHistory";
 
    //totapi

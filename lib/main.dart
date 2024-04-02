@@ -69,6 +69,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   PreferenceHelper.load().then((value) {
+    PreferenceHelper.reload().then((value) {
+      print("in_main________${value?.getBool(PreferenceHelper.isWaiting)}");
+
+    });
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     runApp(MultiProvider(providers: providers, child: const MyApp()));
   });

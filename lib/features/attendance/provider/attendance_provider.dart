@@ -11,6 +11,7 @@ import 'package:ontrek/core/storage/sql_db_service.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/attendance/model/add_activity_model.dart';
+import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
 import 'package:ontrek/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
@@ -30,6 +31,7 @@ class AttendanceProvider extends ChangeNotifier {
   bool get isAdding => _isAdding;
 
   CreateActivityModel? createActivityModel;
+  GetLastActivityModel? getLastActivityModel;
   int? battery;
   DatabaseService? databaseService;
   PanelController panelController = PanelController();
@@ -39,6 +41,7 @@ class AttendanceProvider extends ChangeNotifier {
   ValueNotifier<bool> isWaiting = ValueNotifier(false);
   LocalAuthentication localAuthentication = LocalAuthentication();
   bool isBiometricAvailable = false;
+
 
   loaderFnc(bool isLoading) {
     _isLoading = isLoading;
@@ -62,18 +65,17 @@ class AttendanceProvider extends ChangeNotifier {
     ));
   }
 
-
   Future<void> setWaitingState(bool isWaiting) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool(PreferenceHelper.isWaiting, isWaiting);
   }
 
-  Future<bool?> getWaitingValue()async{
-    isWaiting.value =  await PreferenceHelper.getBool(PreferenceHelper.isWaiting);
+  Future<bool?> getWaitingValue() async {
+    isWaiting.value =
+        await PreferenceHelper.getBool(PreferenceHelper.isWaiting);
     notifyListeners();
     return isWaiting.value;
   }
-
 
   checkBiometricAvailable() async {
     isBiometricAvailable = await localAuthentication.canCheckBiometrics;
@@ -89,31 +91,30 @@ class AttendanceProvider extends ChangeNotifier {
       if (isAuthenticated) {
         afterSuccessfulVerificationFnc();
       } else {
-
-        AppUtils.dialogWidget("Authentication Fail! Please Try Again",navigatorKey.currentContext);
+        AppUtils.dialogWidget("Authentication Fail! Please Try Again",
+            navigatorKey.currentContext);
       }
     } else {
-      AppUtils.dialogWidget("Biometric Auth is not available on this device",navigatorKey.currentContext);
+      AppUtils.dialogWidget("Biometric Auth is not available on this device",
+          navigatorKey.currentContext);
     }
   }
 
   Future<Position?> getCurrentLocation() async {
     bool isLocationServiceAvailable =
-    await AppUtils.checkLocationServiceAvailability();
+        await AppUtils.checkLocationServiceAvailability();
     Position? position;
 
     if (isLocationServiceAvailable) {
       try {
-        position  = await Geolocator.getCurrentPosition(
+        position = await Geolocator.getCurrentPosition(
             desiredAccuracy: LocationAccuracy.medium);
-
       } catch (e) {
-        AppUtils.dialogWidget("Please Enable Your Location Service",navigatorKey!.currentState?.context);
+        AppUtils.dialogWidget("Please Enable Your Location Service",
+            navigatorKey!.currentState?.context);
       }
-
     }
     return position;
-
   }
 
   Future<CreateActivityModel?> apiCallCreateActivity({
@@ -173,51 +174,32 @@ class AttendanceProvider extends ChangeNotifier {
     return createActivityModel;
   }
 
+  Future<GetLastActivityModel?> getLastActivity() async {
 
-  Future callCreateWaitingActivityApi(
-      {String? userId,  Position? position}) async {
-    // try {
-
-    //
-    //   Map<String, dynamic> body = {};
-    //   double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-    //   double? lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
-    //   String? waitingStartTime =
-    //   PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
-    //
-    //   body = {
-    //     "userId": userId,
-    //     "lattitude": isWaitingStart ?? false ? lastLat : position?.latitude,
-    //     "longitude": isWaitingStart ?? false ? lastLong : position?.longitude,
-    //     "totTrackingEventId": isWaitingStart ?? false
-    //         ? AppConstant.trackingWaitingStartEvent
-    //         : AppConstant.trackingWaitingStopEvent,
-    //     "activityDateTime": isWaitingStart ?? false
-    //         ? AppUtils.getDate(
-    //         date: waitingStartTime ?? "", format: AppConstant.dateFormat)
-    //         : AppUtils.getDate(
-    //         date: DateTime.now().toString(), format: AppConstant.dateFormat),
-    //     "batteryLevel": 50,
-    //   };
-    //
-    //   String endPoint = ApiConstants.createActivity;
-    //   var response = await callPostMethod(endPoint, body);
-    //   createActivityModel = CreateActivityModel?.fromJson(json.decode(response));
-    //   if (createActivityModel?.isError == false &&
-    //       createActivityModel?.isValidationFailed == false) {
-    //       isWaitingStart ?? false
-    //           ? await databaseService?.startWaiting()
-    //           : await databaseService?.deleteWaiting();
-    //       // ? PreferenceHelper.setBool(PreferenceHelper.ISWAITING, true)
-    //       // : PreferenceHelper.setBool(PreferenceHelper.ISWAITING, false);
-    //
-    //       bool? isWaiting = await databaseService?.getWaitingStatus();
-    //       print("getData$isWaiting");
-    //
-    //   }
-    //   print("response at main : $response");
-    // } catch (e) {
-    //   rethrow;
-    // }
+    loaderFnc(true);
+    String? userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
+    Map<String, dynamic> body = {
+      "userId": userId,
+      "currentDate": "2024-04-01T10:40:14.9130174+05:30"
+    };
+    try {
+      String endPoint = ApiConstants.getLastActivity;
+      final response = await callPostMethod(endPoint, body);
+      getLastActivityModel = GetLastActivityModel.fromJson(json.decode(response));
+      print("response_of_lastActivity: $response");
+    } catch (e) {
+      print("inCatch ${createActivityModel?.message}");
+      print("inCatchE $e");
+      bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
+      if (!isInternetAvailable) {
+        getLastActivityModel = GetLastActivityModel(
+            message: "Internet is not available, please try again!");
+      } else {
+        getLastActivityModel =
+            GetLastActivityModel(message: "Something went wrong!");
+      }
+    }
+    loaderFnc(false);
+    return getLastActivityModel;
   }
 }

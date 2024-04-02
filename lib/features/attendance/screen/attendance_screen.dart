@@ -67,6 +67,10 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       attendanceProvider.isCheckIn.value =
           PreferenceHelper.getBool(PreferenceHelper.checkIn);
       batteryPercentage();
+      service.on("update").listen((event) {
+        print("value_of_event$event");
+        print("value_of_isWaiting${event?["isWaiting"]}");
+      });
     });
 
     super.initState();
@@ -329,7 +333,8 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   SizedBox(
                     height: 15,
                   ),
-                  !attendanceProvider.isDayStart.value
+                  !attendanceProvider.isDayStart.value ||
+                          attendanceProvider.isCheckIn.value
                       ? AppUtils.commonTextWidget(
                           text: "Press & Hold",
                           fontSize: 14,
@@ -339,26 +344,18 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         )
                       : GestureDetector(
                           onTap: () {
-                            if (attendanceProvider.isCheckIn.value == true) {
-                            } else {
-                              attendanceProvider.isDayEnd.value =
-                                  !attendanceProvider
-                                      .isDayEnd.value; // Toggle the value
-                            }
+                            attendanceProvider.isDayEnd.value =
+                                !attendanceProvider.isDayEnd.value;
                           },
                           child: AppUtils.commonTextWidget(
                             text: !attendanceProvider.isDayEnd.value
-                                ? attendanceProvider.isCheckIn.value == true
-                                    ? "Press & Hold"
-                                    : "Show Off"
+                                ? "Show Off"
                                 : "Show Hide",
                             fontSize: 14,
                             letterSpacing: 0.2,
                             fontWeight: FontWeight.w600,
                             textColor: !attendanceProvider.isDayEnd.value
-                                ? attendanceProvider.isCheckIn.value == true
-                                    ? Colors.black
-                                    : Colors.red
+                                ? Colors.red
                                 : AppConstant.appPrimaryColor,
                           )),
                 ],
@@ -375,19 +372,11 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 backgroundColor: Colors.white),
           ],
         ));
+
   }
 
   Widget buttonWidget(AttendanceProvider postMdl, height, width) {
-    return StreamBuilder<Map<String, dynamic>?>(
-      stream: FlutterBackgroundService().on("update"),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          print("waiting_data${snapshot.data?["isWaiting"]}");
-          PreferenceHelper.setBool(
-              PreferenceHelper.isWaiting, snapshot.data?["isWaiting"]);
-        }
-
-        return ValueListenableBuilder(
+    return ValueListenableBuilder(
           valueListenable: attendanceProvider.isDayStart,
           builder: (context, value, child) {
             return ValueListenableBuilder(
@@ -544,20 +533,66 @@ class _AttendanceScreenState extends State<AttendanceScreen>
             );
           },
         );
-      },
-    );
   }
 
   Widget logOut(postMdl, height, width) {
-    return StreamBuilder<Map<String, dynamic>?>(
-      stream: FlutterBackgroundService().on("update"),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          print("waiting_data${snapshot.data?["isWaiting"]}");
-          PreferenceHelper.setBool(
-              PreferenceHelper.isWaiting, snapshot.data?["isWaiting"]);
-        }
-        return Animate(
+    return Animate(
+      effects: const [
+        ScaleEffect(
+            begin: Offset(0, 0),
+            duration: Duration(
+              milliseconds: 300,
+            ),
+            curve: Curves.easeOut)
+      ],
+      child: GestureDetector(
+        onTapDown: (details) {
+          setState(() {
+            isFromLogOutButton = true;
+          });
+          controller?.forward().whenComplete(() {
+            HapticFeedback.vibrate();
+            controller?.reset();
+            PreferenceHelper.reload().then((value) {
+              if (kDebugMode) {
+                print(
+                  "value_new_isWaiting${value?.getBool(PreferenceHelper.isWaiting)}");
+              }
+              attendanceProvider.isWaiting.value =
+                  value?.getBool(PreferenceHelper.isWaiting) ??
+                      false;
+              attendanceProvider.doLocalVerification(
+                afterSuccessfulVerificationFnc: () async {
+                  if (kDebugMode) {
+                    print(
+                      "isWaiting_from_UI${attendanceProvider.isWaiting.value}");
+                  }
+                  attendanceProvider
+                      .getCurrentLocation()
+                      .then((position) async {
+                        print("condtion${attendanceProvider.isWaiting.value == true}");
+                    if (attendanceProvider.isWaiting.value == true) {
+                      await callWaitingEndApi(postMdl, position);
+                      await callDayEndApiAndUpdateUI(postMdl);
+                    } else {
+                      await callDayEndApiAndUpdateUI(postMdl);
+                    }
+                  });
+                },
+              );
+            });
+
+
+          });
+        },
+        onTapUp: (details) {
+          setState(() {
+            isFromLogOutButton = false;
+          });
+          controller?.reverse();
+        },
+
+        child: Animate(
           effects: const [
             ScaleEffect(
                 begin: Offset(0, 0),
@@ -566,119 +601,74 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 ),
                 curve: Curves.easeOut)
           ],
-          child: GestureDetector(
-            onTapDown: (details) {
-              setState(() {
-                isFromLogOutButton = true;
-              });
-              controller?.forward().whenComplete(() {
-                HapticFeedback.vibrate();
-                controller?.reset();
-                attendanceProvider.isWaiting.value =
-                    PreferenceHelper.getBool(PreferenceHelper.isWaiting);
-                attendanceProvider.doLocalVerification(
-                    afterSuccessfulVerificationFnc: () {
-                  if (attendanceProvider.isDayStart.value) {
-                    attendanceProvider
-                        .getCurrentLocation()
-                        .then((value1) async {
-                      if (attendanceProvider.isWaiting.value == true) {
-                        await callWaitingEndApi(postMdl, value1);
-                        await callDayEndApiAndUpdateUI(postMdl);
-                      } else {
-                        await callDayEndApiAndUpdateUI(postMdl);
-                      }
-                    });
-                  }
-                });
-              });
-            },
-            onTapUp: (details) {
-              setState(() {
-                isFromLogOutButton = false;
-              });
-              controller?.reverse();
-            },
-
-            child: Animate(
-              effects: const [
-                ScaleEffect(
-                    begin: Offset(0, 0),
-                    duration: Duration(
-                      milliseconds: 300,
-                    ),
-                    curve: Curves.easeOut)
-              ],
-              child: AppUtils.commonContainer(
-                decoration: AppUtils.commonBoxDecoration(
-                  shape: BoxShape.circle,
-                ),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: <Widget>[
-                    postMdl.isLoading
-                        ? LoaderWidget(color: Colors.red)
-                        : Positioned.fill(
-                            // scale: isFromLogOutButton ? 4 : 3.6,
-                            // Adjust the scale factor as needed
-                            child: CircularProgressIndicator(
-                              value: controller?.value,
-                              strokeCap: StrokeCap.round,
-                              strokeWidth: 8,
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                  Colors.red),
-                            ),
-                          ),
-                    Positioned.fill(
-                      // scale: isFromLogOutButton ? 4 : 3.6,
-                      // Adjust the scale factor as needed
-                      child: CircularProgressIndicator(
-                        value: 1.0,
-                        strokeWidth: 8,
-                        strokeCap: StrokeCap.round,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                            AppConstant.greyColor.withOpacity(0.2)
-                            // dayEnd == true ? Colors.red :!isDayStart.value
-                            //     ? AppConstant.greyColor
-                            //     : Colors.blue
-                            ),
-                      ),
-                    ),
-                    AnimatedContainer(
-                      margin: const EdgeInsets.all(2.8),
-                      duration: const Duration(milliseconds: 300),
-                      height: isFromLogOutButton ? 120 : 100,
-                      width: isFromLogOutButton ? 120 : 100,
-                      decoration: AppUtils.commonBoxDecoration(
-                        color: Colors.red.withOpacity(0.8),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.red.withOpacity(0.3),
-                            spreadRadius: isFromLogOutButton ? 1 : 2,
-                            blurRadius: isFromLogOutButton ? 1 : 2,
-                            offset: Offset(0, 0),
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: AppUtils.commonTextWidget(
-                          text: "Out",
-                          fontSize: 18,
-                          textColor: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+          child: AppUtils.commonContainer(
+            decoration: AppUtils.commonBoxDecoration(
+              shape: BoxShape.circle,
             ),
-            //   },
-            // ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: <Widget>[
+                postMdl.isLoading
+                    ? LoaderWidget(color: Colors.red)
+                    : Positioned.fill(
+                  // scale: isFromLogOutButton ? 4 : 3.6,
+                  // Adjust the scale factor as needed
+                  child: CircularProgressIndicator(
+                    value: controller?.value,
+                    strokeCap: StrokeCap.round,
+                    strokeWidth: 8,
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                        Colors.red),
+                  ),
+                ),
+                Positioned.fill(
+                  // scale: isFromLogOutButton ? 4 : 3.6,
+                  // Adjust the scale factor as needed
+                  child: CircularProgressIndicator(
+                    value: 1.0,
+                    strokeWidth: 8,
+                    strokeCap: StrokeCap.round,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                        AppConstant.greyColor.withOpacity(0.2)
+                      // dayEnd == true ? Colors.red :!isDayStart.value
+                      //     ? AppConstant.greyColor
+                      //     : Colors.blue
+                    ),
+                  ),
+                ),
+                AnimatedContainer(
+                  margin: const EdgeInsets.all(2.8),
+                  duration: const Duration(milliseconds: 300),
+                  height: isFromLogOutButton ? 120 : 100,
+                  width: isFromLogOutButton ? 120 : 100,
+                  decoration: AppUtils.commonBoxDecoration(
+                    color: Colors.red.withOpacity(0.8),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.red.withOpacity(0.3),
+                        spreadRadius: isFromLogOutButton ? 1 : 2,
+                        blurRadius: isFromLogOutButton ? 1 : 2,
+                        offset: Offset(0, 0),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: AppUtils.commonTextWidget(
+                      text: "Out",
+                      fontSize: 18,
+                      textColor: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        );
-      },
+        ),
+        //   },
+        // ),
+      ),
     );
   }
 

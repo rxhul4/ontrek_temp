@@ -11,7 +11,6 @@ import 'package:ontrek/core/background_service_model/create_route_history_model.
 import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
-import 'package:ontrek/core/storage/sql_db_service.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/attendance/model/add_activity_model.dart';
@@ -44,9 +43,10 @@ void onStart(ServiceInstance service) async {
     if (event != null) {
       bool isWaiting = event["isWaiting"];
       PreferenceHelper.setBool(PreferenceHelper.isWaiting, isWaiting);
-      // BackgroundService().isWaiting.value = isWaiting;
     }
   });
+
+
   if (service is AndroidServiceInstance) {
     service.on('setAsForeground').listen((event) {
       service.setAsForegroundService();
