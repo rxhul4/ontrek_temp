@@ -32,9 +32,9 @@ class BackgroundService {
   }
 }
 
-@pragma('vm:entry-point')
-String userId = "";
 
+String userId = "";
+@pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
   WidgetsFlutterBinding.ensureInitialized();
 

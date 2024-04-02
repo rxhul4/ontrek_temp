@@ -28,10 +28,13 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
   @override
   void initState() {
     super.initState();
-    authenticationProvider = Provider.of<AuthenticationProvider>(context, listen: false);
-    authenticationProvider.otpController.clear();
-    authenticationProvider.userUid = widget.appUserId;
-    authenticationProvider.startTimer();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      authenticationProvider = Provider.of<AuthenticationProvider>(context,listen: false);
+      authenticationProvider.otpController.clear();
+      authenticationProvider.userUid = widget.appUserId;
+      authenticationProvider.startTimer();
+    });
+
   }
   @override
   void dispose() {
