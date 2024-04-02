@@ -74,9 +74,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Stack(
                     alignment: Alignment.topRight,
                     children: [
-                      SizedBox(
+                      AppUtils.commonContainer(
                         height: 80,
                         width: 80,
+                        decoration: AppUtils.commonBoxDecoration(shape: BoxShape.circle,border: Border.all(color: AppConstant.appPrimaryColor)),
                         child: ClipOval(
                           child: AppUtils.commonNetworkImageWidget(
                               path: profileImage),
@@ -85,8 +86,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       AppUtils.commonContainer(
                         padding: EdgeInsets.all(5),
                         decoration: AppUtils.commonBoxDecoration(
-                            color: Colors.white, shape: BoxShape.circle),
-                        child: Icon(Icons.edit, size: 15),
+                            color: AppConstant.appPrimaryColor, shape: BoxShape.circle),
+                        child: Icon(Icons.edit, size: 15,color: Colors.white),
                       )
                     ],
                   ),
@@ -143,12 +144,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      height: height - (MediaQuery.of(context).size.height / 3) - 80, // Adjust the height accordingly
+                      height: height - (MediaQuery.of(context).size.height / 3) - 60, // Adjust the height accordingly
                       child: ListView.builder(
                         shrinkWrap: true,
                         itemCount: profileOptionsList.length,
+                        physics: NeverScrollableScrollPhysics(),
                         itemBuilder: (context, index) {
-                          return InkWell(
+                       return InkWell(
                             onTap: () {
                               print("index${index}");
                               print(profileOptionsList[index]);

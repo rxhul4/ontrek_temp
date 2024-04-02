@@ -337,7 +337,9 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                                       commonTextField(
                                           text: "Customer Phone Number",
                                           controller:
-                                              customerPhoneNumberController),
+                                              customerPhoneNumberController,
+                                      textInputType: TextInputType.number
+                                      ),
                                       AppUtils.commonSizedBox(height: 10),
                                       AppUtils.commonContainer(
                                           child: Column(
@@ -370,8 +372,32 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                                             itemBuilder: (context, index) {
                                               print(
                                                   "data${getTotByGroupTypeModel?.data?[index].totSequence}");
-
-                                              return GestureDetector(
+                                               // RadioListTile(
+                                               //   title: Text("${getTotByGroupTypeModel?.data?[index].totValue}",style: TextStyle(color: Colors.red),),
+                                               //   value: getTotByGroupTypeModel
+                                               //     ?.data?[index]
+                                               //     .totSequence, groupValue: selectedRadio, onChanged: (value) {
+                                               //   print("value${value}");
+                                               //   setState(() {
+                                               //     selectedRadio =
+                                               //         getTotByGroupTypeModel
+                                               //             ?.data?[
+                                               //         index]
+                                               //             .totSequence ??
+                                               //             1;
+                                               //     totType =
+                                               //         getTotByGroupTypeModel
+                                               //             ?.data?[
+                                               //         index]
+                                               //             .totId ??
+                                               //             "";
+                                               //     print(
+                                               //         "totType value$totType");
+                                               //     print(
+                                               //         "totType value$selectedRadio");
+                                               //   });
+                                               //     },);
+                                               return GestureDetector(
                                                 onTap: () {
                                                   setState(() {
                                                     selectedRadio =
@@ -490,7 +516,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
   }
 
   commonTextField(
-      {String? text, int? maxLine, required TextEditingController controller}) {
+      {String? text, int? maxLine, required TextEditingController controller,TextInputType? textInputType}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -510,6 +536,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
           allBorderRadius: 5,
           fillColor: AppConstant.whiteColor,
           hintTextColor: AppConstant.greyColor.withOpacity(0.5),
+          textInputType: textInputType,
         ),
       ],
     );
@@ -574,7 +601,12 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
           context: context,
           message: "Enter Client Name",
           giveColor: Colors.red);
-    } else if (visitDiscussionNameController.text.isEmpty) {
+    }else if(customerPhoneNumberController.text.isEmpty){
+      AppUtils.showSnackBarWithColor(
+          context: context,
+          message: "Enter Customer Phone Number",
+          giveColor: Colors.red);
+    }else if (visitDiscussionNameController.text.isEmpty) {
       AppUtils.showSnackBarWithColor(
           context: context,
           message: "Enter Visit Discussion",
