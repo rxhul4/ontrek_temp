@@ -1,11 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
-import 'package:ontrek/core/utils/image_path.dart';
-import 'package:ontrek/features/authentication/screens/login_screen.dart';
 import 'package:ontrek/features/authentication/screens/login_with_phone_number.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
@@ -22,6 +20,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   PanelController();
   String? userName;
   String? profileImage;
+  FlutterBackgroundService service = FlutterBackgroundService();
 
   @override
   void initState() {
@@ -154,6 +153,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               print("index${index}");
                               print(profileOptionsList[index]);
                               if (index == 7) {
+                                service.invoke("stopService");
                                 PreferenceHelper.clear();
                                 Navigator.pushReplacement(
                                   context,

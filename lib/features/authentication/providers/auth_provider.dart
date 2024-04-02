@@ -37,7 +37,6 @@ class AuthenticationProvider extends ChangeNotifier {
   Timer? timer;
   String? userUid;
   TextEditingController mobileNumberController = TextEditingController();
-  TextEditingController otpController = TextEditingController();
 
   loaderFnc(bool isLoading) {
     _isLoading = isLoading;
@@ -107,7 +106,7 @@ class AuthenticationProvider extends ChangeNotifier {
           loginModel?.isValidationFailed == false) {
         PreferenceHelper.setString(
             PreferenceHelper.FULL_NAME, loginModel?.data?.userName ?? "");
-        navigatePushReplacementFnc(OTPVerificationCode(
+        navigatePushFnc(OTPVerificationCode(
           appUserId: loginModel?.data?.appUserId,
         ));
       } else {
@@ -141,11 +140,11 @@ class AuthenticationProvider extends ChangeNotifier {
     }
   }
 
-  Future<LoginModel?> apiCallVerifyOtp() async {
+  Future<LoginModel?> apiCallVerifyOtp(TextEditingController controller) async {
     _isLoading = true;
     notifyListeners();
 
-    Map<String, dynamic> body = {"userId": userUid, "otp": otpController.text};
+    Map<String, dynamic> body = {"userId": userUid, "otp": controller.text};
     try {
       loginModel = LoginModel();
       String endPoint = ApiConstants.verifyOtp;
@@ -198,15 +197,15 @@ class AuthenticationProvider extends ChangeNotifier {
     return true;
   }
 
-  checkValidationAndCallVerifyOtpApi() {
-    if (otpController.text.isEmpty) {
+  checkValidationAndCallVerifyOtpApi(TextEditingController controller) {
+    if (controller.text.isEmpty) {
       AppUtils.showSnackBarWithColor(
           message: "Please Enter One Time Password!", giveColor: Colors.red);
-    } else if (otpController.text.length < 4) {
+    } else if (controller.text.length < 4) {
       AppUtils.showSnackBarWithColor(
           message: "Please Enter 4 digit code!", giveColor: Colors.red);
     } else {
-      apiCallVerifyOtp();
+      apiCallVerifyOtp(controller);
       // navigatePushReplacementFnc(const DashBoard());
     }
   }

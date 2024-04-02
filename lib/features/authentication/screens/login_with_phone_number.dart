@@ -18,6 +18,17 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+AuthenticationProvider? authenticationProvider;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      authenticationProvider = Provider.of<AuthenticationProvider>(context,listen: false);
+      authenticationProvider?.mobileNumberController.clear();
+    });
+  }
 
 
 

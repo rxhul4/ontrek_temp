@@ -23,6 +23,12 @@ class OTPVerificationCode extends StatefulWidget {
 
 class _OTPVerificationCodeState extends State<OTPVerificationCode> {
 
+  TextEditingController controller  = TextEditingController();
+  late AuthenticationProvider authenticationProvider;
+  int secondRemaining = 30;
+  bool enableResend = false;
+  Timer? timer;
+
 
 
   @override
@@ -32,22 +38,40 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       final authenticationProvider = Provider.of<AuthenticationProvider>(context,listen: false);
+      controller.clear();
       authenticationProvider.userUid = widget.appUserId;
-      authenticationProvider.startTimer();
+      startTimer();
     });
   }
 
   @override
   void dispose() {
-
-    authenticationProvider.timer?.cancel();
+    // Cancel the timer if it's not null
+    controller.dispose();
+    timer?.cancel();
     super.dispose();
   }
 
 
 
+  void startTimer() {
+    timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (secondRemaining != 0) {
 
-late AuthenticationProvider authenticationProvider;
+
+        setState(() {
+          secondRemaining--;
+        });
+
+      } else {
+        enableResend = true;
+
+        setState(() {
+          timer.cancel();
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +143,7 @@ late AuthenticationProvider authenticationProvider;
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      otpView(context, authenticationProvider.otpController),
+                      otpView(context, controller),
                       AppUtils.commonElevatedBtn(
                         isLoading: authenticationProvider.isLoading,
                         topMargin: 20,
@@ -129,9 +153,9 @@ late AuthenticationProvider authenticationProvider;
                         bgColor: AppConstant.appPrimaryColor.withOpacity(0.9),
                         borderRadiusAll: 8,
                         onPressed: () {
-                          PreferenceHelper.setBool(PreferenceHelper.IS_LOGIN, true);
+                          // PreferenceHelper.setBool(PreferenceHelper.IS_LOGIN, true);
                           // authenticationProvider.navigatePushReplacementFnc(const DashBoard());
-                          authenticationProvider.checkValidationAndCallVerifyOtpApi();
+                          authenticationProvider.checkValidationAndCallVerifyOtpApi(controller);
 
                         },
                       ),
