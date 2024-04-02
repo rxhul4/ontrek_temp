@@ -180,7 +180,7 @@ class AttendanceProvider extends ChangeNotifier {
     return createActivityModel;
   }
 
-  Future<GetLastActivityModel?> getLastActivity() async {
+  Future<GetLastActivityModel?> callGetLastActivity() async {
 
     loaderFnc(true);
     String? userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
@@ -193,6 +193,51 @@ class AttendanceProvider extends ChangeNotifier {
       final response = await callPostMethod(endPoint, body);
       getLastActivityModel = GetLastActivityModel.fromJson(json.decode(response));
       print("response_of_lastActivity: $response");
+      if(getLastActivityModel?.isError == false && getLastActivityModel?.isValidationFailed == false){
+        print("totEvent${getLastActivityModel?.data?.trackingEventId}");
+        String? totEventCode = getLastActivityModel?.data?.trackingEventId;
+
+        switch (totEventCode) {
+          case AppConstant.dayStartEvent :
+            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+            isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+            break;
+          case AppConstant.checkInEvent:
+            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+            PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
+            isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+            isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+            break;
+          case AppConstant.checkOutEvent:
+            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+            isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+            isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+            break;
+          case AppConstant.dayEndEvent:
+            PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
+            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+            isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+            isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+            break;
+          case AppConstant.trackingWaitingStartEvent:
+            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+            isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+            isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+            break;
+          case AppConstant.trackingWaitingStopEvent:
+            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+            isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+            isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+            break;
+          default:
+            print('Unknown eventCode');
+
+        }
+
+      }
     } catch (e) {
       print("inCatch ${createActivityModel?.message}");
       print("inCatchE $e");
@@ -208,4 +253,9 @@ class AttendanceProvider extends ChangeNotifier {
     loaderFnc(false);
     return getLastActivityModel;
   }
+
+
+
+
+
 }
