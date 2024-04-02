@@ -63,19 +63,10 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           Provider.of<AttendanceProvider>(context, listen: false);
 
       attendanceProvider.panelController.animatePanelToPosition(0.99);
-      callLastActivityApi(attendanceProvider);
+      attendanceProvider.callGetLastActivity();
       attendanceProvider.checkBiometricAvailable();
-      attendanceProvider.isDayStart.value =
-          PreferenceHelper.getBool(PreferenceHelper.DayStart);
-      attendanceProvider.isCheckIn.value =
-          PreferenceHelper.getBool(PreferenceHelper.checkIn);
-
 
       attendanceProvider.batteryPercentage();
-      service.on("update").listen((event) {
-        print("value_of_event$event");
-        print("value_of_isWaiting${event?["isWaiting"]}");
-      });
     });
     super.initState();
   }
@@ -100,44 +91,44 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   //last activityApi
 
-  Future<GetLastActivityModel?> callLastActivityApi(AttendanceProvider? attendanceProvider)async{
-    var response = await attendanceProvider?.getLastActivity();
-    if(response?.isError == false && response?.isValidationFailed == false){
-      print("totEvent${response?.data?.trackingEventId}");
-        String? totEventCode = response?.data?.trackingEventId;
-
-        switch (totEventCode) {
-          case AppConstant.dayStartEvent :
-            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-            break;
-          case AppConstant.checkInEvent:
-            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-            PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
-            break;
-          case AppConstant.checkOutEvent:
-            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-            break;
-          case AppConstant.dayEndEvent:
-            PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
-            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-            break;
-          case AppConstant.trackingWaitingStartEvent:
-            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-            break;
-          case AppConstant.trackingWaitingStopEvent:
-            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-            break;
-          default:
-            if (kDebugMode) {
-              print('Unknown eventCode');
-            }
-        }
-
-    }
-  }
+  // Future<GetLastActivityModel?> callLastActivityApi(AttendanceProvider? attendanceProvider)async{
+  //   var response = await attendanceProvider?.getLastActivity();
+  //   if(response?.isError == false && response?.isValidationFailed == false){
+  //     print("totEvent${response?.data?.trackingEventId}");
+  //       String? totEventCode = response?.data?.trackingEventId;
+  //
+  //       switch (totEventCode) {
+  //         case AppConstant.dayStartEvent :
+  //           PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+  //           break;
+  //         case AppConstant.checkInEvent:
+  //           PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+  //           PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
+  //           break;
+  //         case AppConstant.checkOutEvent:
+  //           PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+  //           PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+  //           break;
+  //         case AppConstant.dayEndEvent:
+  //           PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
+  //           PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+  //           break;
+  //         case AppConstant.trackingWaitingStartEvent:
+  //           PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+  //           PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+  //           break;
+  //         case AppConstant.trackingWaitingStopEvent:
+  //           PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+  //           PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+  //           break;
+  //         default:
+  //           if (kDebugMode) {
+  //             print('Unknown eventCode');
+  //           }
+  //       }
+  //
+  //   }
+  // }
 
 
   //call General api
@@ -342,9 +333,12 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   @override
   Widget build(BuildContext context) {
+
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
     attendanceProvider = Provider.of<AttendanceProvider>(context);
+    print("isDayStartValue${attendanceProvider.isDayStart.value}");
+    print("isCheckIn${attendanceProvider.isCheckIn.value}");
     return AppUtils.commonSlidePanel(
         maxHeight: height * 0.4,
         minHeight: height * 0.09,

@@ -22,56 +22,26 @@ class OTPVerificationCode extends StatefulWidget {
 }
 
 class _OTPVerificationCodeState extends State<OTPVerificationCode> {
-
-  TextEditingController controller  = TextEditingController();
   late AuthenticationProvider authenticationProvider;
-  int secondRemaining = 30;
-  bool enableResend = false;
-  Timer? timer;
-
 
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      final authenticationProvider = Provider.of<AuthenticationProvider>(context,listen: false);
-      controller.clear();
-      authenticationProvider.userUid = widget.appUserId;
-      startTimer();
-    });
+    authenticationProvider = Provider.of<AuthenticationProvider>(context, listen: false);
+    authenticationProvider.otpController.clear();
+    authenticationProvider.userUid = widget.appUserId;
+    authenticationProvider.startTimer();
   }
-
   @override
   void dispose() {
-    // Cancel the timer if it's not null
-    controller.dispose();
-    timer?.cancel();
+    if (mounted) {
+      authenticationProvider.otpController.dispose();
+    }
+
     super.dispose();
   }
 
-
-
-  void startTimer() {
-    timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      if (secondRemaining != 0) {
-
-
-        setState(() {
-          secondRemaining--;
-        });
-
-      } else {
-        enableResend = true;
-
-        setState(() {
-          timer.cancel();
-        });
-      }
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +113,7 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      otpView(context, controller),
+                      otpView(context, authenticationProvider.otpController),
                       AppUtils.commonElevatedBtn(
                         isLoading: authenticationProvider.isLoading,
                         topMargin: 20,
@@ -155,7 +125,7 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
                         onPressed: () {
                           // PreferenceHelper.setBool(PreferenceHelper.IS_LOGIN, true);
                           // authenticationProvider.navigatePushReplacementFnc(const DashBoard());
-                          authenticationProvider.checkValidationAndCallVerifyOtpApi(controller);
+                          authenticationProvider.checkValidationAndCallVerifyOtpApi();
 
                         },
                       ),
