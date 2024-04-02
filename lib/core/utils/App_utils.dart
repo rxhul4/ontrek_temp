@@ -23,6 +23,9 @@ class AppUtils {
   }
 
 
+
+
+
   static getBatteryLevel() async {
     var battery = Battery();
     int batteryLevel = 0; // Default value
@@ -550,6 +553,9 @@ class AppUtils {
   }) {
     return EdgeInsets.all(allPadding ?? 0);
   }
+
+
+
 
   static String getImagePathFromApi(trackingStatus) {
     String imagePath = "";

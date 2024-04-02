@@ -41,6 +41,7 @@ class AttendanceProvider extends ChangeNotifier {
   ValueNotifier<bool> isWaiting = ValueNotifier(false);
   LocalAuthentication localAuthentication = LocalAuthentication();
   bool isBiometricAvailable = false;
+  AnimationController? controller;
 
 
   loaderFnc(bool isLoading) {
@@ -59,15 +60,16 @@ class AttendanceProvider extends ChangeNotifier {
     ));
   }
 
+
+  void toggleButtons() {
+    isDayEnd.value = !isDayEnd.value;
+    notifyListeners();
+  }
+
   void navigatePushFnc(Widget screen) {
     navigatorKey.currentState!.push(CupertinoPageRoute(
       builder: (context) => screen,
     ));
-  }
-
-  Future<void> setWaitingState(bool isWaiting) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(PreferenceHelper.isWaiting, isWaiting);
   }
 
   Future<bool?> getWaitingValue() async {
@@ -75,6 +77,10 @@ class AttendanceProvider extends ChangeNotifier {
         await PreferenceHelper.getBool(PreferenceHelper.isWaiting);
     notifyListeners();
     return isWaiting.value;
+  }
+
+  batteryPercentage() async {
+    battery = await AppUtils.getBatteryLevel();
   }
 
   checkBiometricAvailable() async {
@@ -180,7 +186,7 @@ class AttendanceProvider extends ChangeNotifier {
     String? userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
     Map<String, dynamic> body = {
       "userId": userId,
-      "currentDate": "2024-04-01T10:40:14.9130174+05:30"
+      "currentDate": AppUtils.dateFormat(date: DateTime.now(),dateFormat: AppConstant.dateFormat)
     };
     try {
       String endPoint = ApiConstants.getLastActivity;

@@ -19,6 +19,7 @@ import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/features/attendance/model/add_activity_model.dart';
+import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
 import 'package:ontrek/features/attendance/provider/attendance_provider.dart';
 import 'package:ontrek/features/authentication/providers/auth_provider.dart';
 
@@ -60,19 +61,22 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final attendanceProvider =
           Provider.of<AttendanceProvider>(context, listen: false);
+
       attendanceProvider.panelController.animatePanelToPosition(0.99);
+      callLastActivityApi(attendanceProvider);
       attendanceProvider.checkBiometricAvailable();
       attendanceProvider.isDayStart.value =
           PreferenceHelper.getBool(PreferenceHelper.DayStart);
       attendanceProvider.isCheckIn.value =
           PreferenceHelper.getBool(PreferenceHelper.checkIn);
-      batteryPercentage();
+
+
+      attendanceProvider.batteryPercentage();
       service.on("update").listen((event) {
         print("value_of_event$event");
         print("value_of_isWaiting${event?["isWaiting"]}");
       });
     });
-
     super.initState();
   }
 
@@ -83,9 +87,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     super.dispose();
   }
 
-  batteryPercentage() async {
-    attendanceProvider.battery = await AppUtils.getBatteryLevel();
-  }
 
   initAnimateController() {
     controller =
@@ -96,10 +97,48 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     });
   }
 
-  checkBiometricAvailable(AttendanceProvider attendanceProvider) async {
-    attendanceProvider.isBiometricAvailable =
-        await attendanceProvider.localAuthentication.canCheckBiometrics;
+
+  //last activityApi
+
+  Future<GetLastActivityModel?> callLastActivityApi(AttendanceProvider? attendanceProvider)async{
+    var response = await attendanceProvider?.getLastActivity();
+    if(response?.isError == false && response?.isValidationFailed == false){
+      print("totEvent${response?.data?.trackingEventId}");
+        String? totEventCode = response?.data?.trackingEventId;
+
+        switch (totEventCode) {
+          case AppConstant.dayStartEvent :
+            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+            break;
+          case AppConstant.checkInEvent:
+            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+            PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
+            break;
+          case AppConstant.checkOutEvent:
+            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+            break;
+          case AppConstant.dayEndEvent:
+            PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
+            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+            break;
+          case AppConstant.trackingWaitingStartEvent:
+            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+            break;
+          case AppConstant.trackingWaitingStopEvent:
+            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+            break;
+          default:
+            if (kDebugMode) {
+              print('Unknown eventCode');
+            }
+        }
+
+    }
   }
+
 
   //call General api
   Future<CreateActivityModel?> callCreateActivityApi(
@@ -118,8 +157,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         batteryLevel: attendanceProvider.battery,
       );
       return createActivityModel;
-    } catch (e) {}
-
+    } catch (e) {
+      print("catch_at_callCreateActivityApi$e");
+    }
     return createActivityModel;
   }
 
@@ -243,7 +283,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       attendanceProvider.isDayStart.value =
           PreferenceHelper.getBool(PreferenceHelper.DayStart);
     } catch (e) {
-      rethrow;
+      print("catch_at_dayStartAndUpdateUIFunction$e");
     }
   }
 
@@ -253,7 +293,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       attendanceProvider.isCheckIn.value =
           PreferenceHelper.getBool(PreferenceHelper.checkIn);
     } catch (e) {
-      rethrow;
+      print("catch_at_checkInAndUpdateUIFunction$e");
     }
   }
 
@@ -278,7 +318,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         });
         return position;
       } catch (e) {
-        rethrow;
+        print("catch_at_checkOutFunction$e");
       }
     }
     return position;
@@ -296,7 +336,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           PreferenceHelper.getBool(PreferenceHelper.checkIn);
       attendanceProvider.isDayEnd.value = false;
     } catch (e) {
-      rethrow;
+      print("catch_at_logOutAndUpdateUIFunction$e");
     }
   }
 
@@ -333,8 +373,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   SizedBox(
                     height: 15,
                   ),
-                  !attendanceProvider.isDayStart.value ||
-                          attendanceProvider.isCheckIn.value
+                  !attendanceProvider.isDayStart.value || attendanceProvider.isCheckIn.value
                       ? AppUtils.commonTextWidget(
                           text: "Press & Hold",
                           fontSize: 14,
@@ -343,14 +382,11 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                           textColor: AppConstant.blackColor,
                         )
                       : GestureDetector(
-                          onTap: () {
-                            attendanceProvider.isDayEnd.value =
-                                !attendanceProvider.isDayEnd.value;
-                          },
+                          onTap: attendanceProvider.toggleButtons,
                           child: AppUtils.commonTextWidget(
                             text: !attendanceProvider.isDayEnd.value
-                                ? "Show Off"
-                                : "Show Hide",
+                                ? "Show Out"
+                                : "Show CheckIn",
                             fontSize: 14,
                             letterSpacing: 0.2,
                             fontWeight: FontWeight.w600,
@@ -611,8 +647,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 postMdl.isLoading
                     ? LoaderWidget(color: Colors.red)
                     : Positioned.fill(
-                  // scale: isFromLogOutButton ? 4 : 3.6,
-                  // Adjust the scale factor as needed
                   child: CircularProgressIndicator(
                     value: controller?.value,
                     strokeCap: StrokeCap.round,
@@ -622,17 +656,12 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   ),
                 ),
                 Positioned.fill(
-                  // scale: isFromLogOutButton ? 4 : 3.6,
-                  // Adjust the scale factor as needed
                   child: CircularProgressIndicator(
                     value: 1.0,
                     strokeWidth: 8,
                     strokeCap: StrokeCap.round,
                     valueColor: AlwaysStoppedAnimation<Color>(
                         AppConstant.greyColor.withOpacity(0.2)
-                      // dayEnd == true ? Colors.red :!isDayStart.value
-                      //     ? AppConstant.greyColor
-                      //     : Colors.blue
                     ),
                   ),
                 ),
@@ -649,7 +678,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         color: Colors.red.withOpacity(0.3),
                         spreadRadius: isFromLogOutButton ? 1 : 2,
                         blurRadius: isFromLogOutButton ? 1 : 2,
-                        offset: Offset(0, 0),
+                        offset: const  Offset(0, 0),
                       ),
                     ],
                   ),
@@ -666,30 +695,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
             ),
           ),
         ),
-        //   },
-        // ),
       ),
     );
   }
 
-  openDialogFnc(String text) {
-    return AppUtils.dialogWidget(text, context);
-  }
 
-// doLocalVerification(
-//     {required Function() afterSuccessfulVerificationFnc}) async {
-//   if (attendanceProvider.isBiometricAvailable) {
-//     bool isAuthenticated = await attendanceProvider.localAuthentication.authenticate(
-//         localizedReason: "Authenticate using Biometrics",
-//         options: const AuthenticationOptions(
-//             stickyAuth: true, useErrorDialogs: true));
-//     if (isAuthenticated) {
-//       afterSuccessfulVerificationFnc();
-//     } else {
-//       openDialogFnc("Authentication Fail! Please Try Again");
-//     }
-//   } else {
-//     openDialogFnc("Biometric Auth is not available on this device");
-//   }
-// }
 }
