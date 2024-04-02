@@ -80,27 +80,28 @@ void onStart(ServiceInstance service) async {
         var isGPSEnabled =
             await Permission.locationAlways.serviceStatus.isEnabled &&
                 await Permission.location.serviceStatus.isEnabled;
-        Position position;
-        double distance = 51;
-        position = await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.best);
-
-        double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-        double? lastLong =
-            PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
-        ValueNotifier<bool?> isWaiting = ValueNotifier(false);
-
-        distance = Geolocator.distanceBetween(
-            lastLat ?? 0, lastLong ?? 0, position.latitude, position.longitude);
 
         if (isInternetAvailable && isGPSEnabled) {
+          await handleInternetAndGPSApi();
+          Position position;
+          double distance = 51;
+          position = await Geolocator.getCurrentPosition(
+              desiredAccuracy: LocationAccuracy.best);
+
+          double? lastLat =
+              PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+          double? lastLong =
+              PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
+          ValueNotifier<bool?> isWaiting = ValueNotifier(false);
+
+          distance = Geolocator.distanceBetween(lastLat ?? 0, lastLong ?? 0,
+              position.latitude, position.longitude);
           PreferenceHelper.reload().then((value) async {
             bool? checkIn = value?.getBool(PreferenceHelper.checkIn) ?? false;
             if (value != null) {
               isWaiting.value = value.getBool(PreferenceHelper.isWaiting);
             }
 
-            handleInternetAndGPSApi();
             print("_______distance$distance");
             print("checkIn____$checkIn");
             if ((distance) > 50 && checkIn == false) {
@@ -144,10 +145,15 @@ void onStart(ServiceInstance service) async {
             }
           });
         } else if (isGPSEnabled && !isInternetAvailable) {
+          print("GPS ON & INTERNET OFF");
           handleGpsAndInternetOffData(serviceType: "internet");
         } else if (!isGPSEnabled && isInternetAvailable) {
+          print("GPS OFF & INTERNET ON");
+
           handleGpsAndInternetOffData(serviceType: "gps");
         } else {
+          print("GPS OFF & INTERNET OFF");
+
           bool gpsBool = PreferenceHelper.getBool(PreferenceHelper.GPS_BOOL);
           bool internetBool =
               PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
@@ -166,8 +172,7 @@ void onStart(ServiceInstance service) async {
 }
 
 handleGpsAndInternetOffData({String? serviceType}) async {
-  Position positionData = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.medium);
+  Position? positionData = await Geolocator.getLastKnownPosition();
   if (serviceType == "internet") {
     bool internetBool =
         PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
@@ -177,9 +182,9 @@ handleGpsAndInternetOffData({String? serviceType}) async {
           AppUtils.dateFormat(
               date: DateTime.now(), dateFormat: AppConstant.dateFormat));
       PreferenceHelper.setDouble(
-          PreferenceHelper.LAST_INTERNET_OFF_LAT, positionData.latitude);
+          PreferenceHelper.LAST_INTERNET_OFF_LAT, positionData?.latitude ?? 0);
       PreferenceHelper.setDouble(
-          PreferenceHelper.LAST_INTERNET_OFF_LONG, positionData.longitude);
+          PreferenceHelper.LAST_INTERNET_OFF_LONG, positionData?.longitude ?? 0);
       PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, true);
     }
   }
@@ -192,9 +197,9 @@ handleGpsAndInternetOffData({String? serviceType}) async {
           AppUtils.dateFormat(
               date: DateTime.now(), dateFormat: AppConstant.dateFormat));
       PreferenceHelper.setDouble(
-          PreferenceHelper.LAST_GPS_OFF_LAT, positionData.latitude);
+          PreferenceHelper.LAST_GPS_OFF_LAT, positionData?.latitude ?? 0);
       PreferenceHelper.setDouble(
-          PreferenceHelper.LAST_GPS_OFF_LONG, positionData.longitude);
+          PreferenceHelper.LAST_GPS_OFF_LONG, positionData?.longitude ?? 0);
       PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, true);
     }
   }
@@ -303,11 +308,6 @@ Future<void> waitingEndApi(ServiceInstance service) async {
     // PreferenceHelper.setBool(PreferenceHelper.ISWAITING, false);
     setWaitingState(false);
     service.invoke("update", {"isWaiting": true});
-    // PreferenceHelper.setBool(PreferenceHelper.isWaiting, false);
-    // service.invoke(
-    //     "update", {
-    //   "isWaiting": false,
-    // });
   }
 }
 
@@ -318,21 +318,28 @@ Future<void> handleInternetAndGPSApi() async {
     bool? internetBool =
         PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
     if (gpsBool) {
+      print("GPS$gpsBool");
+      // Future.delayed(const Duration(milliseconds: 500));
       await callInternetAndGpsActivityApi(
           userId: userId, isGps: true, isGpsOn: false);
+      await Future.delayed(const Duration(milliseconds: 500));
       await callInternetAndGpsActivityApi(
           userId: userId, isGps: true, isGpsOn: true);
     }
     if (internetBool) {
+      print("INTERNET$internetBool");
+
+      // Future.delayed(const Duration(milliseconds: 500));
       await callInternetAndGpsActivityApi(
           userId: userId, isInternet: true, isInternetOn: false);
+      Future.delayed(const Duration(milliseconds: 500));
       await callInternetAndGpsActivityApi(
           userId: userId, isInternet: true, isInternetOn: true);
     }
   });
 }
 
-Future<void> callInternetAndGpsActivityApi({
+callInternetAndGpsActivityApi({
   required String? userId,
   bool? isInternet,
   bool? isGps,
@@ -350,6 +357,7 @@ Future<void> callInternetAndGpsActivityApi({
   Position position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.best);
   Map<String, dynamic> body = {};
+  CreateActivityModel? createActivityModel;
 
   if (isInternet == true) {
     body = {
@@ -364,7 +372,7 @@ Future<void> callInternetAndGpsActivityApi({
               date: DateTime.now().toString(), format: AppConstant.dateFormat)
           : AppUtils.getDate(
               date: lastInternetOffTime ?? "", format: AppConstant.dateFormat),
-      "batteryLevel": AppUtils.getBatteryLevel(),
+      "batteryLevel": await AppUtils.getBatteryLevel()
     };
   }
 
@@ -380,15 +388,17 @@ Future<void> callInternetAndGpsActivityApi({
               date: DateTime.now().toString(), format: AppConstant.dateFormat)
           : AppUtils.getDate(
               date: lastGpsOffTime ?? "", format: AppConstant.dateFormat),
-      "batteryLevel": AppUtils.getBatteryLevel(),
+      "batteryLevel": await AppUtils.getBatteryLevel()
     };
   }
 
   try {
     String endPoint = ApiConstants.createActivity;
+    print("endpoint$endPoint");
+    print("body---$body");
     var response = await callPostMethod(endPoint, body);
-    CreateActivityModel? createActivityModel =
-        CreateActivityModel?.fromJson(json.decode(response));
+    print("response$response");
+    createActivityModel = CreateActivityModel?.fromJson(json.decode(response));
     if (createActivityModel.isError == false &&
         createActivityModel.isValidationFailed == false) {
       if (isInternet ?? false) {
@@ -399,9 +409,11 @@ Future<void> callInternetAndGpsActivityApi({
         PreferenceHelper.remove(PreferenceHelper.LAST_GPS_ON_TIME);
         PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, false);
       }
-    } else {}
+    } else {
+
+    }
   } catch (e) {
-    rethrow;
+    print("catch at dataOffHistory$e");
   }
 }
 

@@ -5,13 +5,12 @@ import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
+import 'package:ontrek/features/salesman_tracker/local_model.dart';
 import 'package:ontrek/features/salesman_tracker/model/salesmen_tracking_detailes.dart';
+import 'package:ontrek/features/salesman_tracker/screen/timeline_screen.dart';
 import 'package:ontrek/main.dart';
 
-
-
-class SalemenTimeLineProvider extends ChangeNotifier{
-
+class SalemenTimeLineProvider extends ChangeNotifier {
   bool _isFetching = false;
   bool _isLoading = false;
   bool _isUploading = false;
@@ -27,8 +26,8 @@ class SalemenTimeLineProvider extends ChangeNotifier{
 
   GetTimeLineModel? getTimeLineModel;
 
-  Map<String,dynamic> sessionEventList = {};
-  List<Map<String, dynamic>> eventDataList = [];
+  List<TimeLineLocalModel>? allSession = [];
+
   loaderFnc(bool isLoading) {
     _isLoading = isLoading;
     notifyListeners();
@@ -51,49 +50,43 @@ class SalemenTimeLineProvider extends ChangeNotifier{
     ));
   }
 
-
-  Future<GetTimeLineModel?> apiCallGetTimeLine({String? userid, String? date}) async {
-
+  Future<GetTimeLineModel?> apiCallGetTimeLine(
+      {String? userid, String? date}) async {
     _isFetching = true;
-    eventDataList.clear();
+    allSession?.clear();
     notifyListeners();
-    Map<String,dynamic> body ={
+    Map<String, dynamic> body = {
       "userId": userid,
-      "eventDate": AppUtils.getDate(date: date ?? "",format:  AppConstant.dateFormat)
-      // "userId": "082e75ff-5ed5-4c92-9181-02a52a1a5087",
-      // "eventDate": "2024-03-15T00:00:00"
+      "eventDate":
+          AppUtils.getDate(date: date ?? "", format: AppConstant.dateFormat)
     };
     try {
       String endPoint = ApiConstants.getSalesMenTimeLine;
-      var response = await callPostMethod(endPoint,body);
+      var response = await callPostMethod(endPoint, body);
       getTimeLineModel = GetTimeLineModel.fromJson(json.decode(response));
       print('response ${getTimeLineModel?.toJson()}');
-      if(getTimeLineModel?.isError == false && getTimeLineModel?.isValidationFailed == false){
-
+      if (getTimeLineModel?.isError == false &&
+          getTimeLineModel?.isValidationFailed == false) {
         getTimeLineModel?.data?.sessionTimeLine?.forEach((session) {
           session.sessionEvents?.forEach((event) {
+            TimeLineLocalModel? timeLineLocalModel;
 
-            String eventName = event.eventName ?? "";
-            String eventDateTime = event.eventStartDate ?? "";
-            String eventCode = event.eventCode ?? "";
-            String eventActivityPlace = event.eventActivityPlace ?? "";
-            Map<String,dynamic> body = {
-              "eventName": eventName,
-              "eventDate": eventDateTime,
-              "eventCode": eventCode,
-              "eventActivityPlace" : eventActivityPlace
-            };
-            if (eventName.isNotEmpty && eventDateTime.isNotEmpty) {
-              eventDataList.add(body);
+            String? eventName = event.eventName ?? "";
+            String? eventStartDate = event.eventStartDate ?? "";
+            String? eventCode = event.eventCode ?? "";
+            String? eventActivityPlace = event.eventActivityPlace ?? "";
+            if (event != null || session != null) {
+              allSession?.add(TimeLineLocalModel(
+                  eventName: eventName,
+                  eventStartDate: eventStartDate,
+                  eventCode: eventCode,
+                  eventActivityPlace: eventActivityPlace));
             }
           });
         });
 
-        print("Event Map: $eventDataList");
-
-      }else{
-
-      }
+        print("Event list: $allSession");
+      } else {}
     } catch (e) {
       print('catch at GetTimeLineProvider ${e}');
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
@@ -108,5 +101,4 @@ class SalemenTimeLineProvider extends ChangeNotifier{
     notifyListeners();
     return getTimeLineModel;
   }
-
 }

@@ -285,6 +285,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       service.invoke("stopService");
       PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
       PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
+      PreferenceHelper.setBool(PreferenceHelper.isWaiting, false);
       attendanceProvider.isDayStart.value =
           PreferenceHelper.getBool(PreferenceHelper.DayStart);
       attendanceProvider.isCheckIn.value =

@@ -1,12 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:ontrek/core/common_widgets/textfield_widget.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/image_path.dart';
-import 'package:ontrek/features/salesman_tracker/local_model.dart';
-import 'package:ontrek/features/salesman_tracker/screen/salesman_tracker.dart';
 import 'package:ontrek/features/salesman_tracker/screen/timeline_screen.dart';
 import 'package:ontrek/features/track_function/model/salemen_list_model.dart';
 import 'package:ontrek/features/track_function/provider/salesmen_list_provider.dart';

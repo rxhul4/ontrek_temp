@@ -1,14 +1,14 @@
 class TimeLineLocalModel{
   String? eventName;
-  String? eventDate;
-  String? statusOfEvent;
-  String? eventAddress;
+  String? eventStartDate;
+  String? eventCode;
+  String? eventActivityPlace;
 
 
   TimeLineLocalModel({
     this.eventName,
-    this.eventDate,
-    this.statusOfEvent,
-    this.eventAddress
+    this.eventStartDate,
+    this.eventCode,
+    this.eventActivityPlace
   });
 }

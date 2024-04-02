@@ -33,9 +33,9 @@ Future callPostMethod(String url, Map<String, dynamic> params) async {
   DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
   myDeviceInfo = await deviceInfo.androidInfo;
 
-  print("deviceId_DTAAAAAAAAAAAAA${myDeviceInfo?.id ?? ""}");
-  print("deviceversion${myDeviceInfo?.version.release ?? ""}");
-  print("devicemodel${myDeviceInfo?.model ?? ""}");
+  // print("deviceId_DTAAAAAAAAAAAAA${myDeviceInfo?.id ?? ""}");
+  // print("deviceversion${myDeviceInfo?.version.release ?? ""}");
+  // print("devicemodel${myDeviceInfo?.model ?? ""}");
 
   if (kDebugMode) {
     print("baseUrl--$url");
