@@ -104,7 +104,7 @@ void onStart(ServiceInstance service) async {
 
             print("_______distance$distance");
             print("checkIn____$checkIn");
-            if ((distance) > 50 && checkIn == false) {
+            if ((distance) > 5 && checkIn == false) {
               print("distance$distance");
               await updateRouteHistory();
               print("waiting_using_background_service${isWaiting.value}");
@@ -243,7 +243,43 @@ Future<void> updateRouteHistory() async {
   }
 }
 
+
+
 Future<void> waitingStartApi(ServiceInstance service) async {
+  double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+  double? lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
+  String? waitingStartTime =
+      PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
+  int batteryLevel = await AppUtils.getBatteryLevel();
+  print("batteryLevel$batteryLevel");
+
+  PreferenceHelper.load().then((value)async {
+    String? userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
+    Map<String, dynamic> body = {};
+    body = {
+      "userId": userId,
+      "lattitude": lastLat,
+      "longitude": lastLong,
+      "totTrackingEventId": AppConstant.trackingWaitingStartEvent,
+      "activityDateTime": AppUtils.getDate(
+          date: waitingStartTime.toString(), format: AppConstant.dateFormat),
+      "batteryLevel": batteryLevel,
+    };
+
+    String endPoint = ApiConstants.createActivity;
+    var response = await callPostMethod(endPoint, body);
+    CreateActivityModel? createActivityModel =
+    CreateActivityModel?.fromJson(json.decode(response));
+
+    if (createActivityModel.isError == false &&
+        createActivityModel.isValidationFailed == false) {
+      PreferenceHelper.setBool(PreferenceHelper.isWaiting, true);
+      service.invoke("update", {"isWaiting": true});
+    }
+  });
+
+}
+Future<void> waitingEndApi(ServiceInstance service) async {
   Position? position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.best);
 
@@ -257,7 +293,7 @@ Future<void> waitingStartApi(ServiceInstance service) async {
       "userId": userId,
       "lattitude": position.latitude,
       "longitude": position.longitude,
-      "totTrackingEventId": AppConstant.trackingWaitingStartEvent,
+      "totTrackingEventId": AppConstant.trackingWaitingStopEvent,
       "activityDateTime": AppUtils.getDate(
           date: DateTime.now().toString(), format: AppConstant.dateFormat),
       "batteryLevel": batteryLevel,
@@ -266,49 +302,14 @@ Future<void> waitingStartApi(ServiceInstance service) async {
     String endPoint = ApiConstants.createActivity;
     var response = await callPostMethod(endPoint, body);
     CreateActivityModel? createActivityModel =
-        CreateActivityModel?.fromJson(json.decode(response));
+    CreateActivityModel?.fromJson(json.decode(response));
 
     if (createActivityModel.isError == false &&
         createActivityModel.isValidationFailed == false) {
-      PreferenceHelper.setBool(PreferenceHelper.isWaiting, true);
-      service.invoke("update", {"isWaiting": true});
+      PreferenceHelper.setBool(PreferenceHelper.isWaiting, false);
+      service.invoke("update", {"isWaiting": false});
     }
   });
-}
-
-Future<void> waitingEndApi(ServiceInstance service) async {
-  double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-  double? lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
-  String? waitingStartTime =
-      PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
-  int batteryLevel = await AppUtils.getBatteryLevel();
-  print("batteryLevel$batteryLevel");
-
-  PreferenceHelper.load().then((value) {
-    userId = PreferenceHelper.getString(PreferenceHelper.USER_UID) ?? "";
-  });
-  Map<String, dynamic> body = {};
-  body = {
-    "userId": userId,
-    "lattitude": lastLat,
-    "longitude": lastLong,
-    "totTrackingEventId": AppConstant.trackingWaitingStartEvent,
-    "activityDateTime": AppUtils.getDate(
-        date: waitingStartTime.toString(), format: AppConstant.dateFormat),
-    "batteryLevel": batteryLevel,
-  };
-
-  String endPoint = ApiConstants.createActivity;
-  var response = await callPostMethod(endPoint, body);
-  CreateActivityModel? createActivityModel =
-      CreateActivityModel?.fromJson(json.decode(response));
-
-  if (createActivityModel.isError == false &&
-      createActivityModel.isValidationFailed == false) {
-    // PreferenceHelper.setBool(PreferenceHelper.ISWAITING, false);
-    setWaitingState(false);
-    service.invoke("update", {"isWaiting": true});
-  }
 }
 
 Future<void> handleInternetAndGPSApi() async {
