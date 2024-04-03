@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
@@ -27,6 +28,7 @@ class SalemenTimeLineProvider extends ChangeNotifier {
   GetTimeLineModel? getTimeLineModel;
 
   List<TimeLineLocalModel>? allSession = [];
+  List<LatLng> coordinates = [];
 
   loaderFnc(bool isLoading) {
     _isLoading = isLoading;
@@ -54,6 +56,7 @@ class SalemenTimeLineProvider extends ChangeNotifier {
       {String? userid, String? date}) async {
     _isFetching = true;
     allSession?.clear();
+    coordinates.clear();
     notifyListeners();
     Map<String, dynamic> body = {
       "userId": userid,
@@ -67,10 +70,16 @@ class SalemenTimeLineProvider extends ChangeNotifier {
       print('response ${getTimeLineModel?.toJson()}');
       if (getTimeLineModel?.isError == false &&
           getTimeLineModel?.isValidationFailed == false) {
+        getTimeLineModel?.data?.sessionTimeLine?.forEach((element) {
+          element.sessionRouteHistory?.latlongArray?.forEach((element) {
+            coordinates.add(LatLng(element.x ?? 0, element.y ?? 0));
+          });
+        });
         getTimeLineModel?.data?.sessionTimeLine?.forEach((session) {
+          int? totalCheckIn = session.totalCheckIn;
+          String? totalDuration = session.totalDuration;
+          num? totalKmTravel = session.totalKmTravel;
           session.sessionEvents?.forEach((event) {
-            TimeLineLocalModel? timeLineLocalModel;
-
             String? eventName = event.eventName ?? "";
             String? eventStartDate = event.eventStartDate ?? "";
             String? eventCode = event.eventCode ?? "";
@@ -80,7 +89,12 @@ class SalemenTimeLineProvider extends ChangeNotifier {
                   eventName: eventName,
                   eventStartDate: eventStartDate,
                   eventCode: eventCode,
-                  eventActivityPlace: eventActivityPlace));
+                  eventActivityPlace: eventActivityPlace,
+                duration: totalDuration,
+                kiloMeter: totalKmTravel,
+                totalCheckIn: totalCheckIn,
+
+              ));
             }
           });
         });

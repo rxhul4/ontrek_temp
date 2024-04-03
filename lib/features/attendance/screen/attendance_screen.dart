@@ -53,10 +53,12 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   FlutterBackgroundService service = FlutterBackgroundService();
   final databaseService = DatabaseService();
   late AttendanceProvider attendanceProvider;
+  String? userName = "";
 
   @override
   void initState() {
     // TODO: implement initState
+    userName = PreferenceHelper.getString(PreferenceHelper.FULL_NAME);
     initAnimateController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final attendanceProvider =
@@ -88,47 +90,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     });
   }
 
-
-  //last activityApi
-
-  // Future<GetLastActivityModel?> callLastActivityApi(AttendanceProvider? attendanceProvider)async{
-  //   var response = await attendanceProvider?.getLastActivity();
-  //   if(response?.isError == false && response?.isValidationFailed == false){
-  //     print("totEvent${response?.data?.trackingEventId}");
-  //       String? totEventCode = response?.data?.trackingEventId;
-  //
-  //       switch (totEventCode) {
-  //         case AppConstant.dayStartEvent :
-  //           PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-  //           break;
-  //         case AppConstant.checkInEvent:
-  //           PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-  //           PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
-  //           break;
-  //         case AppConstant.checkOutEvent:
-  //           PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-  //           PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-  //           break;
-  //         case AppConstant.dayEndEvent:
-  //           PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
-  //           PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-  //           break;
-  //         case AppConstant.trackingWaitingStartEvent:
-  //           PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-  //           PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-  //           break;
-  //         case AppConstant.trackingWaitingStopEvent:
-  //           PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-  //           PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-  //           break;
-  //         default:
-  //           if (kDebugMode) {
-  //             print('Unknown eventCode');
-  //           }
-  //       }
-  //
-  //   }
-  // }
 
 
   //call General api
@@ -393,7 +354,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
             AppUtils.buildHeader(
                 height: height,
                 width: width,
-                title: "Vatsal",
+                title: userName,
                 subTitle: "Epistic interiour Pvt Ltd",
                 leadingImage: profileImage,
                 borderColor: Colors.red,

@@ -63,7 +63,7 @@ class _TrackScreenState extends State<TrackScreen>
       minHeight: height * 0.09,
       controller: salesMenListProvider.panelController,
       isDraggable: true,
-      snapPoint: 0.35,
+      snapPoint: 0.34,
       panelBuilder: (p0) {
         return Column(
           children: [

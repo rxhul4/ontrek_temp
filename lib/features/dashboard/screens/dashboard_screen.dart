@@ -63,20 +63,20 @@ class DashBoardState extends State<DashBoard> {
       body: SafeArea(
         child: Stack(
           children: [
-            // Positioned.fill(
-            //   // bottom: MediaQuery.of(context).size.height ,
-            //   child: GoogleMap(
-            //       zoomControlsEnabled: false,
-            //       padding: AppUtils.edgeInsetsOnly(
-            //           bottom: MediaQuery.of(context).size.height * 0.3),
-            //       mapType: MapType.normal,
-            //       onMapCreated: (controller) {
-            //         dashBoardProvider.googleMapController.complete(controller);
-            //       },
-            //       markers: dashBoardProvider.markers,
-            //       initialCameraPosition:
-            //           CameraPosition(target: LatLng(0, 0), zoom: 14)),
-            // ),
+            Positioned.fill(
+              // bottom: MediaQuery.of(context).size.height ,
+              child: GoogleMap(
+                  zoomControlsEnabled: false,
+                  padding: AppUtils.edgeInsetsOnly(
+                      bottom: MediaQuery.of(context).size.height * 0.3),
+                  mapType: MapType.normal,
+                  onMapCreated: (controller) {
+                    dashBoardProvider.googleMapController.complete(controller);
+                  },
+                  markers: dashBoardProvider.markers,
+                  initialCameraPosition:
+                      CameraPosition(target: LatLng(0, 0), zoom: 14)),
+            ),
             [
               AttendanceScreen(onLocationFetch: (value) {
                 if (!mounted) {}

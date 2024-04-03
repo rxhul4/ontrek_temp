@@ -104,7 +104,7 @@ void onStart(ServiceInstance service) async {
 
             print("_______distance$distance");
             print("checkIn____$checkIn");
-            if ((distance) > 5 && checkIn == false) {
+            if ((distance) > 50) {
               print("distance$distance");
               await updateRouteHistory();
               print("waiting_using_background_service${isWaiting.value}");
@@ -114,16 +114,10 @@ void onStart(ServiceInstance service) async {
               }
             } else {
               bool? checkIn = value?.getBool(PreferenceHelper.checkIn) ?? false;
-              isWaiting.value =
-                  PreferenceHelper.getBool(PreferenceHelper.isWaiting);
-
+              isWaiting.value = PreferenceHelper.getBool(PreferenceHelper.isWaiting);
               print("checkInn$checkIn");
-              print("newWaiting: ${isWaiting.value}");
-
               print("isWaiting${isWaiting.value}");
-
-              String? waitingStartTime =
-                  value?.getString(PreferenceHelper.WAITING_START_TIME);
+              String? waitingStartTime = value?.getString(PreferenceHelper.WAITING_START_TIME);
               print("waitingStartTimedata$waitingStartTime");
               if (checkIn == false && isWaiting.value == false) {
                 try {
