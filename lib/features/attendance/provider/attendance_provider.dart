@@ -181,7 +181,6 @@ class AttendanceProvider extends ChangeNotifier {
   }
 
   Future<GetLastActivityModel?> callGetLastActivity() async {
-
     loaderFnc(true);
     String? userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
     Map<String, dynamic> body = {

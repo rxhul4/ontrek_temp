@@ -32,8 +32,8 @@ class BackgroundService {
   }
 }
 
-
 String userId = "";
+
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,7 +45,6 @@ void onStart(ServiceInstance service) async {
       PreferenceHelper.setBool(PreferenceHelper.isWaiting, isWaiting);
     }
   });
-
 
   if (service is AndroidServiceInstance) {
     service.on('setAsForeground').listen((event) {
@@ -61,7 +60,7 @@ void onStart(ServiceInstance service) async {
   });
 
   Timer.periodic(
-    const Duration(seconds: 10),
+    const Duration(seconds: 15),
     (timer) async {
       if (service is AndroidServiceInstance) {
         if (await service.isForegroundService()) {
@@ -82,42 +81,43 @@ void onStart(ServiceInstance service) async {
                 await Permission.location.serviceStatus.isEnabled;
 
         if (isInternetAvailable && isGPSEnabled) {
-          await handleInternetAndGPSApi();
-          Position position;
-          double distance = 51;
-          position = await Geolocator.getCurrentPosition(
-              desiredAccuracy: LocationAccuracy.best);
-
-          double? lastLat =
-              PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-          double? lastLong =
-              PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
-          ValueNotifier<bool?> isWaiting = ValueNotifier(false);
-
-          distance = Geolocator.distanceBetween(lastLat ?? 0, lastLong ?? 0,
-              position.latitude, position.longitude);
           PreferenceHelper.reload().then((value) async {
+            Position position;
+            double distance = 51;
+            ValueNotifier<bool?> isWaiting = ValueNotifier(false);
+            position = await Geolocator.getCurrentPosition(
+                desiredAccuracy: LocationAccuracy.best);
+            double? lastLat = value?.getDouble(PreferenceHelper.LAST_LAT);
+            double? lastLong = value?.getDouble(PreferenceHelper.LAST_LONG);
+            distance = Geolocator.distanceBetween(lastLat ?? 0, lastLong ?? 0,
+                position.latitude, position.longitude);
             bool? checkIn = value?.getBool(PreferenceHelper.checkIn) ?? false;
             if (value != null) {
               isWaiting.value = value.getBool(PreferenceHelper.isWaiting);
             }
-
+            if (checkIn == false) {
+              await handleInternetAndGPSApi();
+            }
             print("_______distance$distance");
             print("checkIn____$checkIn");
             if ((distance) > 50) {
               print("distance$distance");
-              await updateRouteHistory();
               print("waiting_using_background_service${isWaiting.value}");
               if (isWaiting.value == true) {
                 print("waiting${isWaiting.value}");
-                await waitingEndApi(service);
+                await waitingEndApi(service: service);
               }
+              await updateRouteHistory();
             } else {
               bool? checkIn = value?.getBool(PreferenceHelper.checkIn) ?? false;
-              isWaiting.value = PreferenceHelper.getBool(PreferenceHelper.isWaiting);
+              isWaiting.value =
+                  PreferenceHelper.getBool(PreferenceHelper.isWaiting);
               print("checkInn$checkIn");
               print("isWaiting${isWaiting.value}");
-              String? waitingStartTime = value?.getString(PreferenceHelper.WAITING_START_TIME);
+              String? waitingStartTime =
+                  value?.getString(PreferenceHelper.WAITING_START_TIME);
+              double? lastLat = value?.getDouble(PreferenceHelper.LAST_LAT);
+              double? lastLong = value?.getDouble(PreferenceHelper.LAST_LONG);
               print("waitingStartTimedata$waitingStartTime");
               if (checkIn == false && isWaiting.value == false) {
                 try {
@@ -127,8 +127,8 @@ void onStart(ServiceInstance service) async {
                       30) {
                     print(
                         "waiting_time${DateTime.now().difference(DateTime.parse(waitingStartTime ?? "")).inSeconds}");
-                    print("call_after_30 seconds${isWaiting.value}");
-                    await waitingStartApi(service);
+                    print("call_after_30_seconds${isWaiting.value}");
+                    await waitingStartApi(service: service,waitingStartTime: waitingStartTime,lastLat: lastLat,lastLong:lastLong );
                   } else {
                     print("waiting_start_in_30 seconds");
                   }
@@ -143,7 +143,6 @@ void onStart(ServiceInstance service) async {
           handleGpsAndInternetOffData(serviceType: "internet");
         } else if (!isGPSEnabled && isInternetAvailable) {
           print("GPS OFF & INTERNET ON");
-
           handleGpsAndInternetOffData(serviceType: "gps");
         } else {
           print("GPS OFF & INTERNET OFF");
@@ -166,114 +165,130 @@ void onStart(ServiceInstance service) async {
 }
 
 handleGpsAndInternetOffData({String? serviceType}) async {
-  Position? positionData = await Geolocator.getLastKnownPosition();
-  if (serviceType == "internet") {
-    bool internetBool =
-        PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
-    if (internetBool == false) {
-      PreferenceHelper.setString(
-          PreferenceHelper.LAST_INTERNET_OFF_TIME,
-          AppUtils.dateFormat(
-              date: DateTime.now(), dateFormat: AppConstant.dateFormat));
-      PreferenceHelper.setDouble(
-          PreferenceHelper.LAST_INTERNET_OFF_LAT, positionData?.latitude ?? 0);
-      PreferenceHelper.setDouble(
-          PreferenceHelper.LAST_INTERNET_OFF_LONG, positionData?.longitude ?? 0);
-      PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, true);
-    }
-  }
+  PreferenceHelper.reload().then((value) async {
+    bool? checkIn = value?.getBool(PreferenceHelper.checkIn);
+    print("Data_Off_history_CheckIn_$checkIn");
+    if (checkIn == false) {
+      Position? positionData = await Geolocator.getLastKnownPosition();
+      if (serviceType == "internet") {
+        bool internetBool =
+            PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
+        PreferenceHelper.setString(
+            PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
+        if (internetBool == false) {
+          PreferenceHelper.setString(
+              PreferenceHelper.LAST_INTERNET_OFF_TIME,
+              AppUtils.dateFormat(
+                  date: DateTime.now(), dateFormat: AppConstant.dateFormat));
+          PreferenceHelper.setDouble(PreferenceHelper.LAST_INTERNET_OFF_LAT,
+              positionData?.latitude ?? 0);
+          PreferenceHelper.setDouble(PreferenceHelper.LAST_INTERNET_OFF_LONG,
+              positionData?.longitude ?? 0);
+          PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, true);
+        }
+      }
 
-  if (serviceType == "gps") {
-    bool gpsBool = PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
-    if (gpsBool == false) {
-      PreferenceHelper.setString(
-          PreferenceHelper.LAST_GPS_OFF_TIME,
-          AppUtils.dateFormat(
-              date: DateTime.now(), dateFormat: AppConstant.dateFormat));
-      PreferenceHelper.setDouble(
-          PreferenceHelper.LAST_GPS_OFF_LAT, positionData?.latitude ?? 0);
-      PreferenceHelper.setDouble(
-          PreferenceHelper.LAST_GPS_OFF_LONG, positionData?.longitude ?? 0);
-      PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, true);
+      if (serviceType == "gps") {
+        bool gpsBool = PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
+        PreferenceHelper.setString(
+            PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
+        if (gpsBool == false) {
+          PreferenceHelper.setString(
+              PreferenceHelper.LAST_GPS_OFF_TIME,
+              AppUtils.dateFormat(
+                  date: DateTime.now(), dateFormat: AppConstant.dateFormat));
+          PreferenceHelper.setDouble(
+              PreferenceHelper.LAST_GPS_OFF_LAT, positionData?.latitude ?? 0);
+          PreferenceHelper.setDouble(
+              PreferenceHelper.LAST_GPS_OFF_LONG, positionData?.longitude ?? 0);
+          PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, true);
+        }
+      }
     }
-  }
+  });
 }
 
 CreateRouteHistoryModel? createRouteHistoryModel;
 
 Future<void> updateRouteHistory() async {
   try {
-    String? userId = "";
-    PreferenceHelper.load().then((value) {
-      userId = PreferenceHelper.getString(PreferenceHelper.USER_UID) ?? "";
+    PreferenceHelper.load().then((value) async {
+      String? userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
+
+      Position? position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.best);
+
+      Map<String, dynamic> body = {
+        "userId": userId,
+        "lattitude": position.latitude,
+        "longitude": position.longitude,
+        "modifiedOn": AppUtils.dateFormat(
+            date: DateTime.now(), dateFormat: AppConstant.dateFormat)
+      };
+
+      String endPoint = ApiConstants.createRouteHistory;
+
+      var response = await callPostMethod(endPoint, body);
+
+      createRouteHistoryModel =
+          CreateRouteHistoryModel.fromJson(json.decode(response));
+
+      if (createRouteHistoryModel?.isError == false &&
+          createRouteHistoryModel?.isValidationFailed == false) {
+        PreferenceHelper.setDouble(
+            PreferenceHelper.LAST_LAT, position.latitude);
+        PreferenceHelper.setDouble(
+            PreferenceHelper.LAST_LONG, position.longitude);
+        PreferenceHelper.setString(
+            PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
+      }
     });
-    Position? position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.best);
-
-    if (position == null || userId == "") return;
-
-    Map<String, dynamic> body = {
-      "userId": userId,
-      "lattitude": position.latitude,
-      "longitude": position.longitude,
-      "modifiedOn": AppUtils.dateFormat(
-          date: DateTime.now(), dateFormat: AppConstant.dateFormat)
-    };
-
-    String endPoint = ApiConstants.createRouteHistory;
-
-    var response = await callPostMethod(endPoint, body);
-
-    createRouteHistoryModel =
-        CreateRouteHistoryModel.fromJson(json.decode(response));
-    PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT, position.latitude);
-    PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, position.longitude);
-    PreferenceHelper.setString(
-        PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
-    if (createRouteHistoryModel?.isError == false &&
-        createRouteHistoryModel?.isValidationFailed == false) {}
   } catch (e) {
     print("print_route_history_catch_$e");
   }
 }
 
+Future<void> waitingStartApi({required ServiceInstance service,String? waitingStartTime,double? lastLat,double? lastLong}) async {
+    print("waitingStartApi_waitingStartTime$waitingStartTime");
+    print("waitingStartApi_LastLat$lastLat");
+    print("waitingStartApi_LastLong$lastLong");
+
+     int batteryLevel = await AppUtils.getBatteryLevel();
+     print("batteryLevel$batteryLevel");
+
+     PreferenceHelper.load().then((value) async {
+       String? userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
+       Map<String, dynamic> body = {};
+       body = {
+         "userId": userId,
+         "lattitude": lastLat,
+         "longitude": lastLong,
+         "totTrackingEventId": AppConstant.trackingWaitingStartEvent,
+         "activityDateTime": AppUtils.getDate(
+             date: waitingStartTime.toString(), format: AppConstant.dateFormat),
+         "batteryLevel": batteryLevel,
+       };
+
+       String endPoint = ApiConstants.createActivity;
+       var response = await callPostMethod(endPoint, body);
+       CreateActivityModel? createActivityModel =
+       CreateActivityModel?.fromJson(json.decode(response));
+
+       if (createActivityModel.isError == false &&
+           createActivityModel.isValidationFailed == false) {
+         PreferenceHelper.setBool(PreferenceHelper.isWaiting, true);
+         PreferenceHelper.setString(
+             PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
+         service.invoke("update", {"isWaiting": true});
+       }
+     });
 
 
-Future<void> waitingStartApi(ServiceInstance service) async {
-  double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-  double? lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
-  String? waitingStartTime =
-      PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
-  int batteryLevel = await AppUtils.getBatteryLevel();
-  print("batteryLevel$batteryLevel");
-
-  PreferenceHelper.load().then((value)async {
-    String? userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
-    Map<String, dynamic> body = {};
-    body = {
-      "userId": userId,
-      "lattitude": lastLat,
-      "longitude": lastLong,
-      "totTrackingEventId": AppConstant.trackingWaitingStartEvent,
-      "activityDateTime": AppUtils.getDate(
-          date: waitingStartTime.toString(), format: AppConstant.dateFormat),
-      "batteryLevel": batteryLevel,
-    };
-
-    String endPoint = ApiConstants.createActivity;
-    var response = await callPostMethod(endPoint, body);
-    CreateActivityModel? createActivityModel =
-    CreateActivityModel?.fromJson(json.decode(response));
-
-    if (createActivityModel.isError == false &&
-        createActivityModel.isValidationFailed == false) {
-      PreferenceHelper.setBool(PreferenceHelper.isWaiting, true);
-      service.invoke("update", {"isWaiting": true});
-    }
-  });
 
 }
-Future<void> waitingEndApi(ServiceInstance service) async {
+
+Future<void> waitingEndApi({required ServiceInstance service}) async {
+  FlutterBackgroundService service = FlutterBackgroundService();
   Position? position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.best);
 
@@ -296,11 +311,13 @@ Future<void> waitingEndApi(ServiceInstance service) async {
     String endPoint = ApiConstants.createActivity;
     var response = await callPostMethod(endPoint, body);
     CreateActivityModel? createActivityModel =
-    CreateActivityModel?.fromJson(json.decode(response));
+        CreateActivityModel?.fromJson(json.decode(response));
 
     if (createActivityModel.isError == false &&
         createActivityModel.isValidationFailed == false) {
       PreferenceHelper.setBool(PreferenceHelper.isWaiting, false);
+      PreferenceHelper.setString(
+          PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
       service.invoke("update", {"isWaiting": false});
     }
   });
@@ -313,8 +330,15 @@ Future<void> handleInternetAndGPSApi() async {
     bool? internetBool =
         PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
     if (gpsBool) {
-      print("GPS$gpsBool");
-      // Future.delayed(const Duration(milliseconds: 500));
+      String? lastGpsOffTime =
+          PreferenceHelper.getString(PreferenceHelper.LAST_GPS_OFF_TIME);
+      if (lastGpsOffTime != "" && lastGpsOffTime != null) {
+        print("GPS$gpsBool");
+        PreferenceHelper.setString(
+            PreferenceHelper.LAST_GPS_ON_TIME,
+            AppUtils.dateFormat(
+                date: DateTime.now(), dateFormat: AppConstant.dateFormat));
+      }
       await callInternetAndGpsActivityApi(
           userId: userId, isGps: true, isGpsOn: false);
       await Future.delayed(const Duration(milliseconds: 500));
@@ -323,8 +347,6 @@ Future<void> handleInternetAndGPSApi() async {
     }
     if (internetBool) {
       print("INTERNET$internetBool");
-
-      // Future.delayed(const Duration(milliseconds: 500));
       await callInternetAndGpsActivityApi(
           userId: userId, isInternet: true, isInternetOn: false);
       Future.delayed(const Duration(milliseconds: 500));
@@ -404,9 +426,7 @@ callInternetAndGpsActivityApi({
         PreferenceHelper.remove(PreferenceHelper.LAST_GPS_ON_TIME);
         PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, false);
       }
-    } else {
-
-    }
+    } else {}
   } catch (e) {
     print("catch at dataOffHistory$e");
   }

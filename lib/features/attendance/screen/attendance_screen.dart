@@ -60,12 +60,16 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     // TODO: implement initState
     userName = PreferenceHelper.getString(PreferenceHelper.FULL_NAME);
     initAnimateController();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+
+    if(!mounted){
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) async{
       final attendanceProvider =
           Provider.of<AttendanceProvider>(context, listen: false);
 
       attendanceProvider.panelController.animatePanelToPosition(0.99);
-      attendanceProvider.callGetLastActivity();
+      await attendanceProvider.callGetLastActivity();
+
       attendanceProvider.checkBiometricAvailable();
 
       attendanceProvider.batteryPercentage();
@@ -80,7 +84,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     super.dispose();
   }
 
-
   initAnimateController() {
     controller =
         AnimationController(vsync: this, duration: const Duration(seconds: 1));
@@ -89,8 +92,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       setState(() {});
     });
   }
-
-
 
   //call General api
   Future<CreateActivityModel?> callCreateActivityApi(
@@ -117,88 +118,126 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   callDayStartApiAndUpdateUI(AttendanceProvider? attendanceProvider) {
     //getCurrent Location for UI and api
-    attendanceProvider?.getCurrentLocation().then((value) async {
-      // then call Api
 
-      var response = await callCreateActivityApi(
-          totTrackingEventCode: AppConstant.dayStartEvent,
-          position: value,
-          attendanceProvider: attendanceProvider);
+    try {
+      attendanceProvider?.getCurrentLocation().then((value) async {
+        // then call Api
 
-      //check api success or not
-      if (response?.isError == false && response?.isValidationFailed == false) {
-        //after success update UI
+        var response = await callCreateActivityApi(
+            totTrackingEventCode: AppConstant.dayStartEvent,
+            position: value,
+            attendanceProvider: attendanceProvider);
 
-        PreferenceHelper.setDouble(
-            PreferenceHelper.LAST_LAT, value?.latitude ?? 0);
-        PreferenceHelper.setDouble(
-            PreferenceHelper.LAST_LONG, value?.longitude ?? 0);
-        PreferenceHelper.setString(
-            PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
-        callLoginFunction(value);
-        double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-        double? lastLong =
-            PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-        String? waitingStartTime =
-            PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
+        //check api success or not
+        if (response?.isError == false &&
+            response?.isValidationFailed == false) {
+          //after success update UI
 
-        FlutterBackgroundService().invoke("background", {
-          "lastLat": lastLat,
-          "lastLong": lastLong,
-          "waitingStartTime": waitingStartTime,
-        });
-      }
-    });
+          PreferenceHelper.setDouble(
+              PreferenceHelper.LAST_LAT, value?.latitude ?? 0);
+          PreferenceHelper.setDouble(
+              PreferenceHelper.LAST_LONG, value?.longitude ?? 0);
+          PreferenceHelper.setString(
+              PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
+          callLoginFunction(value);
+          double? lastLat =
+              PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+          double? lastLong =
+              PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+          String? waitingStartTime =
+              PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
+
+          FlutterBackgroundService().invoke("background", {
+            "lastLat": lastLat,
+            "lastLong": lastLong,
+            "waitingStartTime": waitingStartTime,
+          });
+        }
+      });
+    } catch (e) {
+      print("catch_at_dayStartApi");
+      AppUtils.dialogWidget(
+          "Something went wrong, Please try again later!", context);
+    }
   }
 
   callCheckInApiAndUpdateUI(AttendanceProvider? attendanceProvider) {
     //getCurrent Location for UI and api
-    attendanceProvider?.getCurrentLocation().then((value) async {
-      // then call Api
-      var response = await callCreateActivityApi(
-          totTrackingEventCode: AppConstant.checkInEvent,
-          position: value,
-          attendanceProvider: attendanceProvider);
+    try {
+      attendanceProvider?.getCurrentLocation().then((value) async {
+        // then call Api
+        var response = await callCreateActivityApi(
+            totTrackingEventCode: AppConstant.checkInEvent,
+            position: value,
+            attendanceProvider: attendanceProvider);
 
-      //check api success or not
-      if (response?.isError == false && response?.isValidationFailed == false) {
-        //after success update UI
-        callCheckInFunction(value);
-      }
-    });
+        //check api success or not
+        if (response?.isError == false &&
+            response?.isValidationFailed == false) {
+          //after success update UI
+          callCheckInFunction(value);
+        }
+      });
+    } catch (e) {
+      print("catch_at_checkInApi");
+      AppUtils.dialogWidget(
+          "Something went wrong, Please try again later!", context);
+    }
   }
 
   callDayEndApiAndUpdateUI(AttendanceProvider? attendanceProvider) {
     //getCurrent Location for UI and api
-    attendanceProvider?.getCurrentLocation().then((value) async {
-      // then call Api
+    try {
+      attendanceProvider?.getCurrentLocation().then((value) async {
+        // then call Api
+        var response = await callCreateActivityApi(
+            totTrackingEventCode: AppConstant.dayEndEvent,
+            position: value,
+            attendanceProvider: attendanceProvider);
+
+        //check api success or not
+        if (response?.isError == false &&
+            response?.isValidationFailed == false) {
+          //after success update UI
+          callDayEndFunction(value);
+        }
+      });
+    } catch (e) {
+      print("catch_at_checkInApi");
+      AppUtils.dialogWidget(
+          "Something went wrong, Please try again later!", context);
+    }
+  }
+
+  callWaitingEndApi(
+      {AttendanceProvider? postMdl,
+      Position? position,
+      bool? checkIn,
+      bool? dayEnd}) async {
+    // then call Api
+    try {
       var response = await callCreateActivityApi(
-          totTrackingEventCode: AppConstant.dayEndEvent,
-          position: value,
-          attendanceProvider: attendanceProvider);
+          totTrackingEventCode: AppConstant.trackingWaitingStopEvent,
+          position: position,
+          attendanceProvider: postMdl);
 
       //check api success or not
       if (response?.isError == false && response?.isValidationFailed == false) {
-        //after success update UI
-        callDayEndFunction(value);
+        //after success delete waiting flag from database
+        PreferenceHelper.setBool(PreferenceHelper.isWaiting, false);
+        attendanceProvider.isWaiting.value =
+            PreferenceHelper.getBool(PreferenceHelper.isWaiting);
+        service.invoke("update", {"isWaiting": false});
+        if (checkIn == true) {
+          await callCheckInApiAndUpdateUI(postMdl);
+        }
+
+        if (dayEnd == true) {
+          await callDayEndApiAndUpdateUI(postMdl);
+        }
       }
-    });
-  }
-
-  callWaitingEndApi(AttendanceProvider? postMdl, Position? position) async {
-    // then call Api
-    var response = await callCreateActivityApi(
-        totTrackingEventCode: AppConstant.trackingWaitingStopEvent,
-        position: position,
-        attendanceProvider: postMdl);
-
-    //check api success or not
-    if (response?.isError == false && response?.isValidationFailed == false) {
-      //after success delete waiting flag from database
-      PreferenceHelper.setBool(PreferenceHelper.isWaiting, false);
-      attendanceProvider.isWaiting.value =
-          PreferenceHelper.getBool(PreferenceHelper.isWaiting);
-      service.invoke("update", {"isWaiting": false});
+    } catch (e) {
+      print("catch_at_waitingEndApi");
     }
   }
 
@@ -281,7 +320,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       service.invoke("stopService");
       PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
       PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
-      PreferenceHelper.setBool(PreferenceHelper.isWaiting, false);
       attendanceProvider.isDayStart.value =
           PreferenceHelper.getBool(PreferenceHelper.DayStart);
       attendanceProvider.isCheckIn.value =
@@ -327,7 +365,8 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   SizedBox(
                     height: 15,
                   ),
-                  !attendanceProvider.isDayStart.value || attendanceProvider.isCheckIn.value
+                  !attendanceProvider.isDayStart.value ||
+                          attendanceProvider.isCheckIn.value
                       ? AppUtils.commonTextWidget(
                           text: "Press & Hold",
                           fontSize: 14,
@@ -362,167 +401,166 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 backgroundColor: Colors.white),
           ],
         ));
-
   }
 
   Widget buttonWidget(AttendanceProvider postMdl, height, width) {
     return ValueListenableBuilder(
-          valueListenable: attendanceProvider.isDayStart,
+      valueListenable: attendanceProvider.isDayStart,
+      builder: (context, value, child) {
+        return ValueListenableBuilder(
+          valueListenable: attendanceProvider.isCheckIn,
           builder: (context, value, child) {
-            return ValueListenableBuilder(
-              valueListenable: attendanceProvider.isCheckIn,
-              builder: (context, value, child) {
-                return GestureDetector(
-                  onTapDown: (details) {
-                    setState(() {
-                      isTapped = true;
-                    });
-                    controller?.forward().whenComplete(() async {
-                      HapticFeedback.vibrate();
+            return GestureDetector(
+              onTapDown: (details) {
+                setState(() {
+                  isTapped = true;
+                });
+                controller?.forward().whenComplete(() async {
+                  HapticFeedback.vibrate();
 
-                      controller?.reset();
-                      if (!attendanceProvider.isDayStart.value) {
-                        attendanceProvider.doLocalVerification(
-                          afterSuccessfulVerificationFnc: () async {
-                            callDayStartApiAndUpdateUI(postMdl);
-                          },
-                        );
-                      } else if (!attendanceProvider.isCheckIn.value) {
-                        PreferenceHelper.reload().then((value) {
+                  controller?.reset();
+                  if (!attendanceProvider.isDayStart.value) {
+                    attendanceProvider.doLocalVerification(
+                      afterSuccessfulVerificationFnc: () async {
+                        await callDayStartApiAndUpdateUI(postMdl);
+                      },
+                    );
+                  } else if (!attendanceProvider.isCheckIn.value) {
+                    PreferenceHelper.reload().then((value) {
+                      print(
+                          "value_new_isWaiting${value?.getBool(PreferenceHelper.isWaiting)}");
+                      attendanceProvider.isWaiting.value =
+                          value?.getBool(PreferenceHelper.isWaiting) ?? false;
+                      attendanceProvider.doLocalVerification(
+                        afterSuccessfulVerificationFnc: () async {
                           print(
-                              "value_new_isWaiting${value?.getBool(PreferenceHelper.isWaiting)}");
-                          attendanceProvider.isWaiting.value =
-                              value?.getBool(PreferenceHelper.isWaiting) ??
-                                  false;
-                          attendanceProvider.doLocalVerification(
-                            afterSuccessfulVerificationFnc: () async {
-                              print(
-                                  "isWaiting_from_UI${attendanceProvider.isWaiting.value}");
+                              "isWaiting_from_UI${attendanceProvider.isWaiting.value}");
 
-                              attendanceProvider
-                                  .getCurrentLocation()
-                                  .then((position) async {
-                                if (attendanceProvider.isWaiting.value ==
-                                    true) {
-                                  await callWaitingEndApi(postMdl, position);
-                                  await callCheckInApiAndUpdateUI(postMdl);
-                                } else {
-                                  await callCheckInApiAndUpdateUI(postMdl);
-                                }
-                              });
-                            },
-                          );
-                        });
-                      } else {
-                        checkOutFunction();
-                      }
+                          attendanceProvider
+                              .getCurrentLocation()
+                              .then((position) async {
+                            if (attendanceProvider.isWaiting.value == true) {
+                              await callWaitingEndApi(
+                                  postMdl: postMdl,
+                                  position: position,
+                                  checkIn: true,
+                                  dayEnd: false);
+                            } else {
+                              await callCheckInApiAndUpdateUI(postMdl);
+                            }
+                          });
+                        },
+                      );
                     });
-                  },
-                  onTapUp: (details) {
-                    setState(() {
-                      isTapped = false;
-                    });
-                    controller?.reverse();
-                  },
-                  onTapCancel: () {
-                    setState(() {
-                      isTapped = false;
-                    });
-                    controller?.reverse();
-                  },
-                  child: Animate(
-                    effects: [
-                      ScaleEffect(
-                          begin: Offset(0, 0),
-                          duration: Duration(
-                            milliseconds: 300,
-                          ),
-                          curve: Curves.easeOut)
-                    ],
-                    child: AppUtils.commonContainer(
-                      decoration: AppUtils.commonBoxDecoration(
-                        shape: BoxShape.circle,
+                  } else {
+                    checkOutFunction();
+                  }
+                });
+              },
+              onTapUp: (details) {
+                setState(() {
+                  isTapped = false;
+                });
+                controller?.reverse();
+              },
+              onTapCancel: () {
+                setState(() {
+                  isTapped = false;
+                });
+                controller?.reverse();
+              },
+              child: Animate(
+                effects: [
+                  ScaleEffect(
+                      begin: Offset(0, 0),
+                      duration: Duration(
+                        milliseconds: 300,
                       ),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: <Widget>[
-                          postMdl.isLoading
-                              ? LoaderWidget(
-                                  color: !attendanceProvider.isDayStart.value
-                                      ? Colors.lightGreen
-                                      : Colors.blue,
-                                )
-                              : Positioned.fill(
-                                  // scale: isTapped ? 4 : 3.6,
-                                  // Adjust the scale factor as needed
-                                  child: CircularProgressIndicator(
-                                    value: controller?.value,
-                                    strokeCap: StrokeCap.round,
-                                    strokeWidth: 8,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        !attendanceProvider.isDayStart.value
-                                            ? Colors.lightGreen
-                                            : Colors.blue),
-                                  ),
-                                ),
-                          Positioned.fill(
-                            // scale: isTapped ? 4 : 3.6,
-                            // Adjust the scale factor as needed
-                            child: CircularProgressIndicator(
-                              value: 1,
-                              strokeWidth: 8,
-                              strokeCap: StrokeCap.round,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  AppConstant.greyColor.withOpacity(0.2)),
-                            ),
-                          ),
-                          AnimatedContainer(
-                            // padding: EdgeInsets.all(35),
-                            curve: Curves.decelerate,
-                            margin: EdgeInsets.all(2.8),
-                            duration: const Duration(milliseconds: 300),
-                            height: isTapped ? 120 : 100,
-                            width: isTapped ? 120 : 100,
-                            decoration: BoxDecoration(
+                      curve: Curves.easeOut)
+                ],
+                child: AppUtils.commonContainer(
+                  decoration: AppUtils.commonBoxDecoration(
+                    shape: BoxShape.circle,
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: <Widget>[
+                      postMdl.isLoading
+                          ? LoaderWidget(
                               color: !attendanceProvider.isDayStart.value
-                                  ? Colors.lightGreen.withOpacity(0.8)
-                                  : Colors.blue.withOpacity(0.7),
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: !attendanceProvider.isDayStart.value
-                                      ? Colors.lightGreen.withOpacity(0.3)
-                                      : Colors.blue.withOpacity(0.3),
-                                  spreadRadius: isTapped ? 1 : 2,
-                                  blurRadius: isTapped ? 1 : 2,
-                                  offset: Offset(0, 0),
-                                ),
-                              ],
-                            ),
-                            child: Center(
-                              child: AppUtils.commonTextWidget(
-                                text: !attendanceProvider.isDayStart.value
-                                    ? "In"
-                                    : !attendanceProvider.isCheckIn.value
-                                        ? "Check-In"
-                                        : "Check-Out",
-                                fontSize: !attendanceProvider.isDayStart.value
-                                    ? 20
-                                    : 12,
-                                textColor: Colors.white,
-                                fontWeight: FontWeight.w600,
+                                  ? Colors.lightGreen
+                                  : Colors.blue,
+                            )
+                          : Positioned.fill(
+                              // scale: isTapped ? 4 : 3.6,
+                              // Adjust the scale factor as needed
+                              child: CircularProgressIndicator(
+                                value: controller?.value,
+                                strokeCap: StrokeCap.round,
+                                strokeWidth: 8,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    !attendanceProvider.isDayStart.value
+                                        ? Colors.lightGreen
+                                        : Colors.blue),
                               ),
                             ),
-                          ),
-                        ],
+                      Positioned.fill(
+                        // scale: isTapped ? 4 : 3.6,
+                        // Adjust the scale factor as needed
+                        child: CircularProgressIndicator(
+                          value: 1,
+                          strokeWidth: 8,
+                          strokeCap: StrokeCap.round,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              AppConstant.greyColor.withOpacity(0.2)),
+                        ),
                       ),
-                    ),
+                      AnimatedContainer(
+                        // padding: EdgeInsets.all(35),
+                        curve: Curves.decelerate,
+                        margin: EdgeInsets.all(2.8),
+                        duration: const Duration(milliseconds: 300),
+                        height: isTapped ? 120 : 100,
+                        width: isTapped ? 120 : 100,
+                        decoration: BoxDecoration(
+                          color: !attendanceProvider.isDayStart.value
+                              ? Colors.lightGreen.withOpacity(0.8)
+                              : Colors.blue.withOpacity(0.7),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: !attendanceProvider.isDayStart.value
+                                  ? Colors.lightGreen.withOpacity(0.3)
+                                  : Colors.blue.withOpacity(0.3),
+                              spreadRadius: isTapped ? 1 : 2,
+                              blurRadius: isTapped ? 1 : 2,
+                              offset: Offset(0, 0),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: AppUtils.commonTextWidget(
+                            text: !attendanceProvider.isDayStart.value
+                                ? "In"
+                                : !attendanceProvider.isCheckIn.value
+                                    ? "Check-In"
+                                    : "Check-Out",
+                            fontSize:
+                                !attendanceProvider.isDayStart.value ? 20 : 12,
+                            textColor: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                );
-              },
+                ),
+              ),
             );
           },
         );
+      },
+    );
   }
 
   Widget logOut(postMdl, height, width) {
@@ -546,24 +584,27 @@ class _AttendanceScreenState extends State<AttendanceScreen>
             PreferenceHelper.reload().then((value) {
               if (kDebugMode) {
                 print(
-                  "value_new_isWaiting${value?.getBool(PreferenceHelper.isWaiting)}");
+                    "value_new_isWaiting${value?.getBool(PreferenceHelper.isWaiting)}");
               }
               attendanceProvider.isWaiting.value =
-                  value?.getBool(PreferenceHelper.isWaiting) ??
-                      false;
+                  value?.getBool(PreferenceHelper.isWaiting) ?? false;
               attendanceProvider.doLocalVerification(
                 afterSuccessfulVerificationFnc: () async {
                   if (kDebugMode) {
                     print(
-                      "isWaiting_from_UI${attendanceProvider.isWaiting.value}");
+                        "isWaiting_from_UI${attendanceProvider.isWaiting.value}");
                   }
                   attendanceProvider
                       .getCurrentLocation()
                       .then((position) async {
-                        print("condtion${attendanceProvider.isWaiting.value == true}");
+                    print(
+                        "condtion${attendanceProvider.isWaiting.value == true}");
                     if (attendanceProvider.isWaiting.value == true) {
-                      await callWaitingEndApi(postMdl, position);
-                      await callDayEndApiAndUpdateUI(postMdl);
+                      await callWaitingEndApi(
+                          postMdl: postMdl,
+                          position: position,
+                          dayEnd: true,
+                          checkIn: false);
                     } else {
                       await callDayEndApiAndUpdateUI(postMdl);
                     }
@@ -571,8 +612,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 },
               );
             });
-
-
           });
         },
         onTapUp: (details) {
@@ -581,7 +620,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           });
           controller?.reverse();
         },
-
         child: Animate(
           effects: const [
             ScaleEffect(
@@ -601,22 +639,21 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 postMdl.isLoading
                     ? LoaderWidget(color: Colors.red)
                     : Positioned.fill(
-                  child: CircularProgressIndicator(
-                    value: controller?.value,
-                    strokeCap: StrokeCap.round,
-                    strokeWidth: 8,
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                        Colors.red),
-                  ),
-                ),
+                        child: CircularProgressIndicator(
+                          value: controller?.value,
+                          strokeCap: StrokeCap.round,
+                          strokeWidth: 8,
+                          valueColor:
+                              const AlwaysStoppedAnimation<Color>(Colors.red),
+                        ),
+                      ),
                 Positioned.fill(
                   child: CircularProgressIndicator(
                     value: 1.0,
                     strokeWidth: 8,
                     strokeCap: StrokeCap.round,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                        AppConstant.greyColor.withOpacity(0.2)
-                    ),
+                        AppConstant.greyColor.withOpacity(0.2)),
                   ),
                 ),
                 AnimatedContainer(
@@ -632,7 +669,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         color: Colors.red.withOpacity(0.3),
                         spreadRadius: isFromLogOutButton ? 1 : 2,
                         blurRadius: isFromLogOutButton ? 1 : 2,
-                        offset: const  Offset(0, 0),
+                        offset: const Offset(0, 0),
                       ),
                     ],
                   ),
@@ -652,6 +689,4 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       ),
     );
   }
-
-
 }

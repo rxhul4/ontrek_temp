@@ -34,7 +34,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
   List<List<SessionEvents>?>? sessionEvent = [];
   late SalemenTimeLineProvider saleMenTimeLineProvider;
   final Completer<GoogleMapController> googleMapController =
-      Completer<GoogleMapController>();
+  Completer<GoogleMapController>();
   Set<Polyline> polylines = {};
   int selectedIndex = -1;
   List<LatLng> polylineCoordinates = [];
@@ -90,7 +90,8 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
     getCurrentLocation();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       panelController.animatePanelToSnapPoint();
-      final saleMenTimeLineProvider = Provider.of<SalemenTimeLineProvider>(context, listen: false);
+      final saleMenTimeLineProvider =
+      Provider.of<SalemenTimeLineProvider>(context, listen: false);
       if (!mounted) {}
       saleMenTimeLineProvider.allSession?.clear();
       saleMenTimeLineProvider.coordinates.clear();
@@ -101,19 +102,45 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
   }
 
   void drawPolyline() {
+    List<LatLng>? polylinePoints = [];
+    if (selectedIndex == -1) {
+      polylinePoints = saleMenTimeLineProvider.coordinates;
+    } else {
+      List<Object>? latLongArray = saleMenTimeLineProvider.getTimeLineModel
+          ?.data?.sessionTimeLine?[selectedIndex].sessionRouteHistory
+          ?.latlongArray;
+      for (int i = 0; i <= latLongArray!.length; i++) {
+        polylinePoints.add(LatLng(saleMenTimeLineProvider.getTimeLineModel?.data
+            ?.sessionTimeLine?[selectedIndex].sessionRouteHistory!
+            .latlongArray?[i].x ?? 0,
+          saleMenTimeLineProvider.getTimeLineModel?.data
+              ?.sessionTimeLine?[selectedIndex].sessionRouteHistory!
+              .latlongArray?[i].y ?? 0,
+        ));
+      }
+      print("List_of_latlong$polylinePoints");
+    }
+
     polylines.add(Polyline(
       polylineId: PolylineId('poly'),
       color: Colors.blue,
-      points: saleMenTimeLineProvider.coordinates,
+      points: polylinePoints,
       width: 5,
     ));
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     saleMenTimeLineProvider = Provider.of<SalemenTimeLineProvider>(context);
-    double height = MediaQuery.of(context).size.height;
-    double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery
+        .of(context)
+        .size
+        .height;
+    double width = MediaQuery
+        .of(context)
+        .size
+        .width;
     return Scaffold(
       body: SafeArea(
         child: AppUtils.commonSlidePanel(
@@ -124,7 +151,10 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                 child: GoogleMap(
                   zoomControlsEnabled: false,
                   padding: AppUtils.edgeInsetsOnly(
-                    bottom: MediaQuery.of(context).size.height * 0.25,
+                    bottom: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.25,
                   ),
                   mapType: MapType.normal,
                   onMapCreated: (controller) {
@@ -133,11 +163,13 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                   markers: markers,
                   polylines: polylines,
                   initialCameraPosition: CameraPosition(
-                    target: (saleMenTimeLineProvider.coordinates != null && saleMenTimeLineProvider.coordinates.length > 0) ? saleMenTimeLineProvider.coordinates[0] : currentLocation,
+                    target: (saleMenTimeLineProvider.coordinates != null &&
+                        saleMenTimeLineProvider.coordinates.length > 0)
+                        ? saleMenTimeLineProvider.coordinates[0]
+                        : currentLocation,
                     zoom: 14,
                   ),
                 ),
-
               ),
               trackAppBarWidget(
                 onTapGetCurrentPosition: getCurrentLocation,
@@ -164,23 +196,50 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                       title: widget.name,
                       subTitle: "Dwarkesh Business Hub Visat...",
                     ),
-                    informationBar(
+                    saleMenTimeLineProvider.isFetching
+                        ? informationBar(
+                        totalCheckIn: 0,
+                        totalDuration: "00:00:00",
+                        totalKMTravel: 0.0)
+                        : informationBar(
                       totalCheckIn: selectedIndex == -1
                           ? saleMenTimeLineProvider
-                              .getTimeLineModel?.data?.totalCheckIn
-                          : saleMenTimeLineProvider.getTimeLineModel?.data
-                              ?.sessionTimeLine?[selectedIndex].totalCheckIn,
+                          .getTimeLineModel?.data?.totalCheckIn
+                          : saleMenTimeLineProvider
+                          .getTimeLineModel
+                          ?.data
+                          ?.sessionTimeLine?[selectedIndex]
+                          .totalCheckIn,
                       totalDuration: selectedIndex == -1
-                          ? saleMenTimeLineProvider
-                              .getTimeLineModel?.data?.totalDuration
-                          : saleMenTimeLineProvider.getTimeLineModel?.data
-                              ?.sessionTimeLine?[selectedIndex].totalDuration,
+                          ? AppUtils.getDate(
+                          date: saleMenTimeLineProvider
+                              .getTimeLineModel
+                              ?.data
+                              ?.totalDuration ??
+                              "",
+                          format: "HH:MM:SS")
+                          : AppUtils.getDate(
+                          date: saleMenTimeLineProvider
+                              .getTimeLineModel
+                              ?.data
+                              ?.sessionTimeLine?[selectedIndex]
+                              .totalDuration ??
+                              "",
+                          format: "HH:MM:SS"),
                       totalKMTravel: selectedIndex == -1
                           ? saleMenTimeLineProvider
-                              .getTimeLineModel?.data?.totalKmTravel
-                          : saleMenTimeLineProvider.getTimeLineModel?.data
-                              ?.sessionTimeLine?[selectedIndex].totalKmTravel,
+                          .getTimeLineModel?.data?.totalKmTravel
+                          : saleMenTimeLineProvider
+                          .getTimeLineModel
+                          ?.data
+                          ?.sessionTimeLine?[selectedIndex]
+                          .totalKmTravel,
                     ),
+                    saleMenTimeLineProvider.isFetching
+                        ? LinearProgressIndicator(
+                      color: AppConstant.appPrimaryColor,
+                    )
+                        : SizedBox(),
                     datePickerWidget(true),
                     AppUtils.commonContainer(
                       height: 50,
@@ -191,22 +250,33 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             // "All Sessions" item
-                            GestureDetector(
+                            saleMenTimeLineProvider.isFetching ||
+                                saleMenTimeLineProvider.allSession ==
+                                    null ||
+                                (saleMenTimeLineProvider
+                                    .allSession?.length ??
+                                    0) <
+                                    0
+                                ? SizedBox()
+                                : GestureDetector(
                               onTap: () {
                                 setState(() {
-                                  selectedIndex = -1; // Set selectedIndex to -1 for "All Sessions"
+                                  selectedIndex =
+                                  -1; // Set selectedIndex to -1 for "All Sessions"
                                 });
                               },
                               child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 300),
-                                padding:
-                                    const EdgeInsets.only(left: 15, right: 15),
+                                duration:
+                                const Duration(milliseconds: 300),
+                                padding: const EdgeInsets.only(
+                                    left: 15, right: 15),
                                 margin: const EdgeInsets.only(
                                     left: 10, right: 10, bottom: 5),
                                 decoration: AppUtils.commonBoxDecoration(
                                   border: Border.all(
                                       color: AppConstant.appPrimaryColor),
-                                  color: selectedIndex == -1 // Check if selectedIndex is -1
+                                  color: selectedIndex ==
+                                      -1 // Check if selectedIndex is -1
                                       ? AppConstant.appPrimaryColor
                                       : AppConstant.transparentColor,
                                   borderRadius: const BorderRadius.all(
@@ -225,14 +295,30 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                             // List of sessions
                             Row(
                               children: [
-                                ListView.builder(
+                                saleMenTimeLineProvider.isFetching ||
+                                    saleMenTimeLineProvider
+                                        .getTimeLineModel
+                                        ?.data
+                                        ?.sessionTimeLine
+                                        ?.length ==
+                                        null ||
+                                    (saleMenTimeLineProvider
+                                        .getTimeLineModel
+                                        ?.data
+                                        ?.sessionTimeLine
+                                        ?.length ??
+                                        0) <=
+                                        0
+                                    ? SizedBox()
+                                    : ListView.builder(
                                   shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
+                                  physics:
+                                  const NeverScrollableScrollPhysics(),
                                   itemCount: saleMenTimeLineProvider
-                                          .getTimeLineModel
-                                          ?.data
-                                          ?.sessionTimeLine
-                                          ?.length ??
+                                      .getTimeLineModel
+                                      ?.data
+                                      ?.sessionTimeLine
+                                      ?.length ??
                                       0,
                                   scrollDirection: Axis.horizontal,
                                   itemBuilder: (context, index) {
@@ -244,30 +330,39 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                                         });
                                       },
                                       child: AnimatedContainer(
-                                        duration:
-                                            const Duration(milliseconds: 300),
+                                        duration: const Duration(
+                                            milliseconds: 300),
                                         padding: const EdgeInsets.only(
                                             left: 15, right: 15),
                                         margin: const EdgeInsets.only(
-                                            left: 10, right: 10, bottom: 5),
+                                            left: 10,
+                                            right: 10,
+                                            bottom: 5),
                                         decoration:
-                                            AppUtils.commonBoxDecoration(
+                                        AppUtils.commonBoxDecoration(
                                           border: Border.all(
-                                              color:
-                                                  AppConstant.appPrimaryColor),
-                                          color: sessionIndex == selectedIndex
-                                              ? AppConstant.appPrimaryColor
-                                              : AppConstant.transparentColor,
-                                          borderRadius: const BorderRadius.all(
+                                              color: AppConstant
+                                                  .appPrimaryColor),
+                                          color: sessionIndex ==
+                                              selectedIndex
+                                              ? AppConstant
+                                              .appPrimaryColor
+                                              : AppConstant
+                                              .transparentColor,
+                                          borderRadius:
+                                          const BorderRadius.all(
                                               Radius.circular(6)),
                                         ),
                                         child: Center(
-                                          child: AppUtils.commonTextWidget(
-                                            text: "Session ${sessionIndex + 1}",
+                                          child:
+                                          AppUtils.commonTextWidget(
+                                            text:
+                                            "Session ${sessionIndex + 1}",
                                             textColor: sessionIndex ==
-                                                    selectedIndex
+                                                selectedIndex
                                                 ? AppConstant.whiteColor
-                                                : AppConstant.appPrimaryColor,
+                                                : AppConstant
+                                                .appPrimaryColor,
                                           ),
                                         ),
                                       ),
@@ -282,15 +377,15 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                     ),
                     selectedIndex == -1
                         ? allSessionTimeLineWidget(
-                            sessionList: saleMenTimeLineProvider.allSession,
-                            scrollController: p0)
+                        sessionList: saleMenTimeLineProvider.allSession,
+                        scrollController: p0)
                         : sessionTimeLineWidget(
-                            scrollController: p0,
-                            sessionList: saleMenTimeLineProvider
-                                .getTimeLineModel
-                                ?.data
-                                ?.sessionTimeLine?[selectedIndex]
-                                .sessionEvents),
+                        scrollController: p0,
+                        sessionList: saleMenTimeLineProvider
+                            .getTimeLineModel
+                            ?.data
+                            ?.sessionTimeLine?[selectedIndex]
+                            .sessionEvents),
                   ],
                 ),
               ],
@@ -316,129 +411,126 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
     List<TimeLineLocalModel>? sessionList,
   }) {
     return Expanded(
-      child: saleMenTimeLineProvider.isFetching
-          ? AppUtils.loaderWidget()
-          : sessionList == null || (sessionList.length ?? 0) < 0
-              ? AppUtils.commonNoDataFound(
-                  text: saleMenTimeLineProvider.getTimeLineModel?.message,
-                  onPressed: () {
-                    saleMenTimeLineProvider.apiCallGetTimeLine(
-                        date: selectedDate.toString(), userid: widget.userId);
-                  },
-                )
-              : ListView.builder(
-                  itemCount: sessionList.length,
-                  physics: const BouncingScrollPhysics(),
-                  controller: scrollController,
-                  shrinkWrap: true,
-                  padding: EdgeInsets.only(bottom: 30),
-                  itemBuilder: (context, index) {
-                    return TimelineTile(
-                      hasIndicator: true,
-                      axis: TimelineAxis.vertical,
-                      lineXY: 0.5,
-                      isLast: index == (sessionList.length) - 1,
-                      isFirst: index == sessionList.length,
-                      indicatorStyle: IndicatorStyle(
-                        indicatorXY: 0,
-                        drawGap: true,
-                        height: 40,
-                        width: 40,
-                        indicator: AppUtils.commonContainer(
-                          decoration: AppUtils.commonBoxDecoration(
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                              child: Image.asset(
-                                height: 30,
-                            width: 30,
-                            AppUtils.getImagePathFromApi(
-                                sessionList[index].eventCode),
-                          )),
-                        ),
-                      ),
-                      beforeLineStyle: LineStyle(
-                        color: AppConstant.primaryColor,
-                        thickness: 1,
-                      ),
-                      afterLineStyle: LineStyle(
-                        color: AppConstant.primaryColor,
-                        thickness: 1,
-                      ),
-                      startChild: AppUtils.commonContainer(
-                        padding: AppUtils.edgeInsetsOnly(top: 10),
-                        margin: AppUtils.edgeInsetsOnly(left: 30),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            AppUtils.commonTextWidget(
-                                // text: "12 jan 2024",
-                                text: AppUtils.getDate(
-                                    date:
-                                        sessionList[index].eventStartDate ?? "",
-                                    format: "d MMM y"),
-                                textColor: AppConstant.greyColor,
-                                fontWeight: FontWeight.w400,
-                                fontSize: 14),
-                            AppUtils.commonTextWidget(
-                                text: AppUtils.getDate(
-                                    date:
-                                        sessionList[index].eventStartDate ?? "",
-                                    format: "HH:mm"),
-                                textColor: AppConstant.blackColor,
-                                fontWeight: FontWeight.w400,
-                                fontSize: 12),
-                          ],
-                        ),
-                      ),
-                      endChild: AppUtils.commonInkWell(
-                        onTap: () {
-                          // draggableScrollableController
-                          //     .animateTo(0.23,
-                          //         duration: Duration(
-                          //             milliseconds: 1000),
-                          //         curve: Curves.decelerate);
-                          // onClickLocateOnMap(LatLng(
-                          //         getTimeLineModel
-                          //                 ?.data?[index]
-                          //                 .lattitude ??
-                          //             0,
-                          //         getTimeLineModel
-                          //                 ?.data?[index]
-                          //                 .longitude ??
-                          //             0))
-                          //     .then((value) {
-                          //   draggableScrollableController
-                          //       .reset();
-                          // });
-                        },
-                        child: AppUtils.commonContainer(
-                          padding: AppUtils.edgeInsetsOnly(top: 5),
-                          margin: AppUtils.edgeInsetsOnly(
-                              right: 10, bottom: 20, left: 30),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              AppUtils.commonTextWidget(
-                                  text: sessionList[index].eventName ?? "",
-                                  textColor: AppUtils.getStatusColor(
-                                      sessionList[index].eventCode),
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: 14),
-                              AppUtils.commonTextWidget(
-                                  text: sessionList[index].eventActivityPlace ??
-                                      "",
-                                  textColor: AppConstant.blackColor,
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: 10),
-                            ],
-                          ),
-                        ),
-                      ),
-                      alignment: TimelineAlign.manual,
-                    );
-                  },
+      child: saleMenTimeLineProvider.isFetching ||
+          sessionList == null ||
+          (sessionList.length ?? 0) < 0
+          ? AppUtils.commonNoDataFound(
+        text: saleMenTimeLineProvider.getTimeLineModel?.message,
+        onPressed: () {
+          saleMenTimeLineProvider.apiCallGetTimeLine(
+              date: selectedDate.toString(), userid: widget.userId);
+        },
+      )
+          : ListView.builder(
+        itemCount: sessionList.length,
+        physics: const BouncingScrollPhysics(),
+        controller: scrollController,
+        shrinkWrap: true,
+        padding: EdgeInsets.only(bottom: 30),
+        itemBuilder: (context, index) {
+          return TimelineTile(
+            hasIndicator: true,
+            axis: TimelineAxis.vertical,
+            lineXY: 0.5,
+            isLast: index == (sessionList.length) - 1,
+            isFirst: index == sessionList.length,
+            indicatorStyle: IndicatorStyle(
+              indicatorXY: 0,
+              drawGap: true,
+              height: 40,
+              width: 40,
+              indicator: AppUtils.commonContainer(
+                decoration: AppUtils.commonBoxDecoration(
+                  shape: BoxShape.circle,
                 ),
+                child: Center(
+                    child: Image.asset(
+                      height: 30,
+                      width: 30,
+                      AppUtils.getImagePathFromApi(
+                          sessionList[index].eventCode),
+                    )),
+              ),
+            ),
+            beforeLineStyle: LineStyle(
+              color: AppConstant.primaryColor,
+              thickness: 1,
+            ),
+            afterLineStyle: LineStyle(
+              color: AppConstant.primaryColor,
+              thickness: 1,
+            ),
+            startChild: AppUtils.commonContainer(
+              padding: AppUtils.edgeInsetsOnly(top: 10),
+              margin: AppUtils.edgeInsetsOnly(left: 30),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppUtils.commonTextWidget(
+                    // text: "12 jan 2024",
+                      text: AppUtils.getDate(
+                          date: sessionList[index].eventStartDate ?? "",
+                          format: "d MMM y"),
+                      textColor: AppConstant.greyColor,
+                      fontWeight: FontWeight.w400,
+                      fontSize: 12),
+                  AppUtils.commonTextWidget(
+                      text: AppUtils.getDate(
+                          date: sessionList[index].eventStartDate ?? "",
+                          format: "HH:mm"),
+                      textColor: AppConstant.blackColor,
+                      fontWeight: FontWeight.w400,
+                      fontSize: 10),
+                ],
+              ),
+            ),
+            endChild: AppUtils.commonInkWell(
+              onTap: () {
+                // draggableScrollableController
+                //     .animateTo(0.23,
+                //         duration: Duration(
+                //             milliseconds: 1000),
+                //         curve: Curves.decelerate);
+                // onClickLocateOnMap(LatLng(
+                //         getTimeLineModel
+                //                 ?.data?[index]
+                //                 .lattitude ??
+                //             0,
+                //         getTimeLineModel
+                //                 ?.data?[index]
+                //                 .longitude ??
+                //             0))
+                //     .then((value) {
+                //   draggableScrollableController
+                //       .reset();
+                // });
+              },
+              child: AppUtils.commonContainer(
+                padding: AppUtils.edgeInsetsOnly(top: 5),
+                margin: AppUtils.edgeInsetsOnly(
+                    right: 10, bottom: 20, left: 30),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppUtils.commonTextWidget(
+                        text: sessionList[index].eventName ?? "",
+                        textColor: AppUtils.getStatusColor(
+                            sessionList[index].eventCode),
+                        fontWeight: FontWeight.w400,
+                        fontSize: 12),
+                    AppUtils.commonTextWidget(
+                        text: sessionList[index].eventActivityPlace ?? "",
+                        textColor: AppConstant.blackColor,
+                        fontWeight: FontWeight.w400,
+                        fontSize: 10),
+                  ],
+                ),
+              ),
+            ),
+            alignment: TimelineAlign.manual,
+          );
+        },
+      ),
     );
   }
 
@@ -447,128 +539,125 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
     List<SessionEvents>? sessionList,
   }) {
     return Expanded(
-      child: saleMenTimeLineProvider.isFetching
-          ? AppUtils.loaderWidget()
-          : sessionList == null || sessionList.isEmpty
-              ? AppUtils.commonNoDataFound(
-                  text: saleMenTimeLineProvider.getTimeLineModel?.message,
-                  onPressed: () {
-                    saleMenTimeLineProvider.apiCallGetTimeLine(
-                        date: selectedDate.toString(), userid: widget.userId);
-                  },
-                )
-              : ListView.builder(
-                  itemCount: sessionList.length,
-                  physics: const BouncingScrollPhysics(),
-                  controller: scrollController,
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.only(bottom: 30),
-                  itemBuilder: (context, index) {
-                    return TimelineTile(
-                      hasIndicator: true,
-                      axis: TimelineAxis.vertical,
-                      lineXY: 0.5,
-                      isLast: index == (sessionList.length) - 1,
-                      isFirst: index == sessionList.length,
-                      indicatorStyle: IndicatorStyle(
-                        indicatorXY: 0,
-                        drawGap: true,
-                        height: 40,
-                        width: 40,
-                        indicator: AppUtils.commonContainer(
-                          decoration: AppUtils.commonBoxDecoration(
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                              child: Image.asset(
-                            AppUtils.getImagePathFromApi(
-                                sessionList[index].eventCode),
-                          )),
-                        ),
-                      ),
-                      beforeLineStyle: LineStyle(
-                        color: AppConstant.primaryColor,
-                        thickness: 1,
-                      ),
-                      afterLineStyle: LineStyle(
-                        color: AppConstant.primaryColor,
-                        thickness: 1,
-                      ),
-                      startChild: AppUtils.commonContainer(
-                        padding: AppUtils.edgeInsetsOnly(top: 10),
-                        margin: AppUtils.edgeInsetsOnly(left: 30),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            AppUtils.commonTextWidget(
-                                // text: "12 jan 2024",
-                                text: AppUtils.getDate(
-                                    date:
-                                        sessionList[index].eventStartDate ?? "",
-                                    format: "d MMM y"),
-                                textColor: AppConstant.greyColor,
-                                fontWeight: FontWeight.w400,
-                                fontSize: 12),
-                            AppUtils.commonTextWidget(
-                                text: AppUtils.getDate(
-                                    date:
-                                        sessionList[index].eventStartDate ?? "",
-                                    format: "HH:mm"),
-                                textColor: AppConstant.blackColor,
-                                fontWeight: FontWeight.w400,
-                                fontSize: 10),
-                          ],
-                        ),
-                      ),
-                      endChild: AppUtils.commonInkWell(
-                        onTap: () {
-                          // draggableScrollableController
-                          //     .animateTo(0.23,
-                          //         duration: Duration(
-                          //             milliseconds: 1000),
-                          //         curve: Curves.decelerate);
-                          // onClickLocateOnMap(LatLng(
-                          //         getTimeLineModel
-                          //                 ?.data?[index]
-                          //                 .lattitude ??
-                          //             0,
-                          //         getTimeLineModel
-                          //                 ?.data?[index]
-                          //                 .longitude ??
-                          //             0))
-                          //     .then((value) {
-                          //   draggableScrollableController
-                          //       .reset();
-                          // });
-                        },
-                        child: AppUtils.commonContainer(
-                          padding: AppUtils.edgeInsetsOnly(top: 5),
-                          margin: AppUtils.edgeInsetsOnly(
-                              right: 10, bottom: 20, left: 30),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              AppUtils.commonTextWidget(
-                                  text: sessionList[index].eventName ?? "",
-                                  textColor: AppUtils.getStatusColor(
-                                    sessionList[index].eventCode ?? "",
-                                  ),
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: 12),
-                              AppUtils.commonTextWidget(
-                                  text: sessionList[index].eventActivityPlace ??
-                                      "",
-                                  textColor: AppConstant.blackColor,
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: 10),
-                            ],
-                          ),
-                        ),
-                      ),
-                      alignment: TimelineAlign.manual,
-                    );
-                  },
+      child: saleMenTimeLineProvider.isFetching ||
+          sessionList == null ||
+          sessionList.isEmpty
+          ? AppUtils.commonNoDataFound(
+        text: saleMenTimeLineProvider.getTimeLineModel?.message,
+        onPressed: () {
+          saleMenTimeLineProvider.apiCallGetTimeLine(
+              date: selectedDate.toString(), userid: widget.userId);
+        },
+      )
+          : ListView.builder(
+        itemCount: sessionList.length,
+        physics: const BouncingScrollPhysics(),
+        controller: scrollController,
+        shrinkWrap: true,
+        padding: const EdgeInsets.only(bottom: 30),
+        itemBuilder: (context, index) {
+          return TimelineTile(
+            hasIndicator: true,
+            axis: TimelineAxis.vertical,
+            lineXY: 0.5,
+            isLast: index == (sessionList.length) - 1,
+            isFirst: index == sessionList.length,
+            indicatorStyle: IndicatorStyle(
+              indicatorXY: 0,
+              drawGap: true,
+              height: 40,
+              width: 40,
+              indicator: AppUtils.commonContainer(
+                decoration: AppUtils.commonBoxDecoration(
+                  shape: BoxShape.circle,
                 ),
+                child: Center(
+                    child: Image.asset(
+                      AppUtils.getImagePathFromApi(
+                          sessionList[index].eventCode),
+                    )),
+              ),
+            ),
+            beforeLineStyle: LineStyle(
+              color: AppConstant.primaryColor,
+              thickness: 1,
+            ),
+            afterLineStyle: LineStyle(
+              color: AppConstant.primaryColor,
+              thickness: 1,
+            ),
+            startChild: AppUtils.commonContainer(
+              padding: AppUtils.edgeInsetsOnly(top: 10),
+              margin: AppUtils.edgeInsetsOnly(left: 30),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppUtils.commonTextWidget(
+                    // text: "12 jan 2024",
+                      text: AppUtils.getDate(
+                          date: sessionList[index].eventStartDate ?? "",
+                          format: "d MMM y"),
+                      textColor: AppConstant.greyColor,
+                      fontWeight: FontWeight.w400,
+                      fontSize: 12),
+                  AppUtils.commonTextWidget(
+                      text: AppUtils.getDate(
+                          date: sessionList[index].eventStartDate ?? "",
+                          format: "HH:mm"),
+                      textColor: AppConstant.blackColor,
+                      fontWeight: FontWeight.w400,
+                      fontSize: 10),
+                ],
+              ),
+            ),
+            endChild: AppUtils.commonInkWell(
+              onTap: () {
+                // draggableScrollableController
+                //     .animateTo(0.23,
+                //         duration: Duration(
+                //             milliseconds: 1000),
+                //         curve: Curves.decelerate);
+                // onClickLocateOnMap(LatLng(
+                //         getTimeLineModel
+                //                 ?.data?[index]
+                //                 .lattitude ??
+                //             0,
+                //         getTimeLineModel
+                //                 ?.data?[index]
+                //                 .longitude ??
+                //             0))
+                //     .then((value) {
+                //   draggableScrollableController
+                //       .reset();
+                // });
+              },
+              child: AppUtils.commonContainer(
+                padding: AppUtils.edgeInsetsOnly(top: 5),
+                margin: AppUtils.edgeInsetsOnly(
+                    right: 10, bottom: 20, left: 30),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppUtils.commonTextWidget(
+                        text: sessionList[index].eventName ?? "",
+                        textColor: AppUtils.getStatusColor(
+                          sessionList[index].eventCode ?? "",
+                        ),
+                        fontWeight: FontWeight.w400,
+                        fontSize: 12),
+                    AppUtils.commonTextWidget(
+                        text: sessionList[index].eventActivityPlace ?? "",
+                        textColor: AppConstant.blackColor,
+                        fontWeight: FontWeight.w400,
+                        fontSize: 10),
+                  ],
+                ),
+              ),
+            ),
+            alignment: TimelineAlign.manual,
+          );
+        },
+      ),
     );
   }
 
@@ -611,11 +700,10 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
     );
   }
 
-  Widget travelInfoRowWidget(
-      {IconData? iconData,
-      String? textData,
-      String? typeOfText,
-      Color? iconColor}) {
+  Widget travelInfoRowWidget({IconData? iconData,
+    String? textData,
+    String? typeOfText,
+    Color? iconColor}) {
     return Column(
       children: [
         Icon(
@@ -653,10 +741,9 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
     );
   }
 
-  Widget trackAppBarWidget(
-      {Function()? onTapBackButton,
-      Function()? onTapGetCurrentPosition,
-      getMdl}) {
+  Widget trackAppBarWidget({Function()? onTapBackButton,
+    Function()? onTapGetCurrentPosition,
+    getMdl}) {
     return Positioned(
       child: AppUtils.commonContainer(
         margin: const EdgeInsets.only(left: 10, right: 10, top: 10),
@@ -729,23 +816,23 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
         color: AppConstant.whiteColor,
         boxShadow: isFromSheet == true
             ? [
-                BoxShadow(
-                  color: AppConstant.greyColor.withOpacity(0.2),
-                  offset:
-                      Offset(0, 5), // Adjusting the offset for the bottom side
-                  blurRadius: 4,
-                  spreadRadius: 1,
-                ),
-              ]
+          BoxShadow(
+            color: AppConstant.greyColor.withOpacity(0.2),
+            offset:
+            Offset(0, 5), // Adjusting the offset for the bottom side
+            blurRadius: 4,
+            spreadRadius: 1,
+          ),
+        ]
             : [
-                BoxShadow(
-                  color: AppConstant.greyColor.withOpacity(0.5),
-                  offset:
-                      Offset(2, 2), // Default shadow if isFromSheet is false
-                  blurRadius: 3,
-                  spreadRadius: 2,
-                ),
-              ],
+          BoxShadow(
+            color: AppConstant.greyColor.withOpacity(0.5),
+            offset:
+            Offset(2, 2), // Default shadow if isFromSheet is false
+            blurRadius: 3,
+            spreadRadius: 2,
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -819,7 +906,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
             scaffoldBackgroundColor: AppConstant.whiteColor,
             textSelectionTheme: TextSelectionThemeData(
               selectionColor:
-                  AppConstant.appPrimaryColor, // Selected date color
+              AppConstant.appPrimaryColor, // Selected date color
             ),
             colorScheme: ColorScheme.light(
               background: Colors.white,
