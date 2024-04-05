@@ -105,7 +105,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
 
   callAddActivityApi({
     required AttendanceProvider postMdl,
-    dynamic position,
+    Position? position,
   }) {
     print("userUid${userUid}");
 
@@ -116,8 +116,8 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
             userId: userUid,
             batteryLevel: batteryLevel,
             totTrackingEventCode: AppConstant.checkOutEvent,
-            latitude: position.latitude,
-            longitude: position.longitude,
+            latitude: position?.latitude,
+            longitude: position?.longitude,
             companyName: companyNameController.text,
             customerName: customerNameController.text,
             customerPhoneNumber: customerPhoneNumberController.text,
@@ -128,6 +128,12 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
       if (createActivityModel?.isError == false &&
           createActivityModel?.isValidationFailed == false) {
         checkOutFunction();
+        // PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
+        service.invoke("checkout_update", {
+          "waitingStartTime": DateTime.now().toString(),
+          "lastLat": position?.latitude,
+          "lastLong": position?.longitude,
+        });
       } else {
         print("day start not 200");
         openDialogFnc(createActivityModel?.message.toString() ?? "");
@@ -137,7 +143,8 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
 
   checkOutFunction() async {
     PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-    PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
+    PreferenceHelper.setString(
+        PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
     Navigator.pop(context);
   }
 
@@ -338,8 +345,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                                           text: "Customer Phone Number",
                                           controller:
                                               customerPhoneNumberController,
-                                      textInputType: TextInputType.number
-                                      ),
+                                          textInputType: TextInputType.number),
                                       AppUtils.commonSizedBox(height: 10),
                                       AppUtils.commonContainer(
                                           child: Column(
@@ -372,32 +378,32 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                                             itemBuilder: (context, index) {
                                               print(
                                                   "data${getTotByGroupTypeModel?.data?[index].totSequence}");
-                                               // RadioListTile(
-                                               //   title: Text("${getTotByGroupTypeModel?.data?[index].totValue}",style: TextStyle(color: Colors.red),),
-                                               //   value: getTotByGroupTypeModel
-                                               //     ?.data?[index]
-                                               //     .totSequence, groupValue: selectedRadio, onChanged: (value) {
-                                               //   print("value${value}");
-                                               //   setState(() {
-                                               //     selectedRadio =
-                                               //         getTotByGroupTypeModel
-                                               //             ?.data?[
-                                               //         index]
-                                               //             .totSequence ??
-                                               //             1;
-                                               //     totType =
-                                               //         getTotByGroupTypeModel
-                                               //             ?.data?[
-                                               //         index]
-                                               //             .totId ??
-                                               //             "";
-                                               //     print(
-                                               //         "totType value$totType");
-                                               //     print(
-                                               //         "totType value$selectedRadio");
-                                               //   });
-                                               //     },);
-                                               return GestureDetector(
+                                              // RadioListTile(
+                                              //   title: Text("${getTotByGroupTypeModel?.data?[index].totValue}",style: TextStyle(color: Colors.red),),
+                                              //   value: getTotByGroupTypeModel
+                                              //     ?.data?[index]
+                                              //     .totSequence, groupValue: selectedRadio, onChanged: (value) {
+                                              //   print("value${value}");
+                                              //   setState(() {
+                                              //     selectedRadio =
+                                              //         getTotByGroupTypeModel
+                                              //             ?.data?[
+                                              //         index]
+                                              //             .totSequence ??
+                                              //             1;
+                                              //     totType =
+                                              //         getTotByGroupTypeModel
+                                              //             ?.data?[
+                                              //         index]
+                                              //             .totId ??
+                                              //             "";
+                                              //     print(
+                                              //         "totType value$totType");
+                                              //     print(
+                                              //         "totType value$selectedRadio");
+                                              //   });
+                                              //     },);
+                                              return GestureDetector(
                                                 onTap: () {
                                                   setState(() {
                                                     selectedRadio =
@@ -516,7 +522,10 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
   }
 
   commonTextField(
-      {String? text, int? maxLine, required TextEditingController controller,TextInputType? textInputType}) {
+      {String? text,
+      int? maxLine,
+      required TextEditingController controller,
+      TextInputType? textInputType}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -582,7 +591,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
     } catch (e) {
       print("erorrrrrrr${e}");
     }
-    return currentLocation;
+    return position;
   }
 
   Function? checkValidation(postMdl) {
@@ -601,12 +610,12 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
           context: context,
           message: "Enter Client Name",
           giveColor: Colors.red);
-    }else if(customerPhoneNumberController.text.isEmpty){
+    } else if (customerPhoneNumberController.text.isEmpty) {
       AppUtils.showSnackBarWithColor(
           context: context,
           message: "Enter Customer Phone Number",
           giveColor: Colors.red);
-    }else if (visitDiscussionNameController.text.isEmpty) {
+    } else if (visitDiscussionNameController.text.isEmpty) {
       AppUtils.showSnackBarWithColor(
           context: context,
           message: "Enter Visit Discussion",
@@ -619,8 +628,8 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
   }
 
   getLocationAndRedirect(postMdl) {
-    return getCurrentLocation().then((value) {
-      callAddActivityApi(postMdl: postMdl, position: value);
+    return getCurrentLocation().then((value)async {
+      await callAddActivityApi(postMdl: postMdl, position: value);
     });
   }
 }

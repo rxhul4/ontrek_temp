@@ -27,9 +27,12 @@ class SalemenTimeLineProvider extends ChangeNotifier {
 
   GetTimeLineModel? getTimeLineModel;
 
-  List<TimeLineLocalModel>? allSession = [];
+  List<SessionEvents> sessionEvents = [];
+  List<LatlongArray> latLongArray = [];
   List<LatLng> coordinates = [];
-
+int totalCheckIn = 0;
+String totalDuration = "";
+num totalKmTravel = 0;
   loaderFnc(bool isLoading) {
     _isLoading = isLoading;
     notifyListeners();
@@ -55,7 +58,8 @@ class SalemenTimeLineProvider extends ChangeNotifier {
   Future<GetTimeLineModel?> apiCallGetTimeLine(
       {String? userid, String? date}) async {
     _isFetching = true;
-    allSession?.clear();
+    sessionEvents.clear();
+    sessionEvents.clear();
     coordinates.clear();
     notifyListeners();
     Map<String, dynamic> body = {
@@ -70,36 +74,51 @@ class SalemenTimeLineProvider extends ChangeNotifier {
       print('response ${getTimeLineModel?.toJson()}');
       if (getTimeLineModel?.isError == false &&
           getTimeLineModel?.isValidationFailed == false) {
-        getTimeLineModel?.data?.sessionTimeLine?.forEach((element) {
-          element.sessionRouteHistory?.latlongArray?.forEach((element) {
-            coordinates.add(LatLng(element.x ?? 0, element.y ?? 0));
+        getTimeLineModel?.data?.sessionTimeLine?.forEach((session) {
+          session.sessionRouteHistory?.latlongArray?.forEach((event) {
+            if (event != null) {
+              latLongArray.add(LatlongArray(x: event.x, y: event.y));
+            }
           });
         });
         getTimeLineModel?.data?.sessionTimeLine?.forEach((session) {
-          int? totalCheckIn = session.totalCheckIn;
-          String? totalDuration = session.totalDuration;
-          num? totalKmTravel = session.totalKmTravel;
           session.sessionEvents?.forEach((event) {
-            String? eventName = event.eventName ?? "";
-            String? eventStartDate = event.eventStartDate ?? "";
-            String? eventCode = event.eventCode ?? "";
-            String? eventActivityPlace = event.eventActivityPlace ?? "";
             if (event != null || session != null) {
-              allSession?.add(TimeLineLocalModel(
-                  eventName: eventName,
-                  eventStartDate: eventStartDate,
-                  eventCode: eventCode,
-                  eventActivityPlace: eventActivityPlace,
-                duration: totalDuration,
-                kiloMeter: totalKmTravel,
-                totalCheckIn: totalCheckIn,
-
+              sessionEvents.add(SessionEvents(
+                sessionId: event.sessionId,
+                sessionNo: event.sessionNo,
+                eventCode: event.eventCode,
+                eventStartDate: event.eventStartDate,
+                eventEndDate: event.eventEndDate,
+                eventActivityPlace: event.eventActivityPlace,
+                eventName: event.eventName,
+                batteryPercentage: event.batteryPercentage,
+                eventDuration: event.eventDuration,
+                eventId: event.eventId,
+                eventLat: event.eventLat,
+                eventLong: event.eventLong,
+                visitFormId: event.visitFormId,
               ));
             }
           });
         });
+        getTimeLineModel?.data?.sessionTimeLine?.insert(
+          0,
+          SessionTimeLine(
+            totalCheckIn: getTimeLineModel?.data?.totalCheckIn,
+            totalDuration: getTimeLineModel?.data?.totalDuration,
+            totalKmTravel: getTimeLineModel?.data?.totalKmTravel,
+            sessionId: "",
+            sessionNo:0,
+            sessionEvents: sessionEvents,
+            sessionRouteHistory: SessionRouteHistory(
+              sessionNo: 0,
+              latlongArray: latLongArray,
+            ),
+          ),
+        );
 
-        print("Event list: $allSession");
+        print("Event list: ${sessionEvents.length}");
       } else {}
     } catch (e) {
       print('catch at GetTimeLineProvider ${e}');

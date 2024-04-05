@@ -8,6 +8,7 @@ import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/features/authentication/screens/login_with_phone_number.dart';
 import 'package:ontrek/features/dashboard/screens/dashboard_screen.dart';
+import 'package:ontrek/features/permissions/always_on_location_permission_screen.dart';
 import 'package:ontrek/features/permissions/location_permission_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -32,6 +33,7 @@ class _SplashScreenState extends State<SplashScreen> {
     isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
     isWaiting = PreferenceHelper.getBool(PreferenceHelper.isWaiting);
     var status = await Permission.location.status;
+    var statusOfAlwaysOnLocation = await Permission.locationAlways.status;
     print("isLogIn $isLogIn");
     print("roleId $roleId");
     print("isDayStart $isDayStart");
@@ -39,40 +41,55 @@ class _SplashScreenState extends State<SplashScreen> {
     print("isWaiting $isWaiting");
     print("status $status");
     Timer(const Duration(milliseconds: 3000), () {
-      if (status.isGranted) {
-        if (isLogIn ?? false) {
-          Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => DashBoard(),));
-          if (isDayStart ?? false) {
-            if (isCheckIn ?? false) {
-              Navigator.pushReplacement(
-                context,
-                CupertinoPageRoute(builder: (context) => DashBoard()),
-              );
-            } else {
-              Navigator.pushReplacement(
-                context,
-                CupertinoPageRoute(builder: (context) => DashBoard()),
-              );
-            }
-          } else {
-            Navigator.pushReplacement(
-              context,
-              CupertinoPageRoute(builder: (context) => DashBoard()),
-            );
+      if(status.isGranted){
+        if(statusOfAlwaysOnLocation.isGranted){
+          if(isLogIn == true){
+            Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => const DashBoard(),));
+          }else{
+            Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => const LoginScreen(),));
           }
-        } else {
-          Navigator.pushReplacement(
-            context,
-            CupertinoPageRoute(builder: (context) => LoginScreen()),
-          );
+        }else{
+          Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => const AlwaysPermissionScreen(),));
         }
-      } else {
-        Navigator.pushReplacement(
-            context,
-            CupertinoPageRoute(
-              builder: (context) => LocationPermissionScreen(),
-            ));
+
+      }else{
+        Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => const LocationPermissionScreen(),));
       }
+
+      // if (status.isGranted) {
+      //   if (isLogIn ?? false) {
+      //     Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => DashBoard(),));
+      //     if (isDayStart ?? false) {
+      //       if (isCheckIn ?? false) {
+      //         Navigator.pushReplacement(
+      //           context,
+      //           CupertinoPageRoute(builder: (context) => DashBoard()),
+      //         );
+      //       } else {
+      //         Navigator.pushReplacement(
+      //           context,
+      //           CupertinoPageRoute(builder: (context) => DashBoard()),
+      //         );
+      //       }
+      //     } else {
+      //       Navigator.pushReplacement(
+      //         context,
+      //         CupertinoPageRoute(builder: (context) => DashBoard()),
+      //       );
+      //     }
+      //   } else {
+      //     Navigator.pushReplacement(
+      //       context,
+      //       CupertinoPageRoute(builder: (context) => LoginScreen()),
+      //     );
+      //   }
+      // } else {
+      //   Navigator.pushReplacement(
+      //       context,
+      //       CupertinoPageRoute(
+      //         builder: (context) => LocationPermissionScreen(),
+      //       ));
+      // }
     });
   }
 

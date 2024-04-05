@@ -8,27 +8,23 @@ import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/features/authentication/screens/login_with_phone_number.dart';
 import 'package:ontrek/features/dashboard/screens/dashboard_screen.dart';
-import 'package:ontrek/features/permissions/always_on_location_permission_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-class LocationPermissionScreen extends StatefulWidget {
-  const LocationPermissionScreen({super.key});
+class AlwaysPermissionScreen extends StatefulWidget {
+  const AlwaysPermissionScreen({super.key});
 
   @override
-  State<LocationPermissionScreen> createState() =>
-      _LocationPermissionScreenState();
+  State<AlwaysPermissionScreen> createState() =>
+      _AlwaysPermissionScreenState();
 }
 
-class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
-  int? roleId;
+class _AlwaysPermissionScreenState extends State<AlwaysPermissionScreen> {
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    roleId = PreferenceHelper.getInt(PreferenceHelper.ROLE_ID);
   }
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -52,7 +48,7 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
                           fontWeight: FontWeight.w500)),
                   Center(
                       child: AppUtils.commonTextWidget(
-                          text: "LOCATION",
+                          text: "ALWAYS LOCATION",
                           textColor: AppConstant.blackColor,
                           fontSize: 24,
                           textAlign: TextAlign.center,
@@ -68,7 +64,7 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
               AppUtils.commonSizedBox(height: 30),
               Center(
                   child: AppUtils.commonTextWidget(
-                      text: "Please allow us to access your\n location service",
+                      text: "Please allow us to access your\n always on location service",
                       textColor: AppConstant.blackColor,
                       fontSize: 14,
                       textAlign: TextAlign.center,
@@ -77,31 +73,24 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
               AppUtils.commonElevatedBtn(
                   width: double.infinity,
                   height: 50,
-                  text: "ENABLE LOCATION",
+                  text: "ENABLE ALWAYS LOCATION",
                   bgColor: AppConstant.appPrimaryColor.withOpacity(0.9),
                   borderRadiusAll: 30,
-                  onPressed: askLocationPermission),
+                  onPressed: askLocationPermission
+              ),
               AppUtils.commonInkWell(
                   child: AppUtils.commonTextWidget(
                     text: "NOT NOW",
                     textColor: AppConstant.greyColor,
                   ),
                   onTap: () {
-                    bool? isLogIn =
-                        PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN);
-                    if (isLogIn == true) {
-                      Navigator.pushReplacement(
-                          context,
-                          CupertinoPageRoute(
-                            builder: (context) => DashBoard(),
-                          ));
-                    } else {
-                      Navigator.pushReplacement(
-                          context,
-                          CupertinoPageRoute(
-                            builder: (context) => LoginScreen(),
-                          ));
+                    bool? isLogIn = PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN);
+                    if(isLogIn == true){
+                      Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => DashBoard(),));
+                    }else{
+                      Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => LoginScreen(),));
                     }
+
                   })
             ],
           ),
@@ -110,9 +99,9 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
     );
   }
 
+
   Future<void> askLocationPermission() async {
-    final status = await Permission.location.request();
-    var statusOfAlwaysOnPermission = await Permission.locationAlways.status;
+    final status = await Permission.locationAlways.request();
     if (status.isDenied) {
       // Permission still denied, ask again
       await askLocationPermission();
@@ -120,28 +109,15 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
       // Permission permanently denied, show custom popup
       AppSettings.openAppSettings(type: AppSettingsType.location);
       // _showCustomPopup();
-    } else {
-      if (statusOfAlwaysOnPermission.isGranted) {
-        if (roleId == null) {
-          Navigator.pushReplacement(
-              context,
-              CupertinoPageRoute(
-                builder: (context) => LoginScreen(),
-              ));
-        } else {
-          Navigator.pushReplacement(
-              context,
-              CupertinoPageRoute(
-                builder: (context) => DashBoard(),
-              ));
-        }
-      } else {
-        Navigator.pushReplacement(
-            context,
-            CupertinoPageRoute(
-              builder: (context) => AlwaysPermissionScreen(),
-            ));
+    }else{
+      bool? isLogIn = PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN);
+      if(isLogIn == false){
+        Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => LoginScreen(),));
+      }else{
+        Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => DashBoard(),));
       }
+
     }
   }
+
 }

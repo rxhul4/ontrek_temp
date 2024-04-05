@@ -45,6 +45,17 @@ void onStart(ServiceInstance service) async {
       PreferenceHelper.setBool(PreferenceHelper.isWaiting, isWaiting);
     }
   });
+  service.on("checkout_update").listen((event) {
+    print("data_received${event?["waitingStartTime"]}");
+    if (event != null) {
+      String waitingStartTime = event["waitingStartTime"];
+      double lastLat = event["lastLat"];
+      double lastLong = event["lastLong"];
+      PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, waitingStartTime);
+      PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT, lastLat);
+      PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, lastLong);
+    }
+  });
 
   if (service is AndroidServiceInstance) {
     service.on('setAsForeground').listen((event) {
@@ -87,8 +98,8 @@ void onStart(ServiceInstance service) async {
             ValueNotifier<bool?> isWaiting = ValueNotifier(false);
             position = await Geolocator.getCurrentPosition(
                 desiredAccuracy: LocationAccuracy.best);
-            double? lastLat = value?.getDouble(PreferenceHelper.LAST_LAT);
-            double? lastLong = value?.getDouble(PreferenceHelper.LAST_LONG);
+            double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+            double? lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
             distance = Geolocator.distanceBetween(lastLat ?? 0, lastLong ?? 0,
                 position.latitude, position.longitude);
             bool? checkIn = value?.getBool(PreferenceHelper.checkIn) ?? false;
@@ -101,6 +112,8 @@ void onStart(ServiceInstance service) async {
             print("_______distance$distance");
             print("checkIn____$checkIn");
             if ((distance) > 50) {
+              String? waitingStartTime =PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
+              print("waiting_Time_using_background_service1$waitingStartTime");
               print("distance$distance");
               print("waiting_using_background_service${isWaiting.value}");
               if (isWaiting.value == true) {
@@ -108,16 +121,16 @@ void onStart(ServiceInstance service) async {
                 await waitingEndApi(service: service);
               }
               await updateRouteHistory();
+              print("waiting_Time_using_background_service$waitingStartTime");
             } else {
               bool? checkIn = value?.getBool(PreferenceHelper.checkIn) ?? false;
               isWaiting.value =
                   PreferenceHelper.getBool(PreferenceHelper.isWaiting);
               print("checkInn$checkIn");
               print("isWaiting${isWaiting.value}");
-              String? waitingStartTime =
-                  value?.getString(PreferenceHelper.WAITING_START_TIME);
-              double? lastLat = value?.getDouble(PreferenceHelper.LAST_LAT);
-              double? lastLong = value?.getDouble(PreferenceHelper.LAST_LONG);
+              String? waitingStartTime = PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
+              double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+              double? lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
               print("waitingStartTimedata$waitingStartTime");
               if (checkIn == false && isWaiting.value == false) {
                 try {
@@ -288,7 +301,6 @@ Future<void> waitingStartApi({required ServiceInstance service,String? waitingSt
 }
 
 Future<void> waitingEndApi({required ServiceInstance service}) async {
-  FlutterBackgroundService service = FlutterBackgroundService();
   Position? position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.best);
 
