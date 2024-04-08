@@ -678,6 +678,16 @@ class AppUtils {
     return parseDate;
   }
 
+  static String removeMilliseconds(String durationString) {
+    // Parse the duration string into a DateTime object
+    DateTime dateTime = DateTime.parse("1970-01-01T$durationString");
+
+    // Format the DateTime object without milliseconds
+    String formattedDuration = "${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}:${dateTime.second.toString().padLeft(2, '0')}";
+
+    return formattedDuration;
+  }
+
   static Widget commonContainer({
     double? height,
     double? width,

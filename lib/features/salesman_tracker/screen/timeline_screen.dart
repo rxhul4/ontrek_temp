@@ -36,17 +36,14 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
   late SalemenTimeLineProvider saleMenTimeLineProvider;
   final Completer<GoogleMapController> googleMapController =
       Completer<GoogleMapController>();
-  Set<Polyline> polylines = {};
   int selectedIndex = 0;
   List<LatLng> polylineCoordinates = [];
 
   Future<void> getCurrentLocation() async {
-    print("innnnnnnnnnnnn");
     try {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.low,
       );
-
       setState(() {
         currentLocation = LatLng(position.latitude, position.longitude);
         print("${currentLocation}");
@@ -61,7 +58,6 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
   }
 
   Future updateCameraPosition(LatLng location) async {
-    print("location-------${location}");
     final GoogleMapController controller = await googleMapController.future;
     controller.animateCamera(CameraUpdate.newCameraPosition(
       CameraPosition(
@@ -94,15 +90,13 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
           Provider.of<SalemenTimeLineProvider>(context, listen: false);
       if (!mounted) {}
       saleMenTimeLineProvider.sessionEvents.clear();
-      saleMenTimeLineProvider.coordinates.clear();
       saleMenTimeLineProvider.latLongArray.clear();
-      saleMenTimeLineProvider.apiCallGetTimeLine(
-          userid: widget.userId, date: selectedDate.toString());
+      saleMenTimeLineProvider.apiCallGetTimeLine(userid: widget.userId, date: selectedDate.toString());
       drawPolyLines();
     });
   }
 
-  void drawPolyLines() {
+  List<LatLng> drawPolyLines() {
     polylineCoordinates.clear();
     for (int i = 0;
         i <
@@ -134,50 +128,10 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
         ));
       }
     }
-    print("length_of_array_data${polylineCoordinates.length}");
-  }
 
-  // void drawPolyline() {
-  //   List<LatLng> polylinePoints = [];
-  //   if (selectedIndex == 0) {
-  //     polylinePoints = saleMenTimeLineProvider.coordinates;
-  //   } else {
-  //     for (int i = 0;
-  //         i <
-  //             (saleMenTimeLineProvider.getTimeLineModel?.data?.sessionTimeLine
-  //                     ?.firstWhere(
-  //                         (element) => element.sessionNo == selectedIndex)
-  //                     .sessionRouteHistory
-  //                     ?.latlongArray
-  //                     ?.length ??
-  //                 0);
-  //         i++) {
-  //       polylinePoints.add(LatLng(
-  //         saleMenTimeLineProvider.getTimeLineModel?.data?.sessionTimeLine
-  //                 ?.firstWhere((element) => element.sessionNo == selectedIndex)
-  //                 .sessionRouteHistory!
-  //                 .latlongArray?[i]
-  //                 .x ??
-  //             0,
-  //         saleMenTimeLineProvider.getTimeLineModel?.data?.sessionTimeLine
-  //                 ?.firstWhere((element) => element.sessionNo == selectedIndex)
-  //                 .sessionRouteHistory!
-  //                 .latlongArray?[i]
-  //                 .y ??
-  //             0,
-  //       ));
-  //     }
-  //     print("List_of_latlong$polylinePoints");
-  //   }
-  //
-  //   polylines.add(Polyline(
-  //     polylineId: PolylineId('poly'),
-  //     color: Colors.blue,
-  //     points: polylinePoints,
-  //     width: 5,
-  //   ));
-  //   setState(() {});
-  // }
+    print("length_of_array_data${polylineCoordinates.length}");
+    return polylineCoordinates;
+  }
 
   Widget datePickerWidget(bool? isFromSheet) {
     return Align(
@@ -216,8 +170,8 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                       polylineId: PolylineId("polyline"),
                       points: polylineCoordinates,
                       visible: true,
-                      color: Colors.blue, // Set your desired color here
-                      width: 8, // Set your desired width here
+                      color: Colors.blue,
+                      width: 4,
                     ),
                   },
                   initialCameraPosition: CameraPosition(
@@ -262,7 +216,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                         ? informationBar(
                             totalCheckIn: 0,
                             totalDuration: "00:00:00",
-                            totalKMTravel: 0.0)
+                            totalKMTravel: "0.0")
                         : informationBar(
                             totalCheckIn: saleMenTimeLineProvider
                                 .getTimeLineModel?.data?.sessionTimeLine
@@ -279,7 +233,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                                 .getTimeLineModel?.data?.sessionTimeLine
                                 ?.firstWhere((element) =>
                                     element.sessionNo == selectedIndex)
-                                .totalKmTravel,
+                                .totalKmTravel?.toStringAsFixed(2),
                           ),
                     saleMenTimeLineProvider.isFetching
                         ? LinearProgressIndicator(
@@ -295,7 +249,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                                         ?.sessionTimeLine?.length ??
                                     0) <
                                 0
-                        ? SizedBox()
+                        ? const SizedBox()
                         : AppUtils.commonContainer(
                             height: 50,
                             child: SingleChildScrollView(
@@ -403,122 +357,108 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
     );
   }
 
-  Widget allSessionTimeLineWidget({
-    ScrollController? scrollController,
-    List<TimeLineLocalModel>? sessionList,
-  }) {
-    return Expanded(
-      child: ListView.builder(
-        itemCount: sessionList?.length,
-        physics: const BouncingScrollPhysics(),
-        controller: scrollController,
-        shrinkWrap: true,
-        padding: EdgeInsets.only(bottom: 30),
-        itemBuilder: (context, index) {
-          return TimelineTile(
-            hasIndicator: true,
-            axis: TimelineAxis.vertical,
-            lineXY: 0.5,
-            isLast: index == (sessionList?.length ?? 0) - 1,
-            isFirst: index == sessionList?.length,
-            indicatorStyle: IndicatorStyle(
-              indicatorXY: 0,
-              drawGap: true,
-              height: 40,
-              width: 40,
-              indicator: AppUtils.commonContainer(
-                decoration: AppUtils.commonBoxDecoration(
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                    child: Image.asset(
-                  height: 30,
-                  width: 30,
-                  AppUtils.getImagePathFromApi(sessionList?[index].eventCode),
-                )),
-              ),
-            ),
-            beforeLineStyle: LineStyle(
-              color: AppConstant.primaryColor,
-              thickness: 1,
-            ),
-            afterLineStyle: LineStyle(
-              color: AppConstant.primaryColor,
-              thickness: 1,
-            ),
-            startChild: AppUtils.commonContainer(
-              padding: AppUtils.edgeInsetsOnly(top: 10),
-              margin: AppUtils.edgeInsetsOnly(left: 30),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppUtils.commonTextWidget(
-                      // text: "12 jan 2024",
-                      text: AppUtils.getDate(
-                          date: sessionList?[index].eventStartDate ?? "",
-                          format: "d MMM y"),
-                      textColor: AppConstant.greyColor,
-                      fontWeight: FontWeight.w400,
-                      fontSize: 12),
-                  AppUtils.commonTextWidget(
-                      text: AppUtils.getDate(
-                          date: sessionList?[index].eventStartDate ?? "",
-                          format: "HH:mm"),
-                      textColor: AppConstant.blackColor,
-                      fontWeight: FontWeight.w400,
-                      fontSize: 10),
-                ],
-              ),
-            ),
-            endChild: AppUtils.commonInkWell(
-              onTap: () {
-                // draggableScrollableController
-                //     .animateTo(0.23,
-                //         duration: Duration(
-                //             milliseconds: 1000),
-                //         curve: Curves.decelerate);
-                // onClickLocateOnMap(LatLng(
-                //         getTimeLineModel
-                //                 ?.data?[index]
-                //                 .lattitude ??
-                //             0,
-                //         getTimeLineModel
-                //                 ?.data?[index]
-                //                 .longitude ??
-                //             0))
-                //     .then((value) {
-                //   draggableScrollableController
-                //       .reset();
-                // });
-              },
-              child: AppUtils.commonContainer(
-                padding: AppUtils.edgeInsetsOnly(top: 5),
-                margin:
-                    AppUtils.edgeInsetsOnly(right: 10, bottom: 20, left: 30),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AppUtils.commonTextWidget(
-                        text: sessionList?[index].eventName ?? "",
-                        textColor: AppUtils.getStatusColor(
-                            sessionList?[index].eventCode),
-                        fontWeight: FontWeight.w400,
-                        fontSize: 12),
-                    AppUtils.commonTextWidget(
-                        text: sessionList?[index].eventActivityPlace ?? "",
-                        textColor: AppConstant.blackColor,
-                        fontWeight: FontWeight.w400,
-                        fontSize: 10),
-                  ],
-                ),
-              ),
-            ),
-            alignment: TimelineAlign.manual,
-          );
-        },
-      ),
-    );
-  }
+  // Widget allSessionTimeLineWidget({
+  //   ScrollController? scrollController,
+  //   List<TimeLineLocalModel>? sessionList,
+  // }) {
+  //   return Expanded(
+  //     child: ListView.builder(
+  //       itemCount: sessionList?.length,
+  //       physics: const BouncingScrollPhysics(),
+  //       controller: scrollController,
+  //       shrinkWrap: true,
+  //       padding: EdgeInsets.only(bottom: 30),
+  //       itemBuilder: (context, index) {
+  //         return TimelineTile(
+  //           hasIndicator: true,
+  //           axis: TimelineAxis.vertical,
+  //           lineXY: 0.5,
+  //           isLast: index == (sessionList?.length ?? 0) - 1,
+  //           isFirst: index == sessionList?.length,
+  //           indicatorStyle: IndicatorStyle(
+  //             indicatorXY: 0,
+  //             drawGap: true,
+  //             height: 40,
+  //             width: 40,
+  //             indicator: AppUtils.commonContainer(
+  //               decoration: AppUtils.commonBoxDecoration(
+  //                 shape: BoxShape.circle,
+  //               ),
+  //               child: Center(
+  //                   child: Image.asset(
+  //                 height: 30,
+  //                 width: 30,
+  //                 AppUtils.getImagePathFromApi(sessionList?[index].eventCode),
+  //               )),
+  //             ),
+  //           ),
+  //           beforeLineStyle: LineStyle(
+  //             color: AppConstant.primaryColor,
+  //             thickness: 1,
+  //           ),
+  //           afterLineStyle: LineStyle(
+  //             color: AppConstant.primaryColor,
+  //             thickness: 1,
+  //           ),
+  //           startChild: AppUtils.commonContainer(
+  //             padding: AppUtils.edgeInsetsOnly(top: 10),
+  //             margin: AppUtils.edgeInsetsOnly(left: 30),
+  //             child: Column(
+  //               crossAxisAlignment: CrossAxisAlignment.start,
+  //               children: [
+  //                 AppUtils.commonTextWidget(
+  //                     // text: "12 jan 2024",
+  //                     text: AppUtils.getDate(
+  //                         date: sessionList?[index].eventStartDate ?? "",
+  //                         format: "d MMM y"),
+  //                     textColor: AppConstant.greyColor,
+  //                     fontWeight: FontWeight.w400,
+  //                     fontSize: 12),
+  //                 AppUtils.commonTextWidget(
+  //                     text: AppUtils.getDate(
+  //                         date: sessionList?[index].eventStartDate ?? "",
+  //                         format: "HH:mm"),
+  //                     textColor: AppConstant.blackColor,
+  //                     fontWeight: FontWeight.w400,
+  //                     fontSize: 10),
+  //               ],
+  //             ),
+  //           ),
+  //           endChild: AppUtils.commonInkWell(
+  //             onTap: () {
+  //               panelController.animatePanelToPosition(
+  //                 0.23,
+  //                 duration: Duration(milliseconds: 1000),
+  //               );
+  //             },
+  //             child: AppUtils.commonContainer(
+  //               padding: AppUtils.edgeInsetsOnly(top: 5),
+  //               margin:
+  //                   AppUtils.edgeInsetsOnly(right: 10, bottom: 20, left: 30),
+  //               child: Column(
+  //                 crossAxisAlignment: CrossAxisAlignment.start,
+  //                 children: [
+  //                   AppUtils.commonTextWidget(
+  //                       text: sessionList?[index].eventName ?? "",
+  //                       textColor: AppUtils.getStatusColor(
+  //                           sessionList?[index].eventCode),
+  //                       fontWeight: FontWeight.w400,
+  //                       fontSize: 12),
+  //                   AppUtils.commonTextWidget(
+  //                       text: sessionList?[index].eventActivityPlace ?? "",
+  //                       textColor: AppConstant.blackColor,
+  //                       fontWeight: FontWeight.w400,
+  //                       fontSize: 10),
+  //                 ],
+  //               ),
+  //             ),
+  //           ),
+  //           alignment: TimelineAlign.manual,
+  //         );
+  //       },
+  //     ),
+  //   );
+  // }
 
   Widget sessionTimeLineWidget({
     ScrollController? scrollController,
@@ -657,7 +597,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
   }
 
   Widget informationBar(
-      {required String totalDuration, num? totalKMTravel, int? totalCheckIn}) {
+      {required String totalDuration, String? totalKMTravel, int? totalCheckIn}) {
     return AppUtils.commonContainer(
       padding: AppUtils.edgeInsetsOnly(top: 10, bottom: 10),
       decoration: BoxDecoration(
@@ -677,7 +617,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
         children: [
           travelInfoRowWidget(
               iconData: Icons.timelapse,
-              textData: totalDuration.toString(),
+              textData: AppUtils.removeMilliseconds(totalDuration),
               typeOfText: "DURATION",
               iconColor: Colors.red),
           travelInfoRowWidget(
