@@ -137,7 +137,7 @@ void onStart(ServiceInstance service) async {
                   if (DateTime.now()
                           .difference(DateTime.parse(waitingStartTime ?? ""))
                           .inSeconds >
-                      30) {
+                      300) {
                     print(
                         "waiting_time${DateTime.now().difference(DateTime.parse(waitingStartTime ?? "")).inSeconds}");
                     print("call_after_30_seconds${isWaiting.value}");
