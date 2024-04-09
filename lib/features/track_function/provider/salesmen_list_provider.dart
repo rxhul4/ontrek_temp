@@ -92,7 +92,8 @@ animatePanel(){
       if (getSalesMenListModel?.isError == false &&
           getSalesMenListModel?.isValidationFailed == false) {
       } else {
-        AppUtils.dialogWidget(getSalesMenListModel?.message ?? "",navigatorKey.currentState!.context);
+        AppUtils.showDialogBoxWithOneButton(text: getSalesMenListModel?.message ?? "",context: navigatorKey.currentState!.context);
+        // AppUtils.dialogWidget(getSalesMenListModel?.message ?? "",navigatorKey.currentState!.context);
       }
     } catch (e) {
       print('catch at GetEmployee_Provider ${e}');

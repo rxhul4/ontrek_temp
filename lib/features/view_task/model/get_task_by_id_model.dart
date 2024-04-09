@@ -1,28 +1,23 @@
-class GetAllTaskModel {
+class GetTaskById {
   bool? isError;
   bool? isValidationFailed;
   String? errorCode;
   String? message;
-  List<Data>? data;
+  Data? data;
 
-  GetAllTaskModel(
+  GetTaskById(
       {this.isError,
         this.isValidationFailed,
         this.errorCode,
         this.message,
         this.data});
 
-  GetAllTaskModel.fromJson(Map<String, dynamic> json) {
+  GetTaskById.fromJson(Map<String, dynamic> json) {
     isError = json['isError'];
     isValidationFailed = json['isValidationFailed'];
     errorCode = json['errorCode'];
     message = json['message'];
-    if (json['data'] != null) {
-      data = <Data>[];
-      json['data'].forEach((v) {
-        data!.add(new Data.fromJson(v));
-      });
-    }
+    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -32,7 +27,7 @@ class GetAllTaskModel {
     data['errorCode'] = this.errorCode;
     data['message'] = this.message;
     if (this.data != null) {
-      data['data'] = this.data!.map((v) => v.toJson()).toList();
+      data['data'] = this.data!.toJson();
     }
     return data;
   }

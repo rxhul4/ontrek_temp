@@ -97,12 +97,13 @@ class AttendanceProvider extends ChangeNotifier {
       if (isAuthenticated) {
         afterSuccessfulVerificationFnc();
       } else {
-        AppUtils.dialogWidget("Authentication Fail! Please Try Again",
-            navigatorKey.currentContext);
+        AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentContext ,text: "Authentication Fail! Please Try Again");
+        // AppUtils.showDialogBoxWithOneButton(navigatorKey.currentContext, "Authentication Fail! Please Try Again", );
       }
     } else {
-      AppUtils.dialogWidget("Biometric Auth is not available on this device",
-          navigatorKey.currentContext);
+      AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentContext ,text: "Biometric Auth is not available on this device");
+      // AppUtils.dialogWidget("Biometric Auth is not available on this device",
+      //     navigatorKey.currentContext);
     }
   }
 
@@ -116,8 +117,7 @@ class AttendanceProvider extends ChangeNotifier {
         position = await Geolocator.getCurrentPosition(
             desiredAccuracy: LocationAccuracy.medium);
       } catch (e) {
-        AppUtils.dialogWidget("Please Enable Your Location Service",
-            navigatorKey!.currentState?.context);
+        AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentContext ,text: "Please Enable Your Location Service");
       }
     }
     return position;
@@ -165,6 +165,7 @@ class AttendanceProvider extends ChangeNotifier {
       createActivityModel = CreateActivityModel.fromJson(json.decode(response));
       print("response : ${response}");
     } catch (e) {
+      AppUtils.showDialogBoxWithOneButton(text: AppConstant.errorText,context: navigatorKey.currentState!.context);
       print("inCatch ${createActivityModel?.message}");
       print("inCatchE $e");
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();

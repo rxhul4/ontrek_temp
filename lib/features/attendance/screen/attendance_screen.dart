@@ -156,8 +156,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       });
     } catch (e) {
       print("catch_at_dayStartApi");
-      AppUtils.dialogWidget(
-          "Something went wrong, Please try again later!", context);
+      AppUtils.showDialogBoxWithOneButton(context: context ,text: "Something went wrong, Please try again later!");
+      // AppUtils.dialogWidget(
+      //     "Something went wrong, Please try again later!", context);
     }
   }
 
@@ -180,8 +181,8 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       });
     } catch (e) {
       print("catch_at_checkInApi");
-      AppUtils.dialogWidget(
-          "Something went wrong, Please try again later!", context);
+      AppUtils.showDialogBoxWithOneButton(context: context ,text: "Something went wrong, Please try again later!");
+
     }
   }
 
@@ -204,8 +205,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       });
     } catch (e) {
       print("catch_at_checkInApi");
-      AppUtils.dialogWidget(
-          "Something went wrong, Please try again later!", context);
+      AppUtils.showDialogBoxWithOneButton(context: context ,text: "Something went wrong, Please try again later!");
     }
   }
 
@@ -581,37 +581,51 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           controller?.forward().whenComplete(() {
             HapticFeedback.vibrate();
             controller?.reset();
-            PreferenceHelper.reload().then((value) {
-              if (kDebugMode) {
-                print(
-                    "value_new_isWaiting${value?.getBool(PreferenceHelper.isWaiting)}");
-              }
-              attendanceProvider.isWaiting.value =
-                  value?.getBool(PreferenceHelper.isWaiting) ?? false;
-              attendanceProvider.doLocalVerification(
-                afterSuccessfulVerificationFnc: () async {
+            AppUtils.showDialogBoxWithTwoButton(
+              context: context,
+              text: "Are you sure you want to end the day?",
+              onSuccessString: "YES",
+              onCancelString: "NO",
+              onSuccess: () {
+                PreferenceHelper.reload().then((value) {
                   if (kDebugMode) {
                     print(
-                        "isWaiting_from_UI${attendanceProvider.isWaiting.value}");
+                        "value_new_isWaiting${value?.getBool(PreferenceHelper.isWaiting)}");
                   }
-                  attendanceProvider
-                      .getCurrentLocation()
-                      .then((position) async {
-                    print(
-                        "condtion${attendanceProvider.isWaiting.value == true}");
-                    if (attendanceProvider.isWaiting.value == true) {
-                      await callWaitingEndApi(
-                          postMdl: postMdl,
-                          position: position,
-                          dayEnd: true,
-                          checkIn: false);
-                    } else {
-                      await callDayEndApiAndUpdateUI(postMdl);
-                    }
-                  });
-                },
-              );
-            });
+                  attendanceProvider.isWaiting.value =
+                      value?.getBool(PreferenceHelper.isWaiting) ?? false;
+                  attendanceProvider.doLocalVerification(
+                    afterSuccessfulVerificationFnc: () async {
+                      if (kDebugMode) {
+                        print(
+                            "isWaiting_from_UI${attendanceProvider.isWaiting.value}");
+                      }
+                      attendanceProvider
+                          .getCurrentLocation()
+                          .then((position) async {
+                        print(
+                            "condtion${attendanceProvider.isWaiting.value == true}");
+                        if (attendanceProvider.isWaiting.value == true) {
+                          await callWaitingEndApi(
+                              postMdl: postMdl,
+                              position: position,
+                              dayEnd: true,
+                              checkIn: false);
+                        } else {
+                          await callDayEndApiAndUpdateUI(postMdl);
+                        }
+                      });
+                    },
+                  );
+                });
+              },
+              onCancel: (){
+                setState(() {
+                  isFromLogOutButton = false;
+                });
+              }
+            );
+
           });
         },
         onTapUp: (details) {

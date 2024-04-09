@@ -111,8 +111,9 @@ class AuthenticationProvider extends ChangeNotifier {
           appUserId: loginModel?.data?.appUserId,
         ));
       } else {
-        AppUtils.dialogWidget(
-            loginModel?.message ?? "", navigatorKey.currentState!.context);
+        AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentState!.context ,text:  loginModel?.message ?? "");
+        // AppUtils.dialogWidget(
+        //     loginModel?.message ?? "", navigatorKey.currentState!.context);
       }
     } catch (e) {
       print("inCatch ${loginModel?.message}");
@@ -158,8 +159,7 @@ class AuthenticationProvider extends ChangeNotifier {
           navigatePushReplacementFnc(DashBoard());
         });
       } else {
-        AppUtils.dialogWidget(
-            loginModel?.message ?? "", navigatorKey.currentState!.context);
+        AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentState!.context ,text:  loginModel?.message ?? "");
       }
     } catch (e) {
       print("inCatch ${loginModel?.message}");

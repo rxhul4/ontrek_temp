@@ -6,6 +6,8 @@ import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/features/task_list/model/task_model.dart';
+import 'package:ontrek/main.dart';
+import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class TaskProvider extends ChangeNotifier{
   bool _isFetching = false;
@@ -21,10 +23,12 @@ class TaskProvider extends ChangeNotifier{
 
   bool get isAdding => _isAdding;
 
-  GetTaskModel? getTaskModel;
+  GetAllTaskModel? getAllTaskModel;
+  PanelController panelController = PanelController();
+  DateTime selectedDate = DateTime.now();
 
 
-  Future<GetTaskModel?> apiCallGetTaskByIdList(
+  Future<GetAllTaskModel?> apiCallGetTaskByIdList(
       {String? date, String? userId,String? orgId}) async {
     var userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
     var orgId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
@@ -32,28 +36,31 @@ class TaskProvider extends ChangeNotifier{
     notifyListeners();
     Map<String, dynamic> body =
     {
-    "orgId": orgId,
-    "userId": userId,
-    "date": date
+      "orgId": orgId,
+      "userId": userId,
+      "date": date
     };
     try {
       String endPoint = ApiConstants.getAllTaskByUserId;
-
       var response = await callPostMethod(endPoint,body);
-      getTaskModel = GetTaskModel.fromJson(json.decode(response));
-      print('response ${getTaskModel?.toJson()}');
+      getAllTaskModel = GetAllTaskModel.fromJson(json.decode(response));
+      print('response ${getAllTaskModel?.toJson()}');
+      if(getAllTaskModel?.isError == false && getAllTaskModel?.isValidationFailed == false){
+
+      }
     } catch (e) {
-      print('catch at Get Task Provider ${e}');
+      print('catch at Get Task Provider $e');
+      AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentContext,text: getAllTaskModel?.message ?? "");
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
       if (!isInternetAvailable) {
-        getTaskModel = GetTaskModel(
+        getAllTaskModel = GetAllTaskModel(
             message: "Internet is not available, please try again!");
       } else {
-        getTaskModel = GetTaskModel(message: "Something went wrong!");
+        getAllTaskModel = GetAllTaskModel(message: "Something went wrong!");
       }
     }
     _isFetching = false;
     notifyListeners();
-    return getTaskModel;
+    return getAllTaskModel;
   }
 }

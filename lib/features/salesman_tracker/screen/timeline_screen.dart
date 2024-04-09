@@ -128,7 +128,10 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
         ));
       }
     }
+    if(polylineCoordinates.length > 0){
+      updateCameraPosition(polylineCoordinates.first);
 
+    }
     print("length_of_array_data${polylineCoordinates.length}");
     return polylineCoordinates;
   }
@@ -218,7 +221,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                             totalDuration: "00:00:00",
                             totalKMTravel: "0.0")
                         : informationBar(
-                            totalCheckIn: saleMenTimeLineProvider
+                            totalCheckIn:  saleMenTimeLineProvider
                                 .getTimeLineModel?.data?.sessionTimeLine
                                 ?.firstWhere((element) =>
                                     element.sessionNo == selectedIndex)
@@ -675,6 +678,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
               onTap: () {
                 setState(() {
                   selectedDate = selectedDate?.subtract(Duration(days: 1));
+                  selectedIndex = 0;
                 });
                 saleMenTimeLineProvider.apiCallGetTimeLine(
                     userid: widget.userId, date: selectedDate.toString());
@@ -703,6 +707,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
             onTap: () {
               setState(() {
                 selectedDate = selectedDate?.add(Duration(days: 1));
+                selectedIndex = 0;
               });
               saleMenTimeLineProvider.apiCallGetTimeLine(
                   userid: widget.userId, date: selectedDate.toString());
@@ -758,8 +763,6 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
     if (picked != null && picked != selectedDate) {
       setState(() {
         selectedDate = picked;
-        // historyDateController.text =
-        //     dateFormat.format(picked); // Format date as dd-MM-yyyy
       });
       // callGetTimeline(getMdl);
     }

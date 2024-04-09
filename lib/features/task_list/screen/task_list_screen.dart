@@ -1,15 +1,14 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/image_path.dart';
-import 'package:ontrek/features/add_task/screen/add_task_screen.dart';
 import 'package:ontrek/features/task_list/model/task_model.dart';
 import 'package:ontrek/features/task_list/provider/task_provider.dart';
+import 'package:ontrek/features/view_task/screen/view_task_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
@@ -24,61 +23,48 @@ class TaskListScreen extends StatefulWidget {
 
 class _TaskListScreenState extends State<TaskListScreen>
     with TickerProviderStateMixin {
-  DateTime? selectedDate;
-  PanelController panelController = PanelController();
   late TabController tabController;
   int selectedIndex = 0;
   bool isRefreshing = false;
-  GetTaskModel? getTaskModel;
+  GetAllTaskModel? getTaskModel;
+  late TaskProvider taskProvider;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    selectedDate = DateTime.now();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      panelController.animatePanelToSnapPoint(
-          duration: Duration(milliseconds: 0));
-      final getMdl = Provider.of<TaskProvider>(context, listen: false);
-      callGetSalesManListApi(getMdl);
+      taskProvider = Provider.of<TaskProvider>(context, listen: false);
+      taskProvider.panelController
+          .animatePanelToSnapPoint(duration: const Duration(milliseconds: 0));
+      taskProvider.selectedDate = DateTime.now();
+      callCallGetTaskByIdListApi(taskProvider: taskProvider);
     });
     tabController = TabController(length: 2, vsync: this);
-    tabController.addListener(() {
-      setState(() {
-        selectedIndex = tabController.index;
-      });
-    });
   }
 
-  callGetSalesManListApi(TaskProvider getMdl) {
+  callCallGetTaskByIdListApi({required TaskProvider taskProvider}) {
     if (kDebugMode) {
       print("taskApi");
     }
-
-    getMdl
-        .apiCallGetTaskByIdList(
-            date: AppUtils.getDate(
-                date: selectedDate.toString(), format: AppConstant.dateFormat))
-        .then((value) {
-      getTaskModel = value;
-      if (getTaskModel?.isError == false &&
-          getTaskModel?.isValidationFailed == false) {
-      } else {
-        if(!mounted){}
-        AppUtils.dialogWidget(getTaskModel?.message ?? "",context);
-      }
-    });
+    taskProvider.apiCallGetTaskByIdList(
+      date: AppUtils.getDate(
+          date: taskProvider.selectedDate.toString(),
+          format: AppConstant.dateFormat),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    taskProvider = Provider.of<TaskProvider>(context);
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
     return AppUtils.commonSlidePanel(
       panelSnapping: true,
       maxHeight: height,
       minHeight: height * 0.09,
-      controller: panelController,
+      controller: taskProvider.panelController,
       isDraggable: true,
       snapPoint: 0.35,
       panelBuilder: (p0) {
@@ -93,13 +79,17 @@ class _TaskListScreenState extends State<TaskListScreen>
                     onTap: openDatePicker,
                   ),
                   AppUtils.commonSizedBox(width: 10),
-                  commonIconWidget(iconData: Icons.repeat, onTap: refresh),
+                  commonIconWidget(
+                    iconData: Icons.repeat,
+                    onTap: () {
+                      callCallGetTaskByIdListApi(taskProvider: taskProvider);
+                    },
+                  ),
                 ],
                 title: "Task",
                 subTitle: "Select a Task",
                 backgroundColor: AppConstant.whiteColor,
-                leadingImage:
-                    taskIconPath),
+                leadingImage: taskIconPath),
             AppUtils.commonContainer(
               height: 30,
               margin: EdgeInsets.only(top: 20, left: 30, right: 30, bottom: 20),
@@ -108,12 +98,17 @@ class _TaskListScreenState extends State<TaskListScreen>
                 borderRadius: AppUtils.borderRadiusAll(raduis: 5),
               ),
               child: TabBar.secondary(
-                  physics: NeverScrollableScrollPhysics(),
+                  onTap: (value) {
+                    setState(() {
+                      selectedIndex = value;
+                    });
+                    callCallGetTaskByIdListApi(taskProvider: taskProvider);
+                  },
+                  physics: const NeverScrollableScrollPhysics(),
                   isScrollable: false,
                   indicatorSize: TabBarIndicatorSize.tab,
                   controller: tabController,
                   padding: AppUtils.edgeInsetsAll(allPadding: 2),
-                  // enableFeedback: true,
                   labelColor: Colors.white,
                   unselectedLabelStyle: const TextStyle(
                     fontFamily: "Poppins",
@@ -168,7 +163,7 @@ class _TaskListScreenState extends State<TaskListScreen>
 
   //assigned to me
   Widget assignedToMeTabBar(height, width, p0) {
-    return isRefreshing
+    return taskProvider.isFetching
         ? Column(
             children: [
               Padding(
@@ -179,38 +174,50 @@ class _TaskListScreenState extends State<TaskListScreen>
               ),
             ],
           )
-        : Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              AppUtils.commonSizedBox(height: 15),
-              AppUtils.commonSizedBox(
-                height: 100,
-                child: const Image(
-                  image: NetworkImage(
-                      'https://img.freepik.com/free-vector/phone-customization-concept-illustration_114360-4313.jpg?w=740&t=st=1706681307~exp=1706681907~hmac=8f1c6ec99afe4718ced3a79d82c4a2ac18e02ac10e72275d713f62911d901586'),
+        : (taskProvider.getAllTaskModel?.data?.length ?? 0) <= 0 ||
+                taskProvider.getAllTaskModel?.data == null
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  AppUtils.commonSizedBox(height: 15),
+                  AppUtils.commonSizedBox(
+                    height: 100,
+                    child: const Image(
+                      image: AssetImage(noDataFound),
+                    ),
+                  ),
+                  AppUtils.commonTextWidget(
+                    text: 'No task assigned!',
+                    textColor: AppConstant.blackColor.withOpacity(0.6),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0,
+                  ),
+                  AppUtils.commonTextWidget(
+                      letterSpacing: 0,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      text: 'New task will be notified',
+                      textColor: AppConstant.blackColor.withOpacity(0.5)),
+                ],
+              )
+            : SingleChildScrollView(
+                controller: p0,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.only(left: 10, right: 10, bottom: 100),
+                  child: taskListWidget(taskProvider.getAllTaskModel?.data
+                          ?.where((element) => element.taskStatus == "Assigned")
+                          .toList() ??
+                      []),
                 ),
-              ),
-              AppUtils.commonTextWidget(
-                text: 'No task assigned!',
-                textColor: AppConstant.blackColor.withOpacity(0.6),
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0,
-              ),
-              AppUtils.commonTextWidget(
-                  letterSpacing: 0,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                  text: 'New task will be notified',
-                  textColor: AppConstant.blackColor.withOpacity(0.5)),
-            ],
-          );
+              );
   }
 
   //All Task
   Widget allTaskTabBar(height, width, p0) {
-    return isRefreshing
+    return taskProvider.isFetching
         ? Column(
             children: [
               Padding(
@@ -219,338 +226,248 @@ class _TaskListScreenState extends State<TaskListScreen>
               ),
             ],
           )
-        // : Column(
-        //     children: [
-        //       AppUtils.commonSizedBox(height: 15),
-        //       AppUtils.commonSizedBox(
-        //         height: 100,
-        //         child: const Image(
-        //           image: NetworkImage(
-        //               'https://img.freepik.com/free-vector/phone-customization-concept-illustration_114360-4313.jpg?w=740&t=st=1706681307~exp=1706681907~hmac=8f1c6ec99afe4718ced3a79d82c4a2ac18e02ac10e72275d713f62911d901586'),
-        //         ),
-        //       ),
-        //       AppUtils.commonTextWidget(
-        //         text: 'No task assigned!',
-        //         textColor: AppConstant.blackColor.withOpacity(0.6),
-        //         fontSize: 14,
-        //         fontWeight: FontWeight.w500,
-        //         letterSpacing: 0,
-        //       ),
-        //       AppUtils.commonTextWidget(
-        //           letterSpacing: 0,
-        //           fontSize: 12,
-        //           fontWeight: FontWeight.w400,
-        //           text: 'New task will be notified',
-        //           textColor: AppConstant.blackColor.withOpacity(0.5)),
-        //     ],
-        //   );
-        : SingleChildScrollView(
-            controller: p0,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 10, right: 10, bottom: 100),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        : taskProvider.getAllTaskModel?.data?.length == null ||
+                (taskProvider.getAllTaskModel?.data?.length ?? 0) <= 0
+            ? Column(
                 children: [
-                  AppUtils.commonTextWidget(
-                      text: "Active Task",
-                      fontSize: 12,
-                      textColor: AppConstant.blackColor.withOpacity(0.9),
-                      fontWeight: FontWeight.w500),
-                  activeTaskList(),
                   AppUtils.commonSizedBox(height: 15),
+                  AppUtils.commonSizedBox(
+                    height: 100,
+                    child: const Image(
+                      image: AssetImage(noDataFound),
+                    ),
+                  ),
                   AppUtils.commonTextWidget(
-                      text: "Overdue Task",
+                    text: 'No task assigned!',
+                    textColor: AppConstant.blackColor.withOpacity(0.6),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0,
+                  ),
+                  AppUtils.commonTextWidget(
+                      letterSpacing: 0,
                       fontSize: 12,
-                      textColor: AppConstant.blackColor.withOpacity(0.9),
-                      fontWeight: FontWeight.w500),
-                  overDueTaskList(),
+                      fontWeight: FontWeight.w400,
+                      text: 'New task will be notified',
+                      textColor: AppConstant.blackColor.withOpacity(0.5)),
                 ],
+              )
+            : SingleChildScrollView(
+                controller: p0,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.only(left: 10, right: 10, bottom: 100),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AppUtils.commonTextWidget(
+                          text: "Active Task",
+                          fontSize: 12,
+                          textColor: AppConstant.blackColor.withOpacity(0.9),
+                          fontWeight: FontWeight.w500),
+                      taskListWidget(taskProvider.getAllTaskModel?.data
+                              ?.where(
+                                  (element) => element.taskStatus != "Overdue")
+                              .toList() ??
+                          []),
+                      AppUtils.commonSizedBox(height: 15),
+                      AppUtils.commonTextWidget(
+                          text: "Overdue Task",
+                          fontSize: 12,
+                          textColor: AppConstant.blackColor.withOpacity(0.9),
+                          fontWeight: FontWeight.w500),
+                      taskListWidget(taskProvider.getAllTaskModel?.data
+                              ?.where(
+                                  (element) => element.taskStatus == "Overdue")
+                              .toList() ??
+                          []),
+                    ],
+                  ),
+                ),
+              );
+  }
+
+  Widget taskListWidget(List<Data> allTaskDataList) {
+    return (allTaskDataList.length ?? 0) <= 0
+        ? Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              AppUtils.commonSizedBox(height: 15),
+              Center(
+                child: AppUtils.commonSizedBox(
+                  height: 100,
+                  child: const Image(
+                    image: AssetImage(noDataFound),
+                  ),
+                ),
               ),
-            ),
+              AppUtils.commonTextWidget(
+                text: 'No Overdue task Found',
+                textColor: AppConstant.blackColor.withOpacity(0.6),
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0,
+              ),
+            ],
+          )
+        : ListView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            itemCount: allTaskDataList.length,
+            itemBuilder: (context, index) {
+              return GestureDetector(
+                onTap: () {
+                  print("index$index");
+                  Navigator.push(
+                      context,
+                      CupertinoPageRoute(
+                        builder: (context) => ViewTaskScreen(
+                            taskFormId: taskProvider
+                                .getAllTaskModel?.data?[index].taskFormId),
+                      ));
+                },
+                child: AppUtils.commonContainer(
+                    margin: AppUtils.edgeInsetsOnly(
+                      top: 12,
+                    ),
+                    padding: AppUtils.edgeInsetsOnly(
+                        left: 10, right: 10, top: 10, bottom: 10),
+                    width: double.infinity,
+                    decoration: AppUtils.commonBoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: AppConstant.whiteColor,
+                        boxShadow: [
+                          BoxShadow(
+                              color: AppConstant.greyColor.withOpacity(0.2),
+                              blurRadius: 8,
+                              blurStyle: BlurStyle.solid,
+                              spreadRadius: 0.1),
+                        ]),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            commonIconWidget(
+                                iconData: Icons.calendar_month_rounded,
+                                size: 16,
+                                iconColor:
+                                    AppConstant.greyColor.withOpacity(0.8)),
+                            AppUtils.commonSizedBox(width: 5),
+                            AppUtils.commonTextWidget(
+                                text: AppUtils.getDate(
+                                    date:
+                                        allTaskDataList[index].createdOn ?? "",
+                                    format: "dd MMM yyyy"),
+                                textColor:
+                                    AppConstant.greyColor.withOpacity(0.8),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500)
+                          ],
+                        ),
+                        AppUtils.commonSizedBox(height: 5),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                                child: AppUtils.commonTextWidget(
+                                    text:
+                                        "${allTaskDataList[index].taskTitle} - ${allTaskDataList[index].taskDescription} ",
+                                    textColor:
+                                        AppConstant.blackColor.withOpacity(0.9),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    overflow: TextOverflow.ellipsis,
+                                    letterSpacing: -0.1)),
+                            AppUtils.commonSizedBox(width: 15),
+                            AppUtils.commonTextWidget(
+                                text: AppUtils.getDate(
+                                    date:
+                                        allTaskDataList[index].createdOn ?? "",
+                                    format: "hh:mm a"),
+                                textColor:
+                                    AppConstant.blackColor.withOpacity(0.9),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                overflow: TextOverflow.ellipsis,
+                                margin: AppUtils.edgeInsetsOnly(left: 10)),
+                          ],
+                        ),
+                        AppUtils.commonSizedBox(height: 5),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Expanded(
+                            //   child: Row(
+                            //     children: [
+                            //       Icon(
+                            //         Icons.location_on,
+                            //         size: 14,
+                            //         color: AppConstant.appPrimaryColor,
+                            //       ),
+                            //       Expanded(
+                            //           child: AppUtils.commonTextWidget(
+                            //               text: "Tomato's Restaurant uisadjfasfhg",
+                            //               textColor:
+                            //                   AppConstant.greyColor.withOpacity(0.8),
+                            //               fontSize: 10,
+                            //               fontWeight: FontWeight.w500,
+                            //               overflow: TextOverflow.ellipsis)),
+                            //       AppUtils.commonSizedBox(width: 10),
+                            //     ],
+                            //   ),
+                            // ),
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.person,
+                                    size: 14,
+                                    color: Colors.red,
+                                  ),
+                                  AppUtils.commonSizedBox(width: 5),
+                                  Expanded(
+                                      child: AppUtils.commonTextWidget(
+                                          text: allTaskDataList[index]
+                                                  .createdBy ??
+                                              "",
+                                          textColor: AppConstant.greyColor
+                                              .withOpacity(0.8),
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w500,
+                                          overflow: TextOverflow.ellipsis)),
+                                  AppUtils.commonSizedBox(width: 30),
+                                ],
+                              ),
+                            ),
+                            AppUtils.commonContainer(
+                                padding: AppUtils.edgeInsetsOnly(
+                                    bottom: 3, top: 3, left: 10, right: 10),
+                                decoration: AppUtils.commonBoxDecoration(
+                                    borderRadius: BorderRadius.circular(6),
+                                    color: AppUtils.switchCaseForTaskStatus(
+                                        allTaskDataList[index].taskStatus ??
+                                            "")),
+                                child: AppUtils.commonTextWidget(
+                                    text:
+                                        allTaskDataList[index].taskStatus ?? "",
+                                    fontWeight: FontWeight.w400,
+                                    textColor: AppConstant.whiteColor,
+                                    fontSize: 10))
+                          ],
+                        )
+                      ],
+                    )),
+              );
+            },
           );
-  }
-
-  Widget activeTaskList() {
-    return ListView.builder(
-      physics: NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      itemCount: 15,
-      itemBuilder: (context, index) {
-        return AppUtils.commonContainer(
-            margin: AppUtils.edgeInsetsOnly(
-              top: 12,
-            ),
-            padding: AppUtils.edgeInsetsOnly(
-                left: 10, right: 10, top: 10, bottom: 10),
-            width: double.infinity,
-            decoration: AppUtils.commonBoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: AppConstant.whiteColor,
-                boxShadow: [
-                  BoxShadow(
-                      color: AppConstant.greyColor.withOpacity(0.2),
-                      blurRadius: 8,
-                      blurStyle: BlurStyle.solid,
-                      spreadRadius: 0.1
-                  ),
-                ]),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // AppUtils.commonContainer(
-                //   width: 50,
-                //   height: 50,
-                //   color: Colors.red
-                // ),
-                Row(
-                  children: [
-                    commonIconWidget(
-                        iconData: Icons.calendar_month_rounded,
-                        size: 16,
-                        iconColor: AppConstant.greyColor.withOpacity(0.8)),
-                    AppUtils.commonSizedBox(width: 5),
-                    AppUtils.commonTextWidget(
-                        text: "28 Feb 2024",
-                        textColor: AppConstant.greyColor.withOpacity(0.8),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500)
-                  ],
-                ),
-                AppUtils.commonSizedBox(height: 5),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                        child: AppUtils.commonTextWidget(
-                            text:
-                                "Test Customer - Payment Collectionsdjlkasdfgasd",
-                            textColor: AppConstant.blackColor.withOpacity(0.9),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            overflow: TextOverflow.ellipsis,
-                            letterSpacing: -0.1)),
-                    AppUtils.commonSizedBox(width: 15),
-                    AppUtils.commonTextWidget(
-                        text: "11:42 AM",
-                        textColor: AppConstant.blackColor.withOpacity(0.9),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        overflow: TextOverflow.ellipsis,
-                        margin: AppUtils.edgeInsetsOnly(left: 10)),
-                  ],
-                ),
-                // AppUtils.commonSizedBox(height: 5),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.location_on,
-                            size: 14,
-                            color: AppConstant.appPrimaryColor,
-                          ),
-                          Expanded(
-                              child: AppUtils.commonTextWidget(
-                                  text: "Tomato's Restaurant uisadjfasfhg",
-                                  textColor:
-                                      AppConstant.greyColor.withOpacity(0.8),
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w500,
-                                  overflow: TextOverflow.ellipsis)),
-                          AppUtils.commonSizedBox(width: 10),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.person,
-                            size: 14,
-                            color: Colors.red,
-                          ),
-                          Expanded(
-                              child: AppUtils.commonTextWidget(
-                                  text: "Mahesh Patelsjdfkjsadfjkasdhkfj",
-                                  textColor:
-                                      AppConstant.greyColor.withOpacity(0.8),
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w500,
-                                  overflow: TextOverflow.ellipsis)),
-                          AppUtils.commonSizedBox(width: 30),
-                        ],
-                      ),
-                    ),
-                    AppUtils.commonContainer(
-                        padding: AppUtils.edgeInsetsOnly(
-                            bottom: 3, top: 3, left: 15, right: 15),
-                        decoration: AppUtils.commonBoxDecoration(
-                            borderRadius: BorderRadius.circular(6),
-                            color: Colors.red),
-                        child: AppUtils.commonTextWidget(
-                            text: "Overdue",
-                            fontWeight: FontWeight.w400,
-                            textColor: AppConstant.whiteColor,
-                            fontSize: 10))
-                  ],
-                )
-              ],
-            ));
-      },
-    );
-  }
-
-  Widget overDueTaskList() {
-    return ListView.builder(
-      physics: NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      itemCount: 15,
-      itemBuilder: (context, index) {
-        return AppUtils.commonContainer(
-            margin: AppUtils.edgeInsetsOnly(
-              top: 12,
-            ),
-            padding: AppUtils.edgeInsetsOnly(
-                left: 10, right: 10, top: 12, bottom: 12),
-            width: double.infinity,
-            decoration: AppUtils.commonBoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: AppConstant.whiteColor,
-                boxShadow: [
-                  BoxShadow(
-                      color: AppConstant.greyColor.withOpacity(0.2),
-                      blurRadius: 8,
-                      blurStyle: BlurStyle.solid,
-                      spreadRadius: 0.1
-                  ),
-                ]),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // AppUtils.commonContainer(
-                //   width: 50,
-                //   height: 50,
-                //   color: Colors.red
-                // ),
-                Row(
-                  children: [
-                    commonIconWidget(
-                        iconData: Icons.calendar_month_rounded,
-                        size: 16,
-                        iconColor: AppConstant.greyColor.withOpacity(0.8)),
-                    AppUtils.commonSizedBox(width: 5),
-                    AppUtils.commonTextWidget(
-                        text: "28 Feb 2024",
-                        textColor: AppConstant.greyColor.withOpacity(0.8),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500)
-                  ],
-                ),
-                AppUtils.commonSizedBox(height: 5),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                        child: AppUtils.commonTextWidget(
-                            text:
-                                "Test Customer - Payment Collectionsdjlkasdfgasd",
-                            textColor: AppConstant.blackColor.withOpacity(0.9),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            overflow: TextOverflow.ellipsis,
-                            letterSpacing: -0.1)),
-                    AppUtils.commonSizedBox(width: 15),
-                    AppUtils.commonTextWidget(
-                        text: "11:42 AM",
-                        textColor: AppConstant.blackColor.withOpacity(0.9),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        overflow: TextOverflow.ellipsis,
-                        margin: AppUtils.edgeInsetsOnly(left: 10)),
-                  ],
-                ),
-                // AppUtils.commonSizedBox(height: 5),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.location_on,
-                            size: 14,
-                            color: AppConstant.appPrimaryColor,
-                          ),
-                          Expanded(
-                              child: AppUtils.commonTextWidget(
-                                  text: "Tomato's Restaurant uisadjfasfhg",
-                                  textColor:
-                                      AppConstant.greyColor.withOpacity(0.8),
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w500,
-                                  overflow: TextOverflow.ellipsis)),
-                          AppUtils.commonSizedBox(width: 10),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.person,
-                            size: 14,
-                            color: Colors.red,
-                          ),
-                          Expanded(
-                              child: AppUtils.commonTextWidget(
-                                  text: "Mahesh Patelsjdfkjsadfjkasdhkfj",
-                                  textColor:
-                                      AppConstant.greyColor.withOpacity(0.8),
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w500,
-                                  overflow: TextOverflow.ellipsis)),
-                          AppUtils.commonSizedBox(width: 30),
-                        ],
-                      ),
-                    ),
-                    AppUtils.commonContainer(
-                        padding: AppUtils.edgeInsetsOnly(
-                            bottom: 3, top: 3, left: 15, right: 15),
-                        decoration: AppUtils.commonBoxDecoration(
-                            borderRadius: BorderRadius.circular(6),
-                            color: Colors.red),
-                        child: AppUtils.commonTextWidget(
-                            text: "Overdue",
-                            fontWeight: FontWeight.w400,
-                            textColor: AppConstant.whiteColor,
-                            fontSize: 10))
-                  ],
-                )
-              ],
-            ));
-      },
-    );
-  }
-
-  refresh() async {
-    setState(() {
-      isRefreshing = true;
-    });
-
-    // Simulate a delay to show the refresh indicator for 3 seconds.
-    await Future.delayed(const Duration(seconds: 3));
-
-    setState(() {
-      isRefreshing = false;
-    });
   }
 
   Future<void> openDatePicker() async {
     DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: selectedDate ?? DateTime.now(),
+      initialDate: taskProvider.selectedDate,
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
       initialEntryMode: DatePickerEntryMode.calendarOnly,
@@ -577,22 +494,11 @@ class _TaskListScreenState extends State<TaskListScreen>
       },
     );
 
-    if (picked != null && picked != selectedDate) {
+    if (picked != null && picked != taskProvider.selectedDate) {
       setState(() {
-        selectedDate = picked;
-        // historyDateController.text =
-        //     dateFormat.format(picked); // Format date as dd-MM-yyyy
+        taskProvider.selectedDate = picked;
       });
-      // callGetTimeline(getMdl);
+      callCallGetTaskByIdListApi(taskProvider: taskProvider);
     }
-  }
-
-  Future NavigateToAddTaskScreen() async {
-    Navigator.push(
-        context,
-        DialogRoute(
-          context: context,
-          builder: (context) => AddTaskScreen(),
-        ));
   }
 }

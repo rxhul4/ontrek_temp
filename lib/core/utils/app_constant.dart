@@ -17,6 +17,8 @@ class AppConstant {
   static const String  trackingWaitingStopEvent = "714a0fbe-5485-4207-a147-b626738a5f2c" ;
 
 
+  // error Message
+  static const String  errorText = "Something went wrong!" ;
   // date format
   static const String dateFormat= "yyyy-MM-dd'T'HH:mm:ss";
 

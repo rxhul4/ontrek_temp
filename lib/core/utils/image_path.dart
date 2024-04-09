@@ -21,5 +21,7 @@ const logoImagePath = "$assetsBasePath/images/logo.png";
 const locationPermissionImage = "$assetsBasePath/images/location_permission_image.jpg";
 const profileImage = "$assetsBasePathImage/profileImage.png";
 const mobileVerificationImage = "$assetsBasePathImage/mobile_verification.jpg";
+const noDataFound = "$assetsBasePathImage/no_data_found.jpg";
+
 
 

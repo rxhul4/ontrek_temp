@@ -28,6 +28,7 @@ import 'package:ontrek/features/dashboard/provider/dashboard_provider.dart';
 import 'package:ontrek/features/leads/provider/lead_provider.dart';
 import 'package:ontrek/features/salesman_tracker/provider/salesmen_tracking_timeline_provider.dart';
 import 'package:ontrek/features/task_list/provider/task_provider.dart';
+import 'package:ontrek/features/view_task/provider/view_task_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
@@ -62,6 +63,9 @@ List<SingleChildWidget> providers = [
   ),
   ChangeNotifierProvider<LeadProvider>(
     create: (_) => LeadProvider(),
+  ),
+  ChangeNotifierProvider<ViewTaskProvider>(
+    create: (_) => ViewTaskProvider(),
   ),
 ];
 

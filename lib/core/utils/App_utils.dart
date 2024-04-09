@@ -1,6 +1,7 @@
 import 'package:battery_plus/battery_plus.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:geolocator/geolocator.dart';
@@ -21,10 +22,6 @@ class AppUtils {
       throw Exception('Could not launch $url');
     }
   }
-
-
-
-
 
   static getBatteryLevel() async {
     var battery = Battery();
@@ -177,6 +174,103 @@ class AppUtils {
       // alignment: alignment ?? Alignment.center,
       color: iconColor,
       fit: boxFit ?? BoxFit.cover,
+    );
+  }
+
+  static Widget taskTile({String? titleText,String? username,String? date}){
+    return     AppUtils.commonContainer(
+      width: double.infinity,
+      margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
+      padding: const EdgeInsets.only(left: 15, right: 15, top: 20,bottom: 20),
+      decoration: BoxDecoration(
+          color: AppConstant.whiteColor,
+          borderRadius: AppUtils.borderRadiusAll(raduis: 10),
+          boxShadow: [
+            BoxShadow(
+                color: AppConstant.greyColor.withOpacity(0.3),
+                blurRadius: 8,
+                blurStyle: BlurStyle.solid,
+                spreadRadius: 0.8),
+          ]),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.person,
+                color: AppConstant.appPrimaryColor,
+                size: 18,
+              ),
+              AppUtils.commonSizedBox(width: 5),
+              AppUtils.commonTextWidget(
+                  text: titleText ??"",
+                  fontSize: 12,
+                  textColor:
+                  AppConstant.blackColor.withOpacity(0.9),
+                  fontWeight: FontWeight.w500),
+            ],
+          ),
+          AppUtils.commonSizedBox(height: 5),
+          Divider(
+            color: AppConstant.greyColor.withOpacity(0.3),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+
+              Container(
+                margin: EdgeInsets.only(right: 5),
+                // padding: EdgeInsets.all(18),
+                padding: EdgeInsets.all(10),
+                height: 40,
+                width: 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color:
+                  Colors.grey.withOpacity(0.3),
+                  border: Border.all(
+                      color:
+                      Colors.red.withOpacity(0.7),
+                      width: 1),
+                ),
+                child: Center(
+                  child: AppUtils.commonNetworkImageWidget(
+                      path: profileImage,
+                      boxFit: BoxFit.cover,
+                      iconColor:
+                      AppConstant.appPrimaryColor,
+                      height: 25,
+                      width: 25),
+                ),
+              ),
+              AppUtils.commonSizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AppUtils.commonTextWidget(
+                    text: username ?? "",
+                    fontWeight: FontWeight.w500,
+                    textColor: Colors.black,
+                    letterSpacing: 0.3,
+                    fontSize: 12,
+                  ),
+                  AppUtils.commonTextWidget(
+                    text:  AppUtils.getDate(date:  date ?? "", format: "dd MMM yyyy hh:mm a") ,
+                    fontWeight: FontWeight.w400,
+                    textColor: Colors.black.withOpacity(0.7),
+                    letterSpacing: 0.0,
+                    fontSize: 10,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -436,62 +530,55 @@ class AppUtils {
     );
   }
 
-  static dialogWidget(String text, BuildContext? context) {
-    return showDialog(
-      context: context ?? navigatorKey.currentState!.context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(10))),
-          // Remove border radius
-          insetPadding: const EdgeInsets.all(40),
-          titlePadding: const EdgeInsets.all(0),
-          contentPadding:
-              const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Text(text, textAlign: TextAlign.center,),
-              AppUtils.commonTextWidget(
-                  text: text,
-                  textAlign: TextAlign.center,
-                  textColor: AppConstant.blackColor,
-                  fontWeight: FontWeight.w400),
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    style: TextButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10))),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: AppUtils.commonTextWidget(
-                        text: "OK",
-                        textColor: AppConstant.appPrimaryColor,
-                        letterSpacing: 1,
-                        fontWeight: FontWeight.w600),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
+  // static dialogWidget(String text, BuildContext? context) {
+  //   return showDialog(
+  //     context: context ?? navigatorKey.currentState!.context,
+  //     builder: (context) {
+  //       return AlertDialog(
+  //         shape: RoundedRectangleBorder(
+  //             borderRadius: BorderRadius.all(Radius.circular(10))),
+  //         // Remove border radius
+  //         insetPadding: const EdgeInsets.all(40),
+  //         titlePadding: const EdgeInsets.all(0),
+  //         contentPadding:
+  //             const EdgeInsets.only(top: 30, bottom: 10, left: 20, right: 20),
+  //         content: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             // Text(text, textAlign: TextAlign.center,),
+  //             AppUtils.commonTextWidget(
+  //                 text: text,
+  //                 textAlign: TextAlign.center,
+  //                 textColor: AppConstant.blackColor,
+  //                 fontWeight: FontWeight.w400),
+  //             const SizedBox(height: 10),
+  //             Row(
+  //               mainAxisAlignment: MainAxisAlignment.end,
+  //               children: [
+  //                 TextButton(
+  //                   style: TextButton.styleFrom(
+  //                       shape: RoundedRectangleBorder(
+  //                           borderRadius: BorderRadius.circular(10))),
+  //                   onPressed: () {
+  //                     Navigator.pop(context);
+  //                   },
+  //                   child: AppUtils.commonTextWidget(
+  //                       text: "OK",
+  //                       textColor: AppConstant.appPrimaryColor,
+  //                       letterSpacing: 1,
+  //                       fontWeight: FontWeight.w600),
+  //                 ),
+  //               ],
+  //             ),
+  //           ],
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
   static loaderWidget({Color? color, double? strokeAlign}) {
-    return Center(
-      child: CircularProgressIndicator(
-        strokeWidth: 2,
-        strokeCap: StrokeCap.round,
-        strokeAlign: strokeAlign ?? 0.5,
-        color: color ?? AppConstant.appPrimaryColor,
-      ),
-    );
+    return Center(child: CupertinoActivityIndicator(animating: true,radius: 15,));
   }
 
   static Widget commonSizedBox({
@@ -553,9 +640,6 @@ class AppUtils {
   }) {
     return EdgeInsets.all(allPadding ?? 0);
   }
-
-
-
 
   static String getImagePathFromApi(trackingStatus) {
     String imagePath = "";
@@ -642,6 +726,29 @@ class AppUtils {
     return value;
   }
 
+  static Color switchCaseForTaskStatus(String param) {
+    Color color;
+    switch (param) {
+      case "Assigned":
+        color = Colors.blue;
+        break;
+      case "Pending":
+        color = Colors.grey;
+        break;
+      case "InProgress":
+        color = Colors.orange;
+        break;
+      case "Overdue":
+        color = Colors.red;
+        break;
+    default :
+        color = Colors.green;
+        break;
+
+    }
+    return color;
+  }
+
   static Widget commonNoDataFound({String? text, VoidCallback? onPressed}) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -683,9 +790,84 @@ class AppUtils {
     DateTime dateTime = DateTime.parse("1970-01-01T$durationString");
 
     // Format the DateTime object without milliseconds
-    String formattedDuration = "${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}:${dateTime.second.toString().padLeft(2, '0')}";
+    String formattedDuration =
+        "${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}:${dateTime.second.toString().padLeft(2, '0')}";
 
     return formattedDuration;
+  }
+
+  static showDialogBoxWithTwoButton({BuildContext? context, String? text,String? onSuccessString,required Function() onSuccess,String?onCancelString,required Function() onCancel}) {
+    return showDialog(
+      context: context ?? navigatorKey.currentState!.context,
+      builder: (context) {
+        return CupertinoAlertDialog(
+
+          actions: [
+            CupertinoDialogAction(
+              child: AppUtils.commonTextWidget(text: onSuccessString ?? "OK",
+                  textColor: AppConstant.appPrimaryColor,
+                  fontSize: 12,
+                  textAlign: TextAlign.center,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5),
+              onPressed: () {
+                Navigator.pop(context);
+                onSuccess();
+              },
+            ),
+            CupertinoDialogAction(
+              child: AppUtils.commonTextWidget(text: onCancelString ?? "Cancel",
+                  textColor: AppConstant.appPrimaryColor,
+                  fontSize: 12,
+                  textAlign: TextAlign.center,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5),
+              onPressed: () {
+                Navigator.of(context).pop();
+                onCancel();
+              },
+            ),
+          ],
+          content: AppUtils.commonTextWidget(
+              text: text ?? "",
+              textColor: AppConstant.blackColor,
+              fontSize: 12,
+              textAlign: TextAlign.center,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.5),
+        );
+      },
+    );
+  }
+  static showDialogBoxWithOneButton({BuildContext? context, String? text}) {
+    return showDialog(
+      context: context ?? navigatorKey.currentState!.context,
+      builder: (context) {
+        return CupertinoAlertDialog(
+
+          actions: [
+            CupertinoDialogAction(
+              child: AppUtils.commonTextWidget(text: "OK",
+            textColor: AppConstant.appPrimaryColor,
+            fontSize: 12,
+            textAlign: TextAlign.center,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.5),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+          content: AppUtils.commonTextWidget(
+              text: text ?? "",
+              textColor: AppConstant.blackColor,
+              fontSize: 12,
+              textAlign: TextAlign.center,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.5),
+        );
+      },
+    );
   }
 
   static Widget commonContainer({

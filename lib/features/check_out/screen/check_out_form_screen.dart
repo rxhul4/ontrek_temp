@@ -89,7 +89,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
       getTotByGroupTypeModel = value;
       if (getTotByGroupTypeModel?.isValidationFailed == true &&
           getTotByGroupTypeModel?.isError == true) {
-        openDialogFnc(getTotByGroupTypeModel?.message ?? "");
+        AppUtils.showDialogBoxWithOneButton(context: context ,text:  getTotByGroupTypeModel?.message ?? "");
         setState(() {
           showNoDataFound = true;
         });
@@ -99,6 +99,11 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
         });
         selectedRadio =
             getTotByGroupTypeModel?.data?.map((e) => e.totSequence).first ?? 1;
+        totType =
+            getTotByGroupTypeModel
+                ?.data?.first
+                .totId ??
+                "";
       }
     });
   }
@@ -136,7 +141,8 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
         });
       } else {
         print("day start not 200");
-        openDialogFnc(createActivityModel?.message.toString() ?? "");
+        AppUtils.showDialogBoxWithOneButton(context: context ,text:  createActivityModel?.message.toString() ?? "");
+        // openDialogFnc(createActivityModel?.message.toString() ?? "");
       }
     });
   }
@@ -166,19 +172,18 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
         if (kDebugMode) {
           print("isAuthenticated $isAuthenticated");
         }
-        openDialogFnc("Authentication Fail! Please Try Again");
+        AppUtils.showDialogBoxWithOneButton(context: context ,text:  "Authentication Fail! Please Try Again");
+        // openDialogFnc("Authentication Fail! Please Try Again");
       }
     } else {
       if (kDebugMode) {
         print("Biometric Auth is not available on this device");
       }
-      openDialogFnc("Biometric Auth is not available on this device");
+      AppUtils.showDialogBoxWithOneButton(context: context ,text:  "Biometric Auth is not available on this device");
+      // openDialogFnc("Biometric Auth is not available on this device");
     }
   }
 
-  openDialogFnc(String text) {
-    return AppUtils.dialogWidget(text, context);
-  }
 
   @override
   Widget build(BuildContext context) {
