@@ -27,28 +27,38 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      viewTaskProvider = Provider.of<ViewTaskProvider>(context, listen: false);
-      if (!mounted) {}
-      viewTaskProvider.apiCallGetTaskByID(taskFormId: widget.taskFormId);
-      // viewTaskProvider
-      //     .apiCallGetTotByType(groupType: AppConstant.taskStatusCode)
-      //     .then((value) {
-      //   if (value?.isError == false && value?.isValidationFailed == false) {
-      //     for(int i = 0; i< (viewTaskProvider.getTotByGroupTypeModel?.data?.length ?? 0) ; i++ ){
-      //       if(viewTaskProvider.getTotByGroupTypeModel?.data?[i].totValue == widget.taskStatus){
-      //         selectedTotValue = viewTaskProvider.getTotByGroupTypeModel?.data?[i].totValue;
-      //         print("selectedTotValue$selectedTotValue");
-      //       }
-      //     }
-      //     selectedTotId = viewTaskProvider.getTotByGroupTypeModel?.data?.first.totId;
-      //   }
-      // });
+    print("intaskList");
+    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) async {
+      try {
+        viewTaskProvider = Provider.of<ViewTaskProvider>(context, listen: false);
+        await viewTaskProvider.apiCallGetTaskByID(taskFormId: widget.taskFormId);
+        // await fetchData();
+      } catch (e) {
+        print("Error initializing provider: $e");
+      }
     });
   }
 
+
+
+  Future<void> fetchData() async {
+
+    final totByTypeResult = await viewTaskProvider.apiCallGetTotByType(groupType: AppConstant.taskStatusCode);
+    if (totByTypeResult?.isError == false && totByTypeResult?.isValidationFailed == false) {
+      for (int i = 0; i < (viewTaskProvider.getTotByGroupTypeModel?.data?.length ?? 0); i++) {
+        if (viewTaskProvider.getTotByGroupTypeModel?.data?[i].totValue == widget.taskStatus) {
+          setState(() {
+            selectedTotValue = viewTaskProvider.getTotByGroupTypeModel?.data?[i].totValue;
+          });
+          print("selectedTotValue $selectedTotValue");
+        }
+      }
+      setState(() {
+        selectedTotId = viewTaskProvider.getTotByGroupTypeModel?.data?.first.totId;
+      });
+    }
+  }
 
   callUpdateTaskApi() async {
     viewTaskProvider.apiCallUpdateStatus(
