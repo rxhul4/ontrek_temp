@@ -1,18 +1,18 @@
-class GetTaskById {
+class TaskByIdModel {
   bool? isError;
   bool? isValidationFailed;
   String? errorCode;
   String? message;
   Data? data;
 
-  GetTaskById(
+  TaskByIdModel(
       {this.isError,
         this.isValidationFailed,
         this.errorCode,
         this.message,
         this.data});
 
-  GetTaskById.fromJson(Map<String, dynamic> json) {
+  TaskByIdModel.fromJson(Map<String, dynamic> json) {
     isError = json['isError'];
     isValidationFailed = json['isValidationFailed'];
     errorCode = json['errorCode'];

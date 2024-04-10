@@ -577,8 +577,8 @@ class AppUtils {
   //   );
   // }
 
-  static loaderWidget({Color? color, double? strokeAlign}) {
-    return Center(child: CupertinoActivityIndicator(animating: true,radius: 15,));
+  static loaderWidget({Color? color, double? radius}) {
+    return Center(child: CupertinoActivityIndicator(animating: true,radius: radius ?? 15,color: color,));
   }
 
   static Widget commonSizedBox({
@@ -971,7 +971,7 @@ class AppUtils {
       double? height,
       Gradient? gradient,
       Color? backgroundColor,
-      double? loaderStrokeAlign,
+      double? radius,
       Color? textColor,
       bool? isLoading = false}) {
     return commonContainer(
@@ -998,7 +998,7 @@ class AppUtils {
         ),
         child: isLoading ?? false
             ? AppUtils.loaderWidget(
-                color: Colors.white, strokeAlign: loaderStrokeAlign ?? -3)
+                color: Colors.white, radius: radius ?? 12)
             : commonTextWidget(
                 text: text ?? '',
                 fontFamily: fontFamily,

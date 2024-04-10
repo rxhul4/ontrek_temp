@@ -33,12 +33,12 @@ class CheckOutProvider extends ChangeNotifier {
 
   GetTotByGroupTypeModel? getTotByGroupTypeModel;
 
-  Future<GetTotByGroupTypeModel?> apiCallGetTotByType() async {
+  Future<GetTotByGroupTypeModel?> apiCallGetTotByType({
+    String? groupType
+}) async {
     fetchingFnc(true);
-
     Map<String,dynamic>  body ={
-      // "trackingEventId": AppConstant.checkOutEvent
-      "groupType": "visit_type"
+    "groupType": groupType,
     };
     try {
       String endPoint = ApiConstants.getTotByGroupType;

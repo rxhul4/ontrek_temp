@@ -85,7 +85,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
   }
 
   callGetTotByType(CheckOutProvider getMdl) {
-    getMdl.apiCallGetTotByType().then((value) {
+    getMdl.apiCallGetTotByType(groupType: AppConstant.visitTypeCode).then((value) {
       getTotByGroupTypeModel = value;
       if (getTotByGroupTypeModel?.isValidationFailed == true &&
           getTotByGroupTypeModel?.isError == true) {

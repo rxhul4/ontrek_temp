@@ -33,13 +33,11 @@ class _TaskListScreenState extends State<TaskListScreen>
   void initState() {
     // TODO: implement initState
     super.initState();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_)async {
       taskProvider = Provider.of<TaskProvider>(context, listen: false);
-      taskProvider.panelController
-          .animatePanelToSnapPoint(duration: const Duration(milliseconds: 0));
+      taskProvider.panelController.animatePanelToSnapPoint(duration: const Duration(milliseconds: 0));
       taskProvider.selectedDate = DateTime.now();
-      callCallGetTaskByIdListApi(taskProvider: taskProvider);
+      await callCallGetTaskByIdListApi(taskProvider: taskProvider);
     });
     tabController = TabController(length: 2, vsync: this);
   }
@@ -288,6 +286,7 @@ class _TaskListScreenState extends State<TaskListScreen>
   }
 
   Widget taskListWidget(List<Data> allTaskDataList) {
+    print("allTaskDataList${allTaskDataList.length}");
     return (allTaskDataList.length ?? 0) <= 0
         ? Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -323,8 +322,10 @@ class _TaskListScreenState extends State<TaskListScreen>
                       context,
                       CupertinoPageRoute(
                         builder: (context) => ViewTaskScreen(
-                            taskFormId: taskProvider
-                                .getAllTaskModel?.data?[index].taskFormId),
+                          taskFormId: allTaskDataList[index].taskFormId,
+                          taskTitle: allTaskDataList[index].taskTitle,
+                          taskStatus: allTaskDataList[index].taskStatus,
+                        )
                       ));
                 },
                 child: AppUtils.commonContainer(

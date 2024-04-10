@@ -4,23 +4,20 @@ class ApiConstants{
    //Authentication Api
       static const String login = "$baseUrl/FieldUser/Login";
       static const String verifyOtp = "$baseUrl/FieldUser/VerifyOtp";
+      static const String getSalesMenList = "$baseUrl/FieldUser/SalesmanList";
+      static const String getSalesMenTimeLine = "$baseUrl/FieldUser/GetTimeline";
+      static const String createActivity = "$baseUrl/FieldUser/CreateActivity";
+      static const String getLastActivity = "$baseUrl/FieldUser/GetLastActivity";
+      static const String createRouteHistory = "$baseUrl/FieldUser/CreateRoutHistory";
 
-
-   static const String getSalesMenList = "$baseUrl/FieldUser/SalesmanList";
-   static const String getAllTaskByUserId = "$baseUrl/Admin/AppUserTask/GetAllTaskByUserId";
-   static const String getTaskById = "$baseUrl/Admin/AppUserTask/GetById";
-   static const String getSalesMenTimeLine = "$baseUrl/FieldUser/GetTimeline";
-
-
-  //salesMen
-   static const String createActivity = "$baseUrl/FieldUser/CreateActivity";
-   static const String getLastActivity = "$baseUrl/FieldUser/GetLastActivity";
-   static const String createRouteHistory = "$baseUrl/FieldUser/CreateRoutHistory";
-
-   //totapi
-   static const String getTotByGroupType = "http://ontrek_v1api.epistic.net/Super/Tot/GetTotByGroupType";
-   //lead
-   static const String getAllLeads = "$baseUrl/Super/Lead/GetAll";
+   
+      static const String getTotByGroupType = "http://ontrek_v1api.epistic.net/Super/Tot/GetTotByGroupType";
+   
+      static const String getAllLeads = "$baseUrl/Super/Lead/GetAll";
+      
+      static const String getAllTaskByUserId = "$baseUrl/Admin/AppUserTask/GetAllTaskByUserId";
+      static const String getTaskById = "$baseUrl/Admin/AppUserTask/GetById";
+      static const String updateTaskStatus = "$baseUrl/Admin/AppUserTask/Update";
 
 
 

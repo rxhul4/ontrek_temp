@@ -16,6 +16,10 @@ class AppConstant {
   static const String  trackingWaitingStartEvent = "9138f7f0-22c6-45b3-86f0-c2315f4eb502" ;
   static const String  trackingWaitingStopEvent = "714a0fbe-5485-4207-a147-b626738a5f2c" ;
 
+  //totString
+  static const String  visitTypeCode = "visit_type" ;
+  static const String  taskStatusCode = "task_status" ;
+
 
   // error Message
   static const String  errorText = "Something went wrong!" ;

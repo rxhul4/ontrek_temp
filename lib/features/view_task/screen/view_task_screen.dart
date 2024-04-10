@@ -3,14 +3,18 @@ import 'package:ontrek/core/common_widgets/app_scaffold.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/image_path.dart';
+import 'package:ontrek/features/check_out/model/check_out_form_model.dart';
+import 'package:ontrek/features/check_out/provider/check_out_form_provider.dart';
 import 'package:ontrek/features/view_task/model/get_task_by_id_model.dart';
 import 'package:ontrek/features/view_task/provider/view_task_provider.dart';
 import 'package:provider/provider.dart';
 
 class ViewTaskScreen extends StatefulWidget {
   String? taskFormId;
+  String? taskTitle;
+  String? taskStatus;
 
-  ViewTaskScreen({super.key, this.taskFormId});
+  ViewTaskScreen({super.key, this.taskFormId, this.taskTitle,this.taskStatus});
 
   @override
   State<ViewTaskScreen> createState() => _ViewTaskScreenState();
@@ -18,6 +22,8 @@ class ViewTaskScreen extends StatefulWidget {
 
 class _ViewTaskScreenState extends State<ViewTaskScreen> {
   late ViewTaskProvider viewTaskProvider;
+  String? selectedTotValue;
+  String? selectedTotId;
 
   @override
   void initState() {
@@ -25,7 +31,40 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       viewTaskProvider = Provider.of<ViewTaskProvider>(context, listen: false);
-      viewTaskProvider.apiCallGetSalesManList(taskFormId: widget.taskFormId);
+      if (!mounted) {}
+      viewTaskProvider.apiCallGetTaskByID(taskFormId: widget.taskFormId);
+      // viewTaskProvider
+      //     .apiCallGetTotByType(groupType: AppConstant.taskStatusCode)
+      //     .then((value) {
+      //   if (value?.isError == false && value?.isValidationFailed == false) {
+      //     for(int i = 0; i< (viewTaskProvider.getTotByGroupTypeModel?.data?.length ?? 0) ; i++ ){
+      //       if(viewTaskProvider.getTotByGroupTypeModel?.data?[i].totValue == widget.taskStatus){
+      //         selectedTotValue = viewTaskProvider.getTotByGroupTypeModel?.data?[i].totValue;
+      //         print("selectedTotValue$selectedTotValue");
+      //       }
+      //     }
+      //     selectedTotId = viewTaskProvider.getTotByGroupTypeModel?.data?.first.totId;
+      //   }
+      // });
+    });
+  }
+
+
+  callUpdateTaskApi() async {
+    viewTaskProvider.apiCallUpdateStatus(
+      taskTitle: viewTaskProvider.taskByIdModel?.data?.taskTitle,
+      taskFormId: widget.taskFormId,
+      assignedBy: viewTaskProvider.taskByIdModel?.data?.assignedBy,
+      assignedTo: viewTaskProvider.taskByIdModel?.data?.assignedTo,
+      startDate: viewTaskProvider.taskByIdModel?.data?.startDate,
+      endDate: viewTaskProvider.taskByIdModel?.data?.endDate,
+      taskDescription: viewTaskProvider.taskByIdModel?.data?.taskDescription,
+      totTaskStatusId: selectedTotId,
+    ).then((value) {
+
+      if(value?.isError == false && value?.isValidationFailed == false){
+        Navigator.pop(context);
+      }
     });
   }
 
@@ -49,7 +88,7 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
             children: [
               Expanded(
                   child: AppUtils.commonTextWidget(
-                      text: viewTaskProvider.getTaskById?.data?.taskTitle ?? "",
+                      text: widget.taskTitle ?? "",
                       textColor: AppConstant.blackColor.withOpacity(0.7),
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -61,7 +100,8 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
             GestureDetector(
               onTap: () {
                 print("you Have code About Refresh");
-                viewTaskProvider.apiCallGetSalesManList(taskFormId: widget.taskFormId);
+                viewTaskProvider.apiCallGetTaskByID(
+                    taskFormId: widget.taskFormId);
               },
               child: Icon(
                 Icons.repeat,
@@ -72,7 +112,9 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
           ],
           centerTitle: false,
         ),
-        body: viewTaskProvider.isFetching ? AppUtils.loaderWidget() : SingleChildScrollView(
+        body: viewTaskProvider.isFetching
+            ? AppUtils.loaderWidget()
+            : SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -80,7 +122,8 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
             children: [
               AppUtils.commonContainer(
                 width: double.infinity,
-                margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
+                margin:
+                const EdgeInsets.only(left: 10, right: 10, top: 20),
                 padding: const EdgeInsets.only(
                     left: 15, right: 15, top: 20, bottom: 20),
                 decoration: BoxDecoration(
@@ -109,11 +152,11 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
                             AppUtils.commonSizedBox(width: 5),
                             AppUtils.commonTextWidget(
                                 text: viewTaskProvider
-                                        .getTaskById?.data?.taskTitle ??
+                                    .taskByIdModel?.data?.taskTitle ??
                                     "",
                                 fontSize: 12,
-                                textColor:
-                                    AppConstant.blackColor.withOpacity(0.9),
+                                textColor: AppConstant.blackColor
+                                    .withOpacity(0.9),
                                 fontWeight: FontWeight.w500)
                           ],
                         ),
@@ -127,16 +170,58 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
                             AppUtils.commonSizedBox(width: 3),
                             AppUtils.commonTextWidget(
                                 text: AppUtils.getDate(
-                                    date: viewTaskProvider
-                                            .getTaskById?.data?.createdOn ??
+                                    date: viewTaskProvider.taskByIdModel
+                                        ?.data?.createdOn ??
                                         "",
                                     format: "hh:mm a"),
                                 fontSize: 12,
-                                textColor:
-                                    AppConstant.blackColor.withOpacity(0.9),
+                                textColor: AppConstant.blackColor
+                                    .withOpacity(0.9),
                                 fontWeight: FontWeight.w500)
                           ],
                         ),
+                      ],
+                    ),
+                    AppUtils.commonSizedBox(height: 5),
+                    Divider(
+                      color: AppConstant.greyColor.withOpacity(0.3),
+                    ),
+                    AppUtils.commonSizedBox(height: 5),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.task_sharp,
+                              color: Colors.blue,
+                              size: 18,
+                            ),
+                            AppUtils.commonSizedBox(width: 5),
+                            AppUtils.commonTextWidget(
+                                text: "Task Status",
+                                fontSize: 12,
+                                textColor: AppConstant.blackColor
+                                    .withOpacity(0.9),
+                                fontWeight: FontWeight.w500)
+                          ],
+                        ),
+                        AppUtils.commonContainer(
+                            padding: AppUtils.edgeInsetsOnly(
+                                bottom: 3, top: 3, left: 10, right: 10),
+                            decoration: AppUtils.commonBoxDecoration(
+                                borderRadius: BorderRadius.circular(6),
+                                color: AppUtils.switchCaseForTaskStatus(
+                                    viewTaskProvider.taskByIdModel?.data
+                                        ?.taskStatus ??
+                                        "")),
+                            child: AppUtils.commonTextWidget(
+                                text: viewTaskProvider
+                                    .taskByIdModel?.data?.taskStatus ??
+                                    "",
+                                fontWeight: FontWeight.w400,
+                                textColor: AppConstant.whiteColor,
+                                fontSize: 10))
                       ],
                     ),
                     AppUtils.commonSizedBox(height: 5),
@@ -157,36 +242,146 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
                             AppUtils.commonTextWidget(
                                 text: /*viewTaskProvider
                                       .getTaskById?.data?.taskTitle ??*/
-                                    "Task Description",
+                                "Task Description",
                                 fontSize: 12,
-                                textColor:
-                                    AppConstant.blackColor.withOpacity(0.9),
+                                textColor: AppConstant.blackColor
+                                    .withOpacity(0.9),
                                 fontWeight: FontWeight.w500)
                           ],
                         ),
                       ],
                     ),
-                    AppUtils.commonSizedBox(height: 10),
+                    AppUtils.commonSizedBox(height: 8),
                     AppUtils.commonTextWidget(
                         text: viewTaskProvider
-                                .getTaskById?.data?.taskDescription ?? "",
+                            .taskByIdModel?.data?.taskDescription ??
+                            "",
                         fontSize: 12,
-                        textColor: AppConstant.blackColor.withOpacity(0.9),
-                        fontWeight: FontWeight.w400)
+                        textColor:
+                        AppConstant.blackColor.withOpacity(0.9),
+                        fontWeight: FontWeight.w400),
                   ],
                 ),
               ),
               AppUtils.taskTile(
-                  date: viewTaskProvider.getTaskById?.data?.createdOn,
+                  date: viewTaskProvider.taskByIdModel?.data?.createdOn,
                   titleText: "Assigned By",
-                  username: viewTaskProvider.getTaskById?.data?.createdBy),
+                  username:
+                  viewTaskProvider.taskByIdModel?.data?.createdBy),
               AppUtils.taskTile(
-                  date: viewTaskProvider.getTaskById?.data?.createdOn,
+                  date: viewTaskProvider.taskByIdModel?.data?.createdOn,
                   titleText: "Assigned To",
-                  username: viewTaskProvider.getTaskById?.data?.userName),
-
+                  username: viewTaskProvider.taskByIdModel?.data?.userName),
+             AppUtils.commonContainer(
+                width: double.infinity,
+                margin: const EdgeInsets.only(
+                    left: 10, right: 10, top: 20),
+                padding: const EdgeInsets.only(
+                    left: 15, right: 15, top: 20, bottom: 20),
+                decoration: BoxDecoration(
+                    color: AppConstant.whiteColor,
+                    borderRadius:
+                    AppUtils.borderRadiusAll(raduis: 10),
+                    boxShadow: [
+                      BoxShadow(
+                          color: AppConstant.greyColor
+                              .withOpacity(0.3),
+                          blurRadius: 8,
+                          blurStyle: BlurStyle.solid,
+                          spreadRadius: 0.8),
+                    ]),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.task,
+                          color: Colors.blue,
+                          size: 18,
+                        ),
+                        AppUtils.commonSizedBox(width: 5),
+                        AppUtils.commonTextWidget(
+                            text: "Update Status",
+                            fontSize: 12,
+                            textColor: AppConstant.blackColor
+                                .withOpacity(0.9),
+                            fontWeight: FontWeight.w500),
+                      ],
+                    ),
+                    AppUtils.commonSizedBox(height: 5),
+                    Divider(
+                      color: AppConstant.greyColor.withOpacity(0.3),
+                    ),
+                    radioWidget(),
+                    Divider(
+                      color: AppConstant.greyColor.withOpacity(0.3),
+                    ),
+                    AppUtils.commonSizedBox(height: 5),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: AppUtils.commonElevatedBtn(
+                        onPressed: ()async {
+                          await callUpdateTaskApi();
+                        },
+                        isLoading: viewTaskProvider.isLoading,
+                        borderRadiusAll: 10,
+                        text: "Submit",
+                        height: 40,
+                        width: double.infinity,
+                        bgColor: AppConstant.appPrimaryColor,
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              AppUtils.commonSizedBox(height: 10),
             ],
           ),
         ));
   }
+
+  radioWidget() {
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: viewTaskProvider.getTotByGroupTypeModel?.data?.length,
+      itemBuilder: (context, index) {
+        return RadioListTile(
+          contentPadding: AppUtils.edgeInsetsAll(allPadding: 0),
+          title: AppUtils.commonContainer(
+            margin: const EdgeInsets.only(right: 220),
+            padding: AppUtils.edgeInsetsOnly(
+                bottom: 3, top: 3, left: 10, right: 10),
+            decoration: AppUtils.commonBoxDecoration(
+                borderRadius: BorderRadius.circular(6),
+                color: AppUtils.switchCaseForTaskStatus(viewTaskProvider.getTotByGroupTypeModel?.data?[index].totValue ?? "")
+            ),
+            child: Center(
+              child: AppUtils.commonTextWidget(
+                  text: viewTaskProvider.getTotByGroupTypeModel?.data?[index].totValue ?? "",
+                  fontWeight: FontWeight.w400,
+                  textColor: AppConstant.whiteColor,
+                  fontSize: 10
+              ),
+            ),
+          ),
+          activeColor: AppConstant.appPrimaryColor,
+          value: viewTaskProvider.getTotByGroupTypeModel?.data?[index].totValue,
+          groupValue: selectedTotValue,
+          onChanged: (value) {
+            setState(() {
+              selectedTotValue = viewTaskProvider.getTotByGroupTypeModel?.data?[index].totValue;
+              selectedTotId = viewTaskProvider.getTotByGroupTypeModel?.data?[index].totId;
+              print("selectedTotId $selectedTotId");
+              print("selectedTotValue $selectedTotValue");
+            });
+          },
+        );
+
+      },
+    );
+  }
+
+
 }
