@@ -19,6 +19,7 @@ class AppConstant {
   //totString
   static const String  visitTypeCode = "visit_type" ;
   static const String  taskStatusCode = "task_status" ;
+  static const String  leadTypeCode = "lead_source" ;
 
 
   // error Message

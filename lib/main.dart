@@ -1,25 +1,9 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-import 'dart:ui';
-
-import 'package:battery_plus/battery_plus.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:intl/intl.dart';
-import 'package:ontrek/core/background_service_model/create_route_history_model.dart';
-import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/background_service.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
-import 'package:ontrek/core/storage/sql_db_service.dart';
-import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
-import 'package:ontrek/features/attendance/model/add_activity_model.dart';
+import 'package:ontrek/features/add_lead/provider/add_lead_provider.dart';
 import 'package:ontrek/features/attendance/provider/attendance_provider.dart';
 import 'package:ontrek/features/authentication/providers/auth_provider.dart';
 import 'package:ontrek/features/authentication/screens/splash_screen.dart';
@@ -29,12 +13,8 @@ import 'package:ontrek/features/leads/provider/lead_provider.dart';
 import 'package:ontrek/features/salesman_tracker/provider/salesmen_tracking_timeline_provider.dart';
 import 'package:ontrek/features/task_list/provider/task_provider.dart';
 import 'package:ontrek/features/view_task/provider/view_task_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
-import 'package:flutter_background_service_android/flutter_background_service_android.dart';
-import 'package:path/path.dart' as newPath;
-import 'package:sqflite/sqflite.dart';
 import 'features/track_function/provider/salesmen_list_provider.dart';
 
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -67,6 +47,9 @@ List<SingleChildWidget> providers = [
   ChangeNotifierProvider<ViewTaskProvider>(
     create: (_) => ViewTaskProvider(),
   ),
+  ChangeNotifierProvider<AddLeadProvider>(
+    create: (_) => AddLeadProvider(),
+  ),
 ];
 
 void main() async {
@@ -74,8 +57,6 @@ void main() async {
 
   PreferenceHelper.load().then((value) {
     PreferenceHelper.reload().then((value) {
-      print("in_main________${value?.getBool(PreferenceHelper.isWaiting)}");
-
     });
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     runApp(MultiProvider(providers: providers, child: const MyApp()));

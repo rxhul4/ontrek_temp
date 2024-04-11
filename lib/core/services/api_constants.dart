@@ -11,9 +11,13 @@ class ApiConstants{
       static const String createRouteHistory = "$baseUrl/FieldUser/CreateRoutHistory";
 
    
-      static const String getTotByGroupType = "http://ontrek_v1api.epistic.net/Super/Tot/GetTotByGroupType";
-   
+      static const String getTotByGroupType = "$baseUrl/Super/Tot/GetTotByGroupType";
+      static const String getAllCountry = "$baseUrl/Super/Country/GetAll";
+      static const String getStateByCountryId = "$baseUrl/Super/State/GetByCountryId";
+      static const String getCityByStateId = "$baseUrl/Super/City/GetCityByStateId";
       static const String getAllLeads = "$baseUrl/Super/Lead/GetAll";
+      static const String createLead = "$baseUrl/Super/Lead/Create";
+
       
       static const String getAllTaskByUserId = "$baseUrl/Admin/AppUserTask/GetAllTaskByUserId";
       static const String getTaskById = "$baseUrl/Admin/AppUserTask/GetById";

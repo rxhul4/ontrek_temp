@@ -38,35 +38,51 @@ class AppUtils {
   }
 
   static PreferredSizeWidget? commonAppBar(
-      {required BuildContext context, String? title, Color? textColor}) {
+      {required BuildContext context,
+      String? title,
+      Color? textColor,
+      bool? isBack,
+      bool? isBorder}) {
     return AppBar(
       surfaceTintColor: AppConstant.transparentColor,
       backgroundColor: Colors.white,
       elevation: 0,
-      leading: InkWell(
-          onTap: () {
-            Navigator.pop(context!);
-          },
-          child: Icon(
-            Icons.arrow_back_ios_new,
-            color: AppConstant.blackColor.withOpacity(0.7),
-            size: 24,
-          )),
+      leading: isBack == true
+          ? AppUtils.commonSizedBox()
+          : InkWell(
+              onTap: () {
+                Navigator.pop(context!);
+              },
+              child: Icon(
+                Icons.arrow_back_ios_new,
+                color: AppConstant.blackColor.withOpacity(0.7),
+                size: 24,
+              )),
       title: AppUtils.commonTextWidget(
           text: title ?? "",
           textColor: textColor ?? AppConstant.blackColor.withOpacity(0.7),
           fontSize: 16,
           fontWeight: FontWeight.w500),
       centerTitle: true,
-      bottom: PreferredSize(
-        preferredSize: Size.zero,
-        child: AppUtils.commonContainer(
-            decoration: AppUtils.commonBoxDecoration(
-                border: Border(
-                    bottom: BorderSide(
-                        color: AppConstant.blackColor.withOpacity(0.4),
-                        width: 0.3)))),
-      ),
+      bottom: isBorder == true
+          ? PreferredSize(
+              preferredSize: Size.zero,
+              child: AppUtils.commonContainer(
+                  decoration: AppUtils.commonBoxDecoration(
+                      border: Border(
+                          bottom: BorderSide(
+                              color: AppConstant.blackColor.withOpacity(0.4),
+                              width: 0.3)))),
+            )
+          : PreferredSize(
+              preferredSize: Size.zero,
+              child: AppUtils.commonContainer(
+                decoration: AppUtils.commonBoxDecoration(
+                  border: Border(
+                      bottom: BorderSide.none),
+                ),
+              ),
+            ),
     );
   }
 
@@ -177,11 +193,11 @@ class AppUtils {
     );
   }
 
-  static Widget taskTile({String? titleText,String? username,String? date}){
-    return     AppUtils.commonContainer(
+  static Widget taskTile({String? titleText, String? username, String? date}) {
+    return AppUtils.commonContainer(
       width: double.infinity,
       margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
-      padding: const EdgeInsets.only(left: 15, right: 15, top: 20,bottom: 20),
+      padding: const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 20),
       decoration: BoxDecoration(
           color: AppConstant.whiteColor,
           borderRadius: AppUtils.borderRadiusAll(raduis: 10),
@@ -204,10 +220,9 @@ class AppUtils {
               ),
               AppUtils.commonSizedBox(width: 5),
               AppUtils.commonTextWidget(
-                  text: titleText ??"",
+                  text: titleText ?? "",
                   fontSize: 12,
-                  textColor:
-                  AppConstant.blackColor.withOpacity(0.9),
+                  textColor: AppConstant.blackColor.withOpacity(0.9),
                   fontWeight: FontWeight.w500),
             ],
           ),
@@ -220,7 +235,6 @@ class AppUtils {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-
               Container(
                 margin: EdgeInsets.only(right: 5),
                 // padding: EdgeInsets.all(18),
@@ -229,19 +243,15 @@ class AppUtils {
                 width: 40,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color:
-                  Colors.grey.withOpacity(0.3),
-                  border: Border.all(
-                      color:
-                      Colors.red.withOpacity(0.7),
-                      width: 1),
+                  color: Colors.grey.withOpacity(0.3),
+                  border:
+                      Border.all(color: Colors.red.withOpacity(0.7), width: 1),
                 ),
                 child: Center(
                   child: AppUtils.commonNetworkImageWidget(
                       path: profileImage,
                       boxFit: BoxFit.cover,
-                      iconColor:
-                      AppConstant.appPrimaryColor,
+                      iconColor: AppConstant.appPrimaryColor,
                       height: 25,
                       width: 25),
                 ),
@@ -259,7 +269,8 @@ class AppUtils {
                     fontSize: 12,
                   ),
                   AppUtils.commonTextWidget(
-                    text:  AppUtils.getDate(date:  date ?? "", format: "dd MMM yyyy hh:mm a") ,
+                    text: AppUtils.getDate(
+                        date: date ?? "", format: "dd MMM yyyy hh:mm a"),
                     fontWeight: FontWeight.w400,
                     textColor: Colors.black.withOpacity(0.7),
                     letterSpacing: 0.0,
@@ -578,7 +589,12 @@ class AppUtils {
   // }
 
   static loaderWidget({Color? color, double? radius}) {
-    return Center(child: CupertinoActivityIndicator(animating: true,radius: radius ?? 15,color: color,));
+    return Center(
+        child: CupertinoActivityIndicator(
+      animating: true,
+      radius: radius ?? 15,
+      color: color,
+    ));
   }
 
   static Widget commonSizedBox({
@@ -741,10 +757,9 @@ class AppUtils {
       case "Overdue":
         color = Colors.red;
         break;
-    default :
+      default:
         color = Colors.green;
         break;
-
     }
     return color;
   }
@@ -796,27 +811,29 @@ class AppUtils {
     return formattedDuration;
   }
 
-  static showDialogBoxWithTwoButton({BuildContext? context, String? text,String? onSuccessString,required Function() onSuccess,String?onCancelString,required Function() onCancel}) {
+  static showDialogBoxWithTwoButton(
+      {BuildContext? context,
+      String? text,
+        String? titleText,
+      String? onSuccessString,
+      required Function() onSuccess,
+      String? onCancelString,
+      required Function() onCancel}) {
     return showDialog(
       context: context ?? navigatorKey.currentState!.context,
       builder: (context) {
         return CupertinoAlertDialog(
-
+          title:  AppUtils.commonTextWidget(
+              text: titleText ?? "",
+              textColor: AppConstant.blackColor,
+              fontSize: 14,
+              textAlign: TextAlign.center,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5),
           actions: [
             CupertinoDialogAction(
-              child: AppUtils.commonTextWidget(text: onSuccessString ?? "OK",
-                  textColor: AppConstant.appPrimaryColor,
-                  fontSize: 12,
-                  textAlign: TextAlign.center,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.5),
-              onPressed: () {
-                Navigator.pop(context);
-                onSuccess();
-              },
-            ),
-            CupertinoDialogAction(
-              child: AppUtils.commonTextWidget(text: onCancelString ?? "Cancel",
+              child: AppUtils.commonTextWidget(
+                  text: onCancelString ?? "Cancel",
                   textColor: AppConstant.appPrimaryColor,
                   fontSize: 12,
                   textAlign: TextAlign.center,
@@ -827,6 +844,20 @@ class AppUtils {
                 onCancel();
               },
             ),
+            CupertinoDialogAction(
+              child: AppUtils.commonTextWidget(
+                  text: onSuccessString ?? "OK",
+                  textColor: AppConstant.appPrimaryColor,
+                  fontSize: 12,
+                  textAlign: TextAlign.center,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5),
+              onPressed: () {
+                Navigator.pop(context);
+                onSuccess();
+              },
+            ),
+
           ],
           content: AppUtils.commonTextWidget(
               text: text ?? "",
@@ -839,20 +870,21 @@ class AppUtils {
       },
     );
   }
+
   static showDialogBoxWithOneButton({BuildContext? context, String? text}) {
     return showDialog(
       context: context ?? navigatorKey.currentState!.context,
       builder: (context) {
         return CupertinoAlertDialog(
-
           actions: [
             CupertinoDialogAction(
-              child: AppUtils.commonTextWidget(text: "OK",
-            textColor: AppConstant.appPrimaryColor,
-            fontSize: 12,
-            textAlign: TextAlign.center,
-            fontWeight: FontWeight.w500,
-            letterSpacing: 0.5),
+              child: AppUtils.commonTextWidget(
+                  text: "OK",
+                  textColor: AppConstant.appPrimaryColor,
+                  fontSize: 12,
+                  textAlign: TextAlign.center,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -997,8 +1029,7 @@ class AppUtils {
           ),
         ),
         child: isLoading ?? false
-            ? AppUtils.loaderWidget(
-                color: Colors.white, radius: radius ?? 12)
+            ? AppUtils.loaderWidget(color: Colors.white, radius: radius ?? 12)
             : commonTextWidget(
                 text: text ?? '',
                 fontFamily: fontFamily,
@@ -1011,13 +1042,13 @@ class AppUtils {
   }
 
   static showSnackBarWithColor(
-      {BuildContext? context, required String message, Color? giveColor}) {
+      {BuildContext? context, required String message, Color? giveColor,Color? fontColor}) {
     return ScaffoldMessenger.of(context ?? navigatorKey.currentState!.context)
         .showSnackBar(
       SnackBar(
         duration: const Duration(milliseconds: 800),
         content: AppUtils.commonTextWidget(
-            text: message, textColor: AppConstant.whiteColor),
+            text: message, textColor: fontColor ?? AppConstant.whiteColor),
         backgroundColor: giveColor ?? Colors.blue,
       ),
     );

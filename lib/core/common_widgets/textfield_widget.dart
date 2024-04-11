@@ -31,6 +31,7 @@ class AppTextField extends StatelessWidget {
   Widget? suffixIcon;
   Color? suffixColor;
   int? maxLines;
+  bool?  showCursor;
   AppTextField(
       {Key? key,
         this.labelText,
@@ -60,6 +61,7 @@ class AppTextField extends StatelessWidget {
         this.suffixIcon,
         this.suffixColor,
         this.maxLines,
+        this.showCursor,
       })
       : super(key: key);
 
@@ -84,6 +86,7 @@ class AppTextField extends StatelessWidget {
       ),
       keyboardType: textInputType ?? TextInputType.text,
       cursorColor:  cursorColor ?? AppConstant.appPrimaryColor,
+      showCursor: showCursor ?? true,
       maxLines: maxLines ?? 1,
       decoration: InputDecoration(
         prefixIcon: prefixIcon,
