@@ -326,7 +326,9 @@ class _TaskListScreenState extends State<TaskListScreen>
                           taskTitle: allTaskDataList[index].taskTitle,
                           taskStatus: allTaskDataList[index].taskStatus,
                         )
-                      ));
+                      )).then((value) {
+                    callCallGetTaskByIdListApi(taskProvider: taskProvider);
+                  });
                 },
                 child: AppUtils.commonContainer(
                     margin: AppUtils.edgeInsetsOnly(
