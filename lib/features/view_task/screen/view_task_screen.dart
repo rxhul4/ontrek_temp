@@ -14,7 +14,7 @@ class ViewTaskScreen extends StatefulWidget {
   String? taskTitle;
   String? taskStatus;
 
-  ViewTaskScreen({super.key, this.taskFormId, this.taskTitle,this.taskStatus});
+  ViewTaskScreen({super.key, this.taskFormId, this.taskTitle, this.taskStatus});
 
   @override
   State<ViewTaskScreen> createState() => _ViewTaskScreenState();
@@ -29,39 +29,46 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
   void initState() {
     super.initState();
     print("intaskList");
-    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) async {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       try {
-        viewTaskProvider = Provider.of<ViewTaskProvider>(context, listen: false);
-        await viewTaskProvider.apiCallGetTaskByID(taskFormId: widget.taskFormId);
-        // await fetchData();
+        viewTaskProvider =
+            Provider.of<ViewTaskProvider>(context, listen: false);
+        await viewTaskProvider.apiCallGetTaskByID(
+            taskFormId: widget.taskFormId);
+        await fetchData();
       } catch (e) {
         print("Error initializing provider: $e");
       }
     });
   }
 
-
-
   Future<void> fetchData() async {
-
-    final totByTypeResult = await viewTaskProvider.apiCallGetTotByType(groupType: AppConstant.taskStatusCode);
-    if (totByTypeResult?.isError == false && totByTypeResult?.isValidationFailed == false) {
-      for (int i = 0; i < (viewTaskProvider.getTotByGroupTypeModel?.data?.length ?? 0); i++) {
-        if (viewTaskProvider.getTotByGroupTypeModel?.data?[i].totValue == widget.taskStatus) {
+    final totByTypeResult = await viewTaskProvider.apiCallGetTotByType(
+        groupType: AppConstant.taskStatusCode);
+    if (totByTypeResult?.isError == false &&
+        totByTypeResult?.isValidationFailed == false) {
+      for (int i = 0;
+          i < (viewTaskProvider.getTotByGroupTypeModel?.data?.length ?? 0);
+          i++) {
+        if (viewTaskProvider.getTotByGroupTypeModel?.data?[i].totValue ==
+            viewTaskProvider.taskByIdModel?.data?.taskStatus) {
           setState(() {
-            selectedTotValue = viewTaskProvider.getTotByGroupTypeModel?.data?[i].totValue;
+            selectedTotValue =
+                viewTaskProvider.getTotByGroupTypeModel?.data?[i].totValue;
           });
-          print("selectedTotValue $selectedTotValue");
+          print("selectedTotValue_$selectedTotValue");
         }
       }
       setState(() {
-        selectedTotId = viewTaskProvider.getTotByGroupTypeModel?.data?.first.totId;
+        selectedTotId =
+            viewTaskProvider.getTotByGroupTypeModel?.data?.first.totId;
       });
     }
   }
 
   callUpdateTaskApi() async {
-    viewTaskProvider.apiCallUpdateStatus(
+    viewTaskProvider
+        .apiCallUpdateStatus(
       taskTitle: viewTaskProvider.taskByIdModel?.data?.taskTitle,
       taskFormId: widget.taskFormId,
       assignedBy: viewTaskProvider.taskByIdModel?.data?.assignedBy,
@@ -70,9 +77,9 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
       endDate: viewTaskProvider.taskByIdModel?.data?.endDate,
       taskDescription: viewTaskProvider.taskByIdModel?.data?.taskDescription,
       totTaskStatusId: selectedTotId,
-    ).then((value) {
-
-      if(value?.isError == false && value?.isValidationFailed == false){
+    )
+        .then((value) {
+      if (value?.isError == false && value?.isValidationFailed == false) {
         Navigator.pop(context);
       }
     });
@@ -82,276 +89,280 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
   Widget build(BuildContext context) {
     viewTaskProvider = Provider.of<ViewTaskProvider>(context);
     return AppScaffold(
-        appBar: AppBar(
-          surfaceTintColor: AppConstant.transparentColor,
-          elevation: 0,
-          leading: InkWell(
-              onTap: () {
-                Navigator.pop(context);
-              },
-              child: Icon(
-                Icons.arrow_back_ios_new,
-                color: AppConstant.blackColor.withOpacity(0.7),
-                size: 22,
-              )),
-          title: Row(
-            children: [
-              Expanded(
-                  child: AppUtils.commonTextWidget(
-                      text: widget.taskTitle ?? "",
-                      textColor: AppConstant.blackColor.withOpacity(0.7),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.1,
-                      overflow: TextOverflow.ellipsis)),
-            ],
+      appBar: AppBar(
+        surfaceTintColor: AppConstant.transparentColor,
+        elevation: 0,
+        leading: InkWell(
+            onTap: () {
+              Navigator.pop(context);
+            },
+            child: Icon(
+              Icons.arrow_back_ios_new,
+              color: AppConstant.blackColor.withOpacity(0.7),
+              size: 22,
+            )),
+        title: Row(
+          children: [
+            Expanded(
+                child: AppUtils.commonTextWidget(
+                    text: widget.taskTitle ?? "",
+                    textColor: AppConstant.blackColor.withOpacity(0.7),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.1,
+                    overflow: TextOverflow.ellipsis)),
+          ],
+        ),
+        actions: [
+          GestureDetector(
+            onTap: () {
+              print("you Have code About Refresh");
+              viewTaskProvider.apiCallGetTaskByID(
+                  taskFormId: widget.taskFormId);
+            },
+            child: Icon(
+              Icons.repeat,
+              color: AppConstant.blackColor.withOpacity(0.7),
+            ),
           ),
-          actions: [
-            GestureDetector(
-              onTap: () {
-                print("you Have code About Refresh");
-                viewTaskProvider.apiCallGetTaskByID(
-                    taskFormId: widget.taskFormId);
-              },
-              child: Icon(
-                Icons.repeat,
-                color: AppConstant.blackColor.withOpacity(0.7),
+          AppUtils.commonSizedBox(width: 20),
+        ],
+        centerTitle: false,
+      ),
+      body: viewTaskProvider.isFetching
+          ? AppUtils.loaderWidget()
+          : SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  AppUtils.commonContainer(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
+                    padding: const EdgeInsets.only(
+                        left: 15, right: 15, top: 20, bottom: 20),
+                    decoration: BoxDecoration(
+                        color: AppConstant.whiteColor,
+                        borderRadius: AppUtils.borderRadiusAll(raduis: 10),
+                        boxShadow: [
+                          BoxShadow(
+                              color: AppConstant.greyColor.withOpacity(0.3),
+                              blurRadius: 8,
+                              blurStyle: BlurStyle.solid,
+                              spreadRadius: 0.8),
+                        ]),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.person,
+                                  color: Colors.orangeAccent,
+                                  size: 18,
+                                ),
+                                AppUtils.commonSizedBox(width: 5),
+                                AppUtils.commonTextWidget(
+                                    text: viewTaskProvider
+                                            .taskByIdModel?.data?.taskTitle ??
+                                        "",
+                                    fontSize: 12,
+                                    textColor:
+                                        AppConstant.blackColor.withOpacity(0.9),
+                                    fontWeight: FontWeight.w500)
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.av_timer_rounded,
+                                  color: Colors.green,
+                                  size: 15,
+                                ),
+                                AppUtils.commonSizedBox(width: 3),
+                                AppUtils.commonTextWidget(
+                                    text: AppUtils.getDate(
+                                        date: viewTaskProvider.taskByIdModel
+                                                ?.data?.createdOn ??
+                                            "",
+                                        format: "hh:mm a"),
+                                    fontSize: 12,
+                                    textColor:
+                                        AppConstant.blackColor.withOpacity(0.9),
+                                    fontWeight: FontWeight.w500)
+                              ],
+                            ),
+                          ],
+                        ),
+                        AppUtils.commonSizedBox(height: 5),
+                        Divider(
+                          color: AppConstant.greyColor.withOpacity(0.3),
+                        ),
+                        AppUtils.commonSizedBox(height: 5),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.task_sharp,
+                                  color: Colors.blue,
+                                  size: 18,
+                                ),
+                                AppUtils.commonSizedBox(width: 5),
+                                AppUtils.commonTextWidget(
+                                    text: "Task Status",
+                                    fontSize: 12,
+                                    textColor:
+                                        AppConstant.blackColor.withOpacity(0.9),
+                                    fontWeight: FontWeight.w500)
+                              ],
+                            ),
+                            AppUtils.commonContainer(
+                                padding: AppUtils.edgeInsetsOnly(
+                                    bottom: 3, top: 3, left: 10, right: 10),
+                                decoration: AppUtils.commonBoxDecoration(
+                                    borderRadius: BorderRadius.circular(6),
+                                    color: AppUtils.switchCaseForTaskStatus(
+                                        viewTaskProvider.taskByIdModel?.data
+                                                ?.taskStatus ??
+                                            "")),
+                                child: AppUtils.commonTextWidget(
+                                    text: viewTaskProvider
+                                            .taskByIdModel?.data?.taskStatus ??
+                                        "",
+                                    fontWeight: FontWeight.w400,
+                                    textColor: AppConstant.whiteColor,
+                                    fontSize: 10))
+                          ],
+                        ),
+                        AppUtils.commonSizedBox(height: 5),
+                        Divider(
+                          color: AppConstant.greyColor.withOpacity(0.3),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.notes,
+                                  color: Colors.purpleAccent,
+                                  size: 18,
+                                ),
+                                AppUtils.commonSizedBox(width: 5),
+                                AppUtils.commonTextWidget(
+                                    text: /* viewTaskProvider
+                                      .taskByIdModel?.data?.taskTitle ??*/
+                                        "Task Description",
+                                    fontSize: 12,
+                                    textColor:
+                                        AppConstant.blackColor.withOpacity(0.9),
+                                    fontWeight: FontWeight.w500)
+                              ],
+                            ),
+                          ],
+                        ),
+                        AppUtils.commonSizedBox(height: 8),
+                        AppUtils.commonTextWidget(
+                            text: viewTaskProvider
+                                    .taskByIdModel?.data?.taskDescription ??
+                                "",
+                            fontSize: 12,
+                            textColor: AppConstant.blackColor.withOpacity(0.9),
+                            fontWeight: FontWeight.w400),
+                      ],
+                    ),
+                  ),
+                  AppUtils.taskTile(
+                      date: viewTaskProvider.taskByIdModel?.data?.createdOn,
+                      titleText: "Assigned By",
+                      username:
+                          viewTaskProvider.taskByIdModel?.data?.createdBy),
+                  AppUtils.taskTile(
+                      date: viewTaskProvider.taskByIdModel?.data?.createdOn,
+                      titleText: "Assigned To",
+                      username: viewTaskProvider.taskByIdModel?.data?.userName),
+                  viewTaskProvider.isFetching ? AppUtils.loaderWidget(color: Colors.black,): viewTaskProvider.getTotByGroupTypeModel?.data == null ||
+                          (viewTaskProvider
+                                      .getTotByGroupTypeModel?.data?.length ??
+                                  0) <=
+                              0
+                      ? AppUtils.commonSizedBox()
+                      : AppUtils.commonContainer(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(
+                              left: 10, right: 10, top: 20),
+                          padding: const EdgeInsets.only(
+                              left: 15, right: 15, top: 20, bottom: 20),
+                          decoration: BoxDecoration(
+                              color: AppConstant.whiteColor,
+                              borderRadius:
+                                  AppUtils.borderRadiusAll(raduis: 10),
+                              boxShadow: [
+                                BoxShadow(
+                                    color:
+                                        AppConstant.greyColor.withOpacity(0.3),
+                                    blurRadius: 8,
+                                    blurStyle: BlurStyle.solid,
+                                    spreadRadius: 0.8),
+                              ]),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.task,
+                                    color: Colors.blue,
+                                    size: 18,
+                                  ),
+                                  AppUtils.commonSizedBox(width: 5),
+                                  AppUtils.commonTextWidget(
+                                      text: "Update Status",
+                                      fontSize: 12,
+                                      textColor: AppConstant.blackColor
+                                          .withOpacity(0.9),
+                                      fontWeight: FontWeight.w500),
+                                ],
+                              ),
+                              AppUtils.commonSizedBox(height: 5),
+                              Divider(
+                                color: AppConstant.greyColor.withOpacity(0.3),
+                              ),
+                              radioWidget(),
+                              Divider(
+                                color: AppConstant.greyColor.withOpacity(0.3),
+                              ),
+                              AppUtils.commonSizedBox(height: 5),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: AppUtils.commonElevatedBtn(
+                                  onPressed: () async {
+                                    await callUpdateTaskApi();
+                                  },
+                                  isLoading: viewTaskProvider.isLoading,
+                                  borderRadiusAll: 10,
+                                  text: "Submit",
+                                  height: 40,
+                                  width: double.infinity,
+                                  bgColor: AppConstant.appPrimaryColor,
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                  AppUtils.commonSizedBox(height: 10),
+                ],
               ),
             ),
-            AppUtils.commonSizedBox(width: 20),
-          ],
-          centerTitle: false,
-        ),
-        body: viewTaskProvider.isFetching
-            ? AppUtils.loaderWidget()
-            : SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              AppUtils.commonContainer(
-                width: double.infinity,
-                margin:
-                const EdgeInsets.only(left: 10, right: 10, top: 20),
-                padding: const EdgeInsets.only(
-                    left: 15, right: 15, top: 20, bottom: 20),
-                decoration: BoxDecoration(
-                    color: AppConstant.whiteColor,
-                    borderRadius: AppUtils.borderRadiusAll(raduis: 10),
-                    boxShadow: [
-                      BoxShadow(
-                          color: AppConstant.greyColor.withOpacity(0.3),
-                          blurRadius: 8,
-                          blurStyle: BlurStyle.solid,
-                          spreadRadius: 0.8),
-                    ]),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.person,
-                              color: Colors.orangeAccent,
-                              size: 18,
-                            ),
-                            AppUtils.commonSizedBox(width: 5),
-                            AppUtils.commonTextWidget(
-                                text: viewTaskProvider
-                                    .taskByIdModel?.data?.taskTitle ??
-                                    "",
-                                fontSize: 12,
-                                textColor: AppConstant.blackColor
-                                    .withOpacity(0.9),
-                                fontWeight: FontWeight.w500)
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.av_timer_rounded,
-                              color: Colors.green,
-                              size: 15,
-                            ),
-                            AppUtils.commonSizedBox(width: 3),
-                            AppUtils.commonTextWidget(
-                                text: AppUtils.getDate(
-                                    date: viewTaskProvider.taskByIdModel
-                                        ?.data?.createdOn ??
-                                        "",
-                                    format: "hh:mm a"),
-                                fontSize: 12,
-                                textColor: AppConstant.blackColor
-                                    .withOpacity(0.9),
-                                fontWeight: FontWeight.w500)
-                          ],
-                        ),
-                      ],
-                    ),
-                    AppUtils.commonSizedBox(height: 5),
-                    Divider(
-                      color: AppConstant.greyColor.withOpacity(0.3),
-                    ),
-                    AppUtils.commonSizedBox(height: 5),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.task_sharp,
-                              color: Colors.blue,
-                              size: 18,
-                            ),
-                            AppUtils.commonSizedBox(width: 5),
-                            AppUtils.commonTextWidget(
-                                text: "Task Status",
-                                fontSize: 12,
-                                textColor: AppConstant.blackColor
-                                    .withOpacity(0.9),
-                                fontWeight: FontWeight.w500)
-                          ],
-                        ),
-                        AppUtils.commonContainer(
-                            padding: AppUtils.edgeInsetsOnly(
-                                bottom: 3, top: 3, left: 10, right: 10),
-                            decoration: AppUtils.commonBoxDecoration(
-                                borderRadius: BorderRadius.circular(6),
-                                color: AppUtils.switchCaseForTaskStatus(
-                                    viewTaskProvider.taskByIdModel?.data
-                                        ?.taskStatus ??
-                                        "")),
-                            child: AppUtils.commonTextWidget(
-                                text: viewTaskProvider
-                                    .taskByIdModel?.data?.taskStatus ??
-                                    "",
-                                fontWeight: FontWeight.w400,
-                                textColor: AppConstant.whiteColor,
-                                fontSize: 10))
-                      ],
-                    ),
-                    AppUtils.commonSizedBox(height: 5),
-                    Divider(
-                      color: AppConstant.greyColor.withOpacity(0.3),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.notes,
-                              color: Colors.purpleAccent,
-                              size: 18,
-                            ),
-                            AppUtils.commonSizedBox(width: 5),
-                            AppUtils.commonTextWidget(
-                                text: /*viewTaskProvider
-                                      .getTaskById?.data?.taskTitle ??*/
-                                "Task Description",
-                                fontSize: 12,
-                                textColor: AppConstant.blackColor
-                                    .withOpacity(0.9),
-                                fontWeight: FontWeight.w500)
-                          ],
-                        ),
-                      ],
-                    ),
-                    AppUtils.commonSizedBox(height: 8),
-                    AppUtils.commonTextWidget(
-                        text: viewTaskProvider
-                            .taskByIdModel?.data?.taskDescription ??
-                            "",
-                        fontSize: 12,
-                        textColor:
-                        AppConstant.blackColor.withOpacity(0.9),
-                        fontWeight: FontWeight.w400),
-                  ],
-                ),
-              ),
-              AppUtils.taskTile(
-                  date: viewTaskProvider.taskByIdModel?.data?.createdOn,
-                  titleText: "Assigned By",
-                  username:
-                  viewTaskProvider.taskByIdModel?.data?.createdBy),
-              AppUtils.taskTile(
-                  date: viewTaskProvider.taskByIdModel?.data?.createdOn,
-                  titleText: "Assigned To",
-                  username: viewTaskProvider.taskByIdModel?.data?.userName),
-             AppUtils.commonContainer(
-                width: double.infinity,
-                margin: const EdgeInsets.only(
-                    left: 10, right: 10, top: 20),
-                padding: const EdgeInsets.only(
-                    left: 15, right: 15, top: 20, bottom: 20),
-                decoration: BoxDecoration(
-                    color: AppConstant.whiteColor,
-                    borderRadius:
-                    AppUtils.borderRadiusAll(raduis: 10),
-                    boxShadow: [
-                      BoxShadow(
-                          color: AppConstant.greyColor
-                              .withOpacity(0.3),
-                          blurRadius: 8,
-                          blurStyle: BlurStyle.solid,
-                          spreadRadius: 0.8),
-                    ]),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.task,
-                          color: Colors.blue,
-                          size: 18,
-                        ),
-                        AppUtils.commonSizedBox(width: 5),
-                        AppUtils.commonTextWidget(
-                            text: "Update Status",
-                            fontSize: 12,
-                            textColor: AppConstant.blackColor
-                                .withOpacity(0.9),
-                            fontWeight: FontWeight.w500),
-                      ],
-                    ),
-                    AppUtils.commonSizedBox(height: 5),
-                    Divider(
-                      color: AppConstant.greyColor.withOpacity(0.3),
-                    ),
-                    radioWidget(),
-                    Divider(
-                      color: AppConstant.greyColor.withOpacity(0.3),
-                    ),
-                    AppUtils.commonSizedBox(height: 5),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: AppUtils.commonElevatedBtn(
-                        onPressed: ()async {
-                          await callUpdateTaskApi();
-                        },
-                        isLoading: viewTaskProvider.isLoading,
-                        borderRadiusAll: 10,
-                        text: "Submit",
-                        height: 40,
-                        width: double.infinity,
-                        bgColor: AppConstant.appPrimaryColor,
-                      ),
-                    )
-                  ],
-                ),
-              ),
-              AppUtils.commonSizedBox(height: 10),
-            ],
-          ),
-        ));
+    );
   }
 
   radioWidget() {
-
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -361,19 +372,21 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
           contentPadding: AppUtils.edgeInsetsAll(allPadding: 0),
           title: AppUtils.commonContainer(
             margin: const EdgeInsets.only(right: 220),
-            padding: AppUtils.edgeInsetsOnly(
-                bottom: 3, top: 3, left: 10, right: 10),
+            padding:
+                AppUtils.edgeInsetsOnly(bottom: 3, top: 3, left: 10, right: 10),
             decoration: AppUtils.commonBoxDecoration(
                 borderRadius: BorderRadius.circular(6),
-                color: AppUtils.switchCaseForTaskStatus(viewTaskProvider.getTotByGroupTypeModel?.data?[index].totValue ?? "")
-            ),
+                color: AppUtils.switchCaseForTaskStatus(viewTaskProvider
+                        .getTotByGroupTypeModel?.data?[index].totValue ??
+                    "")),
             child: Center(
               child: AppUtils.commonTextWidget(
-                  text: viewTaskProvider.getTotByGroupTypeModel?.data?[index].totValue ?? "",
+                  text: viewTaskProvider
+                          .getTotByGroupTypeModel?.data?[index].totValue ??
+                      "",
                   fontWeight: FontWeight.w400,
                   textColor: AppConstant.whiteColor,
-                  fontSize: 10
-              ),
+                  fontSize: 10),
             ),
           ),
           activeColor: AppConstant.appPrimaryColor,
@@ -381,17 +394,16 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
           groupValue: selectedTotValue,
           onChanged: (value) {
             setState(() {
-              selectedTotValue = viewTaskProvider.getTotByGroupTypeModel?.data?[index].totValue;
-              selectedTotId = viewTaskProvider.getTotByGroupTypeModel?.data?[index].totId;
+              selectedTotValue = viewTaskProvider
+                  .getTotByGroupTypeModel?.data?[index].totValue;
+              selectedTotId =
+                  viewTaskProvider.getTotByGroupTypeModel?.data?[index].totId;
               print("selectedTotId $selectedTotId");
               print("selectedTotValue $selectedTotValue");
             });
           },
         );
-
       },
     );
   }
-
-
 }

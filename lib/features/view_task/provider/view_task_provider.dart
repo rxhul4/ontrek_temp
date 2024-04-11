@@ -77,6 +77,7 @@ class ViewTaskProvider extends ChangeNotifier{
     String? groupType
   }) async {
     // loaderFnc(true);
+    fetchingFnc(true);
     Map<String,dynamic>  body ={
       "groupType": groupType,
     };
@@ -97,6 +98,7 @@ class ViewTaskProvider extends ChangeNotifier{
       }
     }
     // lo(false);
+    fetchingFnc(false);
     return getTotByGroupTypeModel;
   }
 
