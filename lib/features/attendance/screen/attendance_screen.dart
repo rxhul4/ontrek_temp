@@ -58,7 +58,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   @override
   void initState() {
     // TODO: implement initState
-    userName = PreferenceHelper.getString(PreferenceHelper.FULL_NAME);
+    userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
     initAnimateController();
 
     if(!mounted){
@@ -99,7 +99,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       String? totTrackingEventCode,
       Position? position}) async {
     try {
-      String? userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
+      String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
       CreateActivityModel? createActivityModel =
           await attendanceProvider?.apiCallCreateActivity(
         userId: userId,

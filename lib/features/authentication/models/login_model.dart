@@ -50,8 +50,11 @@ class Data {
   String? createdOn;
   String? modifiedBy;
   String? modifiedOn;
+  String? userType;
   String? roleId;
   String? roleName;
+  AppUserConfigAttendanceRequest? appUserConfigAttendanceRequest;
+  AppUserConfigTrackingRequest? appUserConfigTrackingRequest;
 
   Data(
       {this.appUserId,
@@ -70,8 +73,11 @@ class Data {
         this.createdOn,
         this.modifiedBy,
         this.modifiedOn,
+        this.userType,
         this.roleId,
-        this.roleName});
+        this.roleName,
+        this.appUserConfigAttendanceRequest,
+        this.appUserConfigTrackingRequest});
 
   Data.fromJson(Map<String, dynamic> json) {
     appUserId = json['appUserId'];
@@ -90,8 +96,18 @@ class Data {
     createdOn = json['createdOn'];
     modifiedBy = json['modifiedBy'];
     modifiedOn = json['modifiedOn'];
+    userType = json['userType'];
     roleId = json['roleId'];
     roleName = json['roleName'];
+    appUserConfigAttendanceRequest =
+    json['appUserConfigAttendanceRequest'] != null
+        ? new AppUserConfigAttendanceRequest.fromJson(
+        json['appUserConfigAttendanceRequest'])
+        : null;
+    appUserConfigTrackingRequest = json['appUserConfigTrackingRequest'] != null
+        ? new AppUserConfigTrackingRequest.fromJson(
+        json['appUserConfigTrackingRequest'])
+        : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -112,8 +128,107 @@ class Data {
     data['createdOn'] = this.createdOn;
     data['modifiedBy'] = this.modifiedBy;
     data['modifiedOn'] = this.modifiedOn;
+    data['userType'] = this.userType;
     data['roleId'] = this.roleId;
     data['roleName'] = this.roleName;
+    if (this.appUserConfigAttendanceRequest != null) {
+      data['appUserConfigAttendanceRequest'] =
+          this.appUserConfigAttendanceRequest!.toJson();
+    }
+    if (this.appUserConfigTrackingRequest != null) {
+      data['appUserConfigTrackingRequest'] =
+          this.appUserConfigTrackingRequest!.toJson();
+    }
+    return data;
+  }
+}
+
+class AppUserConfigAttendanceRequest {
+  bool? allowWebAccess;
+  bool? allowFgAuth;
+  bool? allowCheckinOut;
+  bool? allowLocationRestriction;
+  double? locationRestrictionLat;
+  double? locationRestrictionLong;
+  int? locRestrictionMtrs;
+  bool? allowAutoLogout;
+  String? defaultAutoLogoutTime;
+
+  AppUserConfigAttendanceRequest(
+      {this.allowWebAccess,
+        this.allowFgAuth,
+        this.allowCheckinOut,
+        this.allowLocationRestriction,
+        this.locationRestrictionLat,
+        this.locationRestrictionLong,
+        this.locRestrictionMtrs,
+        this.allowAutoLogout,
+        this.defaultAutoLogoutTime});
+
+  AppUserConfigAttendanceRequest.fromJson(Map<String, dynamic> json) {
+    allowWebAccess = json['allowWebAccess'];
+    allowFgAuth = json['allowFgAuth'];
+    allowCheckinOut = json['allowCheckinOut'];
+    allowLocationRestriction = json['allowLocationRestriction'];
+    locationRestrictionLat = json['locationRestrictionLat'];
+    locationRestrictionLong = json['locationRestrictionLong'];
+    locRestrictionMtrs = json['locRestrictionMtrs'];
+    allowAutoLogout = json['allowAutoLogout'];
+    defaultAutoLogoutTime = json['defaultAutoLogoutTime'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['allowWebAccess'] = this.allowWebAccess;
+    data['allowFgAuth'] = this.allowFgAuth;
+    data['allowCheckinOut'] = this.allowCheckinOut;
+    data['allowLocationRestriction'] = this.allowLocationRestriction;
+    data['locationRestrictionLat'] = this.locationRestrictionLat;
+    data['locationRestrictionLong'] = this.locationRestrictionLong;
+    data['locRestrictionMtrs'] = this.locRestrictionMtrs;
+    data['allowAutoLogout'] = this.allowAutoLogout;
+    data['defaultAutoLogoutTime'] = this.defaultAutoLogoutTime;
+    return data;
+  }
+}
+
+class AppUserConfigTrackingRequest {
+  bool? allowLiveTracking;
+  int? liveTrackingInterval;
+  bool? allowCheckoutReminder;
+  int? chekoutReminderDistance;
+  bool? allowIdleMarker;
+  int? idleMarkerTime;
+  bool? allowNotification;
+
+  AppUserConfigTrackingRequest(
+      {this.allowLiveTracking,
+        this.liveTrackingInterval,
+        this.allowCheckoutReminder,
+        this.chekoutReminderDistance,
+        this.allowIdleMarker,
+        this.idleMarkerTime,
+        this.allowNotification});
+
+  AppUserConfigTrackingRequest.fromJson(Map<String, dynamic> json) {
+    allowLiveTracking = json['allowLiveTracking'];
+    liveTrackingInterval = json['liveTrackingInterval'];
+    allowCheckoutReminder = json['allowCheckoutReminder'];
+    chekoutReminderDistance = json['chekoutReminderDistance'];
+    allowIdleMarker = json['allowIdleMarker'];
+    idleMarkerTime = json['idleMarkerTime'];
+    allowNotification = json['allowNotification'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['allowLiveTracking'] = this.allowLiveTracking;
+    data['liveTrackingInterval'] = this.liveTrackingInterval;
+    data['allowCheckoutReminder'] = this.allowCheckoutReminder;
+    data['chekoutReminderDistance'] = this.chekoutReminderDistance;
+    data['allowIdleMarker'] = this.allowIdleMarker;
+    data['idleMarkerTime'] = this.idleMarkerTime;
+    data['allowNotification'] = this.allowNotification;
     return data;
   }
 }

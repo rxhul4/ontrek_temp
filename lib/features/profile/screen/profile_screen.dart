@@ -26,7 +26,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    userName = PreferenceHelper.getString(PreferenceHelper.FULL_NAME);
+    userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
     profileImage = PreferenceHelper.getString(PreferenceHelper.PROFILE_PIC);
   }
 

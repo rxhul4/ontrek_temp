@@ -106,7 +106,7 @@ class AuthenticationProvider extends ChangeNotifier {
       if (loginModel?.isError == false &&
           loginModel?.isValidationFailed == false) {
         PreferenceHelper.setString(
-            PreferenceHelper.FULL_NAME, loginModel?.data?.userName ?? "");
+            PreferenceHelper.USER_NAME, loginModel?.data?.userName ?? "");
         navigatePushFnc(OTPVerificationCode(
           appUserId: loginModel?.data?.appUserId,
         ));
@@ -143,9 +143,7 @@ class AuthenticationProvider extends ChangeNotifier {
   }
 
   Future<LoginModel?> apiCallVerifyOtp(/*TextEditingController controller*/) async {
-    _isLoading = true;
-    notifyListeners();
-
+    loaderFnc(true);
     Map<String, dynamic> body = {"userId": userUid, "otp": otpController.text};
     try {
       loginModel = LoginModel();
@@ -172,27 +170,26 @@ class AuthenticationProvider extends ChangeNotifier {
         loginModel = LoginModel(message: "Something went wrong!");
       }
     }
-    _isLoading = false;
-    notifyListeners();
+    loaderFnc(false);
     return loginModel;
   }
 
   Future<bool> saveDataToPref() async {
-    PreferenceHelper.setBool(PreferenceHelper.IS_LOGIN, true);
-    PreferenceHelper.setString(
-        PreferenceHelper.FULL_NAME, loginModel?.data?.userName ?? '');
-    PreferenceHelper.setString(
-        PreferenceHelper.USER_UID, loginModel?.data?.appUserId ?? '');
-    PreferenceHelper.setString(
-        PreferenceHelper.ORG_ID, loginModel?.data?.orgId ?? '');
-    PreferenceHelper.setString(
-        PreferenceHelper.EMAIL, loginModel?.data?.userEmail ?? '');
-    PreferenceHelper.setString(
-        PreferenceHelper.PHONE_NO, loginModel?.data?.phoneNo ?? '');
-    PreferenceHelper.setString(
-        PreferenceHelper.ROLE_NAME, loginModel?.data?.roleName ?? '');
-    PreferenceHelper.setString(
-        PreferenceHelper.AUTH_TOKEN, loginModel?.data?.token ?? '');
+      PreferenceHelper.setBool(PreferenceHelper.IS_LOGIN, true);
+      PreferenceHelper.setString(PreferenceHelper.USER_ID, loginModel?.data?.appUserId ?? '');
+      PreferenceHelper.setString(PreferenceHelper.USER_NAME, loginModel?.data?.userName ?? '');
+      PreferenceHelper.setInt(PreferenceHelper.COUNTRY_CODE, loginModel?.data?.countryCode ?? 0);
+      PreferenceHelper.setString(PreferenceHelper.PHONE_NO, loginModel?.data?.phoneNo ?? '');
+      PreferenceHelper.setString(PreferenceHelper.EMAIL, loginModel?.data?.userEmail ?? '');
+      PreferenceHelper.setString(PreferenceHelper.ORG_ID, loginModel?.data?.orgId ?? '');
+      PreferenceHelper.setString(PreferenceHelper.ORG_NAME, loginModel?.data?.orgName ?? '');
+      PreferenceHelper.setString(PreferenceHelper.ROLE_NAME, loginModel?.data?.roleName ?? '');
+      PreferenceHelper.setString(PreferenceHelper.ROLE_ID, loginModel?.data?.roleId ?? '');
+      PreferenceHelper.setBool(PreferenceHelper.LOCATION_RESTRICTION, loginModel?.data?.appUserConfigAttendanceRequest?.allowLocationRestriction ?? false);
+      PreferenceHelper.setDouble(PreferenceHelper.LOCATION_RESTRICTION_LAT, loginModel?.data?.appUserConfigAttendanceRequest?.locationRestrictionLat ?? 0.0);
+      PreferenceHelper.setDouble(PreferenceHelper.LOCATION_RESTRICTION_LONG, loginModel?.data?.appUserConfigAttendanceRequest?.locationRestrictionLong ?? 0.0);
+      PreferenceHelper.setBool(PreferenceHelper.LIVE_LOCATION_TRACKING, loginModel?.data?.appUserConfigTrackingRequest?.allowLiveTracking ?? false);
+      PreferenceHelper.setInt(PreferenceHelper.LIVE_LOCATION_INTERVAL, loginModel?.data?.appUserConfigTrackingRequest?.liveTrackingInterval ?? 0);
 
     print("data : ${PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN)}");
     return true;

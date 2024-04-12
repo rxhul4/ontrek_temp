@@ -67,7 +67,7 @@ class _ChooseCountryScreenState extends State<ChooseCountryScreen> {
               child: addLeadProvider.isFetching
                   ? AppUtils.loaderWidget()
                   : getAllCountryModel?.data == null ||
-                  getAllCountryModel!.data!.isEmpty
+                  (getAllCountryModel?.data?.length ?? 0) <= 0
                   ? AppUtils.commonNoDataFound(
                 text: "No Country Found",
                 onPressed: () {
@@ -77,15 +77,15 @@ class _ChooseCountryScreenState extends State<ChooseCountryScreen> {
                   : ListView.builder(
                 padding: const EdgeInsets.only(bottom: 30),
                 physics: const BouncingScrollPhysics(),
-                itemCount: getAllCountryModel!.data!.length,
+                itemCount: getAllCountryModel?.data?.length,
                 itemBuilder: (context, index) {
                   return GestureDetector(
                     onTap: () {
                       setState(() {
                         selectedCountryId =
-                            getAllCountryModel!.data![index].countryId;
+                            getAllCountryModel?.data?[index].countryId;
                         selectedCountryName =
-                            getAllCountryModel!.data![index].countryName;
+                            getAllCountryModel?.data?[index].countryName;
                         print("selectedCountry$selectedCountryName");
                         print("selectedCountryId$selectedCountryId");
                       });
@@ -120,8 +120,7 @@ class _ChooseCountryScreenState extends State<ChooseCountryScreen> {
                         leadingSize: 0,
                         padding: EdgeInsets.zero,
                         title: AppUtils.commonTextWidget(
-                          text: getAllCountryModel!
-                              .data![index].countryName ??
+                          text: getAllCountryModel?.data?[index].countryName ??
                               '',
                           textColor:
                           AppConstant.blackColor.withOpacity(0.7),

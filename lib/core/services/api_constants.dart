@@ -17,6 +17,8 @@ class ApiConstants{
       static const String getCityByStateId = "$baseUrl/Super/City/GetCityByStateId";
       static const String getAllLeads = "$baseUrl/Super/Lead/GetAll";
       static const String createLead = "$baseUrl/Super/Lead/Create";
+      static const String updateLead = "$baseUrl/Super/Lead/Update";
+      static const String getLeadByID = "$baseUrl/Super/Lead/GetById";
 
       
       static const String getAllTaskByUserId = "$baseUrl/Admin/AppUserTask/GetAllTaskByUserId";

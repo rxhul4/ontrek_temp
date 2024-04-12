@@ -63,7 +63,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    userUid = PreferenceHelper.getString(PreferenceHelper.USER_UID);
+    userUid = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     deviceInfo.androidInfo.then((value) {
       androidInfo = value;
     });

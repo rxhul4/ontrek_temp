@@ -226,7 +226,7 @@ CreateRouteHistoryModel? createRouteHistoryModel;
 Future<void> updateRouteHistory() async {
   try {
     PreferenceHelper.load().then((value) async {
-      String? userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
+      String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
 
       Position? position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.best);
@@ -270,7 +270,7 @@ Future<void> waitingStartApi({required ServiceInstance service,String? waitingSt
      print("batteryLevel$batteryLevel");
 
      PreferenceHelper.load().then((value) async {
-       String? userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
+       String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
        Map<String, dynamic> body = {};
        body = {
          "userId": userId,
@@ -308,7 +308,7 @@ Future<void> waitingEndApi({required ServiceInstance service}) async {
   print("battery_Level${batteryLevel}");
 
   PreferenceHelper.load().then((value) async {
-    String? userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
+    String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     Map<String, dynamic> body = {};
     body = {
       "userId": userId,
@@ -337,7 +337,7 @@ Future<void> waitingEndApi({required ServiceInstance service}) async {
 
 Future<void> handleInternetAndGPSApi() async {
   PreferenceHelper.load().then((value) async {
-    String? userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
+    String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     bool? gpsBool = PreferenceHelper.getBool(PreferenceHelper.GPS_BOOL);
     bool? internetBool =
         PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);

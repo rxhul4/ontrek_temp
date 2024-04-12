@@ -10,8 +10,7 @@ import 'package:http/http.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 AndroidDeviceInfo? myDeviceInfo;
 
-final userName = PreferenceHelper.getString(PreferenceHelper.FULL_NAME);
-final authToken = PreferenceHelper.getString(PreferenceHelper.AUTH_TOKEN);
+final userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
 
 
 Map<String, String> header = {
@@ -19,24 +18,10 @@ Map<String, String> header = {
   'Accept': 'application/json',
   'current-User' : userName ?? "",
   'time-zone' : DateTime.now().timeZoneOffset.inMinutes.toString()
-  // 'token' : "Bariar ${}"
 };
-Map<String, String> headerWithToken = {
-  'Content-Type': 'application/json',
-  'Accept': 'application/json',
-  'current-User' : userName ?? "",
-  'time-zone' : DateTime.now().timeZoneOffset.inMinutes.toString(),
-  'token' : "Bariar $authToken"
-};
+
 
 Future callPostMethod(String url, Map<String, dynamic> params) async {
-  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-  myDeviceInfo = await deviceInfo.androidInfo;
-
-  // print("deviceId_DTAAAAAAAAAAAAA${myDeviceInfo?.id ?? ""}");
-  // print("deviceversion${myDeviceInfo?.version.release ?? ""}");
-  // print("devicemodel${myDeviceInfo?.model ?? ""}");
-
   if (kDebugMode) {
     print("baseUrl--$url");
     print("params--${jsonEncode(params)}");
@@ -46,7 +31,7 @@ Future callPostMethod(String url, Map<String, dynamic> params) async {
       .post(
     Uri.parse(url),
     body: utf8.encode(json.encode(params)),
-    headers: authToken != null ? headerWithToken : header,
+    headers:  header,
   )
       .then((http.Response response) {
     return getResponse(response);

@@ -183,7 +183,7 @@ class AttendanceProvider extends ChangeNotifier {
 
   Future<GetLastActivityModel?> callGetLastActivity() async {
     loaderFnc(true);
-    String? userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
+    String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     Map<String, dynamic> body = {
       "userId": userId,
       "currentDate": AppUtils.dateFormat(date: DateTime.now(),dateFormat: AppConstant.dateFormat)

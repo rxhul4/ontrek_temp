@@ -823,7 +823,9 @@ class AppUtils {
       context: context ?? navigatorKey.currentState!.context,
       builder: (context) {
         return CupertinoAlertDialog(
+
           title:  AppUtils.commonTextWidget(
+            margin: const EdgeInsets.only(bottom: 10),
               text: titleText ?? "",
               textColor: AppConstant.blackColor,
               fontSize: 14,
@@ -832,10 +834,11 @@ class AppUtils {
               letterSpacing: 0.5),
           actions: [
             CupertinoDialogAction(
+
               child: AppUtils.commonTextWidget(
                   text: onCancelString ?? "Cancel",
                   textColor: AppConstant.appPrimaryColor,
-                  fontSize: 12,
+                  fontSize: 14,
                   textAlign: TextAlign.center,
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.5),
@@ -848,7 +851,7 @@ class AppUtils {
               child: AppUtils.commonTextWidget(
                   text: onSuccessString ?? "OK",
                   textColor: AppConstant.appPrimaryColor,
-                  fontSize: 12,
+                  fontSize: 14,
                   textAlign: TextAlign.center,
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.5),
@@ -871,17 +874,26 @@ class AppUtils {
     );
   }
 
-  static showDialogBoxWithOneButton({BuildContext? context, String? text}) {
+  static showDialogBoxWithOneButton({BuildContext? context, String? text,String? titleText}) {
     return showDialog(
       context: context ?? navigatorKey.currentState!.context,
       builder: (context) {
         return CupertinoAlertDialog(
+
+          title:  AppUtils.commonTextWidget(
+              margin: const EdgeInsets.only(bottom: 10),
+              text: titleText ?? "",
+              textColor: AppConstant.blackColor,
+              fontSize: 14,
+              textAlign: TextAlign.center,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5),
           actions: [
             CupertinoDialogAction(
               child: AppUtils.commonTextWidget(
                   text: "OK",
                   textColor: AppConstant.appPrimaryColor,
-                  fontSize: 12,
+                  fontSize: 14,
                   textAlign: TextAlign.center,
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.5),

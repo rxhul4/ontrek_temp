@@ -29,11 +29,11 @@ class _ChooseLeadSourceScreenState extends State<ChooseLeadSourceScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       viewTaskProvider = Provider.of<ViewTaskProvider>(context, listen: false);
-      await callGetAllCountryApi();
+      await callLeadSourceApi();
     });
   }
 
-  callGetAllCountryApi() {
+  callLeadSourceApi() {
     viewTaskProvider.apiCallGetTotByType(groupType: AppConstant.leadTypeCode).then((value) {
       setState(() {
         getTotByGroupTypeModel = value;

@@ -11,6 +11,7 @@ import 'package:ontrek/features/add_lead/model/create_lead_model.dart';
 import 'package:ontrek/features/add_lead/model/get_all_country_model.dart';
 import 'package:ontrek/features/add_lead/model/get_all_state_by_id.dart';
 import 'package:ontrek/features/add_lead/model/get_city_by_id.dart';
+import 'package:ontrek/features/add_lead/model/get_lead_by_id_model.dart';
 import 'package:ontrek/main.dart';
 
 class AddLeadProvider extends ChangeNotifier{
@@ -31,6 +32,7 @@ class AddLeadProvider extends ChangeNotifier{
   GetStateByIdModel? getStateByIdModel;
   GetCityByIdModel? getCityByIdModel;
   CreateLeadModel? createLeadModel;
+  GetLeadByIdModel? getLeadByIdModel;
 
   loaderFnc(bool isLoading) {
     _isLoading = isLoading;
@@ -53,9 +55,10 @@ class AddLeadProvider extends ChangeNotifier{
     String? stateId,
     String? countryId,
     String? totLeadSourceId,
+
 }) async {
-    fetchingFnc(true);
-    String? userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
+    loaderFnc(true);
+    String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     Map<String,dynamic> body =
       {
         "userId": userId,
@@ -69,9 +72,7 @@ class AddLeadProvider extends ChangeNotifier{
         "stateId": stateId,
         "countryId": countryId,
         "totLeadSourceId": totLeadSourceId
-
-
-    };
+      };
     try {
       String endPoint = ApiConstants.createLead;
       var response = await callPostMethod(endPoint,body);
@@ -88,8 +89,85 @@ class AddLeadProvider extends ChangeNotifier{
         createLeadModel = CreateLeadModel(message: "Something went wrong!");
       }
     }
+    loaderFnc(false);
+    return createLeadModel;
+  }
+
+  Future<CreateLeadModel?> apiCallUpdateLead({
+    String? leadId,
+    String? companyName,
+    String? customerName,
+    String? customerPhone,
+    String? customerEmail,
+    String? customerAddress,
+    String? zipCode,
+    String? cityId,
+    String? stateId,
+    String? countryId,
+    String? totLeadSourceId,
+
+  }) async {
+    fetchingFnc(true);
+    String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
+    Map<String,dynamic> body =
+    {
+      "leadId" :leadId,
+      "userId": userId,
+      "companyName": companyName,
+      "customerName": customerName,
+      "customerPhone": customerPhone,
+      "customerEmail": customerEmail,
+      "customerAddress": customerAddress,
+      "zipCode": zipCode,
+      "cityId": cityId,
+      "stateId": stateId,
+      "countryId": countryId,
+      "totLeadSourceId": totLeadSourceId
+    };
+    try {
+      String endPoint = ApiConstants.updateLead;
+      var response = await callPostMethod(endPoint,body);
+      createLeadModel = CreateLeadModel.fromJson(json.decode(response));
+      print('response ${createLeadModel?.toJson()}');
+    } catch (e) {
+      print('catch at Get updateLead Provider $e');
+      AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentContext,text: createLeadModel?.message ?? "",titleText: "Error");
+      bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
+      if (!isInternetAvailable) {
+        createLeadModel = CreateLeadModel(
+            message: "Internet is not available, please try again!");
+      } else {
+        createLeadModel = CreateLeadModel(message: "Something went wrong!");
+      }
+    }
     fetchingFnc(false);
     return createLeadModel;
+  }
+
+
+  Future<GetLeadByIdModel?> apiCallGetLeadById({String? leadId}) async {
+    fetchingFnc(true);
+    Map<String,dynamic> body ={
+      "leadId": leadId
+    };
+    try {
+      String endPoint = ApiConstants.getLeadByID;
+      var response = await callPostMethod(endPoint,body);
+      getLeadByIdModel = GetLeadByIdModel.fromJson(json.decode(response));
+      print('response ${getLeadByIdModel?.toJson()}');
+    } catch (e) {
+      print('catch at getStateByCountryId Provider $e');
+      AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentContext,text: getLeadByIdModel?.message ?? "");
+      bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
+      if (!isInternetAvailable) {
+        getLeadByIdModel = GetLeadByIdModel(
+            message: "Internet is not available, please try again!");
+      } else {
+        getLeadByIdModel = GetLeadByIdModel(message: "Something went wrong!");
+      }
+    }
+    fetchingFnc(false);
+    return getLeadByIdModel;
   }
 
 

@@ -9,7 +9,7 @@ import 'package:ontrek/features/leads/model/lead_model.dart';
 import 'package:ontrek/main.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
-class LeadProvider extends ChangeNotifier{
+class LeadProvider extends ChangeNotifier {
   bool _isFetching = false;
   bool _isLoading = false;
   bool _isUploading = false;
@@ -24,12 +24,11 @@ class LeadProvider extends ChangeNotifier{
   bool get isAdding => _isAdding;
 
   GetAllLeadModel? getAllLeadModel;
+
   //variables
   bool? isSearchVisible = false;
   PanelController panelController = PanelController();
   TextEditingController searchController = TextEditingController();
-
-
 
   loaderFnc(bool isLoading) {
     _isLoading = isLoading;
@@ -40,6 +39,7 @@ class LeadProvider extends ChangeNotifier{
     _isFetching = isLoading;
     notifyListeners();
   }
+
   refreshFnc(bool isRefresh) {
     _isLoading = isRefresh;
     notifyListeners();
@@ -57,31 +57,27 @@ class LeadProvider extends ChangeNotifier{
     ));
   }
 
-
   refresh() async {
-    refreshFnc(true);
-    await Future.delayed(const Duration(seconds: 3));
-    refreshFnc(false);
-
+    String? orgId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
+   await  apiCallGetAllLead(orgId: orgId);
   }
-  showAndHideSearchWidget(bool isSearchVisibleFromView){
+
+  showAndHideSearchWidget(bool isSearchVisibleFromView) {
     isSearchVisible = isSearchVisibleFromView;
     notifyListeners();
   }
 
-  Future<GetAllLeadModel?> apiCallGetAllLead(
-      {String? orgId}) async {
+  Future<GetAllLeadModel?> apiCallGetAllLead({String? orgId}) async {
     var orgId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
     _isFetching = true;
     notifyListeners();
-    Map<String, dynamic> body =
-    {
+    Map<String, dynamic> body = {
       "orgId": orgId,
     };
     try {
       String endPoint = ApiConstants.getAllLeads;
 
-      var response = await callPostMethod(endPoint,body);
+      var response = await callPostMethod(endPoint, body);
       getAllLeadModel = GetAllLeadModel.fromJson(json.decode(response));
       print('response ${getAllLeadModel?.toJson()}');
     } catch (e) {
@@ -98,7 +94,4 @@ class LeadProvider extends ChangeNotifier{
     notifyListeners();
     return getAllLeadModel;
   }
-
-
-
 }

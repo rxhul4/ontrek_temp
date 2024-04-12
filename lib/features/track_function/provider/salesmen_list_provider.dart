@@ -71,7 +71,7 @@ animatePanel(){
     notifyListeners();
   }
   Future<GetSalesMenListModel?> apiCallGetSalesManList() async {
-    var userId = PreferenceHelper.getString(PreferenceHelper.USER_UID);
+    var userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     var orgId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
     _isFetching = true;
     notifyListeners();

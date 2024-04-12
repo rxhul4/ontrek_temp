@@ -28,11 +28,11 @@ class _ChooseStateScreenState extends State<ChooseStateScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       addLeadProvider = Provider.of<AddLeadProvider>(context, listen: false);
-      await callGetAllCountryApi();
+      await callGetStateByCountryId();
     });
   }
 
-  callGetAllCountryApi() {
+  callGetStateByCountryId() {
     addLeadProvider.apiCallGetStateByCountryId(countryId: widget.countryId).then((value) {
       setState(() {
         getStateByIdModel = value;
