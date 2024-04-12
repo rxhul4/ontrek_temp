@@ -30,9 +30,9 @@ class SalemenTimeLineProvider extends ChangeNotifier {
   List<SessionEvents> sessionEvents = [];
   List<LatlongArray> latLongArray = [];
   List<LatLng> coordinates = [];
-int totalCheckIn = 0;
-String totalDuration = "";
-num totalKmTravel = 0;
+  int totalCheckIn = 0;
+  String totalDuration = "";
+  num totalKmTravel = 0;
   loaderFnc(bool isLoading) {
     _isLoading = isLoading;
     notifyListeners();
@@ -65,7 +65,7 @@ num totalKmTravel = 0;
     Map<String, dynamic> body = {
       "userId": userid,
       "eventDate":
-          AppUtils.getDate(date: date ?? "", format: AppConstant.dateFormat)
+      AppUtils.getDate(date: date ?? "", format: AppConstant.dateFormat)
     };
     try {
       String endPoint = ApiConstants.getSalesMenTimeLine;

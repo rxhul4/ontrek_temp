@@ -21,14 +21,14 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   bool? isLogIn;
-  int? roleId;
+  String? roleId;
   bool? isDayStart;
   bool? isCheckIn;
   bool? isWaiting;
 
   gotoLogin() async {
     isLogIn = PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN);
-    roleId = PreferenceHelper.getInt(PreferenceHelper.ROLE_ID);
+    roleId = PreferenceHelper.getString(PreferenceHelper.ROLE_ID);
     isDayStart = PreferenceHelper.getBool(PreferenceHelper.DayStart);
     isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
     isWaiting = PreferenceHelper.getBool(PreferenceHelper.isWaiting);
