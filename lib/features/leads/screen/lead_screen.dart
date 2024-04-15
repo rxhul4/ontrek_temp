@@ -324,7 +324,9 @@ class _LeadScreenState extends State<LeadScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: AppTextField(
         controller: leadProvider.searchController,
-        onChanged: (value) {},
+        onChanged: (value) {
+          leadProvider.apiCallGetAllLead();
+        },
         hintText: "Search",
         prefixIcon: const Icon(Icons.search),
         cursorColor: AppConstant.appPrimaryColor.withOpacity(0.9),

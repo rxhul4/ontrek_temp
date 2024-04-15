@@ -68,7 +68,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           Provider.of<AttendanceProvider>(context, listen: false);
 
       attendanceProvider.panelController.animatePanelToPosition(0.99);
-      await attendanceProvider.callGetLastActivity();
+      attendanceProvider.callGetLastActivity();
 
       attendanceProvider.checkBiometricAvailable();
 

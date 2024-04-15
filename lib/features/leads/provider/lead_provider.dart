@@ -5,6 +5,7 @@ import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
+import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/leads/model/lead_model.dart';
 import 'package:ontrek/main.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
@@ -67,12 +68,16 @@ class LeadProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<GetAllLeadModel?> apiCallGetAllLead({String? orgId}) async {
+  Future<GetAllLeadModel?> apiCallGetAllLead({String? orgId,String? filter}) async {
     var orgId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
+    var userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     _isFetching = true;
     notifyListeners();
     Map<String, dynamic> body = {
-      "orgId": orgId,
+      "userId": userId,
+      "leadDate": AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat),
+      "fillter": searchController.text,
+      "orgId": orgId
     };
     try {
       String endPoint = ApiConstants.getAllLeads;

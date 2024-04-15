@@ -186,6 +186,7 @@ class AuthenticationProvider extends ChangeNotifier {
       PreferenceHelper.setString(PreferenceHelper.ORG_NAME, loginModel?.data?.orgName ?? '');
       PreferenceHelper.setString(PreferenceHelper.ROLE_NAME, loginModel?.data?.roleName ?? '');
       PreferenceHelper.setString(PreferenceHelper.ROLE_ID, loginModel?.data?.roleId ?? '');
+      PreferenceHelper.setString(PreferenceHelper.REPORTING_MANAGER, loginModel?.data?.createdBy ?? '');
       PreferenceHelper.setBool(PreferenceHelper.LOCATION_RESTRICTION, loginModel?.data?.appUserConfigAttendanceRequest?.allowLocationRestriction ?? false);
       PreferenceHelper.setDouble(PreferenceHelper.LOCATION_RESTRICTION_LAT, loginModel?.data?.appUserConfigAttendanceRequest?.locationRestrictionLat ?? 0.0);
       PreferenceHelper.setDouble(PreferenceHelper.LOCATION_RESTRICTION_LONG, loginModel?.data?.appUserConfigAttendanceRequest?.locationRestrictionLong ?? 0.0);

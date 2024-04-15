@@ -1,9 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:ontrek/core/services/api_constants.dart';
+import 'package:ontrek/core/services/network_repository.dart';
+import 'package:ontrek/core/storage/preference_helper.dart';
+import 'package:ontrek/core/utils/App_utils.dart';
+import 'package:ontrek/core/utils/app_constant.dart';
+import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
 import 'package:ontrek/main.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -25,6 +33,12 @@ class DashBoardProvider extends ChangeNotifier{
   late final Completer<GoogleMapController> googleMapController = Completer();
   Set<Marker> markers = Set();
   int selectedIndex = 0;
+  ValueNotifier<bool> isDayStart = ValueNotifier(false);
+  ValueNotifier<bool> isCheckIn = ValueNotifier(false);
+  ValueNotifier<bool> isDayEnd = ValueNotifier(false);
+  ValueNotifier<bool> isWaiting = ValueNotifier(false);
+  GetLastActivityModel? getLastActivityModel;
+  FlutterBackgroundService service = FlutterBackgroundService();
 
 
   loaderFnc(bool isLoading) {
@@ -126,6 +140,9 @@ class DashBoardProvider extends ChangeNotifier{
     currentLocation = LatLng(position.latitude, position.longitude);
     notifyListeners();
   }
+
+
+
 
 
 

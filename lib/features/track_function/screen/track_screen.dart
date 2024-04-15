@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ontrek/core/common_widgets/textfield_widget.dart';
+import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/image_path.dart';
@@ -234,6 +235,7 @@ class _TrackScreenState extends State<TrackScreen>
       SalesMenListProvider? salesMenListProvider,
       controller}) {
     print("dataaaaaaaaaaaaa${getSalesMenListModelData?.length}");
+    String? username = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
 
     return Column(
       children: [
@@ -301,8 +303,7 @@ class _TrackScreenState extends State<TrackScreen>
                             AppUtils.commonSizedBox(height: 5),
                             AppUtils.commonTextWidget(
                                 text: /*userList[index].name*/
-                                    getSalesMenListModelData?[index].userName ??
-                                        "Name",
+                                username == getSalesMenListModelData?[index].userName ? "You" : getSalesMenListModelData?[index].userName ?? "",
                                 textColor: AppConstant.blackColor,
                                 fontSize: 11,textAlign: TextAlign.center),
                             // AppUtils.commonTextWidget(

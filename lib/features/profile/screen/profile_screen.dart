@@ -20,6 +20,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   PanelController();
   String? userName;
   String? profileImage;
+  String? orgName;
+  String? manager;
   FlutterBackgroundService service = FlutterBackgroundService();
 
   @override
@@ -28,6 +30,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
     profileImage = PreferenceHelper.getString(PreferenceHelper.PROFILE_PIC);
+    orgName =PreferenceHelper.getString(PreferenceHelper.ORG_NAME);
+    manager = PreferenceHelper.getString(PreferenceHelper.REPORTING_MANAGER);
   }
 
   List<String> profileOptionsList = [
@@ -93,12 +97,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   AppUtils.commonSizedBox(height: 10),
                   AppUtils.commonTextWidget(
-                      text: "Kuldeep Chauhan",
+                      text: userName ?? "",
                       textColor: AppConstant.blackColor,
                       fontWeight: FontWeight.w500,
                       fontSize: 18),
                   AppUtils.commonTextWidget(
-                      text: 'Epist Interior Pvt Ltd',
+                      text: orgName ?? "",
                       textColor: AppConstant.blackColor.withOpacity(0.6),
                       fontSize: 12),
                 ],
@@ -122,7 +126,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 title: AppUtils.commonTextWidget(
-                    text: "Kuldeep Chauhan",
+                    text: manager ?? "",
                     textColor: AppConstant.blackColor,
                     fontWeight: FontWeight.w500),
                 subtitle: AppUtils.commonTextWidget(
@@ -151,18 +155,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         physics: NeverScrollableScrollPhysics(),
                         itemBuilder: (context, index) {
                        return InkWell(
-                            onTap: () {
+                            onTap: () async {
                               print("index${index}");
                               print(profileOptionsList[index]);
                               if (index == 7) {
-                                service.invoke("stopService");
-                                PreferenceHelper.clear();
-                                Navigator.pushReplacement(
-                                  context,
-                                  CupertinoPageRoute(
-                                    builder: (context) => LoginScreen(),
-                                  ),
-                                );
+                                bool isRunning = await service.isRunning();
+                                if(isRunning){
+                                  service.invoke("stopService");
+                                  PreferenceHelper.clear();
+                                  Navigator.pushReplacement(
+                                    context,
+                                    CupertinoPageRoute(
+                                      builder: (context) => LoginScreen(),
+                                    ),
+                                  );
+                                }else{
+                                  PreferenceHelper.clear();
+                                  Navigator.pushReplacement(
+                                    context,
+                                    CupertinoPageRoute(
+                                      builder: (context) => LoginScreen(),
+                                    ),
+                                  );
+                                }
+
+
+
                               }
                             },
                             child: profileOptions(

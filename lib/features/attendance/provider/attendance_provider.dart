@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:ontrek/core/services/api_constants.dart';
@@ -42,6 +43,8 @@ class AttendanceProvider extends ChangeNotifier {
   LocalAuthentication localAuthentication = LocalAuthentication();
   bool isBiometricAvailable = false;
   AnimationController? controller;
+  FlutterBackgroundService service = FlutterBackgroundService();
+
 
 
   loaderFnc(bool isLoading) {
@@ -196,7 +199,6 @@ class AttendanceProvider extends ChangeNotifier {
       if(getLastActivityModel?.isError == false && getLastActivityModel?.isValidationFailed == false){
         print("totEvent${getLastActivityModel?.data?.trackingEventId}");
         String? totEventCode = getLastActivityModel?.data?.trackingEventId;
-
         switch (totEventCode) {
           case AppConstant.dayStartEvent :
             PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
@@ -222,24 +224,37 @@ class AttendanceProvider extends ChangeNotifier {
             break;
           case AppConstant.trackingWaitingStartEvent:
             PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+            PreferenceHelper.setBool(PreferenceHelper.isWaiting, true);
             PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
             isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
             isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+            isWaiting.value = PreferenceHelper.getBool(PreferenceHelper.isWaiting);
             break;
           case AppConstant.trackingWaitingStopEvent:
             PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
             PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+            PreferenceHelper.setBool(PreferenceHelper.isWaiting, false);
             isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
             isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+            isWaiting.value = PreferenceHelper.getBool(PreferenceHelper.isWaiting);
             break;
           default:
+            PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
+            PreferenceHelper.setBool(PreferenceHelper.isWaiting, false);
+            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+            isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+            isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+            isWaiting.value = PreferenceHelper.getBool(PreferenceHelper.isWaiting);
             print('Unknown eventCode');
 
+        }
+        if(isDayStart.value == true){
+          await service.startService();
         }
 
       }
     } catch (e) {
-      print("inCatch ${createActivityModel?.message}");
+      print("inCatch ${getLastActivityModel?.message}");
       print("inCatchE $e");
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
       if (!isInternetAvailable) {
