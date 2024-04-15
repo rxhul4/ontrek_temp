@@ -32,7 +32,6 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
   LatLng currentLocation = LatLng(20.5937, 78.9629);
   PanelController panelController = PanelController();
   Set<Marker> markers = Set();
-  List<List<SessionEvents>?>? sessionEvent = [];
   late SalemenTimeLineProvider saleMenTimeLineProvider;
   final Completer<GoogleMapController> googleMapController =
   Completer<GoogleMapController>();
@@ -141,7 +140,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
     return Align(
       alignment: Alignment.topCenter,
       child: dateSelectionWidget(
-        isFromSheet: isFromSheet, /*getMdl: getMdl*/
+        isFromSheet: isFromSheet,
       ),
     );
   }

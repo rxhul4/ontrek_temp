@@ -142,9 +142,9 @@ class AuthenticationProvider extends ChangeNotifier {
     }
   }
 
-  Future<LoginModel?> apiCallVerifyOtp(/*TextEditingController controller*/) async {
+  Future<LoginModel?> apiCallVerifyOtp({String? otpText}) async {
     loaderFnc(true);
-    Map<String, dynamic> body = {"userId": userUid, "otp": otpController.text};
+    Map<String, dynamic> body = {"userId": userUid, "otp": otpText};
     try {
       loginModel = LoginModel();
       String endPoint = ApiConstants.verifyOtp;
@@ -162,6 +162,7 @@ class AuthenticationProvider extends ChangeNotifier {
     } catch (e) {
       print("inCatch ${loginModel?.message}");
       print("inCatchE ${e}");
+      AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentState!.context ,text:  loginModel?.message ?? "");
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
       if (!isInternetAvailable) {
         loginModel =
@@ -195,16 +196,15 @@ class AuthenticationProvider extends ChangeNotifier {
     return true;
   }
 
-  checkValidationAndCallVerifyOtpApi(/*TextEditingController controller*/) {
-    if (otpController.text.isEmpty) {
+  checkValidationAndCallVerifyOtpApi({required TextEditingController controller}) {
+    if (controller.text.isEmpty) {
       AppUtils.showSnackBarWithColor(
           message: "Please Enter One Time Password!", giveColor: Colors.red);
-    } else if (otpController.text.length < 4) {
+    } else if (controller.text.length < 4) {
       AppUtils.showSnackBarWithColor(
           message: "Please Enter 4 digit code!", giveColor: Colors.red);
     } else {
-      apiCallVerifyOtp();
-      // navigatePushReplacementFnc(const DashBoard());
+      apiCallVerifyOtp(otpText: controller.text);
     }
   }
 }

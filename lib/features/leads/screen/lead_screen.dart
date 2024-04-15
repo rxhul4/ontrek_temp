@@ -101,6 +101,7 @@ class _LeadScreenState extends State<LeadScreen> {
                   : leadProvider.getAllLeadModel?.data == null ||
                   (leadProvider.getAllLeadModel?.data?.length ?? 0) <= 0
                   ? AppUtils.commonNoDataFound(
+                text: leadProvider.getAllLeadModel?.message ??"",
                 onPressed: () {
                   if (!mounted) {}
                   callGetAllLeadApi(leadProvider);

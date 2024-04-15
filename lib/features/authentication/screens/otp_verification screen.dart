@@ -23,6 +23,7 @@ class OTPVerificationCode extends StatefulWidget {
 
 class _OTPVerificationCodeState extends State<OTPVerificationCode> {
   late AuthenticationProvider authenticationProvider;
+  TextEditingController otpController = TextEditingController();
 
 
   @override
@@ -30,21 +31,19 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       authenticationProvider = Provider.of<AuthenticationProvider>(context,listen: false);
-      authenticationProvider.otpController.clear();
+      otpController.clear();
       authenticationProvider.userUid = widget.appUserId;
       authenticationProvider.startTimer();
     });
 
   }
+
   @override
   void dispose() {
-    if (mounted) {
-      authenticationProvider.otpController.dispose();
-    }
-
+    // TODO: implement dispose
+    authenticationProvider.timer?.cancel();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +115,7 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      otpView(context, authenticationProvider.otpController),
+                      otpView(context, otpController),
                       AppUtils.commonElevatedBtn(
                         isLoading: authenticationProvider.isLoading,
                         topMargin: 20,
@@ -126,9 +125,7 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
                         bgColor: AppConstant.appPrimaryColor.withOpacity(0.9),
                         borderRadiusAll: 8,
                         onPressed: () {
-                          // PreferenceHelper.setBool(PreferenceHelper.IS_LOGIN, true);
-                          // authenticationProvider.navigatePushReplacementFnc(const DashBoard());
-                          authenticationProvider.checkValidationAndCallVerifyOtpApi();
+                          authenticationProvider.checkValidationAndCallVerifyOtpApi(controller: otpController);
 
                         },
                       ),

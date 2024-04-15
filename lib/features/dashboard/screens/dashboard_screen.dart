@@ -34,7 +34,7 @@ class DashBoardState extends State<DashBoard> {
     "Track",
     "Tasks",
     "Leads",
-    "Profile",
+    "More",
   ];
   List<String> iconString = [
     attendanceIconPath,
@@ -49,6 +49,7 @@ class DashBoardState extends State<DashBoard> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       final dashBoardProvider = Provider.of<DashBoardProvider>(context,listen: false);
+      dashBoardProvider.selectedIndex = 0;
       dashBoardProvider.checkPermission();
     });
 

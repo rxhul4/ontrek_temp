@@ -152,7 +152,7 @@ class AppUserConfigAttendanceRequest {
   double? locationRestrictionLong;
   int? locRestrictionMtrs;
   bool? allowAutoLogout;
-  String? defaultAutoLogoutTime;
+  int? defaultAutoLogoutTime;
 
   AppUserConfigAttendanceRequest(
       {this.allowWebAccess,
