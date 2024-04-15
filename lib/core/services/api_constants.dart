@@ -9,13 +9,14 @@ class ApiConstants{
       static const String createActivity = "$baseUrl/FieldUser/CreateActivity";
       static const String getLastActivity = "$baseUrl/FieldUser/GetLastActivity";
       static const String createRouteHistory = "$baseUrl/FieldUser/CreateRoutHistory";
+      static const String getLeadList = "$baseUrl/FieldUser/LeadList";
 
    
       static const String getTotByGroupType = "$baseUrl/Super/Tot/GetTotByGroupType";
       static const String getAllCountry = "$baseUrl/Super/Country/GetAll";
       static const String getStateByCountryId = "$baseUrl/Super/State/GetByCountryId";
       static const String getCityByStateId = "$baseUrl/Super/City/GetCityByStateId";
-      static const String getAllLeads = "$baseUrl/Super/Lead/GetAll";
+
       static const String createLead = "$baseUrl/Super/Lead/Create";
       static const String updateLead = "$baseUrl/Super/Lead/Update";
       static const String getLeadByID = "$baseUrl/Super/Lead/GetById";

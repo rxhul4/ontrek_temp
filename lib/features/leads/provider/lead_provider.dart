@@ -7,6 +7,7 @@ import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/leads/model/lead_model.dart';
+import 'package:ontrek/features/leads/view_lead/model/lead_by_id_model.dart';
 import 'package:ontrek/main.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
@@ -25,6 +26,7 @@ class LeadProvider extends ChangeNotifier {
   bool get isAdding => _isAdding;
 
   GetAllLeadModel? getAllLeadModel;
+  GetLeadByIdModel? getLeadByIdModel;
 
   //variables
   bool? isSearchVisible = false;
@@ -80,8 +82,7 @@ class LeadProvider extends ChangeNotifier {
       "orgId": orgId
     };
     try {
-      String endPoint = ApiConstants.getAllLeads;
-
+      String endPoint = ApiConstants.getLeadList;
       var response = await callPostMethod(endPoint, body);
       getAllLeadModel = GetAllLeadModel.fromJson(json.decode(response));
       print('response ${getAllLeadModel?.toJson()}');
@@ -98,5 +99,31 @@ class LeadProvider extends ChangeNotifier {
     _isFetching = false;
     notifyListeners();
     return getAllLeadModel;
+  }
+
+  Future<GetLeadByIdModel?> apiCallGetLeadById({String? leadId}) async {
+
+   fetchingFnc(true);
+    Map<String, dynamic> body = {
+      "leadId": leadId
+    };
+    try {
+      String endPoint = ApiConstants.getLeadByID;
+      var response = await callPostMethod(endPoint, body);
+      getLeadByIdModel = GetLeadByIdModel.fromJson(json.decode(response));
+      print('response ${getLeadByIdModel?.toJson()}');
+    } catch (e) {
+      print('catch at Get Task Provider ${e}');
+      AppUtils.showDialogBoxWithOneButton(titleText: "Error",text: getLeadByIdModel?.message,context: navigatorKey.currentState!.context);
+      bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
+      if (!isInternetAvailable) {
+        getLeadByIdModel = GetLeadByIdModel(
+            message: "Internet is not available, please try again!");
+      } else {
+        getLeadByIdModel = GetLeadByIdModel(message: "Something went wrong!");
+      }
+    }
+   fetchingFnc(false);
+    return getLeadByIdModel;
   }
 }

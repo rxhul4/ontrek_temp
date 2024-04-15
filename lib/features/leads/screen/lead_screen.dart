@@ -6,6 +6,7 @@ import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/features/add_lead/screen/add_lead_screen.dart';
 import 'package:ontrek/features/leads/provider/lead_provider.dart';
+import 'package:ontrek/features/leads/view_lead/screen/view_lead_screen.dart';
 import 'package:provider/provider.dart';
 
 class LeadScreen extends StatefulWidget {
@@ -114,188 +115,197 @@ class _LeadScreenState extends State<LeadScreen> {
                 itemCount: leadProvider.getAllLeadModel?.data?.length,
                 padding: const EdgeInsets.only(bottom: 100),
                 itemBuilder: (context, index) {
-                  return AppUtils.commonContainer(
-                    margin: AppUtils.edgeInsetsOnly(
-                      top: 30,
-                      right: 10,
-                      left: 10,
-                    ),
-                    padding: AppUtils.edgeInsetsOnly(
-                        left: 10, right: 10, top: 10, bottom: 10),
-                    width: double.infinity,
-                    decoration: AppUtils.commonBoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        color: AppConstant.whiteColor,
-                        boxShadow: [
-                          BoxShadow(
-                              color: AppConstant.greyColor
-                                  .withOpacity(0.2),
-                              blurRadius: 8,
-                              blurStyle: BlurStyle.solid,
-                              spreadRadius: 0.1),
-                        ]),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment:
-                          MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                                child: AppUtils.commonTextWidget(
-                                    text: leadProvider
-                                        .getAllLeadModel
-                                        ?.data?[index]
-                                        .companyName ??
-                                        "",
-                                    // "LL1000001 - lead customer One ",
-                                    textColor: AppConstant.blackColor
-                                        .withOpacity(0.9),
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    overflow: TextOverflow.ellipsis,
-                                    letterSpacing: -0.1)),
-                            AppUtils.commonSizedBox(width: 15),
-                            commonIconWidget(
-                                onTap: () {
-                                  AppUtils.showDialogBoxWithTwoButton(
-                                      context: context,
-                                      titleText: "Call",
-                                      text: "Are you sure to call ${leadProvider
-                                          .getAllLeadModel?.data?[index]
-                                          .customerName}?",
-                                    onSuccessString: "Call",
-                                    onCancelString: "Cancel",
-                                    onSuccess: () {
-                                      AppUtils.launchToBrowser(
-                                          Uri.parse(
-                                              "tel:${leadProvider.getAllLeadModel?.data?[index].customerPhone}"));
-                                    },
-                                    onCancel: () {
+                  return GestureDetector(
+                    onTap: () {
+                      print("Indexxxxx----$index");
+                      Navigator.push(context, CupertinoPageRoute(builder: (context) => ViewLeadScreen(
+                        leadId: leadProvider.getAllLeadModel?.data?[index].leadId,
+                        leadTitle: leadProvider.getAllLeadModel?.data?[index].companyName,
+                      ),));
+                    },
+                    child: AppUtils.commonContainer(
+                      margin: AppUtils.edgeInsetsOnly(
+                        top: 30,
+                        right: 10,
+                        left: 10,
+                      ),
+                      padding: AppUtils.edgeInsetsOnly(
+                          left: 10, right: 10, top: 10, bottom: 10),
+                      width: double.infinity,
+                      decoration: AppUtils.commonBoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: AppConstant.whiteColor,
+                          boxShadow: [
+                            BoxShadow(
+                                color: AppConstant.greyColor
+                                    .withOpacity(0.2),
+                                blurRadius: 8,
+                                blurStyle: BlurStyle.solid,
+                                spreadRadius: 0.1),
+                          ]),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment:
+                            MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                  child: AppUtils.commonTextWidget(
+                                      text: leadProvider
+                                          .getAllLeadModel
+                                          ?.data?[index]
+                                          .companyName ??
+                                          "",
+                                      // "LL1000001 - lead customer One ",
+                                      textColor: AppConstant.blackColor
+                                          .withOpacity(0.9),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      overflow: TextOverflow.ellipsis,
+                                      letterSpacing: -0.1)),
+                              AppUtils.commonSizedBox(width: 15),
+                              commonIconWidget(
+                                  onTap: () {
+                                    AppUtils.showDialogBoxWithTwoButton(
+                                        context: context,
+                                        titleText: "Call",
+                                        text: "Are you sure to call ${leadProvider
+                                            .getAllLeadModel?.data?[index]
+                                            .customerName}?",
+                                      onSuccessString: "Call",
+                                      onCancelString: "Cancel",
+                                      onSuccess: () {
+                                        AppUtils.launchToBrowser(
+                                            Uri.parse(
+                                                "tel:${leadProvider.getAllLeadModel?.data?[index].customerPhone}"));
+                                      },
+                                      onCancel: () {
 
-                                    },
-                                  );
-                                },
-                                iconData: Icons.call,
-                                iconColor: AppConstant.blackColor
-                                    .withOpacity(0.7),
-                                size: 20),
-                            AppUtils.commonSizedBox(width: 15),
-                            commonIconWidget(
-                                onTap: () {
-                                  Navigator.push(
-                                      context,
-                                      CupertinoPageRoute(
-                                        builder: (context) =>
-                                            AddLeadScreen(
-                                                isEdit: true,
-                                                leadId: leadProvider
-                                                    .getAllLeadModel
-                                                    ?.data?[index]
-                                                    .leadId),
-                                      )).then((value) async {
-                                    await callGetAllLeadApi(leadProvider);
-                                  });
-                                },
-                                iconData: Icons.edit,
-                                iconColor: AppConstant.blackColor
-                                    .withOpacity(0.7),
-                                size: 20),
-                          ],
-                        ),
-                        AppUtils.commonSizedBox(height: 15),
-                        Row(
-                          mainAxisAlignment:
-                          MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Row(
-                                children: [
-                                  AppUtils.commonContainer(
-                                      height: 30,
-                                      width: 30,
-                                      padding:
-                                      AppUtils.edgeInsetsOnly(
-                                          top: 5),
-                                      decoration:
-                                      AppUtils
-                                          .commonBoxDecoration(
-                                          color: AppConstant
-                                              .greyColor
-                                              .withOpacity(
-                                              0.2),
-                                          shape: BoxShape
-                                              .circle),
-                                      child: ClipOval(
-                                          child: Column(
-                                            children: [
-                                              AppUtils
-                                                  .commonNetworkImageWidget(
-                                                  height: 25,
-                                                  width: 25,
-                                                  boxFit:
-                                                  BoxFit.cover,
-                                                  path: profileImage,
-                                                  iconColor:
-                                                  AppConstant
-                                                      .blackColor
-                                                      .withOpacity(
-                                                      0.6)),
-                                            ],
-                                          ))),
-                                  AppUtils.commonSizedBox(width: 10),
-                                  Expanded(
-                                      child:
-                                      AppUtils.commonTextWidget(
-                                          text: leadProvider
-                                              .getAllLeadModel
-                                              ?.data?[index]
-                                              .customerName ??
-                                              "",
-                                          textColor: AppConstant
-                                              .blackColor
-                                              .withOpacity(0.5),
-                                          fontWeight:
-                                          FontWeight.w500,
-                                          fontSize: 12,
-                                          overflow: TextOverflow
-                                              .ellipsis)),
-                                ],
+                                      },
+                                    );
+                                  },
+                                  iconData: Icons.call,
+                                  iconColor: AppConstant.blackColor
+                                      .withOpacity(0.7),
+                                  size: 20),
+                              AppUtils.commonSizedBox(width: 15),
+                              commonIconWidget(
+                                  onTap: () {
+                                    Navigator.push(
+                                        context,
+                                        CupertinoPageRoute(
+                                          builder: (context) =>
+                                              AddLeadScreen(
+                                                  isEdit: true,
+                                                  leadId: leadProvider
+                                                      .getAllLeadModel
+                                                      ?.data?[index]
+                                                      .leadId),
+                                        )).then((value) async {
+                                      await callGetAllLeadApi(leadProvider);
+                                    });
+                                  },
+                                  iconData: Icons.edit,
+                                  iconColor: AppConstant.blackColor
+                                      .withOpacity(0.7),
+                                  size: 20),
+                            ],
+                          ),
+                          AppUtils.commonSizedBox(height: 15),
+                          Row(
+                            mainAxisAlignment:
+                            MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    AppUtils.commonContainer(
+                                        height: 30,
+                                        width: 30,
+                                        padding:
+                                        AppUtils.edgeInsetsOnly(
+                                            top: 5),
+                                        decoration:
+                                        AppUtils
+                                            .commonBoxDecoration(
+                                            color: AppConstant
+                                                .greyColor
+                                                .withOpacity(
+                                                0.2),
+                                            shape: BoxShape
+                                                .circle),
+                                        child: ClipOval(
+                                            child: Column(
+                                              children: [
+                                                AppUtils
+                                                    .commonNetworkImageWidget(
+                                                    height: 25,
+                                                    width: 25,
+                                                    boxFit:
+                                                    BoxFit.cover,
+                                                    path: profileImage,
+                                                    iconColor:
+                                                    AppConstant
+                                                        .blackColor
+                                                        .withOpacity(
+                                                        0.6)),
+                                              ],
+                                            ))),
+                                    AppUtils.commonSizedBox(width: 10),
+                                    Expanded(
+                                        child:
+                                        AppUtils.commonTextWidget(
+                                            text: leadProvider
+                                                .getAllLeadModel
+                                                ?.data?[index]
+                                                .customerName ??
+                                                "",
+                                            textColor: AppConstant
+                                                .blackColor
+                                                .withOpacity(0.5),
+                                            fontWeight:
+                                            FontWeight.w500,
+                                            fontSize: 12,
+                                            overflow: TextOverflow
+                                                .ellipsis)),
+                                  ],
+                                ),
                               ),
-                            ),
-                            Expanded(
-                              child: AppUtils.commonContainer(
-                                  padding: const EdgeInsets.only(
-                                      top: 5,
-                                      bottom: 5,
-                                      right: 3,
-                                      left: 3),
-                                  decoration:
-                                  AppUtils.commonBoxDecoration(
-                                    borderRadius:
-                                    BorderRadius.circular(5),
-                                    color: Colors.cyanAccent
-                                        .withOpacity(0.05),
-                                  ),
-                                  child: Center(
-                                      child: AppUtils.commonTextWidget(
-                                          text: "Last updated: ${AppUtils
-                                              .getDate(
-                                              date: leadProvider.getAllLeadModel
-                                                  ?.data?[index].modifiedOn ??
-                                                  "",
-                                              format: "dd MMM yyyy HH:mm a")}",
-                                          // "Last updated: 17 Jan 2024 04:52 PM",
-                                          textColor: Colors.cyan,
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 8,
-                                          letterSpacing: 0,
-                                          overflow: TextOverflow.ellipsis,
-                                          margin: EdgeInsets.zero))),
-                            )
-                          ],
-                        ),
-                      ],
+                              Expanded(
+                                child: AppUtils.commonContainer(
+                                    padding: const EdgeInsets.only(
+                                        top: 5,
+                                        bottom: 5,
+                                        right: 3,
+                                        left: 3),
+                                    decoration:
+                                    AppUtils.commonBoxDecoration(
+                                      borderRadius:
+                                      BorderRadius.circular(5),
+                                      color: Colors.cyanAccent
+                                          .withOpacity(0.05),
+                                    ),
+                                    child: Center(
+                                        child: AppUtils.commonTextWidget(
+                                            text: "Last updated: ${AppUtils
+                                                .getDate(
+                                                date: leadProvider.getAllLeadModel
+                                                    ?.data?[index].modifiedOn ??
+                                                    "",
+                                                format: "dd MMM yyyy HH:mm a")}",
+                                            // "Last updated: 17 Jan 2024 04:52 PM",
+                                            textColor: Colors.cyan,
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 8,
+                                            letterSpacing: 0,
+                                            overflow: TextOverflow.ellipsis,
+                                            ))),
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 },

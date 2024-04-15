@@ -522,7 +522,6 @@ class AppUtils {
       double? height,
       String? fontFamily,
       TextAlign? textAlign,
-      EdgeInsets? margin,
       TextDecoration? decoration,
       TextOverflow? overflow}) {
     return Text(
@@ -825,7 +824,6 @@ class AppUtils {
         return CupertinoAlertDialog(
 
           title:  AppUtils.commonTextWidget(
-            margin: const EdgeInsets.only(bottom: 10),
               text: titleText ?? "",
               textColor: AppConstant.blackColor,
               fontSize: 14,
@@ -881,7 +879,6 @@ class AppUtils {
         return CupertinoAlertDialog(
 
           title:  AppUtils.commonTextWidget(
-              margin: const EdgeInsets.only(bottom: 10),
               text: titleText ?? "",
               textColor: AppConstant.blackColor,
               fontSize: 14,

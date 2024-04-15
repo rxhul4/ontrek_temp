@@ -30,7 +30,7 @@ class DashBoardProvider extends ChangeNotifier{
   bool get isAdding => _isAdding;
 
   LatLng? currentLocation;
-  late final Completer<GoogleMapController> googleMapController = Completer();
+  late Completer<GoogleMapController> googleMapController = Completer();
   Set<Marker> markers = Set();
   int selectedIndex = 0;
   ValueNotifier<bool> isDayStart = ValueNotifier(false);
@@ -63,6 +63,10 @@ class DashBoardProvider extends ChangeNotifier{
     ));
   }
 
+  initialIndex(){
+    selectedIndex = 0;
+    notifyListeners();
+  }
 
   selectIndex(int index){
     selectedIndex = index;

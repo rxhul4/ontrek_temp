@@ -276,7 +276,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Visibility(
           visible: false,
           child: AppUtils.commonTextWidget(
-            margin: AppUtils.edgeInsetsOnly(top: 30, bottom: 30),
             text: "No contact info found",
             fontSize: 14,
           ),

@@ -47,9 +47,13 @@ class DashBoardState extends State<DashBoard> {
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       final dashBoardProvider = Provider.of<DashBoardProvider>(context,listen: false);
-      dashBoardProvider.selectedIndex = 0;
+      print("selectedIndex${dashBoardProvider.selectedIndex}");
+      dashBoardProvider.initialIndex();
+      setState(() {});
+      print("selectedIndex33333${dashBoardProvider.selectedIndex}");
       dashBoardProvider.checkPermission();
     });
 
@@ -65,14 +69,13 @@ class DashBoardState extends State<DashBoard> {
         child: Stack(
           children: [
             Positioned.fill(
-              // bottom: MediaQuery.of(context).size.height ,
               child: GoogleMap(
                   zoomControlsEnabled: false,
                   padding: AppUtils.edgeInsetsOnly(
                       bottom: MediaQuery.of(context).size.height * 0.3),
                   mapType: MapType.normal,
-                  onMapCreated: (controller) {
-                    dashBoardProvider.googleMapController.complete(controller);
+                  onMapCreated: (controller) async{
+                     dashBoardProvider.googleMapController.complete(controller);
                   },
                   markers: dashBoardProvider.markers,
                   initialCameraPosition:

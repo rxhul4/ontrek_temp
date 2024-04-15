@@ -302,7 +302,7 @@ class _TaskListScreenState extends State<TaskListScreen>
                 ),
               ),
               AppUtils.commonTextWidget(
-                text: 'No Overdue task Found',
+                text: 'No task Found',
                 textColor: AppConstant.blackColor.withOpacity(0.6),
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -394,7 +394,7 @@ class _TaskListScreenState extends State<TaskListScreen>
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
                                 overflow: TextOverflow.ellipsis,
-                                margin: AppUtils.edgeInsetsOnly(left: 10)),
+                            ),
                           ],
                         ),
                         AppUtils.commonSizedBox(height: 5),
