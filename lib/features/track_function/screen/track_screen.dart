@@ -275,6 +275,7 @@ class _TrackScreenState extends State<TrackScreen>
                                 builder: (context) => TimeLineScreen(
                                     index: index,
                                     name: getSalesMenListModelData?[index].userName,
+                                    phoneNumber: getSalesMenListModelData?[index].phoneNo,
                                     userId:
                                         getSalesMenListModelData?[index].userId,
                                     /*phoneNumber:
@@ -286,20 +287,47 @@ class _TrackScreenState extends State<TrackScreen>
                           // mainAxisAlignment: MainAxisAlignment.center,
                           // crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            AppUtils.commonContainer(
-                                width: 60,
-                                height: 60,
-                                decoration: AppUtils.commonBoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                        color:
-                                            AppConstant.greyColor.withOpacity(0.5)),
-                                    color: AppConstant.greyColor.withOpacity(0.3)),
-                                child: Icon(
-                                  Icons.person,
-                                  color: AppConstant.blackColor,
-                                  size: 24,
-                                )),
+
+                            getSalesMenListModelData?.any((e) => e.isPresent == true)  ?? false ? Stack(
+                              children: [
+                                AppUtils.commonContainer(
+                                    width: 60,
+                                    height: 60,
+                                    decoration: AppUtils.commonBoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                            color:
+                                                AppConstant.greyColor.withOpacity(0.5)),
+                                        color: AppConstant.greyColor.withOpacity(0.3)),
+                                    child: Icon(
+                                      Icons.person,
+                                      color: AppConstant.blackColor,
+                                      size: 24,
+                                    )),
+                               Positioned(
+                                  bottom: 4,
+                                  right: 5,
+                                  child: CircleAvatar(
+                                    radius: 5,
+                                    backgroundColor: Colors.green,
+
+                                  ),
+                                )
+                              ],
+                            ) :   AppUtils.commonContainer(
+                          width: 60,
+                          height: 60,
+                          decoration: AppUtils.commonBoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                  color:
+                                  AppConstant.greyColor.withOpacity(0.5)),
+                              color: AppConstant.greyColor.withOpacity(0.3)),
+                          child: Icon(
+                            Icons.person,
+                            color: AppConstant.blackColor,
+                            size: 24,
+                          )),
                             AppUtils.commonSizedBox(height: 5),
                             AppUtils.commonTextWidget(
                                 text: /*userList[index].name*/

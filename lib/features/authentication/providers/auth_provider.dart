@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ontrek/core/services/api_constants.dart';
@@ -38,6 +40,10 @@ class AuthenticationProvider extends ChangeNotifier {
   String? userUid;
   TextEditingController mobileNumberController = TextEditingController();
   TextEditingController otpController = TextEditingController();
+  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+
+
+
 
   loaderFnc(bool isLoading) {
     _isLoading = isLoading;
@@ -93,9 +99,16 @@ class AuthenticationProvider extends ChangeNotifier {
 
   Future<LoginModel?> apiCallVerifyNumber() async {
     loaderFnc(true);
+    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
     Map<String, dynamic> body = {
       "countryCode": countryCode,
-      "phoneNumber": mobileNumberController.text
+      "phoneNumber": mobileNumberController.text,
+      "deviceInfo": {
+        "deviceId" : androidInfo.id,
+        "deviceModel" :androidInfo.model,
+        "deviceOs " : androidInfo.version.release,
+        "osVersion " : Platform.operatingSystemVersion,
+      }
     };
     try {
       loginModel = LoginModel();
@@ -111,7 +124,9 @@ class AuthenticationProvider extends ChangeNotifier {
           appUserId: loginModel?.data?.appUserId,
         ));
       } else {
-        AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentState!.context ,text:  loginModel?.message ?? "");
+        AppUtils.showDialogBoxWithOneButton(
+            context: navigatorKey.currentState!.context,
+            text: loginModel?.message ?? "");
         // AppUtils.dialogWidget(
         //     loginModel?.message ?? "", navigatorKey.currentState!.context);
       }
@@ -144,8 +159,20 @@ class AuthenticationProvider extends ChangeNotifier {
 
   Future<LoginModel?> apiCallVerifyOtp({String? otpText}) async {
     loaderFnc(true);
-    Map<String, dynamic> body = {"userId": userUid, "otp": otpText};
     try {
+    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+    Map<String, dynamic> body = {
+      "userId": userUid,
+      "otp": otpText,
+      "deviceInfo": {
+        "deviceId" :  androidInfo.id,
+        "deviceModel" :  androidInfo.model,
+        "deviceOs " :  androidInfo.version.release,
+        "osVersion " : Platform.operatingSystemVersion,
+
+      }
+    };
+
       loginModel = LoginModel();
       String endPoint = ApiConstants.verifyOtp;
       final response = await callPostMethod(endPoint, body);
@@ -157,12 +184,16 @@ class AuthenticationProvider extends ChangeNotifier {
           navigatePushReplacementFnc(DashBoard());
         });
       } else {
-        AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentState!.context ,text:  loginModel?.message ?? "");
+        AppUtils.showDialogBoxWithOneButton(
+            context: navigatorKey.currentState!.context,
+            text: loginModel?.message ?? "");
       }
     } catch (e) {
       print("inCatch ${loginModel?.message}");
       print("inCatchE ${e}");
-      AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentState!.context ,text:  loginModel?.message ?? "");
+      AppUtils.showDialogBoxWithOneButton(
+          context: navigatorKey.currentState!.context,
+          text: loginModel?.message ?? "");
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
       if (!isInternetAvailable) {
         loginModel =
@@ -176,28 +207,57 @@ class AuthenticationProvider extends ChangeNotifier {
   }
 
   Future<bool> saveDataToPref() async {
-      PreferenceHelper.setBool(PreferenceHelper.IS_LOGIN, true);
-      PreferenceHelper.setString(PreferenceHelper.USER_ID, loginModel?.data?.appUserId ?? '');
-      PreferenceHelper.setString(PreferenceHelper.USER_NAME, loginModel?.data?.userName ?? '');
-      PreferenceHelper.setInt(PreferenceHelper.COUNTRY_CODE, loginModel?.data?.countryCode ?? 0);
-      PreferenceHelper.setString(PreferenceHelper.PHONE_NO, loginModel?.data?.phoneNo ?? '');
-      PreferenceHelper.setString(PreferenceHelper.EMAIL, loginModel?.data?.userEmail ?? '');
-      PreferenceHelper.setString(PreferenceHelper.ORG_ID, loginModel?.data?.orgId ?? '');
-      PreferenceHelper.setString(PreferenceHelper.ORG_NAME, loginModel?.data?.orgName ?? '');
-      PreferenceHelper.setString(PreferenceHelper.ROLE_NAME, loginModel?.data?.roleName ?? '');
-      PreferenceHelper.setString(PreferenceHelper.ROLE_ID, loginModel?.data?.roleId ?? '');
-      PreferenceHelper.setString(PreferenceHelper.REPORTING_MANAGER, loginModel?.data?.createdBy ?? '');
-      PreferenceHelper.setBool(PreferenceHelper.LOCATION_RESTRICTION, loginModel?.data?.appUserConfigAttendanceRequest?.allowLocationRestriction ?? false);
-      PreferenceHelper.setDouble(PreferenceHelper.LOCATION_RESTRICTION_LAT, loginModel?.data?.appUserConfigAttendanceRequest?.locationRestrictionLat ?? 0.0);
-      PreferenceHelper.setDouble(PreferenceHelper.LOCATION_RESTRICTION_LONG, loginModel?.data?.appUserConfigAttendanceRequest?.locationRestrictionLong ?? 0.0);
-      PreferenceHelper.setBool(PreferenceHelper.LIVE_LOCATION_TRACKING, loginModel?.data?.appUserConfigTrackingRequest?.allowLiveTracking ?? false);
-      PreferenceHelper.setInt(PreferenceHelper.LIVE_LOCATION_INTERVAL, loginModel?.data?.appUserConfigTrackingRequest?.liveTrackingInterval ?? 0);
+    PreferenceHelper.setBool(PreferenceHelper.IS_LOGIN, true);
+    PreferenceHelper.setString(
+        PreferenceHelper.USER_ID, loginModel?.data?.appUserId ?? '');
+    PreferenceHelper.setString(
+        PreferenceHelper.USER_NAME, loginModel?.data?.userName ?? '');
+    PreferenceHelper.setInt(
+        PreferenceHelper.COUNTRY_CODE, loginModel?.data?.countryCode ?? 0);
+    PreferenceHelper.setString(
+        PreferenceHelper.PHONE_NO, loginModel?.data?.phoneNo ?? '');
+    PreferenceHelper.setString(
+        PreferenceHelper.EMAIL, loginModel?.data?.userEmail ?? '');
+    PreferenceHelper.setString(
+        PreferenceHelper.ORG_ID, loginModel?.data?.orgId ?? '');
+    PreferenceHelper.setString(
+        PreferenceHelper.ORG_NAME, loginModel?.data?.orgName ?? '');
+    PreferenceHelper.setString(
+        PreferenceHelper.ROLE_NAME, loginModel?.data?.roleName ?? '');
+    PreferenceHelper.setString(
+        PreferenceHelper.ROLE_ID, loginModel?.data?.roleId ?? '');
+    PreferenceHelper.setString(
+        PreferenceHelper.REPORTING_MANAGER, loginModel?.data?.createdBy ?? '');
+    PreferenceHelper.setBool(
+        PreferenceHelper.LOCATION_RESTRICTION,
+        loginModel?.data?.appUserConfigAttendanceRequest
+                ?.allowLocationRestriction ??
+            false);
+    PreferenceHelper.setDouble(
+        PreferenceHelper.LOCATION_RESTRICTION_LAT,
+        loginModel?.data?.appUserConfigAttendanceRequest
+                ?.locationRestrictionLat ??
+            0.0);
+    PreferenceHelper.setDouble(
+        PreferenceHelper.LOCATION_RESTRICTION_LONG,
+        loginModel?.data?.appUserConfigAttendanceRequest
+                ?.locationRestrictionLong ??
+            0.0);
+    PreferenceHelper.setBool(
+        PreferenceHelper.LIVE_LOCATION_TRACKING,
+        loginModel?.data?.appUserConfigTrackingRequest?.allowLiveTracking ??
+            false);
+    PreferenceHelper.setInt(
+        PreferenceHelper.LIVE_LOCATION_INTERVAL,
+        loginModel?.data?.appUserConfigTrackingRequest?.liveTrackingInterval ??
+            0);
 
     print("data : ${PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN)}");
     return true;
   }
 
-  checkValidationAndCallVerifyOtpApi({required TextEditingController controller}) {
+  checkValidationAndCallVerifyOtpApi(
+      {required TextEditingController controller}) {
     if (controller.text.isEmpty) {
       AppUtils.showSnackBarWithColor(
           message: "Please Enter One Time Password!", giveColor: Colors.red);

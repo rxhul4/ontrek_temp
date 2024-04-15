@@ -20,8 +20,9 @@ class TimeLineScreen extends StatefulWidget {
   int? index;
   String? userId;
   String? name;
+  String? phoneNumber;
 
-  TimeLineScreen({super.key, this.userId, this.name, this.index});
+  TimeLineScreen({super.key, this.userId, this.name, this.index,this.phoneNumber});
 
   @override
   State<TimeLineScreen> createState() => _TimeLineScreenState();
@@ -90,7 +91,8 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
       if (!mounted) {}
       saleMenTimeLineProvider.sessionEvents.clear();
       saleMenTimeLineProvider.latLongArray.clear();
-      saleMenTimeLineProvider.apiCallGetTimeLine(userid: widget.userId, date: selectedDate.toString());
+      saleMenTimeLineProvider.apiCallGetTimeLine(
+          userid: widget.userId, date: selectedDate.toString());
       drawPolyLines();
     });
   }
@@ -127,10 +129,9 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
         ));
       }
     }
-    if(polylineCoordinates.length > 0){
+    if (polylineCoordinates.length > 0) {
       addCurrentLocationMarker(polylineCoordinates.first);
       updateCameraPosition(polylineCoordinates.first);
-
     }
     print("length_of_array_data${polylineCoordinates.length}");
     return polylineCoordinates;
@@ -148,8 +149,14 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
   @override
   Widget build(BuildContext context) {
     saleMenTimeLineProvider = Provider.of<SalemenTimeLineProvider>(context);
-    double height = MediaQuery.of(context).size.height;
-    double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery
+        .of(context)
+        .size
+        .height;
+    double width = MediaQuery
+        .of(context)
+        .size
+        .width;
     return Scaffold(
       body: SafeArea(
         child: AppUtils.commonSlidePanel(
@@ -160,7 +167,10 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                 child: GoogleMap(
                   zoomControlsEnabled: false,
                   padding: AppUtils.edgeInsetsOnly(
-                    bottom: MediaQuery.of(context).size.height * 0.25,
+                    bottom: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.25,
                   ),
                   mapType: MapType.normal,
                   onMapCreated: (controller) {
@@ -206,6 +216,26 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                       width: width,
                       height: height,
                       title: widget.name,
+                      actionWidget: [
+
+                        GestureDetector(onTap: () {
+                          AppUtils.showDialogBoxWithTwoButton(
+                            context: context,
+                            titleText: "Call",
+                            text: "Are you sure to call ${widget.name ?? ""}?",
+                            onSuccessString: "Call",
+                            onCancelString: "Cancel",
+                            onSuccess: () {
+                              AppUtils.launchToBrowser(
+                                  Uri.parse(
+                                      "tel:${widget.phoneNumber}"));
+                            },
+                            onCancel: () {
+
+                            },
+                          );
+                        },child: Icon(Icons.call,color: AppConstant.appPrimaryColor,))
+                      ],
                       subTitle: "Dwarkesh Business Hub Visat...",
                     ),
                     saleMenTimeLineProvider.isFetching ||
@@ -221,7 +251,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                         totalDuration: "00:00:00",
                         totalKMTravel: "0.0")
                         : informationBar(
-                      totalCheckIn:  saleMenTimeLineProvider
+                      totalCheckIn: saleMenTimeLineProvider
                           .getTimeLineModel?.data?.sessionTimeLine
                           ?.firstWhere((element) =>
                       element.sessionNo == selectedIndex)
@@ -323,7 +353,9 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                                   )
                                       : AppUtils.commonTextWidget(
                                     text:
-                                    "Session ${saleMenTimeLineProvider.getTimeLineModel?.data?.sessionTimeLine?[index].sessionNo}",
+                                    "Session ${saleMenTimeLineProvider
+                                        .getTimeLineModel?.data
+                                        ?.sessionTimeLine?[index].sessionNo}",
                                     textColor: saleMenTimeLineProvider
                                         .getTimeLineModel
                                         ?.data
@@ -535,11 +567,10 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
     );
   }
 
-  Widget travelInfoRowWidget(
-      {IconData? iconData,
-        required String textData,
-        String? typeOfText,
-        Color? iconColor}) {
+  Widget travelInfoRowWidget({IconData? iconData,
+    required String textData,
+    String? typeOfText,
+    Color? iconColor}) {
     return Column(
       children: [
         Icon(
@@ -577,10 +608,9 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
     );
   }
 
-  Widget trackAppBarWidget(
-      {Function()? onTapBackButton,
-        Function()? onTapGetCurrentPosition,
-        getMdl}) {
+  Widget trackAppBarWidget({Function()? onTapBackButton,
+    Function()? onTapGetCurrentPosition,
+    getMdl}) {
     return Positioned(
       child: AppUtils.commonContainer(
         margin: const EdgeInsets.only(left: 10, right: 10, top: 10),

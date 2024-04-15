@@ -703,4 +703,146 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       ),
     );
   }
+
+
+  // Widget dayStartDayEndBtn(attdenaceProvider, height, width) {
+  //   return Animate(
+  //     effects: const [
+  //       ScaleEffect(
+  //           begin: Offset(0, 0),
+  //           duration: Duration(
+  //             milliseconds: 300,
+  //           ),
+  //           curve: Curves.easeOut)
+  //     ],
+  //     child: GestureDetector(
+  //       onTapDown: (details) {
+  //         setState(() {
+  //           isFromLogOutButton = true;
+  //         });
+  //         controller?.forward().whenComplete(() {
+  //           HapticFeedback.vibrate();
+  //           controller?.reset();
+  //           // AppUtils.showDialogBoxWithTwoButton(
+  //           //     context: context,
+  //           //     text: "Are you sure you want to end the day?",
+  //           //     onSuccessString: "YES",
+  //           //     onCancelString: "NO",
+  //           //     onSuccess: () {
+  //           //       PreferenceHelper.reload().then((value) {
+  //           //         if (kDebugMode) {
+  //           //           print(
+  //           //               "value_new_isWaiting${value?.getBool(PreferenceHelper.isWaiting)}");
+  //           //         }
+  //           //         attendanceProvider.isWaiting.value =
+  //           //             value?.getBool(PreferenceHelper.isWaiting) ?? false;
+  //           //         attendanceProvider.doLocalVerification(
+  //           //           afterSuccessfulVerificationFnc: () async {
+  //           //             if (kDebugMode) {
+  //           //               print(
+  //           //                   "isWaiting_from_UI${attendanceProvider.isWaiting.value}");
+  //           //             }
+  //           //             attendanceProvider
+  //           //                 .getCurrentLocation()
+  //           //                 .then((position) async {
+  //           //               print(
+  //           //                   "condtion${attendanceProvider.isWaiting.value == true}");
+  //           //               if (attendanceProvider.isWaiting.value == true) {
+  //           //                 await callWaitingEndApi(
+  //           //                     postMdl: postMdl,
+  //           //                     position: position,
+  //           //                     dayEnd: true,
+  //           //                     checkIn: false);
+  //           //               } else {
+  //           //                 await callDayEndApiAndUpdateUI(postMdl);
+  //           //               }
+  //           //             });
+  //           //           },
+  //           //         );
+  //           //       });
+  //           //     },
+  //           //     onCancel: (){
+  //           //       setState(() {
+  //           //         isFromLogOutButton = false;
+  //           //       });
+  //           //     }
+  //           // );
+  //
+  //         });
+  //       },
+  //       onTapUp: (details) {
+  //         setState(() {
+  //           isFromLogOutButton = false;
+  //         });
+  //         controller?.reverse();
+  //       },
+  //       child: Animate(
+  //         effects: const [
+  //           ScaleEffect(
+  //               begin: Offset(0, 0),
+  //               duration: Duration(
+  //                 milliseconds: 300,
+  //               ),
+  //               curve: Curves.easeOut)
+  //         ],
+  //         child: AppUtils.commonContainer(
+  //           decoration: AppUtils.commonBoxDecoration(
+  //             shape: BoxShape.circle,
+  //           ),
+  //           child: Stack(
+  //             alignment: Alignment.center,
+  //             children: <Widget>[
+  //               postMdl.isLoading
+  //                   ? LoaderWidget(color: Colors.red)
+  //                   : Positioned.fill(
+  //                 child: CircularProgressIndicator(
+  //                   value: controller?.value,
+  //                   strokeCap: StrokeCap.round,
+  //                   strokeWidth: 8,
+  //                   valueColor:
+  //                   const AlwaysStoppedAnimation<Color>(Colors.red),
+  //                 ),
+  //               ),
+  //               Positioned.fill(
+  //                 child: CircularProgressIndicator(
+  //                   value: 1.0,
+  //                   strokeWidth: 8,
+  //                   strokeCap: StrokeCap.round,
+  //                   valueColor: AlwaysStoppedAnimation<Color>(
+  //                       AppConstant.greyColor.withOpacity(0.2)),
+  //                 ),
+  //               ),
+  //               AnimatedContainer(
+  //                 margin: const EdgeInsets.all(2.8),
+  //                 duration: const Duration(milliseconds: 300),
+  //                 height: isFromLogOutButton ? 120 : 100,
+  //                 width: isFromLogOutButton ? 120 : 100,
+  //                 decoration: AppUtils.commonBoxDecoration(
+  //                   color:  !isDayStart.value == false ?  Colors.lightGreen.withOpacity(0.8) : Colors.red.withOpacity(0.3),
+  //                   shape: BoxShape.circle,
+  //                   boxShadow: [
+  //                     BoxShadow(
+  //                       color: !isDayStart.value == false ?  Colors.lightGreen.withOpacity(0.8) : Colors.red.withOpacity(0.3),
+  //                       spreadRadius: isFromLogOutButton ? 1 : 2,
+  //                       blurRadius: isFromLogOutButton ? 1 : 2,
+  //                       offset: const Offset(0, 0),
+  //                     ),
+  //                   ],
+  //                 ),
+  //                 child: Center(
+  //                   child: AppUtils.commonTextWidget(
+  //                     text:  !isDayStart.value == false ? "In" :"Out",
+  //                     fontSize: 18,
+  //                     textColor: Colors.white,
+  //                     fontWeight: FontWeight.w600,
+  //                   ),
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 }
