@@ -229,9 +229,14 @@ class AuthenticationProvider extends ChangeNotifier {
     PreferenceHelper.setString(
         PreferenceHelper.REPORTING_MANAGER, loginModel?.data?.createdBy ?? '');
     PreferenceHelper.setBool(
+        PreferenceHelper.AllowCheckInCheckOut,
+        loginModel?.data?.appUserConfigAttendanceRequest
+                ?.allowCheckinOut ??
+            false);
+    PreferenceHelper.setBool(
         PreferenceHelper.LOCATION_RESTRICTION,
         loginModel?.data?.appUserConfigAttendanceRequest
-                ?.allowLocationRestriction ??
+            ?.allowLocationRestriction ??
             false);
     PreferenceHelper.setDouble(
         PreferenceHelper.LOCATION_RESTRICTION_LAT,

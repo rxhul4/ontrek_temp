@@ -1,3 +1,4 @@
+import 'package:app_settings/app_settings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
@@ -8,7 +9,6 @@ import 'package:ontrek/features/authentication/screens/login_with_phone_number.d
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class ProfileScreen extends StatefulWidget {
-
   ProfileScreen({super.key});
 
   @override
@@ -16,8 +16,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  PanelController panelController =
-  PanelController();
+  PanelController panelController = PanelController();
   String? userName;
   String? profileImage;
   String? orgName;
@@ -30,13 +29,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
     profileImage = PreferenceHelper.getString(PreferenceHelper.PROFILE_PIC);
-    orgName =PreferenceHelper.getString(PreferenceHelper.ORG_NAME);
+    orgName = PreferenceHelper.getString(PreferenceHelper.ORG_NAME);
     manager = PreferenceHelper.getString(PreferenceHelper.REPORTING_MANAGER);
   }
 
   List<String> profileOptionsList = [
-    "Reimbursement",
-    "Settings",
+    // "Reimbursement",
+    // "Settings",
     "Help",
     "FAQ",
     "Terms & Conditions",
@@ -45,8 +44,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     "Sign Out",
   ];
   List<IconData> profileOptionsListIcons = [
-    Icons.monetization_on,
-    Icons.settings,
+    // Icons.monetization_on,
+    // Icons.settings,
     Icons.chat,
     Icons.help_outline_outlined,
     Icons.verified,
@@ -58,7 +57,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
-    double width = MediaQuery.of(context).size.width;
+    // double width = MediaQuery.of(context).size.width;
     return AppUtils.commonSlidePanel(
       controller: panelController,
       maxHeight: height,
@@ -81,7 +80,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       AppUtils.commonContainer(
                         height: 80,
                         width: 80,
-                        decoration: AppUtils.commonBoxDecoration(shape: BoxShape.circle,border: Border.all(color: AppConstant.appPrimaryColor)),
+                        decoration: AppUtils.commonBoxDecoration(
+                            shape: BoxShape.circle,
+                            border:
+                                Border.all(color: AppConstant.appPrimaryColor)),
                         child: ClipOval(
                           child: AppUtils.commonNetworkImageWidget(
                               path: profileImage),
@@ -90,8 +92,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       AppUtils.commonContainer(
                         padding: EdgeInsets.all(5),
                         decoration: AppUtils.commonBoxDecoration(
-                            color: AppConstant.appPrimaryColor, shape: BoxShape.circle),
-                        child: Icon(Icons.edit, size: 15,color: Colors.white),
+                            color: AppConstant.appPrimaryColor,
+                            shape: BoxShape.circle),
+                        child: Icon(Icons.edit, size: 15, color: Colors.white),
                       )
                     ],
                   ),
@@ -148,39 +151,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      height: height - (MediaQuery.of(context).size.height / 3) - 60, // Adjust the height accordingly
+                      height: height -
+                          (MediaQuery.of(context).size.height / 3) -
+                          60, // Adjust the height accordingly
                       child: ListView.builder(
                         shrinkWrap: true,
                         itemCount: profileOptionsList.length,
                         physics: NeverScrollableScrollPhysics(),
                         itemBuilder: (context, index) {
-                       return InkWell(
+                          return InkWell(
                             onTap: () async {
                               print("index${index}");
                               print(profileOptionsList[index]);
-                              if (index == 7) {
-                                bool isRunning = await service.isRunning();
-                                if(isRunning){
-                                  service.invoke("stopService");
-                                  PreferenceHelper.clear();
-                                  Navigator.pushReplacement(
-                                    context,
-                                    CupertinoPageRoute(
-                                      builder: (context) => LoginScreen(),
-                                    ),
-                                  );
-                                }else{
-                                  PreferenceHelper.clear();
-                                  Navigator.pushReplacement(
-                                    context,
-                                    CupertinoPageRoute(
-                                      builder: (context) => LoginScreen(),
-                                    ),
-                                  );
-                                }
+                              if(index == 4){
+                                AppSettings.openAppSettings();
+                              }
+                              if (index == 5) {
+                                AppUtils.showDialogBoxWithTwoButton(
+                                  titleText: "Sign Out",
+                                  context: context,
+                                  text: "Are you sure you want to Sign Out?",
+                                  onSuccessString: "Sign Out",
+                                  onCancelString: "Cancel",
 
 
-
+                                  onSuccess: () async {
+                                    bool isRunning = await service.isRunning();
+                                    if (isRunning) {
+                                      service.invoke("stopService");
+                                      PreferenceHelper.clear();
+                                      Navigator.pushReplacement(
+                                        context,
+                                        CupertinoPageRoute(
+                                          builder: (context) => LoginScreen(),
+                                        ),
+                                      );
+                                    } else {
+                                      PreferenceHelper.clear();
+                                      Navigator.pushReplacement(
+                                        context,
+                                        CupertinoPageRoute(
+                                          builder: (context) => LoginScreen(),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  onCancel: () {},
+                                );
                               }
                             },
                             child: profileOptions(
@@ -197,15 +214,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Padding(
                       padding: AppUtils.edgeInsetsOnly(left: 10, bottom: 8),
                       child: AppUtils.commonTextWidget(
-                          text: 'Version',
-                          textColor: AppConstant.blackColor
-                      ),
+                          text: 'Version', textColor: AppConstant.blackColor),
                     ),
                   ],
                 ),
               ),
             ),
-
           ],
         );
       },
@@ -356,4 +370,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ]),
     );
   }
+  List opration = [
+
+  ];
 }

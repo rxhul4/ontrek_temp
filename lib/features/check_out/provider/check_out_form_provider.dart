@@ -5,6 +5,7 @@ import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/features/check_out/model/check_out_form_model.dart';
+import 'package:ontrek/features/check_out/model/get_visit_note_model.dart';
 
 class CheckOutProvider extends ChangeNotifier {
   bool _isFetching = false;
@@ -32,6 +33,7 @@ class CheckOutProvider extends ChangeNotifier {
 
 
   GetTotByGroupTypeModel? getTotByGroupTypeModel;
+  GetVisitNoteModel? getVisitNoteModel;
 
   Future<GetTotByGroupTypeModel?> apiCallGetTotByType({
     String? groupType
@@ -58,5 +60,34 @@ class CheckOutProvider extends ChangeNotifier {
     }
     fetchingFnc(false);
     return getTotByGroupTypeModel;
+  }
+
+
+
+  Future<GetVisitNoteModel?> apiCallGetVisitNote({
+    String? trackingEventId
+  }) async {
+    fetchingFnc(true);
+    Map<String,dynamic>  body ={
+      "trackingEventId": trackingEventId ,
+    };
+    try {
+      String endPoint = ApiConstants.getVisitNote;
+      var response = await callPostMethod(endPoint,body);
+      getVisitNoteModel = GetVisitNoteModel.fromJson(json.decode(response));
+      print("reponse : $response");
+    } catch (e) {
+      print('catch at getAllOrders ${e}');
+      bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
+      if (!isInternetAvailable) {
+        getVisitNoteModel = GetVisitNoteModel(
+            message: "Internet is not available, please try again!");
+      } else {
+        getVisitNoteModel =
+            GetVisitNoteModel(message: "Something went wrong!");
+      }
+    }
+    fetchingFnc(false);
+    return getVisitNoteModel;
   }
 }

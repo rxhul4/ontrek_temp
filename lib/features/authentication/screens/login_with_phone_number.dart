@@ -97,6 +97,8 @@ AuthenticationProvider? authenticationProvider;
                                   backgroundColor: Colors.white,
                                   surfaceTintColor: Colors.white)),
                           child: IntlPhoneField(
+                            textAlignVertical: TextAlignVertical.center,
+                            flagsButtonPadding: EdgeInsets.zero,
                             onCountryChanged: (value) {
                               value.dialCode;
                               authenticationProvider.mobileNumberController.clear();

@@ -40,6 +40,7 @@ class AttendanceProvider extends ChangeNotifier {
   ValueNotifier<bool> isCheckIn = ValueNotifier(false);
   ValueNotifier<bool> isDayEnd = ValueNotifier(false);
   ValueNotifier<bool> isWaiting = ValueNotifier(false);
+  ValueNotifier<bool> isAllowCheckInCheckOut = ValueNotifier(false);
   LocalAuthentication localAuthentication = LocalAuthentication();
   bool isBiometricAvailable = false;
   AnimationController? controller;
@@ -238,15 +239,39 @@ class AttendanceProvider extends ChangeNotifier {
             isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
             isWaiting.value = PreferenceHelper.getBool(PreferenceHelper.isWaiting);
             break;
+          case AppConstant.internetOffEvent:
+            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+            isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+            isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+
+            break;
+          case AppConstant.internetOnEvent:
+            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+            isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+            isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+            break;
+          case AppConstant.gpsOffEvent:
+            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+            isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+            isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+            break;
+          case AppConstant.gpsOnEvent:
+            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+            isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+            isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+            break;
           default:
+            print('Unknown eventCode');
             PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
             PreferenceHelper.setBool(PreferenceHelper.isWaiting, false);
             PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
             isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
             isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
             isWaiting.value = PreferenceHelper.getBool(PreferenceHelper.isWaiting);
-            print('Unknown eventCode');
-
         }
         if(isDayStart.value == true){
           await service.startService();

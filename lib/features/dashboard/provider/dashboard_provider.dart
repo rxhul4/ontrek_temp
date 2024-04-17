@@ -30,7 +30,7 @@ class DashBoardProvider extends ChangeNotifier{
   bool get isAdding => _isAdding;
 
   LatLng? currentLocation;
-  late Completer<GoogleMapController> googleMapController = Completer();
+  GoogleMapController? googleMapController;
   Set<Marker> markers = Set();
   int selectedIndex = 0;
   ValueNotifier<bool> isDayStart = ValueNotifier(false);
@@ -87,20 +87,17 @@ class DashBoardProvider extends ChangeNotifier{
 
 
   Future<void> getCurrentLocation() async {
-
     try {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.low,
       );
-
-
-        currentLocation = LatLng(position.latitude, position.longitude);
+      currentLocation = LatLng(position.latitude, position.longitude);
         print("${currentLocation}");
         if (currentLocation != null) {
-          updateCameraPosition(currentLocation ?? LatLng(0, 0));
-          addCurrentLocationMarker(currentLocation ?? LatLng(0, 0));
+          await updateCameraPosition(currentLocation ?? LatLng(0, 0));
+          await addCurrentLocationMarker(currentLocation ?? LatLng(0, 0));
         }
-
+        notifyListeners();
     } catch (e) {
       print("Error fetching location: $e");
     }
@@ -120,34 +117,40 @@ class DashBoardProvider extends ChangeNotifier{
 
 
   Future updateCameraPosition(LatLng location) async {
+    try{
+    googleMapController?.animateCamera(CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: location,
+          zoom: 14,
+        ),
+      ));
+    notifyListeners();
+    }catch(e){
+      print("Error_in_updateCamara$e");
+    }
 
-    final GoogleMapController controller = await googleMapController.future;
-    controller.animateCamera(CameraUpdate.newCameraPosition(
-      CameraPosition(
-        target: location,
-        zoom: 14,
-      ),
-    ));
   }
-  void addCurrentLocationMarker(LatLng location) {
-    markers.clear(); // Clear previous markers
-    markers.add(
-      Marker(
-        markerId: MarkerId("currentLocation"),
-        position: location,
-        infoWindow: InfoWindow(title: "Current Location"),
-      ),
-    );
+  Future addCurrentLocationMarker(LatLng location) async{
+    try{
+      markers.clear(); // Clear previous markers
+      await  markers.add(
+        Marker(
+          markerId: MarkerId("currentLocation"),
+          position: location,
+          infoWindow: InfoWindow(title: "Current Location"),
+        ),
+      );
+      notifyListeners();
+    }catch(e){
+      print("Error_in_marker$e");
+    }
+
   }
 
   getLocationFromSheet({required Position position}){
     currentLocation = LatLng(position.latitude, position.longitude);
     notifyListeners();
   }
-
-
-
-
 
 
 }

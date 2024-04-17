@@ -28,11 +28,13 @@ class SalemenTimeLineProvider extends ChangeNotifier {
   GetTimeLineModel? getTimeLineModel;
 
   List<SessionEvents> sessionEvents = [];
-  List<LatlongArray> latLongArray = [];
+  List<LatlongArray>? latLongArray;
+  List<List<LatlongArray>> allSessionLatLong = [];
   List<LatLng> coordinates = [];
   int totalCheckIn = 0;
   String totalDuration = "";
   num totalKmTravel = 0;
+
   loaderFnc(bool isLoading) {
     _isLoading = isLoading;
     notifyListeners();
@@ -59,13 +61,12 @@ class SalemenTimeLineProvider extends ChangeNotifier {
       {String? userid, String? date}) async {
     _isFetching = true;
     sessionEvents.clear();
-    sessionEvents.clear();
-    coordinates.clear();
+    allSessionLatLong.clear();
     notifyListeners();
     Map<String, dynamic> body = {
       "userId": userid,
       "eventDate":
-      AppUtils.getDate(date: date ?? "", format: AppConstant.dateFormat)
+          AppUtils.getDate(date: date ?? "", format: AppConstant.dateFormat)
     };
     try {
       String endPoint = ApiConstants.getSalesMenTimeLine;
@@ -74,13 +75,6 @@ class SalemenTimeLineProvider extends ChangeNotifier {
       print('response ${getTimeLineModel?.toJson()}');
       if (getTimeLineModel?.isError == false &&
           getTimeLineModel?.isValidationFailed == false) {
-        getTimeLineModel?.data?.sessionTimeLine?.forEach((session) {
-          session.sessionRouteHistory?.latlongArray?.forEach((event) {
-            if (event != null) {
-              latLongArray.add(LatlongArray(x: event.x, y: event.y));
-            }
-          });
-        });
         getTimeLineModel?.data?.sessionTimeLine?.forEach((session) {
           session.sessionEvents?.forEach((event) {
             if (event != null || session != null) {
@@ -102,22 +96,23 @@ class SalemenTimeLineProvider extends ChangeNotifier {
             }
           });
         });
-        getTimeLineModel?.data?.sessionTimeLine?.insert(
-          0,
-          SessionTimeLine(
-            totalCheckIn: getTimeLineModel?.data?.totalCheckIn,
-            totalDuration: getTimeLineModel?.data?.totalDuration,
-            totalKmTravel: getTimeLineModel?.data?.totalKmTravel,
-            sessionId: "",
-            sessionNo:0,
-            sessionEvents: sessionEvents,
-            sessionRouteHistory: SessionRouteHistory(
-              sessionNo: 0,
-              latlongArray: latLongArray,
-            ),
-          ),
-        );
+        // for (int i = 0;
+        //     i < (getTimeLineModel?.data?.sessionTimeLine?.length ?? 0);
+        //     i++) {
+        //   latLongArray?.add(LatlongArray(
+        //       x: getTimeLineModel?.data?.sessionTimeLine?[i].sessionRouteHistory
+        //               ?.latlongArray?[i].x ??
+        //           0,
+        //       y: getTimeLineModel?.data?.sessionTimeLine?[i].sessionRouteHistory
+        //               ?.latlongArray?[i].y ??
+        //           0));
+        //   if(latLongArray != null){
+        //     allSessionLatLong.add(latLongArray!);
+        //   }
+        // }
 
+        print("testttttttttttttt${getTimeLineModel?.data?.sessionTimeLine?.map((e) => e.sessionRouteHistory?.latlongArray).toList()}");
+        print("allllSessionData${allSessionLatLong.length}");
         print("Event list: ${sessionEvents.length}");
       } else {}
     } catch (e) {

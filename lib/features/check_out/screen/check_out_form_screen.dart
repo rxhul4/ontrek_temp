@@ -18,6 +18,7 @@ import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/attendance/model/add_activity_model.dart';
 import 'package:ontrek/features/attendance/provider/attendance_provider.dart';
 import 'package:ontrek/features/check_out/model/check_out_form_model.dart';
+import 'package:ontrek/features/check_out/model/get_visit_note_model.dart';
 import 'package:ontrek/features/check_out/provider/check_out_form_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
@@ -25,7 +26,8 @@ import 'package:provider/provider.dart';
 class CheckOutFormScreen extends StatefulWidget {
   Function(Position)? onLocationFetch;
 
-  CheckOutFormScreen({super.key, this.onLocationFetch});
+
+  CheckOutFormScreen({super.key, this.onLocationFetch, });
 
   @override
   State<CheckOutFormScreen> createState() => _CheckOutFormScreenState();
@@ -40,17 +42,16 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
   bool isBiometricAvailable = false;
   bool isLoading = false;
   String? userUid;
-  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-  AndroidDeviceInfo? androidInfo;
   var battery = Battery();
   int? batteryLevel;
   String? image64;
-  bool showNoDataFound = true;
+  bool showNoDataFound = false;
   CreateActivityModel? createActivityModel;
   GetTotByGroupTypeModel? getTotByGroupTypeModel;
-  int selectedRadio = 1;
-  String? totType;
   FlutterBackgroundService service = FlutterBackgroundService();
+  late CheckOutProvider checkOutProvider;
+  String? selectedTotValue;
+  String? selectedTotId;
 
   checkBiometricAvailable() async {
     isBiometricAvailable = await _localAuthentication.canCheckBiometrics;
@@ -64,49 +65,34 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
     // TODO: implement initState
     super.initState();
     userUid = PreferenceHelper.getString(PreferenceHelper.USER_ID);
-    deviceInfo.androidInfo.then((value) {
-      androidInfo = value;
-    });
-    battery.batteryLevel.then((value) {
-      batteryLevel = value;
-      print("battery_level${batteryLevel}");
-    });
-
+    batteryPercentage();
     checkBiometricAvailable();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final getMdl = Provider.of<CheckOutProvider>(context, listen: false);
-      print("firstinit${totType}");
-      totType = getTotByGroupTypeModel?.data?.first.totId;
-      print("second_init${totType}");
-
-      callGetTotByType(getMdl);
+      checkOutProvider = Provider.of<CheckOutProvider>(context, listen: false);
+      callGetTotByType(checkOutProvider);
     });
-    // totType = AppUtils.switchCaseForTotType(selectedRadio);
+  }
+
+  batteryPercentage() async {
+    battery = await AppUtils.getBatteryLevel();
   }
 
   callGetTotByType(CheckOutProvider getMdl) {
-    getMdl.apiCallGetTotByType(groupType: AppConstant.visitTypeCode).then((value) {
+    getMdl
+        .apiCallGetTotByType(groupType: AppConstant.visitTypeCode)
+        .then((value) {
       getTotByGroupTypeModel = value;
       if (getTotByGroupTypeModel?.isValidationFailed == true &&
           getTotByGroupTypeModel?.isError == true) {
-        AppUtils.showDialogBoxWithOneButton(context: context ,text:  getTotByGroupTypeModel?.message ?? "");
-        setState(() {
-          showNoDataFound = true;
-        });
+        AppUtils.showDialogBoxWithOneButton(
+            context: context, text: getTotByGroupTypeModel?.message ?? "");
       } else {
-        setState(() {
-          showNoDataFound = false;
-        });
-        selectedRadio =
-            getTotByGroupTypeModel?.data?.map((e) => e.totSequence).first ?? 1;
-        totType =
-            getTotByGroupTypeModel
-                ?.data?.first
-                .totId ??
-                "";
+        selectedTotValue = getTotByGroupTypeModel?.data?.first.totValue;
+        selectedTotId =getTotByGroupTypeModel?.data?.first.totId;
       }
     });
   }
+
 
   callAddActivityApi({
     required AttendanceProvider postMdl,
@@ -127,7 +113,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
             customerName: customerNameController.text,
             customerPhoneNumber: customerPhoneNumberController.text,
             visitDiscussion: visitDiscussionNameController.text,
-            visitTypeCode: totType)
+            visitTypeCode: selectedTotId)
         .then((value) {
       createActivityModel = value;
       if (createActivityModel?.isError == false &&
@@ -141,8 +127,9 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
         });
       } else {
         print("day start not 200");
-        AppUtils.showDialogBoxWithOneButton(context: context ,text:  createActivityModel?.message.toString() ?? "");
-        // openDialogFnc(createActivityModel?.message.toString() ?? "");
+        AppUtils.showDialogBoxWithOneButton(
+            context: context,
+            text: createActivityModel?.message.toString() ?? "");
       }
     });
   }
@@ -154,41 +141,10 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
     Navigator.pop(context);
   }
 
-  doLocalVerification(
-      {required Function() afterSuccessfulVerificationFnc}) async {
-    if (isBiometricAvailable) {
-      bool isAuthenticated = await _localAuthentication.authenticate(
-          localizedReason: "Authenticate using Biometrics",
-          options: const AuthenticationOptions(
-              stickyAuth: true, useErrorDialogs: true));
-      if (isAuthenticated) {
-        if (kDebugMode) {
-          print("isAuthenticated $isAuthenticated");
-        }
-
-        // openDialogFnc("Authentication Successful");
-        afterSuccessfulVerificationFnc();
-      } else {
-        if (kDebugMode) {
-          print("isAuthenticated $isAuthenticated");
-        }
-        AppUtils.showDialogBoxWithOneButton(context: context ,text:  "Authentication Fail! Please Try Again");
-        // openDialogFnc("Authentication Fail! Please Try Again");
-      }
-    } else {
-      if (kDebugMode) {
-        print("Biometric Auth is not available on this device");
-      }
-      AppUtils.showDialogBoxWithOneButton(context: context ,text:  "Biometric Auth is not available on this device");
-      // openDialogFnc("Biometric Auth is not available on this device");
-    }
-  }
-
-
   @override
   Widget build(BuildContext context) {
     final postMdl = Provider.of<AttendanceProvider>(context);
-    final getMdl = Provider.of<CheckOutProvider>(context);
+    checkOutProvider = Provider.of<CheckOutProvider>(context);
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -223,13 +179,9 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                               width: 0.3)))),
             ),
           ),
-          body: getMdl.isFetching
+          body: checkOutProvider.isFetching
               ? AppUtils.loaderWidget()
-              : showNoDataFound
-                  ? AppUtils.commonNoDataFound(onPressed: () {
-                      callGetTotByType(getMdl);
-                    })
-                  : Stack(
+              : Stack(
                       children: [
                         Column(
                           children: [
@@ -366,122 +318,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                                           const SizedBox(
                                             height: 5,
                                           ),
-                                          GridView.builder(
-                                            physics:
-                                                const NeverScrollableScrollPhysics(),
-                                            shrinkWrap: true,
-                                            padding: EdgeInsets.zero,
-                                            itemCount: getTotByGroupTypeModel
-                                                    ?.data?.length ??
-                                                0,
-                                            gridDelegate:
-                                                const SliverGridDelegateWithFixedCrossAxisCount(
-                                              crossAxisSpacing: 30,
-                                              mainAxisExtent: 60,
-                                              crossAxisCount: 2,
-                                            ),
-                                            itemBuilder: (context, index) {
-                                              print(
-                                                  "data${getTotByGroupTypeModel?.data?[index].totSequence}");
-                                              // RadioListTile(
-                                              //   title: Text("${getTotByGroupTypeModel?.data?[index].totValue}",style: TextStyle(color: Colors.red),),
-                                              //   value: getTotByGroupTypeModel
-                                              //     ?.data?[index]
-                                              //     .totSequence, groupValue: selectedRadio, onChanged: (value) {
-                                              //   print("value${value}");
-                                              //   setState(() {
-                                              //     selectedRadio =
-                                              //         getTotByGroupTypeModel
-                                              //             ?.data?[
-                                              //         index]
-                                              //             .totSequence ??
-                                              //             1;
-                                              //     totType =
-                                              //         getTotByGroupTypeModel
-                                              //             ?.data?[
-                                              //         index]
-                                              //             .totId ??
-                                              //             "";
-                                              //     print(
-                                              //         "totType value$totType");
-                                              //     print(
-                                              //         "totType value$selectedRadio");
-                                              //   });
-                                              //     },);
-                                              return GestureDetector(
-                                                onTap: () {
-                                                  setState(() {
-                                                    selectedRadio =
-                                                        getTotByGroupTypeModel
-                                                                ?.data?[index]
-                                                                .totSequence ??
-                                                            1;
-                                                    totType =
-                                                        getTotByGroupTypeModel
-                                                                ?.data?[index]
-                                                                .totId ??
-                                                            "";
-                                                    print("totType$totType");
-                                                    print(
-                                                        "totType$selectedRadio");
-                                                  });
-                                                },
-                                                child: Row(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.center,
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.start,
-                                                  children: [
-                                                    Radio(
-                                                      activeColor: AppConstant
-                                                          .appPrimaryColor,
-                                                      // Customize your active color
-                                                      value:
-                                                          getTotByGroupTypeModel
-                                                              ?.data?[index]
-                                                              .totSequence,
-                                                      groupValue: selectedRadio,
-                                                      onChanged: (value) {
-                                                        print("value${value}");
-                                                        setState(() {
-                                                          selectedRadio =
-                                                              getTotByGroupTypeModel
-                                                                      ?.data?[
-                                                                          index]
-                                                                      .totSequence ??
-                                                                  1;
-                                                          totType =
-                                                              getTotByGroupTypeModel
-                                                                      ?.data?[
-                                                                          index]
-                                                                      .totId ??
-                                                                  "";
-                                                          print(
-                                                              "totType value$totType");
-                                                          print(
-                                                              "totType value$selectedRadio");
-                                                        });
-                                                      },
-                                                    ),
-                                                    Expanded(
-                                                      child: AppUtils
-                                                          .commonTextWidget(
-                                                        fontSize: 14,
-                                                        textColor: AppConstant
-                                                            .appPrimaryColor,
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                        text:
-                                                            "${getTotByGroupTypeModel?.data?[index].totValue}",
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                            },
-                                          ),
+                                          radioWidget()
                                         ],
                                       )),
                                       AppUtils.commonSizedBox(height: 10),
@@ -516,13 +353,48 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                             ),
                           ],
                         ),
-                        isLoading
+                        checkOutProvider.isFetching
                             ? Center(
                                 child: AppUtils.loaderWidget(),
                               )
                             : SizedBox(),
                       ],
                     )),
+    );
+  }
+
+  radioWidget() {
+    return GridView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      padding: EdgeInsets.zero,
+      itemCount: getTotByGroupTypeModel?.data?.length ?? 0,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisSpacing: 30,
+        mainAxisExtent: 60,
+        crossAxisCount: 2,
+      ),
+      itemBuilder: (context, index) {
+        return RadioListTile(
+          contentPadding: AppUtils.edgeInsetsAll(allPadding: 0),
+          title:AppUtils.commonTextWidget(
+              text: getTotByGroupTypeModel?.data?[index].totValue ?? "",
+              fontWeight: FontWeight.w500,
+              textColor: AppConstant.blackColor,
+              fontSize: 12),
+          activeColor: AppConstant.appPrimaryColor,
+          value: getTotByGroupTypeModel?.data?[index].totValue,
+          groupValue: selectedTotValue,
+          onChanged: (value) {
+            setState(() {
+              selectedTotValue = getTotByGroupTypeModel?.data?[index].totValue;
+              selectedTotId = getTotByGroupTypeModel?.data?[index].totId;
+              print("selectedTotId $selectedTotId");
+              print("selectedTotValue $selectedTotValue");
+            });
+          },
+        );
+      },
     );
   }
 
@@ -599,6 +471,39 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
     return position;
   }
 
+  doLocalVerification(
+      {required Function() afterSuccessfulVerificationFnc}) async {
+    if (isBiometricAvailable) {
+      bool isAuthenticated = await _localAuthentication.authenticate(
+          localizedReason: "Authenticate using Biometrics",
+          options: const AuthenticationOptions(
+              stickyAuth: true, useErrorDialogs: true));
+      if (isAuthenticated) {
+        if (kDebugMode) {
+          print("isAuthenticated $isAuthenticated");
+        }
+
+        // openDialogFnc("Authentication Successful");
+        afterSuccessfulVerificationFnc();
+      } else {
+        if (kDebugMode) {
+          print("isAuthenticated $isAuthenticated");
+        }
+        AppUtils.showDialogBoxWithOneButton(
+            context: context, text: "Authentication Fail! Please Try Again");
+        // openDialogFnc("Authentication Fail! Please Try Again");
+      }
+    } else {
+      if (kDebugMode) {
+        print("Biometric Auth is not available on this device");
+      }
+      AppUtils.showDialogBoxWithOneButton(
+          context: context,
+          text: "Biometric Auth is not available on this device");
+      // openDialogFnc("Biometric Auth is not available on this device");
+    }
+  }
+
   Function? checkValidation(postMdl) {
     if (_image == null) {
       AppUtils.showSnackBarWithColor(
@@ -633,7 +538,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
   }
 
   getLocationAndRedirect(postMdl) {
-    return getCurrentLocation().then((value)async {
+    return getCurrentLocation().then((value) async {
       await callAddActivityApi(postMdl: postMdl, position: value);
     });
   }

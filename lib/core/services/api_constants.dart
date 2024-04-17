@@ -10,6 +10,7 @@ class ApiConstants{
       static const String getLastActivity = "$baseUrl/FieldUser/GetLastActivity";
       static const String createRouteHistory = "$baseUrl/FieldUser/CreateRoutHistory";
       static const String getLeadList = "$baseUrl/FieldUser/LeadList";
+      static const String getVisitNote = "$baseUrl/FieldUser/GetVisitNote";
 
    
       static const String getTotByGroupType = "$baseUrl/Super/Tot/GetTotByGroupType";

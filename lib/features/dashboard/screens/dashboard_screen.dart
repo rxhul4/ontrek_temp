@@ -43,21 +43,26 @@ class DashBoardState extends State<DashBoard> {
     leadIconPath,
     profileIconPath,
   ];
+late DashBoardProvider dashBoardProvider;
 
+GoogleMapController? googleMapController;
   @override
   void initState() {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      final dashBoardProvider = Provider.of<DashBoardProvider>(context,listen: false);
+      dashBoardProvider = Provider.of<DashBoardProvider>(context,listen: false);
       print("selectedIndex${dashBoardProvider.selectedIndex}");
       dashBoardProvider.initialIndex();
       setState(() {});
       print("selectedIndex33333${dashBoardProvider.selectedIndex}");
       dashBoardProvider.checkPermission();
+      dashBoardProvider.getCurrentLocation();
     });
 
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -74,8 +79,9 @@ class DashBoardState extends State<DashBoard> {
                   padding: AppUtils.edgeInsetsOnly(
                       bottom: MediaQuery.of(context).size.height * 0.3),
                   mapType: MapType.normal,
-                  onMapCreated: (controller) async{
-                     dashBoardProvider.googleMapController.complete(controller);
+                  onMapCreated: (GoogleMapController  controller) {
+                    // dashBoardProvider.googleMapController.complete(controller);
+                    dashBoardProvider.googleMapController = controller;
                   },
                   markers: dashBoardProvider.markers,
                   initialCameraPosition:

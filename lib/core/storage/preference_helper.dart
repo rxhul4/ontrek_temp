@@ -45,6 +45,7 @@ class PreferenceHelper {
   static const String LOCATION_RESTRICTION = "allowLocationRestriction";
   static const String LOCATION_RESTRICTION_LAT = "LOCATION_RESTRICTION_LAT";
   static const String LOCATION_RESTRICTION_LONG = "LOCATION_RESTRICTION_LONG";
+  static const String AllowCheckInCheckOut = "AllowCheckInCheckOut";
 
   static const String LIVE_LOCATION_TRACKING = "LIVE_LOCATION_TRACKING";
   static const String LIVE_LOCATION_INTERVAL = "LIVE_LOCATION_INTERVAL";
