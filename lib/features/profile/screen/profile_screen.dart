@@ -6,6 +6,7 @@ import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/features/authentication/screens/login_with_phone_number.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -58,6 +59,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
     // double width = MediaQuery.of(context).size.width;
+
     return AppUtils.commonSlidePanel(
       controller: panelController,
       maxHeight: height,
@@ -153,68 +155,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Container(
                       height: height -
                           (MediaQuery.of(context).size.height / 3) -
-                          60, // Adjust the height accordingly
+                          60,
                       child: ListView.builder(
-                        shrinkWrap: true,
+                        padding: const EdgeInsets.only(bottom: 30),
+                        physics: const BouncingScrollPhysics(),
                         itemCount: profileOptionsList.length,
-                        physics: NeverScrollableScrollPhysics(),
                         itemBuilder: (context, index) {
-                          return InkWell(
-                            onTap: () async {
-                              print("index${index}");
-                              print(profileOptionsList[index]);
-                              if(index == 4){
-                                AppSettings.openAppSettings();
-                              }
-                              if (index == 5) {
-                                AppUtils.showDialogBoxWithTwoButton(
-                                  titleText: "Sign Out",
-                                  context: context,
-                                  text: "Are you sure you want to Sign Out?",
-                                  onSuccessString: "Sign Out",
-                                  onCancelString: "Cancel",
-
-
-                                  onSuccess: () async {
-                                    bool isRunning = await service.isRunning();
-                                    if (isRunning) {
-                                      service.invoke("stopService");
-                                      PreferenceHelper.clear();
-                                      Navigator.pushReplacement(
-                                        context,
-                                        CupertinoPageRoute(
-                                          builder: (context) => LoginScreen(),
-                                        ),
-                                      );
-                                    } else {
-                                      PreferenceHelper.clear();
-                                      Navigator.pushReplacement(
-                                        context,
-                                        CupertinoPageRoute(
-                                          builder: (context) => LoginScreen(),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  onCancel: () {},
-                                );
-                              }
+                          return GestureDetector(
+                            onTap: () {
+                              executeOperation(index, context);
                             },
-                            child: profileOptions(
-                              icon: profileOptionsListIcons[index],
-                              text: profileOptionsList[index],
-                              index: index,
-                              itemCount: profileOptionsList.length,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                    child: Icon(
+                                  profileOptionsListIcons[index],
+                                )),
+                                Expanded(flex: 7,
+                                  child: AppUtils.commonContainer(
+                                    padding: const EdgeInsets.only(
+                                      top: 5,
+                                      bottom: 5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        top: index == 0
+                                            ? BorderSide(
+                                                width: 0.5,
+                                                color: Colors.grey.shade400)
+                                            : BorderSide.none,
+                                        bottom: BorderSide(
+                                          width: 0.5,
+                                          color: Colors.grey.shade400,
+                                        ),
+                                      ),
+                                    ),
+                                    child: CupertinoListTile(
+                                      leadingToTitle: 0,
+                                      leadingSize: 0,
+                                      padding: EdgeInsets.zero,
+                                      title: AppUtils.commonTextWidget(
+                                        text: profileOptionsList[index],
+                                        textColor: AppConstant.blackColor
+                                            .withOpacity(0.7),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           );
                         },
                       ),
-                    ),
-                    const Divider(),
-                    Padding(
-                      padding: AppUtils.edgeInsetsOnly(left: 10, bottom: 8),
-                      child: AppUtils.commonTextWidget(
-                          text: 'Version', textColor: AppConstant.blackColor),
                     ),
                   ],
                 ),
@@ -370,7 +362,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ]),
     );
   }
-  List opration = [
 
-  ];
+  void executeOperation(int index, BuildContext context) {
+    switch (index) {
+      case 0:
+        AppUtils.showDialogBoxWithOneButton(
+          titleText: "Help",
+          text: "You Tapped on Help",
+          context: context,
+        );
+        break;
+      case 1:
+        AppUtils.showDialogBoxWithOneButton(
+          titleText: "FAQ",
+          text: "You Tapped on FAQ",
+          context: context,
+        );
+        break;
+      case 2:
+        AppUtils.showDialogBoxWithOneButton(
+          titleText: "Terms & Conditions",
+          text: "You Tapped on Terms & Conditions",
+          context: context,
+        );
+        break;
+      case 3:
+        AppUtils.showDialogBoxWithOneButton(
+          titleText: "Privacy & Policy",
+          text: "You Tapped on Privacy & Policy",
+          context: context,
+        );
+        break;
+      case 4:
+        AppSettings.openAppSettings();
+        break;
+      case 5:
+        AppUtils.showDialogBoxWithTwoButton(
+          titleText: "Sign Out",
+          context: context,
+          text: "Are you sure you want to Sign Out?",
+          onSuccessString: "Sign Out",
+          onCancelString: "Cancel",
+          onSuccess: () async {
+            bool isRunning = await service.isRunning();
+            if (isRunning) {
+              service.invoke("stopService");
+            }
+            PreferenceHelper.clear();
+            Navigator.pushReplacement(
+              context,
+              CupertinoPageRoute(
+                builder: (context) => LoginScreen(),
+              ),
+            );
+          },
+          onCancel: () {},
+        );
+        break;
+      default:
+        break;
+    }
+  }
 }

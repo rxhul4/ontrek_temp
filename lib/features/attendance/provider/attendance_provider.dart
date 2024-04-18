@@ -40,7 +40,7 @@ class AttendanceProvider extends ChangeNotifier {
   ValueNotifier<bool> isCheckIn = ValueNotifier(false);
   ValueNotifier<bool> isDayEnd = ValueNotifier(false);
   ValueNotifier<bool> isWaiting = ValueNotifier(false);
-  ValueNotifier<bool> isAllowCheckInCheckOut = ValueNotifier(false);
+  bool? isAllowCheckInCheckOut;
   LocalAuthentication localAuthentication = LocalAuthentication();
   bool isBiometricAvailable = false;
   AnimationController? controller;

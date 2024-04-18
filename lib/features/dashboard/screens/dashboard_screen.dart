@@ -94,7 +94,6 @@ GoogleMapController? googleMapController;
               }),
               TrackScreen(),
               TaskListScreen(),
-
               LeadScreen(),
               ProfileScreen(),
             ][dashBoardProvider.selectedIndex],
@@ -121,9 +120,10 @@ GoogleMapController? googleMapController;
                 child: GestureDetector(
                   onTap: () {
                     HapticFeedback.vibrate();
-                    // dashBoardProvider.getCurrentLocation();
+
                     if(!mounted){}
                     dashBoardProvider.selectIndex(index);
+                    dashBoardProvider.getCurrentLocation();
                     print("selected----${dashBoardProvider.selectedIndex}&& $index");
                   },
                   child: AnimatedContainer(

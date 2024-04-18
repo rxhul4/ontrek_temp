@@ -3,6 +3,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_geocoding_api/google_geocoding_api.dart';
@@ -13,6 +14,7 @@ import 'package:ontrek/main.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'dart:ui' as ui;
 class AppUtils {
   static Future<void> launchToBrowser(Uri url) async {
     if (!await launchUrl(
@@ -675,6 +677,14 @@ class AppUtils {
         case 'tracking_event_waiting_end':
           imagePath = waitingIcon;
           break;
+        case 'tracking_event_gps_off':
+        case 'tracking_event_gps_on':
+          imagePath = gpsIcon;
+          break;
+        case 'tracking_event_internet_off':
+        case 'tracking_internet_on':
+          imagePath = gpsIcon;
+          break;
         default:
           imagePath = logoutIcon;
       }
@@ -739,6 +749,13 @@ class AppUtils {
         break;
     }
     return value;
+  }
+
+  static Future<Uint8List> getBytesFromAsset(String path, int width) async {
+    ByteData data = await rootBundle.load(path);
+    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(), targetWidth: width);
+    ui.FrameInfo fi = await codec.getNextFrame();
+    return (await fi.image.toByteData(format: ui.ImageByteFormat.png))!.buffer.asUint8List();
   }
 
   static Color switchCaseForTaskStatus(String param) {

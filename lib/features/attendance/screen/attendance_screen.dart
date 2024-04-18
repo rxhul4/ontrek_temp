@@ -61,14 +61,14 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
     initAnimateController();
 
-    if(!mounted){
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) async{
+    if (!mounted) {}
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final attendanceProvider =
           Provider.of<AttendanceProvider>(context, listen: false);
       attendanceProvider.panelController.animatePanelToPosition(0.99);
       attendanceProvider.callGetLastActivity();
-      attendanceProvider.isAllowCheckInCheckOut.value = PreferenceHelper.getBool(PreferenceHelper.AllowCheckInCheckOut);
+      attendanceProvider.isAllowCheckInCheckOut =
+          PreferenceHelper.getBool(PreferenceHelper.AllowCheckInCheckOut);
 
       attendanceProvider.checkBiometricAvailable();
 
@@ -156,7 +156,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       });
     } catch (e) {
       print("catch_at_dayStartApi");
-      AppUtils.showDialogBoxWithOneButton(context: context ,text: "Something went wrong, Please try again later!");
+      AppUtils.showDialogBoxWithOneButton(
+          context: context,
+          text: "Something went wrong, Please try again later!");
       // AppUtils.dialogWidget(
       //     "Something went wrong, Please try again later!", context);
     }
@@ -181,8 +183,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       });
     } catch (e) {
       print("catch_at_checkInApi");
-      AppUtils.showDialogBoxWithOneButton(context: context ,text: "Something went wrong, Please try again later!");
-
+      AppUtils.showDialogBoxWithOneButton(
+          context: context,
+          text: "Something went wrong, Please try again later!");
     }
   }
 
@@ -205,7 +208,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       });
     } catch (e) {
       print("catch_at_checkInApi");
-      AppUtils.showDialogBoxWithOneButton(context: context ,text: "Something went wrong, Please try again later!");
+      AppUtils.showDialogBoxWithOneButton(
+          context: context,
+          text: "Something went wrong, Please try again later!");
     }
   }
 
@@ -269,7 +274,11 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   Future dayStartAndUpdateUIFunction() async {
     try {
-      service.startService();
+      bool? isAllowBackgroundLocation = PreferenceHelper.getBool(PreferenceHelper.LIVE_LOCATION_TRACKING);
+      if(isAllowBackgroundLocation == true){
+        service.startService();
+      }
+
       PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
       attendanceProvider.isDayStart.value =
           PreferenceHelper.getBool(PreferenceHelper.DayStart);
@@ -355,9 +364,15 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     valueListenable: attendanceProvider.isDayEnd,
                     builder: (context, value, child) {
                       return Center(
-                        child: /*attendanceProvider.isAllowCheckInCheckOut.value  == false ? dayStartDayEndBtn(attendanceProvider,height,width) :*/ !attendanceProvider.isDayEnd.value
-                            ? buttonWidget(attendanceProvider, height, width)
-                            : logOut(attendanceProvider, height, width),
+                        child:
+                            attendanceProvider.isAllowCheckInCheckOut ==
+                                    false
+                                ? dayStartDayEndBtn(
+                                    attendanceProvider, height, width)
+                                : !attendanceProvider.isDayEnd.value
+                                    ? buttonWidget(
+                                        attendanceProvider, height, width)
+                                    : logOut(attendanceProvider, height, width),
                       );
                     },
                   ),
@@ -365,14 +380,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   SizedBox(
                     height: 15,
                   ),
-                  attendanceProvider.isAllowCheckInCheckOut.value  == true ?AppUtils.commonTextWidget(
-                    text: "Press & Hold",
-                    fontSize: 14,
-                    letterSpacing: 0.2,
-                    fontWeight: FontWeight.w600,
-                    textColor: AppConstant.blackColor,
-                  ) : !attendanceProvider.isDayStart.value ||
-                          attendanceProvider.isCheckIn.value
+                  attendanceProvider.isAllowCheckInCheckOut == false
                       ? AppUtils.commonTextWidget(
                           text: "Press & Hold",
                           fontSize: 14,
@@ -380,19 +388,28 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                           fontWeight: FontWeight.w600,
                           textColor: AppConstant.blackColor,
                         )
-                      : GestureDetector(
-                          onTap: attendanceProvider.toggleButtons,
-                          child: AppUtils.commonTextWidget(
-                            text: !attendanceProvider.isDayEnd.value
-                                ? "Show Out"
-                                : "Show CheckIn",
-                            fontSize: 14,
-                            letterSpacing: 0.2,
-                            fontWeight: FontWeight.w600,
-                            textColor: !attendanceProvider.isDayEnd.value
-                                ? Colors.red
-                                : AppConstant.appPrimaryColor,
-                          )),
+                      : !attendanceProvider.isDayStart.value ||
+                              attendanceProvider.isCheckIn.value
+                          ? AppUtils.commonTextWidget(
+                              text: "Press & Hold",
+                              fontSize: 14,
+                              letterSpacing: 0.2,
+                              fontWeight: FontWeight.w600,
+                              textColor: AppConstant.blackColor,
+                            )
+                          : GestureDetector(
+                              onTap: attendanceProvider.toggleButtons,
+                              child: AppUtils.commonTextWidget(
+                                text: !attendanceProvider.isDayEnd.value
+                                    ? "Show Out"
+                                    : "Show CheckIn",
+                                fontSize: 14,
+                                letterSpacing: 0.2,
+                                fontWeight: FontWeight.w600,
+                                textColor: !attendanceProvider.isDayEnd.value
+                                    ? Colors.red
+                                    : AppConstant.appPrimaryColor,
+                              )),
                 ],
               ),
             ),
@@ -426,9 +443,26 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
                   controller?.reset();
                   if (!attendanceProvider.isDayStart.value) {
+                    bool? isLocationRestricted =  PreferenceHelper.getBool(PreferenceHelper.LOCATION_RESTRICTION);
+                    double? restrictedLocationLat =  PreferenceHelper.getDouble(PreferenceHelper.LOCATION_RESTRICTION_LAT);
+                    double? restrictedLocationLong =  PreferenceHelper.getDouble(PreferenceHelper.LOCATION_RESTRICTION_LONG);
+                    int? restrictedLocationMeter =  PreferenceHelper.getInt(PreferenceHelper.RESTRICTED_LOCATION_METER);
+                    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.low);
+
+                    double? distance = Geolocator.distanceBetween(/*restrictedLocationLat ?? 0, restrictedLocationLong ?? 0 ,*/23.109490491356393, 72.60351724666265,
+                        position.latitude, position.longitude);
                     attendanceProvider.doLocalVerification(
                       afterSuccessfulVerificationFnc: () async {
-                        await callDayStartApiAndUpdateUI(postMdl);
+                        if(isLocationRestricted == true){
+                          if(distance < (restrictedLocationMeter ?? 50)){
+                            await callDayStartApiAndUpdateUI(postMdl);
+                          }else{
+                            AppUtils.showDialogBoxWithOneButton(titleText: "Premises",text: "You are not at Office Location",context: context);
+                          }
+                        }else{
+                          await callDayStartApiAndUpdateUI(postMdl);
+                        }
+
                       },
                     );
                   } else if (!attendanceProvider.isCheckIn.value) {
@@ -498,8 +532,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                   : Colors.blue,
                             )
                           : Positioned.fill(
-                              // scale: isTapped ? 4 : 3.6,
-                              // Adjust the scale factor as needed
                               child: CircularProgressIndicator(
                                 value: controller?.value,
                                 strokeCap: StrokeCap.round,
@@ -511,8 +543,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                               ),
                             ),
                       Positioned.fill(
-                        // scale: isTapped ? 4 : 3.6,
-                        // Adjust the scale factor as needed
                         child: CircularProgressIndicator(
                           value: 1,
                           strokeWidth: 8,
@@ -588,51 +618,69 @@ class _AttendanceScreenState extends State<AttendanceScreen>
             HapticFeedback.vibrate();
             controller?.reset();
             AppUtils.showDialogBoxWithTwoButton(
-              titleText: "Day End",
-              context: context,
-              text: "Are you sure you want to end the day?",
-              onSuccessString: "YES",
-              onCancelString: "NO",
-              onSuccess: () {
-                PreferenceHelper.reload().then((value) {
-                  if (kDebugMode) {
-                    print(
-                        "value_new_isWaiting${value?.getBool(PreferenceHelper.isWaiting)}");
-                  }
-                  attendanceProvider.isWaiting.value =
-                      value?.getBool(PreferenceHelper.isWaiting) ?? false;
-                  attendanceProvider.doLocalVerification(
-                    afterSuccessfulVerificationFnc: () async {
-                      if (kDebugMode) {
-                        print(
-                            "isWaiting_from_UI${attendanceProvider.isWaiting.value}");
-                      }
-                      attendanceProvider
-                          .getCurrentLocation()
-                          .then((position) async {
-                        print(
-                            "condtion${attendanceProvider.isWaiting.value == true}");
-                        if (attendanceProvider.isWaiting.value == true) {
-                          await callWaitingEndApi(
-                              postMdl: postMdl,
-                              position: position,
-                              dayEnd: true,
-                              checkIn: false);
-                        } else {
-                          await callDayEndApiAndUpdateUI(postMdl);
-                        }
-                      });
-                    },
-                  );
-                });
-              },
-              onCancel: (){
-                setState(() {
-                  isFromLogOutButton = false;
-                });
-              }
-            );
+                titleText: "Day End",
+                context: context,
+                text: "Are you sure you want to end the day?",
+                onSuccessString: "YES",
+                onCancelString: "NO",
+                onSuccess: () {
 
+                  PreferenceHelper.reload().then((value) {
+                    if (kDebugMode) {
+                      print(
+                          "value_new_isWaiting${value?.getBool(PreferenceHelper.isWaiting)}");
+                    }
+                    attendanceProvider.isWaiting.value =
+                        value?.getBool(PreferenceHelper.isWaiting) ?? false;
+                    attendanceProvider.doLocalVerification(
+                      afterSuccessfulVerificationFnc: () async {
+                        attendanceProvider
+                            .getCurrentLocation()
+                            .then((position) async {
+                          bool? isLocationRestricted =  PreferenceHelper.getBool(PreferenceHelper.LOCATION_RESTRICTION);
+                          double? restrictedLocationLat =  PreferenceHelper.getDouble(PreferenceHelper.LOCATION_RESTRICTION_LAT);
+                          double? restrictedLocationLong =  PreferenceHelper.getDouble(PreferenceHelper.LOCATION_RESTRICTION_LONG);
+                          int? restrictedLocationMeter =  PreferenceHelper.getInt(PreferenceHelper.RESTRICTED_LOCATION_METER);
+                          Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.low);
+
+                          double? distance = Geolocator.distanceBetween(/*restrictedLocationLat ?? 0, restrictedLocationLong ?? 0 ,*/23.109490491356393, 72.60351724666265,
+                              position.latitude, position.longitude);
+                          if(isLocationRestricted == true){
+                            if(distance < (restrictedLocationMeter ?? 50)){
+                              if (attendanceProvider.isWaiting.value == true) {
+                                await callWaitingEndApi(
+                                    postMdl: postMdl,
+                                    position: position,
+                                    dayEnd: true,
+                                    checkIn: false);
+                              } else {
+                                await callDayEndApiAndUpdateUI(postMdl);
+                              }
+                            }else{
+                              AppUtils.showDialogBoxWithOneButton(titleText: "Premises",text: "You are not at Office Location",context: context);
+                            }
+                          }else{
+                            if (attendanceProvider.isWaiting.value == true) {
+                              await callWaitingEndApi(
+                                  postMdl: postMdl,
+                                  position: position,
+                                  dayEnd: true,
+                                  checkIn: false);
+                            } else {
+                              await callDayEndApiAndUpdateUI(postMdl);
+                            }
+                          }
+
+                        });
+                      },
+                    );
+                  });
+                },
+                onCancel: () {
+                  setState(() {
+                    isFromLogOutButton = false;
+                  });
+                });
           });
         },
         onTapUp: (details) {
@@ -711,161 +759,134 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     );
   }
 
+  Widget dayStartDayEndBtn(
+      AttendanceProvider attendanceProvider, height, width) {
+    return ValueListenableBuilder(valueListenable: attendanceProvider.isDayStart, builder: (context, value, child) {
+      return Animate(
+        effects: const [
+          ScaleEffect(
+              begin: Offset(0, 0),
+              duration: Duration(
+                milliseconds: 300,
+              ),
+              curve: Curves.easeOut)
+        ],
+        child: GestureDetector(
+          onTapDown: (details) {
+            setState(() {
+              isFromLogOutButton = true;
+            });
+            controller?.forward().whenComplete(() {
+              HapticFeedback.vibrate();
+              controller?.reset();
+              attendanceProvider.doLocalVerification(
+                  afterSuccessfulVerificationFnc: () async {
 
-  Widget dayStartDayEndBtn(AttendanceProvider attendanceProvider, height, width) {
-    return Animate(
-      effects: const [
-        ScaleEffect(
-            begin: Offset(0, 0),
-            duration: Duration(
-              milliseconds: 300,
-            ),
-            curve: Curves.easeOut)
-      ],
-      child: GestureDetector(
-        onTapDown: (details) {
-          setState(() {
-            isFromLogOutButton = true;
-          });
-          controller?.forward().whenComplete(() {
-            HapticFeedback.vibrate();
-            controller?.reset();
-            if(!attendanceProvider.isDayStart.value){
-              PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-              attendanceProvider.isDayStart.value =    PreferenceHelper.getBool(PreferenceHelper.DayStart);
-              setState(() {
+                    bool? isLocationRestricted =  PreferenceHelper.getBool(PreferenceHelper.LOCATION_RESTRICTION);
+                    double? restrictedLocationLat =  PreferenceHelper.getDouble(PreferenceHelper.LOCATION_RESTRICTION_LAT);
+                    double? restrictedLocationLong =  PreferenceHelper.getDouble(PreferenceHelper.LOCATION_RESTRICTION_LONG);
+                    int? restrictedLocationMeter =  PreferenceHelper.getInt(PreferenceHelper.RESTRICTED_LOCATION_METER);
+                    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.low);
 
-              });
-            }else{
-              PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
-              setState(() {
-                attendanceProvider.isDayStart.value =    PreferenceHelper.getBool(PreferenceHelper.DayStart);
-              });
+                    double? distance = Geolocator.distanceBetween(/*restrictedLocationLat ?? 0, restrictedLocationLong ?? 0 ,*/23.109490491356393, 72.60351724666265,
+                        position.latitude, position.longitude);
+                    if(isLocationRestricted == true){
+                      if(distance < (restrictedLocationMeter ?? 50)){
+                        !attendanceProvider.isDayStart.value ? callDayStartApiAndUpdateUI(attendanceProvider) : callDayEndApiAndUpdateUI(attendanceProvider);
+                      }else{
+                        AppUtils.showDialogBoxWithOneButton(titleText: "Premises",text: "You are not at Office Location",context: context);
+                      }
+                    }else{
+                      print("isLocationRestricted$isLocationRestricted");
+                      !attendanceProvider.isDayStart.value == false ? callDayStartApiAndUpdateUI(attendanceProvider) : callDayEndApiAndUpdateUI(attendanceProvider);
+                    }
 
-            }
-
-            // AppUtils.showDialogBoxWithTwoButton(
-            //     context: context,
-            //     text: "Are you sure you want to end the day?",
-            //     onSuccessString: "YES",
-            //     onCancelString: "NO",
-            //     onSuccess: () {
-            //       PreferenceHelper.reload().then((value) {
-            //         if (kDebugMode) {
-            //           print(
-            //               "value_new_isWaiting${value?.getBool(PreferenceHelper.isWaiting)}");
-            //         }
-            //         attendanceProvider.isWaiting.value =
-            //             value?.getBool(PreferenceHelper.isWaiting) ?? false;
-            //         attendanceProvider.doLocalVerification(
-            //           afterSuccessfulVerificationFnc: () async {
-            //             if (kDebugMode) {
-            //               print(
-            //                   "isWaiting_from_UI${attendanceProvider.isWaiting.value}");
-            //             }
-            //             attendanceProvider
-            //                 .getCurrentLocation()
-            //                 .then((position) async {
-            //               print(
-            //                   "condtion${attendanceProvider.isWaiting.value == true}");
-            //               if (attendanceProvider.isWaiting.value == true) {
-            //                 await callWaitingEndApi(
-            //                     postMdl: postMdl,
-            //                     position: position,
-            //                     dayEnd: true,
-            //                     checkIn: false);
-            //               } else {
-            //                 await callDayEndApiAndUpdateUI(postMdl);
-            //               }
-            //             });
-            //           },
-            //         );
-            //       });
-            //     },
-            //     onCancel: (){
-            //       setState(() {
-            //         isFromLogOutButton = false;
-            //       });
-            //     }
-            // );
-
-          });
-        },
-        onTapUp: (details) {
-          setState(() {
-            isFromLogOutButton = false;
-          });
-          controller?.reverse();
-        },
-        child: Animate(
-          effects: const [
-            ScaleEffect(
-                begin: Offset(0, 0),
-                duration: Duration(
-                  milliseconds: 300,
-                ),
-                curve: Curves.easeOut)
-          ],
-          child: AppUtils.commonContainer(
-            decoration: AppUtils.commonBoxDecoration(
-              shape: BoxShape.circle,
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: <Widget>[
-                attendanceProvider.isLoading
-                    ? LoaderWidget(color: !attendanceProvider.isDayStart.value  ?  Colors.lightGreen:  Colors.red)
-                    : Positioned.fill(
-                  child: CircularProgressIndicator(
-                    value: controller?.value,
-                    strokeCap: StrokeCap.round,
-                    strokeWidth: 8,
-                    valueColor:
-                    AlwaysStoppedAnimation<Color>(
-                        !attendanceProvider.isDayStart.value  ?  Colors.lightGreen:  Colors.red
+                  });
+            });
+          },
+          onTapUp: (details) {
+            setState(() {
+              isFromLogOutButton = false;
+            });
+            controller?.reverse();
+          },
+          child: Animate(
+            effects: const [
+              ScaleEffect(
+                  begin: Offset(0, 0),
+                  duration: Duration(
+                    milliseconds: 300,
+                  ),
+                  curve: Curves.easeOut)
+            ],
+            child: AppUtils.commonContainer(
+              decoration: AppUtils.commonBoxDecoration(
+                shape: BoxShape.circle,
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: <Widget>[
+                  attendanceProvider.isLoading
+                      ? LoaderWidget(
+                      color: !attendanceProvider.isDayStart.value
+                          ? Colors.lightGreen
+                          : Colors.red)
+                      : Positioned.fill(
+                    child: CircularProgressIndicator(
+                      value: controller?.value,
+                      strokeCap: StrokeCap.round,
+                      strokeWidth: 8,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          !attendanceProvider.isDayStart.value
+                              ? Colors.lightGreen
+                              : Colors.red),
                     ),
                   ),
-                ),
-                Positioned.fill(
-                  child: CircularProgressIndicator(
-                    value: 1.0,
-                    strokeWidth: 8,
-                    strokeCap: StrokeCap.round,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                        AppConstant.greyColor.withOpacity(0.2)),
+                  Positioned.fill(
+                    child: CircularProgressIndicator(
+                      value: 1.0,
+                      strokeWidth: 8,
+                      strokeCap: StrokeCap.round,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          AppConstant.greyColor.withOpacity(0.2)),
+                    ),
                   ),
-                ),
-                AnimatedContainer(
-                  margin: const EdgeInsets.all(2.8),
-                  duration: const Duration(milliseconds: 300),
-                  height: isFromLogOutButton ? 120 : 100,
-                  width: isFromLogOutButton ? 120 : 100,
-                  decoration: AppUtils.commonBoxDecoration(
-                    color:  !attendanceProvider.isDayStart.value  ?  Colors.lightGreen.withOpacity(0.8) : Colors.red.withOpacity(0.8),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: !attendanceProvider.isDayStart.value  ?  Colors.lightGreen.withOpacity(0.8) : Colors.red.withOpacity(0.3),
-                        spreadRadius: isFromLogOutButton ? 1 : 2,
-                        blurRadius: isFromLogOutButton ? 1 : 2,
-                        offset: const Offset(0, 0),
+                  AnimatedContainer(
+                    margin: const EdgeInsets.all(2.8),
+                    duration: const Duration(milliseconds: 300),
+                    height: isFromLogOutButton ? 120 : 100,
+                    width: isFromLogOutButton ? 120 : 100,
+                    decoration: AppUtils.commonBoxDecoration(
+                      color: !attendanceProvider.isDayStart.value
+                          ? Colors.lightGreen.withOpacity(0.8)
+                          : Colors.red.withOpacity(0.8),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: !attendanceProvider.isDayStart.value
+                              ? Colors.lightGreen.withOpacity(0.3)
+                              : Colors.red.withOpacity(0.3),
+                          spreadRadius: isFromLogOutButton ? 1 : 2,
+                          blurRadius: isFromLogOutButton ? 1 : 2,
+                          offset: const Offset(0, 0),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: AppUtils.commonTextWidget(
+                        text: !attendanceProvider.isDayStart.value ? "In" : "Out",
+                        fontSize: 18,
+                        textColor: Colors.white,
+                        fontWeight: FontWeight.w600,
                       ),
-                    ],
-                  ),
-                  child: Center(
-                    child: AppUtils.commonTextWidget(
-                      text:  !attendanceProvider.isDayStart.value ? "In" :"Out",
-                      fontSize: 18,
-                      textColor: Colors.white,
-                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
+    },);
   }
 }

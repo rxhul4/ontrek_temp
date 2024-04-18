@@ -1,19 +1,30 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui';
+import 'dart:ui';
+import 'dart:ui';
+import 'dart:ui';
+import 'dart:ui';
+import 'dart:ui';
 
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import 'package:flutter/widgets.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:ontrek/core/services/api_constants.dart';
-import 'package:ontrek/core/services/network_repository.dart';
-import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
-import 'package:ontrek/core/utils/app_constant.dart';
+import 'package:ontrek/core/utils/image_path.dart';
+
 import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
 import 'package:ontrek/main.dart';
 import 'package:permission_handler/permission_handler.dart';
+
+import 'dart:ui' as ui;
 
 class DashBoardProvider extends ChangeNotifier{
   bool _isFetching = false;
@@ -130,14 +141,18 @@ class DashBoardProvider extends ChangeNotifier{
     }
 
   }
+
+
   Future addCurrentLocationMarker(LatLng location) async{
     try{
+      final Uint8List markerIcon = await AppUtils.getBytesFromAsset(locationMarker, 130);
       markers.clear(); // Clear previous markers
       await  markers.add(
         Marker(
           markerId: MarkerId("currentLocation"),
           position: location,
           infoWindow: InfoWindow(title: "Current Location"),
+          icon: BitmapDescriptor.fromBytes(markerIcon),
         ),
       );
       notifyListeners();

@@ -102,7 +102,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
 
     postMdl
         .apiCallCreateActivity(
-            picturePath: "image64",
+            picturePath: image64,
             isFromCheckOut: true,
             userId: userUid,
             batteryLevel: batteryLevel,

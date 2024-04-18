@@ -1,14 +1,11 @@
 import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
-import 'package:ontrek/features/salesman_tracker/local_model.dart';
 import 'package:ontrek/features/salesman_tracker/model/salesmen_tracking_detailes.dart';
-import 'package:ontrek/features/salesman_tracker/screen/timeline_screen.dart';
 import 'package:ontrek/main.dart';
 
 class SalemenTimeLineProvider extends ChangeNotifier {
@@ -66,7 +63,7 @@ class SalemenTimeLineProvider extends ChangeNotifier {
     Map<String, dynamic> body = {
       "userId": userid,
       "eventDate":
-          AppUtils.getDate(date: date ?? "", format: AppConstant.dateFormat)
+      AppUtils.getDate(date: date ?? "", format: AppConstant.dateFormat)
     };
     try {
       String endPoint = ApiConstants.getSalesMenTimeLine;
@@ -96,20 +93,7 @@ class SalemenTimeLineProvider extends ChangeNotifier {
             }
           });
         });
-        // for (int i = 0;
-        //     i < (getTimeLineModel?.data?.sessionTimeLine?.length ?? 0);
-        //     i++) {
-        //   latLongArray?.add(LatlongArray(
-        //       x: getTimeLineModel?.data?.sessionTimeLine?[i].sessionRouteHistory
-        //               ?.latlongArray?[i].x ??
-        //           0,
-        //       y: getTimeLineModel?.data?.sessionTimeLine?[i].sessionRouteHistory
-        //               ?.latlongArray?[i].y ??
-        //           0));
-        //   if(latLongArray != null){
-        //     allSessionLatLong.add(latLongArray!);
-        //   }
-        // }
+
 
         print("testttttttttttttt${getTimeLineModel?.data?.sessionTimeLine?.map((e) => e.sessionRouteHistory?.latlongArray).toList()}");
         print("allllSessionData${allSessionLatLong.length}");

@@ -49,6 +49,7 @@ class PreferenceHelper {
 
   static const String LIVE_LOCATION_TRACKING = "LIVE_LOCATION_TRACKING";
   static const String LIVE_LOCATION_INTERVAL = "LIVE_LOCATION_INTERVAL";
+  static const String RESTRICTED_LOCATION_METER = "RESTRICTED_LOCATION_METER";
 
 
   static SharedPreferences? _prefs;
