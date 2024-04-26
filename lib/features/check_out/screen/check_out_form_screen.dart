@@ -50,6 +50,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
   GetTotByGroupTypeModel? getTotByGroupTypeModel;
   FlutterBackgroundService service = FlutterBackgroundService();
   late CheckOutProvider checkOutProvider;
+  late AttendanceProvider attendanceProvider;
   String? selectedTotValue;
   String? selectedTotId;
 
@@ -69,6 +70,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
     checkBiometricAvailable();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       checkOutProvider = Provider.of<CheckOutProvider>(context, listen: false);
+      attendanceProvider = Provider.of<AttendanceProvider>(context, listen: false);
       callGetTotByType(checkOutProvider);
     });
   }
@@ -105,10 +107,10 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
             picturePath: image64,
             isFromCheckOut: true,
             userId: userUid,
-            batteryLevel: batteryLevel,
             totTrackingEventCode: AppConstant.checkOutEvent,
             latitude: position?.latitude,
             longitude: position?.longitude,
+            batteryLevel: attendanceProvider.battery,
             companyName: companyNameController.text,
             customerName: customerNameController.text,
             customerPhoneNumber: customerPhoneNumberController.text,
@@ -143,7 +145,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final postMdl = Provider.of<AttendanceProvider>(context);
+    attendanceProvider = Provider.of<AttendanceProvider>(context);
     checkOutProvider = Provider.of<CheckOutProvider>(context);
     return GestureDetector(
       onTap: () {
@@ -337,7 +339,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                               child: AppUtils.commonElevatedBtn(
                                 backgroundColor: AppConstant.transparentColor,
                                 onPressed: () {
-                                  checkValidation(postMdl);
+                                  checkValidation(attendanceProvider);
                                 },
                                 topMargin: 10,
                                 bottomMargin: 10,
@@ -443,12 +445,11 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
       imageFull = await ImagePicker.platform.getImageFromSource(
         source: ImageSource.camera,
       );
-
       if (imageFull?.path != null) {
         final bytes = File(imageFull.path).readAsBytesSync();
-        image64 = "data:image/png;base64," + base64Encode(bytes);
         print(image64);
         setState(() {
+          image64 = "data:image/png;base64," + base64Encode(bytes);
           _image = File(imageFull?.path ?? '');
         });
       }

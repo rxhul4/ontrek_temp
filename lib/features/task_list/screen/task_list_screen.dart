@@ -47,9 +47,7 @@ class _TaskListScreenState extends State<TaskListScreen>
       print("taskApi");
     }
     taskProvider.apiCallGetTaskByIdList(
-      date: AppUtils.getDate(
-          date: taskProvider.selectedDate.toString(),
-          format: AppConstant.dateFormat),
+        date :  taskProvider.selectedDate.toString()
     );
   }
 

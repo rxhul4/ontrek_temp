@@ -5,6 +5,7 @@ import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
+import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/task_list/model/task_model.dart';
 import 'package:ontrek/main.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
@@ -29,7 +30,7 @@ class TaskProvider extends ChangeNotifier{
 
 
   Future<GetAllTaskModel?> apiCallGetTaskByIdList(
-      {String? date, String? userId,String? orgId}) async {
+      {String? date, String? userId,String? orgId,String? filter}) async {
     var userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     var orgId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
     _isFetching = true;
@@ -38,7 +39,8 @@ class TaskProvider extends ChangeNotifier{
     {
       "orgId": orgId,
       "userId": userId,
-      "date": date
+      "date": AppUtils.getDate(date: date ?? "", format: AppConstant.dateFormat),
+      "filter": ""
     };
     try {
       String endPoint = ApiConstants.getAllTaskByUserId;

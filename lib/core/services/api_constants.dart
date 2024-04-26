@@ -11,6 +11,7 @@ class ApiConstants{
       static const String createRouteHistory = "$baseUrl/FieldUser/CreateRoutHistory";
       static const String getLeadList = "$baseUrl/FieldUser/LeadList";
       static const String getVisitNote = "$baseUrl/FieldUser/GetVisitNote";
+      static const String getAllTaskByUserId = "$baseUrl/FieldUser/TaskList";
 
    
       static const String getTotByGroupType = "$baseUrl/Super/Tot/GetTotByGroupType";
@@ -22,8 +23,7 @@ class ApiConstants{
       static const String updateLead = "$baseUrl/Super/Lead/Update";
       static const String getLeadByID = "$baseUrl/Super/Lead/GetById";
 
-      
-      static const String getAllTaskByUserId = "$baseUrl/Admin/AppUserTask/GetAllTaskByUserId";
+
       static const String getTaskById = "$baseUrl/Admin/AppUserTask/GetById";
       static const String updateTaskStatus = "$baseUrl/Admin/AppUserTask/Update";
 

@@ -146,7 +146,7 @@ class AttendanceProvider extends ChangeNotifier {
 
     Map<String, dynamic> checkOutDataBody = {
       "customerName": customerName,
-      "picturePath": "test.jpg",
+      "picturePath": picturePath,
       "visitDiscussion": visitDiscussion,
       "companyName": companyName,
       "customerPhoneNo": customerPhoneNumber,
