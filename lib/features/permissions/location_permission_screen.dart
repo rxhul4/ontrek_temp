@@ -20,13 +20,13 @@ class LocationPermissionScreen extends StatefulWidget {
 }
 
 class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
-  int? roleId;
+  String? roleId;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    roleId = PreferenceHelper.getInt(PreferenceHelper.ROLE_ID);
+    roleId = PreferenceHelper.getString(PreferenceHelper.ROLE_ID);
   }
 
   @override

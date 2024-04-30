@@ -371,7 +371,7 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
         return RadioListTile(
           contentPadding: AppUtils.edgeInsetsAll(allPadding: 0),
           title: AppUtils.commonContainer(
-            margin: const EdgeInsets.only(right: 220),
+            margin: const EdgeInsets.only(right: 200),
             padding:
                 AppUtils.edgeInsetsOnly(bottom: 3, top: 3, left: 10, right: 10),
             decoration: AppUtils.commonBoxDecoration(

@@ -438,7 +438,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
     if (status1.isDenied || status1.isPermanentlyDenied) {
       print(status1.isPermanentlyDenied);
       print(status1.isDenied);
-      // openAppSettings();
+      openAppSettings();
     } else {
       print(status1.isPermanentlyDenied);
       print(status1.isDenied);

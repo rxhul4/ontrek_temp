@@ -99,17 +99,35 @@ class AuthenticationProvider extends ChangeNotifier {
 
   Future<LoginModel?> apiCallVerifyNumber() async {
     loaderFnc(true);
-    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-    Map<String, dynamic> body = {
-      "countryCode": countryCode,
-      "phoneNumber": mobileNumberController.text,
-      "deviceInfo": {
-        "deviceId" : androidInfo.id,
-        "deviceModel" :androidInfo.model,
-        "deviceOs " : androidInfo.version.release,
-        "osVersion " : Platform.operatingSystemVersion,
-      }
-    };
+    Map<String, dynamic> body;
+
+    if(Platform.isIOS){
+      var iosInfo = await deviceInfo.iosInfo;
+       body = {
+        "countryCode": countryCode,
+        "phoneNumber": mobileNumberController.text,
+        "deviceInfo": {
+          "deviceId" : iosInfo.identifierForVendor,
+          "deviceModel" :iosInfo.model,
+          "deviceOs " : iosInfo.systemName,
+          "osVersion " : iosInfo.systemVersion,
+        }
+      };
+
+    }else{
+      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      body = {
+        "countryCode": countryCode,
+        "phoneNumber": mobileNumberController.text,
+        "deviceInfo": {
+          "deviceId" : androidInfo.id,
+          "deviceModel" :androidInfo.model,
+          "deviceOs " : androidInfo.version.release,
+          "osVersion " : Platform.operatingSystemVersion,
+        }
+      };
+    }
+
     try {
       loginModel = LoginModel();
       String endPoint = ApiConstants.login;
@@ -160,18 +178,36 @@ class AuthenticationProvider extends ChangeNotifier {
   Future<LoginModel?> apiCallVerifyOtp({String? otpText}) async {
     loaderFnc(true);
     try {
-    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-    Map<String, dynamic> body = {
-      "userId": userUid,
-      "otp": otpText,
-      "deviceInfo": {
-        "deviceId" :  androidInfo.id,
-        "deviceModel" :  androidInfo.model,
-        "deviceOs " :  androidInfo.version.release,
-        "osVersion " : Platform.operatingSystemVersion,
 
-      }
-    };
+
+    Map<String, dynamic> body;
+    if(Platform.isIOS){
+      var iosInfo = await deviceInfo.iosInfo;
+      body = {
+        "userId": userUid,
+        "otp": otpText,
+        "deviceInfo": {
+          "deviceId" :  iosInfo.identifierForVendor,
+          "deviceModel" :  iosInfo.model,
+          "deviceOs " :  iosInfo.systemName,
+          "osVersion " : Platform.operatingSystemVersion,
+        }
+      };
+    }else{
+      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      body = {
+        "userId": userUid,
+        "otp": otpText,
+        "deviceInfo": {
+          "deviceId" :  androidInfo.id,
+          "deviceModel" :  androidInfo.model,
+          "deviceOs " :  androidInfo.version.release,
+          "osVersion " : Platform.operatingSystemVersion,
+
+        }
+      };
+    }
+
 
       loginModel = LoginModel();
       String endPoint = ApiConstants.verifyOtp;
