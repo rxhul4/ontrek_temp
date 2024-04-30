@@ -170,7 +170,6 @@ class AuthenticationProvider extends ChangeNotifier {
     } else {
       if (isValid ?? false) {
         apiCallVerifyNumber();
-        // navigatePushReplacementFnc(OTPVerificationCode());
       }
     }
   }

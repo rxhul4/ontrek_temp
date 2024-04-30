@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ontrek/core/common_widgets/textfield_widget.dart';
@@ -259,16 +260,12 @@ class _TrackScreenState extends State<TrackScreen>
                     controller: controller,
                     padding:
                         EdgeInsets.only(top: 20, bottom: 80, left: 20, right: 20),
-                    // padding: AppUtils.edgeInsetsOnly(
-                    //     bottom: 80, top: height ?? 0 * 0.05 / 2),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 4, childAspectRatio: 4 / 4.5),
                     itemBuilder: (BuildContext context, int index) {
                       return AppUtils.commonInkWell(
                         onTap: () {
-                          print("index ${index}");
-                          print(
-                              "phone number ${getSalesMenListModelData?[index].phoneNo}");
+                       
                           Navigator.push(
                               context,
                               CupertinoPageRoute(
@@ -278,64 +275,58 @@ class _TrackScreenState extends State<TrackScreen>
                                     phoneNumber: getSalesMenListModelData?[index].phoneNo,
                                     userId:
                                         getSalesMenListModelData?[index].userId,
-                                    /*phoneNumber:
-                                        getSalesMenListModelData?[index].phoneNo*/
+                                  imageUrl:   getSalesMenListModelData?[index].profilePic,
                                 ),
                               ));
                         },
                         child: Column(
-                          // mainAxisAlignment: MainAxisAlignment.center,
-                          // crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-
-                            getSalesMenListModelData?.any((e) => e.isPresent == true)  ?? false ? Stack(
+                            Stack(
                               children: [
                                 AppUtils.commonContainer(
-                                    width: 60,
-                                    height: 60,
-                                    decoration: AppUtils.commonBoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                            color:
-                                                AppConstant.greyColor.withOpacity(0.5)),
-                                        color: AppConstant.greyColor.withOpacity(0.3)),
-                                    child: Icon(
-                                      Icons.person,
-                                      color: AppConstant.blackColor,
-                                      size: 24,
-                                    )),
-                               Positioned(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: AppUtils.commonBoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                          color:
+                                          AppConstant.greyColor.withOpacity(0.5)),
+                                      color: AppConstant.greyColor.withOpacity(0.3)),
+                                  child: CachedNetworkImage(
+                                    height: 150,
+                                    width: 200,
+                                    imageUrl: getSalesMenListModelData?[index].profilePic ?? "",
+                                    imageBuilder: (context, imageProvider) =>
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            image: DecorationImage(
+                                                image: imageProvider,
+                                                fit: BoxFit.cover),
+                                          ),
+                                        ),
+                                    placeholder: (context, url) =>  Center(
+                                        child: AppUtils.loaderWidget(color: AppConstant.appPrimaryColor)),
+                                    errorWidget: (context, url, error) =>
+                                        Icon(Icons.person,
+                                            size: 24,
+                                            color: AppConstant.blackColor),
+                                  ),
+                                ),
+                                getSalesMenListModelData?[index].isPresent == true ? Positioned(
                                   bottom: 4,
                                   right: 5,
                                   child: CircleAvatar(
                                     radius: 5,
                                     backgroundColor: Colors.green,
-
                                   ),
-                                )
+                                ):AppUtils.commonSizedBox()
                               ],
-                            ) :   AppUtils.commonContainer(
-                          width: 60,
-                          height: 60,
-                          decoration: AppUtils.commonBoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                  color:
-                                  AppConstant.greyColor.withOpacity(0.5)),
-                              color: AppConstant.greyColor.withOpacity(0.3)),
-                          child: Icon(
-                            Icons.person,
-                            color: AppConstant.blackColor,
-                            size: 24,
-                          )),
+                            ),
                             AppUtils.commonSizedBox(height: 5),
                             AppUtils.commonTextWidget(
-                                text: /*userList[index].name*/
-                                username == getSalesMenListModelData?[index].userName ? "You" : getSalesMenListModelData?[index].userName ?? "",
+                                text: username == getSalesMenListModelData?[index].userName ? "You" : getSalesMenListModelData?[index].userName ?? "",
                                 textColor: AppConstant.blackColor,
                                 fontSize: 11,textAlign: TextAlign.center),
-                            // AppUtils.commonTextWidget(
-                            //     text: 'Last week', textColor: Colors.cyan, fontSize: 9),
                           ],
                         ),
                       );

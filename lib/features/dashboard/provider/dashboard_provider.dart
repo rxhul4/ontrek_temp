@@ -152,7 +152,6 @@ class DashBoardProvider extends ChangeNotifier{
           markerId: MarkerId("currentLocation"),
           position: location,
           infoWindow: InfoWindow(title: "Current Location"),
-          icon: BitmapDescriptor.fromBytes(markerIcon),
         ),
       );
       notifyListeners();

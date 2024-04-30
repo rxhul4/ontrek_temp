@@ -239,7 +239,7 @@ class _LeadScreenState extends State<LeadScreen> {
                                             child: Column(
                                               children: [
                                                 AppUtils
-                                                    .commonNetworkImageWidget(
+                                                    .commonAssetImageWidget(
                                                     height: 25,
                                                     width: 25,
                                                     boxFit:

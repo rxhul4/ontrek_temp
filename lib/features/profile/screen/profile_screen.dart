@@ -87,7 +87,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             border:
                                 Border.all(color: AppConstant.appPrimaryColor)),
                         child: ClipOval(
-                          child: AppUtils.commonNetworkImageWidget(
+                          child: AppUtils.commonAssetImageWidget(
                               path: profileImage),
                         ),
                       ),
@@ -125,7 +125,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   height: 50,
                   width: 50,
                   child: ClipOval(
-                    child: AppUtils.commonNetworkImageWidget(
+                    child: AppUtils.commonAssetImageWidget(
                       path: profileImage,
                     ),
                   ),

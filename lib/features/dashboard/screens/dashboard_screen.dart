@@ -49,13 +49,10 @@ GoogleMapController? googleMapController;
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       dashBoardProvider = Provider.of<DashBoardProvider>(context,listen: false);
-      print("selectedIndex${dashBoardProvider.selectedIndex}");
       dashBoardProvider.initialIndex();
       setState(() {});
-      print("selectedIndex33333${dashBoardProvider.selectedIndex}");
       dashBoardProvider.checkPermission();
       dashBoardProvider.getCurrentLocation();
     });
@@ -70,35 +67,32 @@ GoogleMapController? googleMapController;
     final height = MediaQuery.of(context).size.height;
     print("height====${height}");
     return Scaffold(
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: GoogleMap(
-                  zoomControlsEnabled: false,
-                  padding: AppUtils.edgeInsetsOnly(
-                      bottom: MediaQuery.of(context).size.height * 0.3),
-                  mapType: MapType.normal,
-                  onMapCreated: (GoogleMapController  controller) {
-                    // dashBoardProvider.googleMapController.complete(controller);
-                    dashBoardProvider.googleMapController = controller;
-                  },
-                  markers: dashBoardProvider.markers,
-                  initialCameraPosition:
-                      CameraPosition(target: LatLng(0, 0), zoom: 14)),
-            ),
-            [
-              AttendanceScreen(onLocationFetch: (value) {
-                if (!mounted) {}
-                dashBoardProvider.getLocationFromSheet(position:  value);
-              }),
-              TrackScreen(),
-              TaskListScreen(),
-              LeadScreen(),
-              ProfileScreen(),
-            ][dashBoardProvider.selectedIndex],
-          ],
-        ),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: GoogleMap(
+                zoomControlsEnabled: false,
+                padding: AppUtils.edgeInsetsOnly(
+                    bottom: MediaQuery.of(context).size.height * 0.3),
+                mapType: MapType.normal,
+                onMapCreated: (GoogleMapController  controller) {
+                  dashBoardProvider.googleMapController = controller;
+                },
+                markers: dashBoardProvider.markers,
+                initialCameraPosition:
+                    CameraPosition(target: LatLng(0, 0), zoom: 14)),
+          ),
+          [
+            AttendanceScreen(onLocationFetch: (value) {
+              if (!mounted) {}
+              dashBoardProvider.getLocationFromSheet(position:  value);
+            }),
+            TrackScreen(),
+            TaskListScreen(),
+            LeadScreen(),
+            ProfileScreen(),
+          ][dashBoardProvider.selectedIndex],
+        ],
       ),
       bottomNavigationBar: AppUtils.commonContainer(
         height: 60,
