@@ -22,7 +22,16 @@ class BackgroundService {
   Future<void> initializeService() async {
     final service = FlutterBackgroundService();
     await service.configure(
-      iosConfiguration: IosConfiguration(),
+      iosConfiguration: IosConfiguration(
+        // auto start service
+        autoStart: true,
+
+        // this will be executed when app is in foreground in separated isolate
+        onForeground: onStart,
+
+        // you have to enable background fetch capability on xcode project
+        onBackground: onIosBackground,
+      ),
       androidConfiguration: AndroidConfiguration(
         onStart: onStart,
         autoStart: false,
@@ -31,6 +40,21 @@ class BackgroundService {
     );
   }
 }
+
+@pragma('vm:entry-point')
+Future<bool> onIosBackground(ServiceInstance service) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  DartPluginRegistrant.ensureInitialized();
+
+  SharedPreferences preferences = await SharedPreferences.getInstance();
+  await preferences.reload();
+  final log = preferences.getStringList('log') ?? <String>[];
+  log.add(DateTime.now().toIso8601String());
+  await preferences.setStringList('log', log);
+
+  return true;
+}
+
 
 String userId = "";
 
