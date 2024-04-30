@@ -444,7 +444,7 @@ class _ViewLeadScreenState extends State<ViewLeadScreen> {
                       Border.all(color: Colors.red.withOpacity(0.7), width: 1),
                 ),
                 child: Center(
-                  child: AppUtils.commonNetworkImageWidget(
+                  child: AppUtils.commonAssetImageWidget(
                       path: profileImage,
                       boxFit: BoxFit.cover,
                       iconColor: AppConstant.appPrimaryColor,

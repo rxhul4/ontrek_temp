@@ -53,12 +53,16 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   FlutterBackgroundService service = FlutterBackgroundService();
   final databaseService = DatabaseService();
   late AttendanceProvider attendanceProvider;
-  String? userName = "";
+  String? userName;
+  String? orgName;
+  bool? isAllowFgAuth;
 
   @override
   void initState() {
     // TODO: implement initState
     userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
+    orgName = PreferenceHelper.getString(PreferenceHelper.ORG_NAME);
+    isAllowFgAuth = PreferenceHelper.getBool(PreferenceHelper.ALLOW_FG_AUTH);
     initAnimateController();
 
     if (!mounted) {}
@@ -274,8 +278,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   Future dayStartAndUpdateUIFunction() async {
     try {
-      bool? isAllowBackgroundLocation = PreferenceHelper.getBool(PreferenceHelper.LIVE_LOCATION_TRACKING);
-      if(isAllowBackgroundLocation == true){
+      bool? isAllowBackgroundLocation =
+          PreferenceHelper.getBool(PreferenceHelper.LIVE_LOCATION_TRACKING);
+      if (isAllowBackgroundLocation == true) {
         service.startService();
       }
 
@@ -365,8 +370,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     builder: (context, value, child) {
                       return Center(
                         child:
-                            attendanceProvider.isAllowCheckInCheckOut ==
-                                    false
+                            attendanceProvider.isAllowCheckInCheckOut == false
                                 ? dayStartDayEndBtn(
                                     attendanceProvider, height, width)
                                 : !attendanceProvider.isDayEnd.value
@@ -417,7 +421,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 height: height,
                 width: width,
                 title: userName,
-                subTitle: "Epistic interiour Pvt Ltd",
+                subTitle: orgName,
                 leadingImage: profileImage,
                 borderColor: Colors.red,
                 iconColor: AppConstant.appPrimaryColor,
@@ -443,54 +447,100 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
                   controller?.reset();
                   if (!attendanceProvider.isDayStart.value) {
-                    bool? isLocationRestricted =  PreferenceHelper.getBool(PreferenceHelper.LOCATION_RESTRICTION);
-                    double? restrictedLocationLat =  PreferenceHelper.getDouble(PreferenceHelper.LOCATION_RESTRICTION_LAT);
-                    double? restrictedLocationLong =  PreferenceHelper.getDouble(PreferenceHelper.LOCATION_RESTRICTION_LONG);
-                    int? restrictedLocationMeter =  PreferenceHelper.getInt(PreferenceHelper.RESTRICTED_LOCATION_METER);
-                    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.low);
+                    bool? isLocationRestricted = PreferenceHelper.getBool(
+                        PreferenceHelper.LOCATION_RESTRICTION);
+                    double? restrictedLocationLat = PreferenceHelper.getDouble(
+                        PreferenceHelper.LOCATION_RESTRICTION_LAT);
+                    double? restrictedLocationLong = PreferenceHelper.getDouble(
+                        PreferenceHelper.LOCATION_RESTRICTION_LONG);
+                    int? restrictedLocationMeter = PreferenceHelper.getInt(
+                        PreferenceHelper.RESTRICTED_LOCATION_METER);
+                    Position position = await Geolocator.getCurrentPosition(
+                        desiredAccuracy: LocationAccuracy.low);
 
-                    double? distance = Geolocator.distanceBetween(/*restrictedLocationLat ?? 0, restrictedLocationLong ?? 0 ,*/23.109490491356393, 72.60351724666265,
-                        position.latitude, position.longitude);
-                    attendanceProvider.doLocalVerification(
-                      afterSuccessfulVerificationFnc: () async {
-                        if(isLocationRestricted == true){
-                          if(distance < (restrictedLocationMeter ?? 50)){
+                    double? distance = Geolocator.distanceBetween(
+                        restrictedLocationLat ?? 0,
+                        restrictedLocationLong ?? 0,
+                        position.latitude,
+                        position.longitude);
+                    if (isAllowFgAuth == true) {
+                      attendanceProvider.doLocalVerification(
+                        afterSuccessfulVerificationFnc: () async {
+                          if (isLocationRestricted == true) {
+                            if (distance < (restrictedLocationMeter ?? 50)) {
+                              await callDayStartApiAndUpdateUI(postMdl);
+                            } else {
+                              AppUtils.showDialogBoxWithOneButton(
+                                  titleText: "Premises",
+                                  text: "You are not at Office Location",
+                                  context: context);
+                            }
+                          } else {
                             await callDayStartApiAndUpdateUI(postMdl);
-                          }else{
-                            AppUtils.showDialogBoxWithOneButton(titleText: "Premises",text: "You are not at Office Location",context: context);
                           }
-                        }else{
+                        },
+                      );
+                    } else {
+                      if (isLocationRestricted == true) {
+                        if (distance < (restrictedLocationMeter ?? 50)) {
                           await callDayStartApiAndUpdateUI(postMdl);
+                        } else {
+                          AppUtils.showDialogBoxWithOneButton(
+                              titleText: "Premises",
+                              text: "You are not at Office Location",
+                              context: context);
                         }
-
-                      },
-                    );
+                      } else {
+                        await callDayStartApiAndUpdateUI(postMdl);
+                      }
+                    }
                   } else if (!attendanceProvider.isCheckIn.value) {
                     PreferenceHelper.reload().then((value) {
                       print(
                           "value_new_isWaiting${value?.getBool(PreferenceHelper.isWaiting)}");
                       attendanceProvider.isWaiting.value =
                           value?.getBool(PreferenceHelper.isWaiting) ?? false;
-                      attendanceProvider.doLocalVerification(
-                        afterSuccessfulVerificationFnc: () async {
-                          print(
-                              "isWaiting_from_UI${attendanceProvider.isWaiting.value}");
+                      if(isAllowFgAuth == true){
+                        attendanceProvider.doLocalVerification(
+                          afterSuccessfulVerificationFnc: () async {
+                            print(
+                                "isWaiting_from_UI${attendanceProvider.isWaiting.value}");
 
-                          attendanceProvider
-                              .getCurrentLocation()
-                              .then((position) async {
-                            if (attendanceProvider.isWaiting.value == true) {
-                              await callWaitingEndApi(
-                                  postMdl: postMdl,
-                                  position: position,
-                                  checkIn: true,
-                                  dayEnd: false);
-                            } else {
-                              await callCheckInApiAndUpdateUI(postMdl);
-                            }
-                          });
-                        },
-                      );
+                            attendanceProvider
+                                .getCurrentLocation()
+                                .then((position) async {
+                              if (attendanceProvider.isWaiting.value == true) {
+                                await callWaitingEndApi(
+                                    postMdl: postMdl,
+                                    position: position,
+                                    checkIn: true,
+                                    dayEnd: false);
+                              } else {
+                                await callCheckInApiAndUpdateUI(postMdl);
+                              }
+                            });
+                          },
+                        );
+                      }else{
+                        print(
+                            "isWaiting_from_UI${attendanceProvider.isWaiting.value}");
+
+                        attendanceProvider
+                            .getCurrentLocation()
+                            .then((position) async {
+                          if (attendanceProvider.isWaiting.value == true) {
+                            await callWaitingEndApi(
+                                postMdl: postMdl,
+                                position: position,
+                                checkIn: true,
+                                dayEnd: false);
+                          } else {
+                            await callCheckInApiAndUpdateUI(postMdl);
+                          }
+                        });
+
+                      }
+
                     });
                   } else {
                     checkOutFunction();
@@ -624,7 +674,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 onSuccessString: "YES",
                 onCancelString: "NO",
                 onSuccess: () {
-
                   PreferenceHelper.reload().then((value) {
                     if (kDebugMode) {
                       print(
@@ -632,21 +681,50 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     }
                     attendanceProvider.isWaiting.value =
                         value?.getBool(PreferenceHelper.isWaiting) ?? false;
-                    attendanceProvider.doLocalVerification(
-                      afterSuccessfulVerificationFnc: () async {
-                        attendanceProvider
-                            .getCurrentLocation()
-                            .then((position) async {
-                          bool? isLocationRestricted =  PreferenceHelper.getBool(PreferenceHelper.LOCATION_RESTRICTION);
-                          double? restrictedLocationLat =  PreferenceHelper.getDouble(PreferenceHelper.LOCATION_RESTRICTION_LAT);
-                          double? restrictedLocationLong =  PreferenceHelper.getDouble(PreferenceHelper.LOCATION_RESTRICTION_LONG);
-                          int? restrictedLocationMeter =  PreferenceHelper.getInt(PreferenceHelper.RESTRICTED_LOCATION_METER);
-                          Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.low);
+                    if(isAllowFgAuth == true){
+                      attendanceProvider.doLocalVerification(
+                        afterSuccessfulVerificationFnc: () async {
+                          attendanceProvider
+                              .getCurrentLocation()
+                              .then((position) async {
+                            bool? isLocationRestricted = PreferenceHelper.getBool(
+                                PreferenceHelper.LOCATION_RESTRICTION);
+                            double? restrictedLocationLat =
+                            PreferenceHelper.getDouble(
+                                PreferenceHelper.LOCATION_RESTRICTION_LAT);
+                            double? restrictedLocationLong =
+                            PreferenceHelper.getDouble(
+                                PreferenceHelper.LOCATION_RESTRICTION_LONG);
+                            int? restrictedLocationMeter =
+                            PreferenceHelper.getInt(
+                                PreferenceHelper.RESTRICTED_LOCATION_METER);
+                            Position position =
+                            await Geolocator.getCurrentPosition(
+                                desiredAccuracy: LocationAccuracy.low);
 
-                          double? distance = Geolocator.distanceBetween(/*restrictedLocationLat ?? 0, restrictedLocationLong ?? 0 ,*/23.109490491356393, 72.60351724666265,
-                              position.latitude, position.longitude);
-                          if(isLocationRestricted == true){
-                            if(distance < (restrictedLocationMeter ?? 50)){
+                            double? distance = Geolocator.distanceBetween(
+                                restrictedLocationLat ?? 0,
+                                restrictedLocationLong ?? 0,
+                                position.latitude,
+                                position.longitude);
+                            if (isLocationRestricted == true) {
+                              if (distance < (restrictedLocationMeter ?? 50)) {
+                                if (attendanceProvider.isWaiting.value == true) {
+                                  await callWaitingEndApi(
+                                      postMdl: postMdl,
+                                      position: position,
+                                      dayEnd: true,
+                                      checkIn: false);
+                                } else {
+                                  await callDayEndApiAndUpdateUI(postMdl);
+                                }
+                              } else {
+                                AppUtils.showDialogBoxWithOneButton(
+                                    titleText: "Premises",
+                                    text: "You are not at Office Location",
+                                    context: context);
+                              }
+                            } else {
                               if (attendanceProvider.isWaiting.value == true) {
                                 await callWaitingEndApi(
                                     postMdl: postMdl,
@@ -656,10 +734,36 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                               } else {
                                 await callDayEndApiAndUpdateUI(postMdl);
                               }
-                            }else{
-                              AppUtils.showDialogBoxWithOneButton(titleText: "Premises",text: "You are not at Office Location",context: context);
                             }
-                          }else{
+                          });
+                        },
+                      );
+                    }else{
+                      attendanceProvider
+                          .getCurrentLocation()
+                          .then((position) async {
+                        bool? isLocationRestricted = PreferenceHelper.getBool(
+                            PreferenceHelper.LOCATION_RESTRICTION);
+                        double? restrictedLocationLat =
+                        PreferenceHelper.getDouble(
+                            PreferenceHelper.LOCATION_RESTRICTION_LAT);
+                        double? restrictedLocationLong =
+                        PreferenceHelper.getDouble(
+                            PreferenceHelper.LOCATION_RESTRICTION_LONG);
+                        int? restrictedLocationMeter =
+                        PreferenceHelper.getInt(
+                            PreferenceHelper.RESTRICTED_LOCATION_METER);
+                        Position position =
+                        await Geolocator.getCurrentPosition(
+                            desiredAccuracy: LocationAccuracy.low);
+
+                        double? distance = Geolocator.distanceBetween(
+                            restrictedLocationLat ?? 0,
+                            restrictedLocationLong ?? 0,
+                            position.latitude,
+                            position.longitude);
+                        if (isLocationRestricted == true) {
+                          if (distance < (restrictedLocationMeter ?? 50)) {
                             if (attendanceProvider.isWaiting.value == true) {
                               await callWaitingEndApi(
                                   postMdl: postMdl,
@@ -669,11 +773,27 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                             } else {
                               await callDayEndApiAndUpdateUI(postMdl);
                             }
+                          } else {
+                            AppUtils.showDialogBoxWithOneButton(
+                                titleText: "Premises",
+                                text: "You are not at Office Location",
+                                context: context);
                           }
+                        } else {
+                          if (attendanceProvider.isWaiting.value == true) {
+                            await callWaitingEndApi(
+                                postMdl: postMdl,
+                                position: position,
+                                dayEnd: true,
+                                checkIn: false);
+                          } else {
+                            await callDayEndApiAndUpdateUI(postMdl);
+                          }
+                        }
+                      });
 
-                        });
-                      },
-                    );
+                    }
+
                   });
                 },
                 onCancel: () {
@@ -761,132 +881,187 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   Widget dayStartDayEndBtn(
       AttendanceProvider attendanceProvider, height, width) {
-    return ValueListenableBuilder(valueListenable: attendanceProvider.isDayStart, builder: (context, value, child) {
-      return Animate(
-        effects: const [
-          ScaleEffect(
-              begin: Offset(0, 0),
-              duration: Duration(
-                milliseconds: 300,
-              ),
-              curve: Curves.easeOut)
-        ],
-        child: GestureDetector(
-          onTapDown: (details) {
-            setState(() {
-              isFromLogOutButton = true;
-            });
-            controller?.forward().whenComplete(() {
-              HapticFeedback.vibrate();
-              controller?.reset();
-              attendanceProvider.doLocalVerification(
-                  afterSuccessfulVerificationFnc: () async {
+    return ValueListenableBuilder(
+      valueListenable: attendanceProvider.isDayStart,
+      builder: (context, value, child) {
+        return Animate(
+          effects: const [
+            ScaleEffect(
+                begin: Offset(0, 0),
+                duration: Duration(
+                  milliseconds: 300,
+                ),
+                curve: Curves.easeOut)
+          ],
+          child: GestureDetector(
+            onTapDown: (details) {
+              setState(() {
+                isFromLogOutButton = true;
+              });
+              controller?.forward().whenComplete(() async {
+                HapticFeedback.vibrate();
+                controller?.reset();
+                if(isAllowFgAuth == true){
+                  attendanceProvider.doLocalVerification(
+                      afterSuccessfulVerificationFnc: () async {
+                        bool? isLocationRestricted = PreferenceHelper.getBool(
+                            PreferenceHelper.LOCATION_RESTRICTION);
+                        double? restrictedLocationLat = PreferenceHelper.getDouble(
+                            PreferenceHelper.LOCATION_RESTRICTION_LAT);
+                        double? restrictedLocationLong = PreferenceHelper.getDouble(
+                            PreferenceHelper.LOCATION_RESTRICTION_LONG);
+                        int? restrictedLocationMeter = PreferenceHelper.getInt(
+                            PreferenceHelper.RESTRICTED_LOCATION_METER);
+                        Position position = await Geolocator.getCurrentPosition(
+                            desiredAccuracy: LocationAccuracy.low);
 
-                    bool? isLocationRestricted =  PreferenceHelper.getBool(PreferenceHelper.LOCATION_RESTRICTION);
-                    double? restrictedLocationLat =  PreferenceHelper.getDouble(PreferenceHelper.LOCATION_RESTRICTION_LAT);
-                    double? restrictedLocationLong =  PreferenceHelper.getDouble(PreferenceHelper.LOCATION_RESTRICTION_LONG);
-                    int? restrictedLocationMeter =  PreferenceHelper.getInt(PreferenceHelper.RESTRICTED_LOCATION_METER);
-                    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.low);
+                        double? distance = Geolocator.distanceBetween(
+                            restrictedLocationLat ?? 0,
+                            restrictedLocationLong ?? 0,
+                            position.latitude,
+                            position.longitude);
+                        if (isLocationRestricted == true) {
+                          if (distance < (restrictedLocationMeter ?? 50)) {
+                            !attendanceProvider.isDayStart.value
+                                ? callDayStartApiAndUpdateUI(attendanceProvider)
+                                : callDayEndApiAndUpdateUI(attendanceProvider);
+                          } else {
+                            AppUtils.showDialogBoxWithOneButton(
+                                titleText: "Premises",
+                                text: "You are not at Office Location",
+                                context: context);
+                          }
+                        } else {
+                          print("isLocationRestricted$isLocationRestricted");
+                          !attendanceProvider.isDayStart.value == false
+                              ? callDayStartApiAndUpdateUI(attendanceProvider)
+                              : callDayEndApiAndUpdateUI(attendanceProvider);
+                        }
+                      });
+                }else{
+                  bool? isLocationRestricted = PreferenceHelper.getBool(
+                      PreferenceHelper.LOCATION_RESTRICTION);
+                  double? restrictedLocationLat = PreferenceHelper.getDouble(
+                      PreferenceHelper.LOCATION_RESTRICTION_LAT);
+                  double? restrictedLocationLong = PreferenceHelper.getDouble(
+                      PreferenceHelper.LOCATION_RESTRICTION_LONG);
+                  int? restrictedLocationMeter = PreferenceHelper.getInt(
+                      PreferenceHelper.RESTRICTED_LOCATION_METER);
+                  Position position = await Geolocator.getCurrentPosition(
+                      desiredAccuracy: LocationAccuracy.low);
 
-                    double? distance = Geolocator.distanceBetween(/*restrictedLocationLat ?? 0, restrictedLocationLong ?? 0 ,*/23.109490491356393, 72.60351724666265,
-                        position.latitude, position.longitude);
-                    if(isLocationRestricted == true){
-                      if(distance < (restrictedLocationMeter ?? 50)){
-                        !attendanceProvider.isDayStart.value ? callDayStartApiAndUpdateUI(attendanceProvider) : callDayEndApiAndUpdateUI(attendanceProvider);
-                      }else{
-                        AppUtils.showDialogBoxWithOneButton(titleText: "Premises",text: "You are not at Office Location",context: context);
-                      }
-                    }else{
-                      print("isLocationRestricted$isLocationRestricted");
-                      !attendanceProvider.isDayStart.value == false ? callDayStartApiAndUpdateUI(attendanceProvider) : callDayEndApiAndUpdateUI(attendanceProvider);
+                  double? distance = Geolocator.distanceBetween(
+                      restrictedLocationLat ?? 0,
+                      restrictedLocationLong ?? 0,
+                      position.latitude,
+                      position.longitude);
+                  if (isLocationRestricted == true) {
+                    if (distance < (restrictedLocationMeter ?? 50)) {
+                      !attendanceProvider.isDayStart.value
+                          ? callDayStartApiAndUpdateUI(attendanceProvider)
+                          : callDayEndApiAndUpdateUI(attendanceProvider);
+                    } else {
+                      AppUtils.showDialogBoxWithOneButton(
+                          titleText: "Premises",
+                          text: "You are not at Office Location",
+                          context: context);
                     }
+                  } else {
+                    print("isLocationRestricted$isLocationRestricted");
+                    !attendanceProvider.isDayStart.value == false
+                        ? callDayStartApiAndUpdateUI(attendanceProvider)
+                        : callDayEndApiAndUpdateUI(attendanceProvider);
+                  }
+                }
 
-                  });
-            });
-          },
-          onTapUp: (details) {
-            setState(() {
-              isFromLogOutButton = false;
-            });
-            controller?.reverse();
-          },
-          child: Animate(
-            effects: const [
-              ScaleEffect(
-                  begin: Offset(0, 0),
-                  duration: Duration(
-                    milliseconds: 300,
-                  ),
-                  curve: Curves.easeOut)
-            ],
-            child: AppUtils.commonContainer(
-              decoration: AppUtils.commonBoxDecoration(
-                shape: BoxShape.circle,
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: <Widget>[
-                  attendanceProvider.isLoading
-                      ? LoaderWidget(
-                      color: !attendanceProvider.isDayStart.value
-                          ? Colors.lightGreen
-                          : Colors.red)
-                      : Positioned.fill(
-                    child: CircularProgressIndicator(
-                      value: controller?.value,
-                      strokeCap: StrokeCap.round,
-                      strokeWidth: 8,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                          !attendanceProvider.isDayStart.value
-                              ? Colors.lightGreen
-                              : Colors.red),
+              });
+            },
+            onTapUp: (details) {
+              setState(() {
+                isFromLogOutButton = false;
+              });
+              controller?.reverse();
+            },
+            child: Animate(
+              effects: const [
+                ScaleEffect(
+                    begin: Offset(0, 0),
+                    duration: Duration(
+                      milliseconds: 300,
                     ),
-                  ),
-                  Positioned.fill(
-                    child: CircularProgressIndicator(
-                      value: 1.0,
-                      strokeWidth: 8,
-                      strokeCap: StrokeCap.round,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                          AppConstant.greyColor.withOpacity(0.2)),
-                    ),
-                  ),
-                  AnimatedContainer(
-                    margin: const EdgeInsets.all(2.8),
-                    duration: const Duration(milliseconds: 300),
-                    height: isFromLogOutButton ? 120 : 100,
-                    width: isFromLogOutButton ? 120 : 100,
-                    decoration: AppUtils.commonBoxDecoration(
-                      color: !attendanceProvider.isDayStart.value
-                          ? Colors.lightGreen.withOpacity(0.8)
-                          : Colors.red.withOpacity(0.8),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: !attendanceProvider.isDayStart.value
-                              ? Colors.lightGreen.withOpacity(0.3)
-                              : Colors.red.withOpacity(0.3),
-                          spreadRadius: isFromLogOutButton ? 1 : 2,
-                          blurRadius: isFromLogOutButton ? 1 : 2,
-                          offset: const Offset(0, 0),
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: AppUtils.commonTextWidget(
-                        text: !attendanceProvider.isDayStart.value ? "In" : "Out",
-                        fontSize: 18,
-                        textColor: Colors.white,
-                        fontWeight: FontWeight.w600,
+                    curve: Curves.easeOut)
+              ],
+              child: AppUtils.commonContainer(
+                decoration: AppUtils.commonBoxDecoration(
+                  shape: BoxShape.circle,
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: <Widget>[
+                    attendanceProvider.isLoading
+                        ? LoaderWidget(
+                            color: !attendanceProvider.isDayStart.value
+                                ? Colors.lightGreen
+                                : Colors.red)
+                        : Positioned.fill(
+                            child: CircularProgressIndicator(
+                              value: controller?.value,
+                              strokeCap: StrokeCap.round,
+                              strokeWidth: 8,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  !attendanceProvider.isDayStart.value
+                                      ? Colors.lightGreen
+                                      : Colors.red),
+                            ),
+                          ),
+                    Positioned.fill(
+                      child: CircularProgressIndicator(
+                        value: 1.0,
+                        strokeWidth: 8,
+                        strokeCap: StrokeCap.round,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            AppConstant.greyColor.withOpacity(0.2)),
                       ),
                     ),
-                  ),
-                ],
+                    AnimatedContainer(
+                      margin: const EdgeInsets.all(2.8),
+                      duration: const Duration(milliseconds: 300),
+                      height: isFromLogOutButton ? 120 : 100,
+                      width: isFromLogOutButton ? 120 : 100,
+                      decoration: AppUtils.commonBoxDecoration(
+                        color: !attendanceProvider.isDayStart.value
+                            ? Colors.lightGreen.withOpacity(0.8)
+                            : Colors.red.withOpacity(0.8),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: !attendanceProvider.isDayStart.value
+                                ? Colors.lightGreen.withOpacity(0.3)
+                                : Colors.red.withOpacity(0.3),
+                            spreadRadius: isFromLogOutButton ? 1 : 2,
+                            blurRadius: isFromLogOutButton ? 1 : 2,
+                            offset: const Offset(0, 0),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: AppUtils.commonTextWidget(
+                          text: !attendanceProvider.isDayStart.value
+                              ? "In"
+                              : "Out",
+                          fontSize: 18,
+                          textColor: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      );
-    },);
+        );
+      },
+    );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:battery_plus/battery_plus.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
@@ -15,6 +16,7 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'dart:ui' as ui;
+
 class AppUtils {
   static Future<void> launchToBrowser(Uri url) async {
     if (!await launchUrl(
@@ -80,8 +82,7 @@ class AppUtils {
               preferredSize: Size.zero,
               child: AppUtils.commonContainer(
                 decoration: AppUtils.commonBoxDecoration(
-                  border: Border(
-                      bottom: BorderSide.none),
+                  border: Border(bottom: BorderSide.none),
                 ),
               ),
             ),
@@ -107,7 +108,30 @@ class AppUtils {
     return regex.hasMatch(value);
   }
 
-  static Widget commonNetworkImageWidget(
+  static Widget commonCacheNetworkImage({
+    double? height,
+    double? width,
+    String? imgUrl,
+    IconData? errorIcon,
+    double? size
+  }) {
+    return CachedNetworkImage(
+      height: height,
+      width: width,
+      imageUrl: imgUrl ?? "",
+      imageBuilder: (context, imageProvider) => Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
+        ),
+      ),
+      placeholder: (context, url) => Center(
+          child: AppUtils.loaderWidget(color: AppConstant.appPrimaryColor)),
+      errorWidget: (context, url, error) => Icon(errorIcon ?? Icons.person,
+          size: size ?? 24, color: AppConstant.blackColor),
+    );
+  }
+
+  static Widget commonAssetImageWidget(
       {String? path,
       double? width,
       double? height,
@@ -117,75 +141,10 @@ class AppUtils {
       Color? loaderColor,
       // BaseCacheManager? cacheManager,
       BoxFit? boxFit}) {
-    // DefaultCacheManager cm = DefaultCacheManager();
-    // cm.emptyCache();
-    return /*CachedNetworkImage(
-      // cacheManager: cacheManager ?? CacheManager(Config(
-      //   "fluttercampus",
-      //   stalePeriod: const Duration(seconds: 2),
-      //   //one week cache period
-      // )),
-      cacheManager: CacheManager(Config(
-        "fluttercampus",
-        stalePeriod: const Duration(seconds: 30),
-        maxNrOfCacheObjects: 0,
-
-        //one week cache period
-      )),
-      imageUrl: path.toString(),
-      width: width,
-      height: height,
-      placeholder: (context, url) => showLoaderList(
-          loaderBackgroundColor: loaderBackgroundColor,
-          loaderColor: loaderColor),
-      errorWidget: (context, url, error) => Image.asset(
-        icNoImage,
-        height: AppConstants.fifty,
-        width: AppConstants.fifty,
-      ),
-      color: iconColor,
-      fit: boxFit ?? BoxFit.cover,
-    ) */
-        Image.asset(
+    return Image.asset(
       path ?? "",
 
       width: width,
-      // frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-      //   if (wasSynchronouslyLoaded == true) return child;
-      //   return Container(
-      //       // padding: EdgeInsets.all(AppConstants.twenty),
-      //       decoration: AppUtils.containerDecoration(
-      //         // radius: 14,
-      //         borderWidth: 0,
-      //         borderColor: Colors.transparent,
-      //         color: loaderBackgroundColor ??
-      //             AppConstant.whiteColor.withOpacity(0.70),
-      //       ),
-      //       child: Center(
-      //         child: CircularProgressIndicator(
-      //           color: loaderColor ?? AppConstant.appPrimaryColor,
-      //           strokeWidth: 1.0,
-      //         ),
-      //       ));
-      // },
-      // loadingBuilder: ((context, child, loadingProgress) {
-      //   if (loadingProgress == null) return child;
-      //   return Container(
-      //     // padding: EdgeInsets.all(AppConstants.twenty),
-      //       decoration: AppUtils.containerDecoration(
-      //         // radius: 14,
-      //         borderWidth: 0,
-      //         borderColor: Colors.transparent,
-      //         color: loaderBackgroundColor ??
-      //             AppConstant.whiteColor.withOpacity(0.70),
-      //       ),
-      //       child: Center(
-      //         child: CircularProgressIndicator(
-      //           color: loaderColor ?? AppConstant.appPrimaryColor,
-      //           strokeWidth: 1.0,
-      //         ),
-      //       ));
-      // }),
       errorBuilder: (context, error, stackTrace) =>
           Center(child: Icon(Icons.person)),
       height: height,
@@ -250,7 +209,7 @@ class AppUtils {
                       Border.all(color: Colors.red.withOpacity(0.7), width: 1),
                 ),
                 child: Center(
-                  child: AppUtils.commonNetworkImageWidget(
+                  child: AppUtils.commonAssetImageWidget(
                       path: profileImage,
                       boxFit: BoxFit.cover,
                       iconColor: AppConstant.appPrimaryColor,
@@ -297,7 +256,8 @@ class AppUtils {
       String? leadingImage,
       Color? backgroundColor,
       Color? borderColor,
-      Color? iconColor}) {
+      Color? iconColor,
+      bool? isFromTimeLine}) {
     return Container(
       alignment: Alignment.centerLeft,
       height: height * 0.09,
@@ -328,30 +288,35 @@ class AppUtils {
                     children: [
                       Container(
                         margin: EdgeInsets.only(right: 5),
-                        // padding: EdgeInsets.all(18),
-                        padding: EdgeInsets.all(10),
                         height: double.infinity,
                         width: 45,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color:
-                              backgroundColor ?? Colors.grey.withOpacity(0.5),
+                          color: backgroundColor ?? Colors.grey.withOpacity(0.5),
                           border: Border.all(
-                              color:
-                                  borderColor ?? Colors.grey.withOpacity(0.7),
-                              width: 2),
+                            color: borderColor ?? Colors.grey.withOpacity(0.7),
+                            width: 2,
+                          ),
                         ),
                         child: Center(
-                          child: AppUtils.commonNetworkImageWidget(
-                              path: leadingImage ?? "",
-                              boxFit: BoxFit.cover,
-                              iconColor:
-                                  iconColor ?? AppConstant.appPrimaryColor,
-                              height: 25,
-                              width: 25),
+                          child: isFromTimeLine == true
+                              ? AppUtils.commonCacheNetworkImage(
+                            imgUrl: leadingImage,
+                            height: 25,
+                            width: 25,
+                            size: 22,
+                            errorIcon: Icons.person,
+                          )
+                              : AppUtils.commonAssetImageWidget(
+                            path: leadingImage ?? "",
+                            boxFit: BoxFit.cover,
+                            iconColor:
+                            iconColor ?? AppConstant.appPrimaryColor,
+                            height: 25,
+                            width: 25,
+                          ),
                         ),
                       ),
-                      // AppUtils.commonSizedBox(width: 10),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
@@ -363,12 +328,16 @@ class AppUtils {
                             letterSpacing: 0.3,
                             fontSize: 14,
                           ),
-                          AppUtils.commonTextWidget(
-                            text: subTitle ?? "",
-                            fontWeight: FontWeight.w400,
-                            textColor: Colors.grey.withOpacity(0.7),
-                            letterSpacing: 0.0,
-                            fontSize: 12,
+                          SizedBox(
+                            width:width/2,
+                            child: AppUtils.commonTextWidget(
+                              text: subTitle ?? "",
+                              fontWeight: FontWeight.w400,
+                              textColor: Colors.grey.withOpacity(0.7),
+                              letterSpacing: 0.0,
+                              fontSize: 12,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ],
                       ),
@@ -382,6 +351,7 @@ class AppUtils {
           // LinearProgressIndicator(color: loaderColor ?? Colors.blue )
         ],
       ),
+
     );
   }
 
@@ -399,29 +369,31 @@ class AppUtils {
     Function(double)? onPanelSlide,
     Widget? body,
   }) {
-    return Animate(
-      effects: const [
-        SlideEffect(
-            end: Offset(0, 0),
-            curve: Curves.decelerate,
-            begin: Offset(0, 1),
-            duration: Duration(milliseconds: 700)),
-      ],
-      child: SlidingUpPanel(
-        body: body,
-        onPanelSlide: onPanelSlide,
-        maxHeight: maxHeight ?? 1.0,
-        minHeight: minHeight ?? 0.08,
-        panelSnapping: panelSnapping ?? true,
-        panelBuilder: panelBuilder,
-        defaultPanelState: PanelState.OPEN,
-        isDraggable: isDraggable ?? true,
-        onPanelClosed: onPanelClosed,
-        onPanelOpened: onPanelOpened,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-        panel: panel,
-        controller: controller,
-        snapPoint: snapPoint,
+    return SafeArea(
+      child: Animate(
+        effects: const [
+          SlideEffect(
+              end: Offset(0, 0),
+              curve: Curves.decelerate,
+              begin: Offset(0, 1),
+              duration: Duration(milliseconds: 700)),
+        ],
+        child: SlidingUpPanel(
+          body: body,
+          onPanelSlide: onPanelSlide,
+          maxHeight: maxHeight ?? 1.0,
+          minHeight: minHeight ?? 0.08,
+          panelSnapping: panelSnapping ?? true,
+          panelBuilder: panelBuilder,
+          defaultPanelState: PanelState.OPEN,
+          isDraggable: isDraggable ?? true,
+          onPanelClosed: onPanelClosed,
+          onPanelOpened: onPanelOpened,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+          panel: panel,
+          controller: controller,
+          snapPoint: snapPoint,
+        ),
       ),
     );
   }
@@ -683,13 +655,12 @@ class AppUtils {
           break;
         case 'tracking_event_internet_off':
         case 'tracking_internet_on':
-          imagePath = gpsIcon;
+          imagePath =  checkInIcon;
           break;
         default:
           imagePath = logoutIcon;
       }
     } else {
-      // Handling null case
       print("Tracking status is null");
       imagePath = logoutIcon; // or provide a default image path
     }
@@ -753,9 +724,12 @@ class AppUtils {
 
   static Future<Uint8List> getBytesFromAsset(String path, int width) async {
     ByteData data = await rootBundle.load(path);
-    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(), targetWidth: width);
+    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(),
+        targetWidth: width);
     ui.FrameInfo fi = await codec.getNextFrame();
-    return (await fi.image.toByteData(format: ui.ImageByteFormat.png))!.buffer.asUint8List();
+    return (await fi.image.toByteData(format: ui.ImageByteFormat.png))!
+        .buffer
+        .asUint8List();
   }
 
   static Color switchCaseForTaskStatus(String param) {
@@ -830,7 +804,7 @@ class AppUtils {
   static showDialogBoxWithTwoButton(
       {BuildContext? context,
       String? text,
-        String? titleText,
+      String? titleText,
       String? onSuccessString,
       required Function() onSuccess,
       String? onCancelString,
@@ -839,8 +813,7 @@ class AppUtils {
       context: context ?? navigatorKey.currentState!.context,
       builder: (context) {
         return CupertinoAlertDialog(
-
-          title:  AppUtils.commonTextWidget(
+          title: AppUtils.commonTextWidget(
               text: titleText ?? "",
               textColor: AppConstant.blackColor,
               fontSize: 14,
@@ -849,7 +822,6 @@ class AppUtils {
               letterSpacing: 0.5),
           actions: [
             CupertinoDialogAction(
-
               child: AppUtils.commonTextWidget(
                   text: onCancelString ?? "Cancel",
                   textColor: AppConstant.appPrimaryColor,
@@ -875,7 +847,6 @@ class AppUtils {
                 onSuccess();
               },
             ),
-
           ],
           content: AppUtils.commonTextWidget(
               text: text ?? "",
@@ -889,14 +860,14 @@ class AppUtils {
     );
   }
 
-  static showDialogBoxWithOneButton({BuildContext? context, String? text,String? titleText}) {
+  static showDialogBoxWithOneButton(
+      {BuildContext? context, String? text, String? titleText}) {
     return showDialog(
       context: context ?? navigatorKey.currentState!.context,
       builder: (context) {
         return CupertinoAlertDialog(
-
-          title:  AppUtils.commonTextWidget(
-              text: titleText ?? "",
+          title: AppUtils.commonTextWidget(
+              text: titleText ?? "Error",
               textColor: AppConstant.blackColor,
               fontSize: 14,
               textAlign: TextAlign.center,
@@ -1068,7 +1039,10 @@ class AppUtils {
   }
 
   static showSnackBarWithColor(
-      {BuildContext? context, required String message, Color? giveColor,Color? fontColor}) {
+      {BuildContext? context,
+      required String message,
+      Color? giveColor,
+      Color? fontColor}) {
     return ScaffoldMessenger.of(context ?? navigatorKey.currentState!.context)
         .showSnackBar(
       SnackBar(

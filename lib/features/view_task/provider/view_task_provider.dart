@@ -120,8 +120,8 @@ class ViewTaskProvider extends ChangeNotifier{
       "totTaskStatusId": totTaskStatusId,
       "taskTitle": taskTitle,
       "taskDescription": taskDescription,
-      "startDate": AppUtils.getDate(date: startDate.toString(), format: AppConstant.dateFormat),
-      "endDate": AppUtils.getDate(date: endDate.toString(), format: AppConstant.dateFormat)
+      "startDate": AppUtils.getDate(date: startDate.toString(), format: "yyyy-MM-dd"),
+      "endDate": AppUtils.getDate(date: endDate.toString(), format: "yyyy-MM-dd")
     };
     try {
       String endPoint = ApiConstants.updateTaskStatus;

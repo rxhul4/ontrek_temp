@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ontrek/core/common_widgets/textfield_widget.dart';
@@ -12,9 +13,9 @@ import 'package:provider/provider.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class TrackScreen extends StatefulWidget {
-
-
-  TrackScreen({super.key,});
+  TrackScreen({
+    super.key,
+  });
 
   @override
   State<TrackScreen> createState() => _TrackScreenState();
@@ -24,8 +25,7 @@ class _TrackScreenState extends State<TrackScreen>
     with TickerProviderStateMixin {
   GetSalesMenListModel? getSalesMenListModel;
   TabController? tabController;
-  int selectedIndex =  0;
-
+  int selectedIndex = 0;
 
   @override
   void initState() {
@@ -39,10 +39,10 @@ class _TrackScreenState extends State<TrackScreen>
 
       salesMenListProvider.apiCallGetSalesManList();
     });
-    tabController =
-        TabController(length: 3, vsync: this);
+    tabController = TabController(length: 3, vsync: this);
     tabControllerAddListener();
   }
+
   tabControllerAddListener() {
     tabController?.addListener(() {
       setState(() {
@@ -55,7 +55,7 @@ class _TrackScreenState extends State<TrackScreen>
 
   @override
   Widget build(BuildContext context) {
-     salesMenListProvider = Provider.of<SalesMenListProvider>(context);
+    salesMenListProvider = Provider.of<SalesMenListProvider>(context);
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
     return AppUtils.commonSlidePanel(
@@ -71,7 +71,6 @@ class _TrackScreenState extends State<TrackScreen>
             AppUtils.buildHeader(
                 height: height,
                 width: width,
-
                 actionWidget: [
                   commonIconWidget(
                     iconData: Icons.search,
@@ -95,8 +94,7 @@ class _TrackScreenState extends State<TrackScreen>
                 title: "Track",
                 subTitle: "Select a user to Locate",
                 backgroundColor: AppConstant.whiteColor,
-                leadingImage:
-                    trackingIconPath ),
+                leadingImage: trackingIconPath),
             salesMenListProvider.isSearchVisible
                 ? searchWidget(salesMenListProvider)
                 : SizedBox(),
@@ -109,41 +107,38 @@ class _TrackScreenState extends State<TrackScreen>
                 borderRadius: AppUtils.borderRadiusAll(raduis: 5),
               ),
               child: TabBar.secondary(
-                      physics: NeverScrollableScrollPhysics(),
-                      isScrollable: false,
-                      indicatorSize: TabBarIndicatorSize.tab,
-                      controller: tabController,
-                      padding: AppUtils.edgeInsetsAll(allPadding: 2),
-                      labelColor: Colors.white,
-                      onTap: (value) {
-                        salesMenListProvider.apiCallGetSalesManList();
-                      },
-                      unselectedLabelStyle: const TextStyle(
-                        fontFamily: "Poppins",
-                        letterSpacing: 0.2,
-                        fontWeight: FontWeight.w400,
-                        fontSize: 12,
-                      ),
-                      indicatorWeight: 0,
-                      dividerHeight: 0,
-                      labelStyle: const TextStyle(
-                        fontFamily: "Poppins",
-                        letterSpacing: 0.2,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 12,
-                      ),
-                      automaticIndicatorColorAdjustment: true,
-                      indicator: BoxDecoration(
-                          color: AppConstant.appPrimaryColor,
-                          borderRadius: AppUtils.borderRadiusAll(raduis: 5)),
-                      tabs: const [
-                        Tab(text: 'All'),
-                        Tab(text: 'Present'),
-                        Tab(text: 'Absent'),
-                      ]),
-
-
-
+                  physics: NeverScrollableScrollPhysics(),
+                  isScrollable: false,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  controller: tabController,
+                  padding: AppUtils.edgeInsetsAll(allPadding: 2),
+                  labelColor: Colors.white,
+                  onTap: (value) {
+                    salesMenListProvider.apiCallGetSalesManList();
+                  },
+                  unselectedLabelStyle: const TextStyle(
+                    fontFamily: "Poppins",
+                    letterSpacing: 0.2,
+                    fontWeight: FontWeight.w400,
+                    fontSize: 12,
+                  ),
+                  indicatorWeight: 0,
+                  dividerHeight: 0,
+                  labelStyle: const TextStyle(
+                    fontFamily: "Poppins",
+                    letterSpacing: 0.2,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 12,
+                  ),
+                  automaticIndicatorColorAdjustment: true,
+                  indicator: BoxDecoration(
+                      color: AppConstant.appPrimaryColor,
+                      borderRadius: AppUtils.borderRadiusAll(raduis: 5)),
+                  tabs: const [
+                    Tab(text: 'All'),
+                    Tab(text: 'Present'),
+                    Tab(text: 'Absent'),
+                  ]),
             ),
             Expanded(
               child: TabBarView(
@@ -154,25 +149,27 @@ class _TrackScreenState extends State<TrackScreen>
                       controller: p0,
                       salesMenListProvider: salesMenListProvider,
                       height: height,
-                      getSalesMenListModelData: salesMenListProvider.getSalesMenListModel?.data),
+                      getSalesMenListModelData:
+                          salesMenListProvider.getSalesMenListModel?.data),
                   widgetList(
                       controller: p0,
                       salesMenListProvider: salesMenListProvider,
                       height: height,
-                      getSalesMenListModelData: salesMenListProvider.getSalesMenListModel?.data
+                      getSalesMenListModelData: salesMenListProvider
+                          .getSalesMenListModel?.data
                           ?.where((element) => element.isPresent == true)
                           .toList()),
                   widgetList(
                       controller: p0,
                       salesMenListProvider: salesMenListProvider,
                       height: height,
-                      getSalesMenListModelData: salesMenListProvider.getSalesMenListModel?.data
+                      getSalesMenListModelData: salesMenListProvider
+                          .getSalesMenListModel?.data
                           ?.where((element) => element.isPresent == false)
                           .toList()),
                 ],
               ),
             ),
-
           ],
         );
       },
@@ -189,7 +186,6 @@ class _TrackScreenState extends State<TrackScreen>
       child: AppTextField(
         controller: salesMenListProvider.searchController,
         onChanged: (value) {
-
           salesMenListProvider.apiCallGetSalesManList();
         },
         hintText: "Search",
@@ -199,15 +195,14 @@ class _TrackScreenState extends State<TrackScreen>
         fillColor: AppConstant.whiteColor,
         suffixIcon: InkWell(
           onTap: () {
-            if(salesMenListProvider.searchController.text.isEmpty) {
+            if (salesMenListProvider.searchController.text.isEmpty) {
               salesMenListProvider.showAndHideSearchWidget(false);
               salesMenListProvider.searchController.clear();
-            }else{
+            } else {
               salesMenListProvider.showAndHideSearchWidget(false);
               salesMenListProvider.searchController.clear();
               salesMenListProvider.apiCallGetSalesManList();
             }
-
           },
           child: Icon(Icons.close),
         ),
@@ -235,7 +230,8 @@ class _TrackScreenState extends State<TrackScreen>
       SalesMenListProvider? salesMenListProvider,
       controller}) {
     print("dataaaaaaaaaaaaa${getSalesMenListModelData?.length}");
-    String? username = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
+
+    String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
 
     return Column(
       children: [
@@ -257,85 +253,77 @@ class _TrackScreenState extends State<TrackScreen>
                     itemCount: getSalesMenListModelData?.length,
                     shrinkWrap: true,
                     controller: controller,
-                    padding:
-                        EdgeInsets.only(top: 20, bottom: 80, left: 20, right: 20),
-                    // padding: AppUtils.edgeInsetsOnly(
-                    //     bottom: 80, top: height ?? 0 * 0.05 / 2),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4, childAspectRatio: 4 / 4.5),
+                    padding: EdgeInsets.only(
+                        top: 20, bottom: 80, left: 20, right: 20),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 4, childAspectRatio: 4 / 4.5),
                     itemBuilder: (BuildContext context, int index) {
-                      return AppUtils.commonInkWell(
+
+                      return  AppUtils.commonInkWell(
                         onTap: () {
-                          print("index ${index}");
-                          print(
-                              "phone number ${getSalesMenListModelData?[index].phoneNo}");
+
                           Navigator.push(
                               context,
                               CupertinoPageRoute(
                                 builder: (context) => TimeLineScreen(
-                                    index: index,
-                                    name: getSalesMenListModelData?[index].userName,
-                                    phoneNumber: getSalesMenListModelData?[index].phoneNo,
-                                    userId:
-                                        getSalesMenListModelData?[index].userId,
-                                    /*phoneNumber:
-                                        getSalesMenListModelData?[index].phoneNo*/
+                                  index: index,
+                                  name: getSalesMenListModelData?[index].userName,
+                                  phoneNumber: getSalesMenListModelData?[index].phoneNo,
+                                  userId:
+                                  getSalesMenListModelData?[index].userId,
+                                  imageUrl:   getSalesMenListModelData?[index].profilePic,
                                 ),
                               ));
                         },
                         child: Column(
-                          // mainAxisAlignment: MainAxisAlignment.center,
-                          // crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-
-                            getSalesMenListModelData?.any((e) => e.isPresent == true)  ?? false ? Stack(
+                            Stack(
                               children: [
                                 AppUtils.commonContainer(
-                                    width: 60,
-                                    height: 60,
-                                    decoration: AppUtils.commonBoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                            color:
-                                                AppConstant.greyColor.withOpacity(0.5)),
-                                        color: AppConstant.greyColor.withOpacity(0.3)),
-                                    child: Icon(
-                                      Icons.person,
-                                      color: AppConstant.blackColor,
-                                      size: 24,
-                                    )),
-                               Positioned(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: AppUtils.commonBoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                          color:
+                                          AppConstant.greyColor.withOpacity(0.5)),
+                                      color: AppConstant.greyColor.withOpacity(0.3)),
+                                  child: CachedNetworkImage(
+                                    height: 150,
+                                    width: 200,
+                                    imageUrl: getSalesMenListModelData?[index].profilePic ?? "",
+                                    imageBuilder: (context, imageProvider) =>
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            image: DecorationImage(
+                                                image: imageProvider,
+                                                fit: BoxFit.cover),
+                                          ),
+                                        ),
+                                    placeholder: (context, url) =>  Center(
+                                        child: CircularProgressIndicator(color: AppConstant.appPrimaryColor,strokeWidth: 0.5,)),
+                                    errorWidget: (context, url, error) =>
+                                        Icon(Icons.person,
+                                            size: 24,
+                                            color: AppConstant.blackColor),
+                                  ),
+                                ),
+                                getSalesMenListModelData?[index].isPresent == true ? Positioned(
                                   bottom: 4,
                                   right: 5,
                                   child: CircleAvatar(
                                     radius: 5,
                                     backgroundColor: Colors.green,
-
                                   ),
-                                )
+                                ):AppUtils.commonSizedBox()
                               ],
-                            ) :   AppUtils.commonContainer(
-                          width: 60,
-                          height: 60,
-                          decoration: AppUtils.commonBoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                  color:
-                                  AppConstant.greyColor.withOpacity(0.5)),
-                              color: AppConstant.greyColor.withOpacity(0.3)),
-                          child: Icon(
-                            Icons.person,
-                            color: AppConstant.blackColor,
-                            size: 24,
-                          )),
+                            ),
                             AppUtils.commonSizedBox(height: 5),
                             AppUtils.commonTextWidget(
-                                text: /*userList[index].name*/
-                                username == getSalesMenListModelData?[index].userName ? "You" : getSalesMenListModelData?[index].userName ?? "",
+                                text: userId == getSalesMenListModelData?[index].userId ? "You" : getSalesMenListModelData?[index].userName ?? "",
                                 textColor: AppConstant.blackColor,
                                 fontSize: 11,textAlign: TextAlign.center),
-                            // AppUtils.commonTextWidget(
-                            //     text: 'Last week', textColor: Colors.cyan, fontSize: 9),
                           ],
                         ),
                       );

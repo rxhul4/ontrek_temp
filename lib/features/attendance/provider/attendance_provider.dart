@@ -99,15 +99,14 @@ class AttendanceProvider extends ChangeNotifier {
           options: const AuthenticationOptions(
               stickyAuth: true, useErrorDialogs: true));
       if (isAuthenticated) {
+
         afterSuccessfulVerificationFnc();
       } else {
         AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentContext ,text: "Authentication Fail! Please Try Again");
-        // AppUtils.showDialogBoxWithOneButton(navigatorKey.currentContext, "Authentication Fail! Please Try Again", );
+
       }
     } else {
       AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentContext ,text: "Biometric Auth is not available on this device");
-      // AppUtils.dialogWidget("Biometric Auth is not available on this device",
-      //     navigatorKey.currentContext);
     }
   }
 

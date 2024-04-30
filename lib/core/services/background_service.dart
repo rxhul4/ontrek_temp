@@ -93,9 +93,10 @@ void onStart(ServiceInstance service) async {
   service.on('stopService').listen((event) {
     service.stopSelf();
   });
-
+  int? liveLocationInterval= PreferenceHelper.getInt(PreferenceHelper.LIVE_LOCATION_INTERVAL);
+  print("interval Time ${liveLocationInterval}");
   Timer.periodic(
-    const Duration(seconds: 15),
+    Duration(seconds: liveLocationInterval ?? 15),
     (timer) async {
       if (service is AndroidServiceInstance) {
         if (await service.isForegroundService()) {
@@ -215,7 +216,6 @@ handleGpsAndInternetOffData({String? serviceType}) async {
     bool? checkIn = value?.getBool(PreferenceHelper.checkIn);
     print("Data_Off_history_CheckIn_$checkIn");
     if (checkIn == false) {
-      Position? positionDataWhenGpsOff = await Geolocator.getLastKnownPosition();
       if (serviceType == "internet") {
         Position positionData = await Geolocator.getCurrentPosition(
             desiredAccuracy: LocationAccuracy.best);
@@ -229,13 +229,12 @@ handleGpsAndInternetOffData({String? serviceType}) async {
               AppUtils.dateFormat(
                   date: DateTime.now(), dateFormat: AppConstant.dateFormat));
           PreferenceHelper.setDouble(PreferenceHelper.LAST_INTERNET_OFF_LAT,
-              positionData.latitude ?? 0);
+              positionData.latitude);
           PreferenceHelper.setDouble(PreferenceHelper.LAST_INTERNET_OFF_LONG,
-              positionData.longitude ?? 0);
+              positionData.longitude);
           PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, true);
         }
       }
-
       if (serviceType == "gps") {
         double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
         double? lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);

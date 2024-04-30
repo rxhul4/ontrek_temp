@@ -143,6 +143,7 @@ class AuthenticationProvider extends ChangeNotifier {
         ));
       } else {
         AppUtils.showDialogBoxWithOneButton(
+          titleText: "Error",
             context: navigatorKey.currentState!.context,
             text: loginModel?.message ?? "");
         // AppUtils.dialogWidget(
@@ -170,7 +171,6 @@ class AuthenticationProvider extends ChangeNotifier {
     } else {
       if (isValid ?? false) {
         apiCallVerifyNumber();
-        // navigatePushReplacementFnc(OTPVerificationCode());
       }
     }
   }
@@ -264,6 +264,9 @@ class AuthenticationProvider extends ChangeNotifier {
         PreferenceHelper.ROLE_ID, loginModel?.data?.roleId ?? '');
     PreferenceHelper.setString(
         PreferenceHelper.REPORTING_MANAGER, loginModel?.data?.createdBy ?? '');
+    /*PreferenceHelper.setString(
+        PreferenceHelper.PROFILE_PIC, loginModel?.data?. ?? '');*/
+    PreferenceHelper.setBool(PreferenceHelper.ALLOW_FG_AUTH,loginModel?.data?.appUserConfigAttendanceRequest?.allowFgAuth ?? false);
     PreferenceHelper.setBool(
         PreferenceHelper.AllowCheckInCheckOut,
         loginModel?.data?.appUserConfigAttendanceRequest
@@ -284,6 +287,11 @@ class AuthenticationProvider extends ChangeNotifier {
         loginModel?.data?.appUserConfigAttendanceRequest
                 ?.locationRestrictionLong ??
             0.0);
+    PreferenceHelper.setInt(
+        PreferenceHelper.RESTRICTED_LOCATION_METER,
+        loginModel?.data?.appUserConfigAttendanceRequest?.locRestrictionMtrs ??
+            0);
+
     PreferenceHelper.setBool(
         PreferenceHelper.LIVE_LOCATION_TRACKING,
         loginModel?.data?.appUserConfigTrackingRequest?.allowLiveTracking ??
@@ -292,10 +300,7 @@ class AuthenticationProvider extends ChangeNotifier {
         PreferenceHelper.LIVE_LOCATION_INTERVAL,
         loginModel?.data?.appUserConfigTrackingRequest?.liveTrackingInterval ??
             0);
-    PreferenceHelper.setInt(
-        PreferenceHelper.RESTRICTED_LOCATION_METER,
-        loginModel?.data?.appUserConfigAttendanceRequest?.locRestrictionMtrs ??
-            0);
+
 
     print("data : ${PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN)}");
     return true;

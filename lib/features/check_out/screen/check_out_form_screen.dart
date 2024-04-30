@@ -355,9 +355,9 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                             ),
                           ],
                         ),
-                        checkOutProvider.isFetching
+                        attendanceProvider.isLoading
                             ? Center(
-                                child: AppUtils.loaderWidget(),
+                                child: AppUtils.loaderWidget(color: AppConstant.appPrimaryColor),
                               )
                             : SizedBox(),
                       ],

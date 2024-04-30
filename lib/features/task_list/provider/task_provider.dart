@@ -36,12 +36,14 @@ class TaskProvider extends ChangeNotifier{
     _isFetching = true;
     notifyListeners();
     Map<String, dynamic> body =
+
     {
-      "orgId": orgId,
       "userId": userId,
-      "date": AppUtils.getDate(date: date ?? "", format: AppConstant.dateFormat),
-      "filter": ""
+      "taskDate": AppUtils.getDate(date: date ?? "", format: AppConstant.dateFormat),
+      "fillter": "",
+      "orgId": orgId
     };
+
     try {
       String endPoint = ApiConstants.getAllTaskByUserId;
       var response = await callPostMethod(endPoint,body);

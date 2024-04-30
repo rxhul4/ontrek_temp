@@ -107,10 +107,7 @@ class _CustomNoteDialogState extends State<CustomNoteDialog> {
                                 ),
                               ),
                           placeholder: (context, url) =>  Center(
-                              child: CircularProgressIndicator(
-                                color: AppConstant.appPrimaryColor,
-                                strokeWidth: 1.5,
-                              )),
+                              child: AppUtils.loaderWidget(color: AppConstant.appPrimaryColor)),
                           errorWidget: (context, url, error) =>
                               Icon(Icons.image,
                                   size: 40,

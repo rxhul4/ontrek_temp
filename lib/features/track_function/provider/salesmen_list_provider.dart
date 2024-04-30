@@ -91,9 +91,20 @@ animatePanel(){
       print('response ${getSalesMenListModel?.toJson()}');
       if (getSalesMenListModel?.isError == false &&
           getSalesMenListModel?.isValidationFailed == false) {
+
+        for(int i = 0; i< (getSalesMenListModel?.data?.length ?? 0);i++){
+          var saleMenList = getSalesMenListModel?.data?[i];
+          if(getSalesMenListModel?.data?[i].userId == userId){
+            if(getSalesMenListModel?.data?[i] != null){
+              getSalesMenListModel?.data?.removeAt(i);
+              getSalesMenListModel?.data?.insert(0, saleMenList!);
+            }
+
+          }
+        }
+        print("List${getSalesMenListModel?.data?.first.userName}");
       } else {
         AppUtils.showDialogBoxWithOneButton(text: getSalesMenListModel?.message ?? "",context: navigatorKey.currentState!.context);
-        // AppUtils.dialogWidget(getSalesMenListModel?.message ?? "",navigatorKey.currentState!.context);
       }
     } catch (e) {
       print('catch at GetEmployee_Provider ${e}');
@@ -110,4 +121,5 @@ animatePanel(){
     notifyListeners();
     return getSalesMenListModel;
   }
+
 }

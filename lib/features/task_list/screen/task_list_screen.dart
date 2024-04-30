@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/image_path.dart';
@@ -28,6 +29,8 @@ class _TaskListScreenState extends State<TaskListScreen>
   bool isRefreshing = false;
   GetAllTaskModel? getTaskModel;
   late TaskProvider taskProvider;
+  String? userId;
+
 
   @override
   void initState() {
@@ -38,6 +41,7 @@ class _TaskListScreenState extends State<TaskListScreen>
       taskProvider.panelController.animatePanelToSnapPoint(duration: const Duration(milliseconds: 0));
       taskProvider.selectedDate = DateTime.now();
       await callCallGetTaskByIdListApi(taskProvider: taskProvider);
+      userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     });
     tabController = TabController(length: 2, vsync: this);
   }
@@ -203,10 +207,12 @@ class _TaskListScreenState extends State<TaskListScreen>
                 child: Padding(
                   padding:
                       const EdgeInsets.only(left: 10, right: 10, bottom: 100),
-                  child: taskListWidget(taskProvider.getAllTaskModel?.data
-                          ?.where((element) => element.taskStatus == "Assigned")
+                  child: taskListWidget(
+                      taskProvider.getAllTaskModel?.data
+                          ?.where((element) => element.assignedTo == userId && element.taskStatus != "Complete")
                           .toList() ??
-                      []),
+                      []
+                  ),
                 ),
               );
   }
