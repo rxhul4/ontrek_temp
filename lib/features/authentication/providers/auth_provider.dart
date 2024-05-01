@@ -146,9 +146,7 @@ class AuthenticationProvider extends ChangeNotifier {
           titleText: "Error",
             context: navigatorKey.currentState!.context,
             text: loginModel?.message ?? "");
-        // AppUtils.dialogWidget(
-        //     loginModel?.message ?? "", navigatorKey.currentState!.context);
-      }
+             }
     } catch (e) {
       print("inCatch ${loginModel?.message}");
       print("inCatchE ${e}");
