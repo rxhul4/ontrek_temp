@@ -1,30 +1,30 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:ui';
-import 'dart:ui';
-import 'dart:ui';
-import 'dart:ui';
-import 'dart:ui';
-import 'dart:ui';
+import 'dart:ui' as ui;
+import 'dart:typed_data';
+
+
 
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:ontrek/core/common_widgets/marker_widget.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 
 import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
 import 'package:ontrek/main.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:http/http.dart' as http;
+import 'package:widget_to_marker/widget_to_marker.dart';
 
-import 'dart:ui' as ui;
 
 class DashBoardProvider extends ChangeNotifier{
   bool _isFetching = false;
@@ -142,6 +142,20 @@ class DashBoardProvider extends ChangeNotifier{
 
   }
 
+  Future<BitmapDescriptor> _getCustomMarkerIcon() async {
+    final Uint8List markerIcon = await getBytesFromNetwork('https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1');
+    return BitmapDescriptor.fromBytes(markerIcon);
+  }
+  Future<Uint8List> getBytesFromNetwork(String url) async {
+    final response = await http.get(Uri.parse(url));
+    final bytes = response.bodyBytes;
+    return bytes;
+  }
+
+
+
+
+
 
   Future addCurrentLocationMarker(LatLng location) async{
     try{
@@ -151,7 +165,9 @@ class DashBoardProvider extends ChangeNotifier{
         Marker(
           markerId: MarkerId("currentLocation"),
           position: location,
+
           infoWindow: InfoWindow(title: "Current Location"),
+          icon: await CustomMarkerWidget().toBitmapDescriptor(logicalSize: Size(150, 150),imageSize: Size(300, 300)),
         ),
       );
       notifyListeners();
@@ -160,6 +176,8 @@ class DashBoardProvider extends ChangeNotifier{
     }
 
   }
+
+
 
   getLocationFromSheet({required Position position}){
     currentLocation = LatLng(position.latitude, position.longitude);

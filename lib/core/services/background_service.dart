@@ -96,7 +96,7 @@ void onStart(ServiceInstance service) async {
   int? liveLocationInterval= PreferenceHelper.getInt(PreferenceHelper.LIVE_LOCATION_INTERVAL);
   print("interval Time ${liveLocationInterval}");
   Timer.periodic(
-    Duration(seconds: liveLocationInterval ?? 15),
+    Duration(seconds: liveLocationInterval != null || liveLocationInterval != 0 ? liveLocationInterval  ?? 15 :  15),
     (timer) async {
       if (service is AndroidServiceInstance) {
         if (await service.isForegroundService()) {
@@ -131,7 +131,7 @@ void onStart(ServiceInstance service) async {
             if (value != null) {
               isWaiting.value = value.getBool(PreferenceHelper.isWaiting);
             }
-            if (checkIn == false) {
+            if (checkIn == false || checkIn == null) {
               await handleInternetAndGPSApi();
             }
             print("_______distance$distance");
@@ -162,7 +162,7 @@ void onStart(ServiceInstance service) async {
                   if (DateTime.now()
                           .difference(DateTime.parse(waitingStartTime ?? ""))
                           .inSeconds >
-                      300) {
+                      30) {
                     print(
                         "waiting_time${DateTime.now().difference(DateTime.parse(waitingStartTime ?? "")).inSeconds}");
                     print("call_after_30_seconds${isWaiting.value}");
@@ -190,22 +190,49 @@ void onStart(ServiceInstance service) async {
         } else if (!isGPSEnabled && isInternetAvailable) {
           print("GPS OFF & INTERNET ON");
           handleGpsAndInternetOffData(serviceType: "gps");
-        } else {
+        } else if(!isGPSEnabled && !isInternetAvailable){
           print("GPS OFF & INTERNET OFF");
-
           bool gpsBool = PreferenceHelper.getBool(PreferenceHelper.GPS_BOOL);
           bool internetBool =
-              PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
-          if (gpsBool == false) {
+          PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
+          if (gpsBool == false && internetBool == false) {
+            print("trueeeeeeeeee");
             handleGpsAndInternetOffData(serviceType: "gps");
-          }
-          if (internetBool == false) {
             handleGpsAndInternetOffData(serviceType: "internet");
-          }
+            PreferenceHelper.reload().then((value) async {
+              bool? checkIn = value?.getBool(PreferenceHelper.checkIn);
+              double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+              double? lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
+              print("Data_Off_history_CheckIn_$checkIn");
+              if (checkIn == false || checkIn == null) {
+                try{
 
+                  bool internetBool =
+                  PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
+                  print("InterNetbool$internetBool");
+                  if (internetBool == false) {
+                    PreferenceHelper.setString(
+                        PreferenceHelper.LAST_INTERNET_OFF_TIME,
+                        AppUtils.dateFormat(
+                            date: DateTime.now(), dateFormat: AppConstant.dateFormat));
+                    PreferenceHelper.setDouble(PreferenceHelper.LAST_INTERNET_OFF_LAT,
+                        lastLat ??0);
+                    PreferenceHelper.setDouble(PreferenceHelper.LAST_INTERNET_OFF_LONG,
+                        lastLong ?? 0);
+                    PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, true);
+                    bool internetBool =
+                    PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
+                    print("InterNetbool$internetBool");
+                  }
+                }catch(e){
+                  print("catch_at_internetoffData$e");
+                }
+              }
+            });
+          }
         }
       } catch (e) {
-        rethrow;
+       print("catch_atBackground_service$e");
       }
     },
   );
@@ -215,33 +242,40 @@ handleGpsAndInternetOffData({String? serviceType}) async {
   PreferenceHelper.reload().then((value) async {
     bool? checkIn = value?.getBool(PreferenceHelper.checkIn);
     print("Data_Off_history_CheckIn_$checkIn");
-    if (checkIn == false) {
+    if (checkIn == false || checkIn == null) {
       if (serviceType == "internet") {
-        Position positionData = await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.best);
-        bool internetBool =
+        try{
+          Position positionData = await Geolocator.getCurrentPosition(
+              desiredAccuracy: LocationAccuracy.best);
+          bool internetBool =
+          PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
+          print("InterNetbool$internetBool");
+          if (internetBool == false) {
+            PreferenceHelper.setString(
+                PreferenceHelper.LAST_INTERNET_OFF_TIME,
+                AppUtils.dateFormat(
+                    date: DateTime.now(), dateFormat: AppConstant.dateFormat));
+            PreferenceHelper.setDouble(PreferenceHelper.LAST_INTERNET_OFF_LAT,
+                positionData.latitude);
+            PreferenceHelper.setDouble(PreferenceHelper.LAST_INTERNET_OFF_LONG,
+                positionData.longitude);
+            PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, true);
+            bool internetBool =
             PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
-        PreferenceHelper.setString(
-            PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
-        if (internetBool == false) {
-          PreferenceHelper.setString(
-              PreferenceHelper.LAST_INTERNET_OFF_TIME,
-              AppUtils.dateFormat(
-                  date: DateTime.now(), dateFormat: AppConstant.dateFormat));
-          PreferenceHelper.setDouble(PreferenceHelper.LAST_INTERNET_OFF_LAT,
-              positionData.latitude);
-          PreferenceHelper.setDouble(PreferenceHelper.LAST_INTERNET_OFF_LONG,
-              positionData.longitude);
-          PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, true);
+            print("InterNetbool$internetBool");
+          }
+        }catch(e){
+          print("catch_at_internetoffData$e");
         }
+
+
       }
       if (serviceType == "gps") {
         double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
         double? lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
-        bool gpsBool = PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
-        PreferenceHelper.setString(
-            PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
+        bool? gpsBool = PreferenceHelper.getBool(PreferenceHelper.GPS_BOOL);
         if (gpsBool == false) {
+          print("GPS$gpsBool");
           PreferenceHelper.setString(
               PreferenceHelper.LAST_GPS_OFF_TIME,
               AppUtils.dateFormat(
@@ -251,6 +285,9 @@ handleGpsAndInternetOffData({String? serviceType}) async {
           PreferenceHelper.setDouble(
               PreferenceHelper.LAST_GPS_OFF_LONG, lastLong ?? 0);
           PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, true);
+          bool? gpsBooll =PreferenceHelper.getBool(PreferenceHelper.GPS_BOOL);
+          print("GpsBool$gpsBooll");
+
         }
       }
     }
@@ -375,13 +412,12 @@ Future<void> handleInternetAndGPSApi() async {
   PreferenceHelper.load().then((value) async {
     String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     bool? gpsBool = PreferenceHelper.getBool(PreferenceHelper.GPS_BOOL);
-    bool? internetBool =
-        PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
+
     if (gpsBool) {
       String? lastGpsOffTime =
           PreferenceHelper.getString(PreferenceHelper.LAST_GPS_OFF_TIME);
       if (lastGpsOffTime != "" && lastGpsOffTime != null) {
-        print("GPS$gpsBool");
+        print("GPSboollllllllllll$gpsBool");
         PreferenceHelper.setString(
             PreferenceHelper.LAST_GPS_ON_TIME,
             AppUtils.dateFormat(
@@ -393,6 +429,7 @@ Future<void> handleInternetAndGPSApi() async {
       await callInternetAndGpsActivityApi(
           userId: userId, isGps: true, isGpsOn: true);
     }
+    bool? internetBool = PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
     if (internetBool) {
       print("INTERNET$internetBool");
       await callInternetAndGpsActivityApi(
@@ -444,11 +481,11 @@ callInternetAndGpsActivityApi({
   if (isGps == true) {
     body = {
       "userId": userId,
-      "lattitude": isGpsOn ?? false ? position.latitude : lastLat,
-      "longitude": isGpsOn ?? false ? position.longitude : lastLong,
+      "lattitude": isGpsOn == true ? position.latitude : lastLat,
+      "longitude": isGpsOn == true ? position.longitude : lastLong,
       "totTrackingEventId":
-          isGpsOn ?? false ? AppConstant.gpsOnEvent : AppConstant.gpsOffEvent,
-      "activityDateTime": isGpsOn ?? false
+          isGpsOn == true ? AppConstant.gpsOnEvent : AppConstant.gpsOffEvent,
+      "activityDateTime": isGpsOn ==true
           ? AppUtils.getDate(
               date: DateTime.now().toString(), format: AppConstant.dateFormat)
           : AppUtils.getDate(
@@ -466,15 +503,20 @@ callInternetAndGpsActivityApi({
     createActivityModel = CreateActivityModel?.fromJson(json.decode(response));
     if (createActivityModel.isError == false &&
         createActivityModel.isValidationFailed == false) {
-      if (isInternet ?? false) {
+      if (isInternet == true) {
         PreferenceHelper.remove(PreferenceHelper.UNIVERSAL_LAST_SAVED_TIME);
+        PreferenceHelper.setString(
+            PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
         PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, false);
       } else {
         PreferenceHelper.remove(PreferenceHelper.LAST_GPS_OFF_TIME);
         PreferenceHelper.remove(PreferenceHelper.LAST_GPS_ON_TIME);
+        PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
         PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, false);
       }
-    } else {}
+    } else {
+
+    }
   } catch (e) {
     print("catch at dataOffHistory$e");
   }

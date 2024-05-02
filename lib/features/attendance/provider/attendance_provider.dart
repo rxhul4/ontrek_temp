@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
@@ -8,13 +7,11 @@ import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 
-import 'package:ontrek/core/storage/sql_db_service.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/attendance/model/add_activity_model.dart';
 import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
 import 'package:ontrek/main.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class AttendanceProvider extends ChangeNotifier {
@@ -34,7 +31,6 @@ class AttendanceProvider extends ChangeNotifier {
   CreateActivityModel? createActivityModel;
   GetLastActivityModel? getLastActivityModel;
   int? battery;
-  DatabaseService? databaseService;
   PanelController panelController = PanelController();
   ValueNotifier<bool> isDayStart = ValueNotifier(false);
   ValueNotifier<bool> isCheckIn = ValueNotifier(false);

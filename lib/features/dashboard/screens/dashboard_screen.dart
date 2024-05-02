@@ -17,7 +17,6 @@ import 'package:ontrek/features/leads/screen/lead_screen.dart';
 import 'package:ontrek/features/profile/screen/profile_screen.dart';
 import 'package:ontrek/features/task_list/screen/task_list_screen.dart';
 import 'package:ontrek/features/track_function/screen/track_screen.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
 class DashBoard extends StatefulWidget {
@@ -83,7 +82,8 @@ GoogleMapController? googleMapController;
                     CameraPosition(target: LatLng(0, 0), zoom: 14)),
           ),
           [
-            AttendanceScreen(onLocationFetch: (value) {
+            AttendanceScreen(
+                onLocationFetch: (value) {
               if (!mounted) {}
               dashBoardProvider.getLocationFromSheet(position:  value);
             }),

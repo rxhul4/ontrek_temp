@@ -160,65 +160,62 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             Expanded(
               child: SingleChildScrollView(
+                physics: BouncingScrollPhysics(),
                 controller: p0,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      height: height -
-                          (MediaQuery.of(context).size.height / 3) -
-                          60,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.only(bottom: 30),
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: profileOptionsList.length,
-                        itemBuilder: (context, index) {
-                          return GestureDetector(
-                            onTap: () {
-                              executeOperation(index, context);
-                            },
-                            child: Row(
-                              children: [
-                                Expanded(
-                                    child: Icon(
-                                  profileOptionsListIcons[index],
-                                )),
-                                Expanded(flex: 7,
-                                  child: AppUtils.commonContainer(
-                                    padding: const EdgeInsets.only(
-                                      top: 5,
-                                      bottom: 5,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      border: Border(
-                                        top: index == 0
-                                            ? BorderSide(
-                                                width: 0.5,
-                                                color: Colors.grey.shade400)
-                                            : BorderSide.none,
-                                        bottom: BorderSide(
-                                          width: 0.5,
-                                          color: Colors.grey.shade400,
-                                        ),
-                                      ),
-                                    ),
-                                    child: CupertinoListTile(
-                                      leadingToTitle: 0,
-                                      leadingSize: 0,
-                                      padding: EdgeInsets.zero,
-                                      title: AppUtils.commonTextWidget(
-                                        text: profileOptionsList[index],
-                                        textColor: AppConstant.blackColor
-                                            .withOpacity(0.7),
+                    ListView.builder(
+                      // padding: const EdgeInsets.only(bottom: 30),
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: profileOptionsList.length,
+                      itemBuilder: (context, index) {
+                        return GestureDetector(
+                          onTap: () {
+                            executeOperation(index, context);
+                          },
+                          child: Row(
+                            children: [
+                              Expanded(
+                                  child: Icon(
+                                profileOptionsListIcons[index],
+                              )),
+                              Expanded(flex: 7,
+                                child: AppUtils.commonContainer(
+                                  padding: const EdgeInsets.only(
+                                    top: 5,
+                                    bottom: 5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      top: index == 0
+                                          ? BorderSide(
+                                              width: 0.5,
+                                              color: Colors.grey.shade400)
+                                          : BorderSide.none,
+                                      bottom: BorderSide(
+                                        width: 0.5,
+                                        color: Colors.grey.shade400,
                                       ),
                                     ),
                                   ),
+                                  child: CupertinoListTile(
+                                    leadingToTitle: 0,
+                                    leadingSize: 0,
+                                    padding: EdgeInsets.zero,
+                                    title: AppUtils.commonTextWidget(
+                                      text: profileOptionsList[index],
+                                      textColor: AppConstant.blackColor
+                                          .withOpacity(0.7),
+                                    ),
+                                  ),
                                 ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),

@@ -176,9 +176,7 @@ class AuthenticationProvider extends ChangeNotifier {
   Future<LoginModel?> apiCallVerifyOtp({String? otpText}) async {
     loaderFnc(true);
     try {
-
-
-    Map<String, dynamic> body;
+      Map<String, dynamic> body;
     if(Platform.isIOS){
       var iosInfo = await deviceInfo.iosInfo;
       body = {

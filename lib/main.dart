@@ -51,7 +51,7 @@ List<SingleChildWidget> providers = [
     create: (_) => AddLeadProvider(),
   ),
 ];
-
+GlobalKey globalKey = GlobalKey();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 

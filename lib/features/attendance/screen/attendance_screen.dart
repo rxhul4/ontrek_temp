@@ -1,8 +1,5 @@
-import 'dart:ffi';
-import 'dart:isolate';
 import 'dart:ui';
 
-import 'package:battery_plus/battery_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -13,22 +10,15 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:ontrek/core/common_widgets/loader_widget.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
-import 'package:ontrek/core/storage/sql_db_service.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
-import 'package:local_auth/local_auth.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/features/attendance/model/add_activity_model.dart';
-import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
 import 'package:ontrek/features/attendance/provider/attendance_provider.dart';
-import 'package:ontrek/features/authentication/providers/auth_provider.dart';
 
 import 'package:ontrek/features/check_out/screen/check_out_form_screen.dart';
 import 'package:provider/provider.dart';
-import 'package:sliding_up_panel/sliding_up_panel.dart';
-import 'package:sqflite/sqflite.dart';
 import 'dart:async';
-import 'package:path/path.dart' as newPath;
 
 class AttendanceScreen extends StatefulWidget {
   double? height;
@@ -51,7 +41,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   AndroidDeviceInfo? androidInfo;
   CreateActivityModel? createActivityModel;
   FlutterBackgroundService service = FlutterBackgroundService();
-  final databaseService = DatabaseService();
   late AttendanceProvider attendanceProvider;
   String? userName;
   String? orgName;
@@ -968,7 +957,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     }
                   } else {
                     print("isLocationRestricted$isLocationRestricted");
-                    !attendanceProvider.isDayStart.value == false
+                    !attendanceProvider.isDayStart.value
                         ? callDayStartApiAndUpdateUI(attendanceProvider)
                         : callDayEndApiAndUpdateUI(attendanceProvider);
                   }

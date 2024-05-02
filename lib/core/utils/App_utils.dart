@@ -115,19 +115,21 @@ class AppUtils {
     IconData? errorIcon,
     double? size
   }) {
-    return CachedNetworkImage(
-      height: height,
-      width: width,
-      imageUrl: imgUrl ?? "",
-      imageBuilder: (context, imageProvider) => Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
+    return ClipOval(
+      child: CachedNetworkImage(
+        height: height,
+        width: width,
+        imageUrl: imgUrl ?? "",
+        imageBuilder: (context, imageProvider) => Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(image: imageProvider, fit: BoxFit.cover),
+          ),
         ),
+        placeholder: (context, url) => Center(
+            child:  CircularProgressIndicator(color: AppConstant.appPrimaryColor,strokeWidth: 0.5,)),
+        errorWidget: (context, url, error) => Icon(errorIcon ?? Icons.person,
+            size: size ?? 24, color: AppConstant.blackColor),
       ),
-      placeholder: (context, url) => Center(
-          child: AppUtils.loaderWidget(color: AppConstant.appPrimaryColor)),
-      errorWidget: (context, url, error) => Icon(errorIcon ?? Icons.person,
-          size: size ?? 24, color: AppConstant.blackColor),
     );
   }
 
@@ -148,7 +150,6 @@ class AppUtils {
       errorBuilder: (context, error, stackTrace) =>
           Center(child: Icon(Icons.person)),
       height: height,
-      // alignment: alignment ?? Alignment.center,
       color: iconColor,
       fit: boxFit ?? BoxFit.cover,
     );
@@ -288,8 +289,8 @@ class AppUtils {
                     children: [
                       Container(
                         margin: EdgeInsets.only(right: 5),
-                        height: double.infinity,
-                        width: 45,
+                        height: 50,
+                        width: 50,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: backgroundColor ?? Colors.grey.withOpacity(0.5),
@@ -302,9 +303,9 @@ class AppUtils {
                           child: isFromTimeLine == true
                               ? AppUtils.commonCacheNetworkImage(
                             imgUrl: leadingImage,
-                            height: 25,
-                            width: 25,
-                            size: 22,
+                            height: 50,
+                            width: 50,
+                            size: 20,
                             errorIcon: Icons.person,
                           )
                               : AppUtils.commonAssetImageWidget(
@@ -684,8 +685,15 @@ class AppUtils {
           break;
         case 'tracking_event_waiting_start':
         case 'tracking_event_waiting_end':
-          statusColor = Colors.orangeAccent;
+          statusColor = Colors.deepOrange;
           break;
+        case "tracking_event_internet_off":
+        case "tracking_internet_on":
+        statusColor = AppConstant.appPrimaryColor;
+        break;
+        case 'tracking_event_gps_off':
+        case 'tracking_event_gps_on':
+          statusColor = Colors.orangeAccent;
         default:
           statusColor = Colors.red;
       }

@@ -56,40 +56,6 @@ class _SplashScreenState extends State<SplashScreen> {
         Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => const LocationPermissionScreen(),));
       }
 
-      // if (status.isGranted) {
-      //   if (isLogIn ?? false) {
-      //     Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => DashBoard(),));
-      //     if (isDayStart ?? false) {
-      //       if (isCheckIn ?? false) {
-      //         Navigator.pushReplacement(
-      //           context,
-      //           CupertinoPageRoute(builder: (context) => DashBoard()),
-      //         );
-      //       } else {
-      //         Navigator.pushReplacement(
-      //           context,
-      //           CupertinoPageRoute(builder: (context) => DashBoard()),
-      //         );
-      //       }
-      //     } else {
-      //       Navigator.pushReplacement(
-      //         context,
-      //         CupertinoPageRoute(builder: (context) => DashBoard()),
-      //       );
-      //     }
-      //   } else {
-      //     Navigator.pushReplacement(
-      //       context,
-      //       CupertinoPageRoute(builder: (context) => LoginScreen()),
-      //     );
-      //   }
-      // } else {
-      //   Navigator.pushReplacement(
-      //       context,
-      //       CupertinoPageRoute(
-      //         builder: (context) => LocationPermissionScreen(),
-      //       ));
-      // }
     });
   }
 
@@ -140,13 +106,13 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             Container(
               alignment: Alignment.bottomCenter,
-              margin: AppUtils.edgeInsetsOnly(bottom: 25),
+              margin: AppUtils.edgeInsetsOnly(bottom: 20),
               child: AppUtils.commonTextWidget(
-                text: "Location Intelligence and Analytics App",
-                fontWeight: FontWeight.w400,
+                text: "Every Step, Every Move, Always in Control",
+                fontWeight: FontWeight.w500,
                 textColor: AppConstant.appPrimaryColor,
                 fontSize: 13,
-                letterSpacing: 0.5,
+                letterSpacing: 00,
               ),
             ),
           ],

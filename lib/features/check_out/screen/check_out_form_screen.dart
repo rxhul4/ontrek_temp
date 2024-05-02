@@ -53,6 +53,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
   late AttendanceProvider attendanceProvider;
   String? selectedTotValue;
   String? selectedTotId;
+  bool? isAllowFgAuth;
 
   checkBiometricAvailable() async {
     isBiometricAvailable = await _localAuthentication.canCheckBiometrics;
@@ -66,6 +67,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
     // TODO: implement initState
     super.initState();
     userUid = PreferenceHelper.getString(PreferenceHelper.USER_ID);
+    isAllowFgAuth = PreferenceHelper.getBool(PreferenceHelper.ALLOW_FG_AUTH);
     batteryPercentage();
     checkBiometricAvailable();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -133,6 +135,9 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
             context: context,
             text: createActivityModel?.message.toString() ?? "");
       }
+    });
+    setState(() {
+      isLoading = true;
     });
   }
 
@@ -355,7 +360,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                             ),
                           ],
                         ),
-                        attendanceProvider.isLoading
+                        isLoading
                             ? Center(
                                 child: AppUtils.loaderWidget(color: AppConstant.appPrimaryColor),
                               )
@@ -432,30 +437,41 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
 
   var imageFull;
   File? _image;
+  ImagePicker? imagePicker;
 
   Future<String?> getImage() async {
-    var status1 = await Permission.camera.request();
-    if (status1.isDenied || status1.isPermanentlyDenied) {
-      print(status1.isPermanentlyDenied);
-      print(status1.isDenied);
+    // Request camera permission
+    var status = await Permission.camera.request();
+
+    // Check if permission is permanently denied or denied
+    if (status.isPermanentlyDenied || status.isDenied) {
+      print(status.isPermanentlyDenied);
+      print(status.isDenied);
       openAppSettings();
-    } else {
-      print(status1.isPermanentlyDenied);
-      print(status1.isDenied);
-      imageFull = await ImagePicker.platform.getImageFromSource(
-        source: ImageSource.camera,
-      );
-      if (imageFull?.path != null) {
-        final bytes = File(imageFull.path).readAsBytesSync();
-        print(image64);
-        setState(() {
-          image64 = "data:image/png;base64," + base64Encode(bytes);
-          _image = File(imageFull?.path ?? '');
-        });
-      }
+      return null; // Return null as permission is not granted
     }
-    return image64;
+
+    // Permission is granted, proceed to pick image from camera
+    final imagePicker = ImagePicker();
+    final image = await imagePicker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 25,
+    );
+
+    // Check if image is picked successfully
+    if (image != null) {
+      final bytes = await image.readAsBytes();
+      setState(() {
+        image64 = "data:image/png;base64," + base64Encode(bytes);
+        _image = File(image.path);
+      });
+      return image64; // Return base64 encoded image
+    } else {
+      // Image picking is cancelled or failed
+      return null;
+    }
   }
+
 
   Future getCurrentLocation() async {
     setState(() {
@@ -532,9 +548,14 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
           message: "Enter Visit Discussion",
           giveColor: Colors.red);
     } else {
-      doLocalVerification(afterSuccessfulVerificationFnc: () {
+      if(isAllowFgAuth == true){
+        doLocalVerification(afterSuccessfulVerificationFnc: () {
+          getLocationAndRedirect(postMdl);
+        });
+      }else{
         getLocationAndRedirect(postMdl);
-      });
+      }
+
     }
   }
 

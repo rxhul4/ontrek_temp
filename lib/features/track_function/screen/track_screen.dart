@@ -10,11 +10,12 @@ import 'package:ontrek/features/salesman_tracker/screen/timeline_screen.dart';
 import 'package:ontrek/features/track_function/model/salemen_list_model.dart';
 import 'package:ontrek/features/track_function/provider/salesmen_list_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class TrackScreen extends StatefulWidget {
+ List<Map<String,dynamic>>? getUsersFromSheet;
   TrackScreen({
     super.key,
+    this.getUsersFromSheet
   });
 
   @override
@@ -27,6 +28,7 @@ class _TrackScreenState extends State<TrackScreen>
   TabController? tabController;
   int selectedIndex = 0;
 
+
   @override
   void initState() {
     // TODO: implement initState
@@ -36,7 +38,6 @@ class _TrackScreenState extends State<TrackScreen>
           Provider.of<SalesMenListProvider>(context, listen: false);
       salesMenListProvider.panelController
           .animatePanelToSnapPoint(duration: Duration(milliseconds: 0));
-
       salesMenListProvider.apiCallGetSalesManList();
     });
     tabController = TabController(length: 3, vsync: this);
@@ -80,7 +81,7 @@ class _TrackScreenState extends State<TrackScreen>
                     onTap: () {
                       salesMenListProvider.showAndHideSearchWidget(true);
                       salesMenListProvider.animatePanel();
-                      // panelController.animatePanelToPosition(1.0,duration: Duration(milliseconds: 500));
+
                     },
                   ),
                   AppUtils.commonSizedBox(width: 10),
@@ -272,7 +273,7 @@ class _TrackScreenState extends State<TrackScreen>
                                   phoneNumber: getSalesMenListModelData?[index].phoneNo,
                                   userId:
                                   getSalesMenListModelData?[index].userId,
-                                  imageUrl:   getSalesMenListModelData?[index].profilePic,
+                                  imageUrl: getSalesMenListModelData?[index].profilePic,
                                 ),
                               ));
                         },
@@ -286,27 +287,29 @@ class _TrackScreenState extends State<TrackScreen>
                                   decoration: AppUtils.commonBoxDecoration(
                                       shape: BoxShape.circle,
                                       border: Border.all(
+                                        width:2,
                                           color:
                                           AppConstant.greyColor.withOpacity(0.5)),
                                       color: AppConstant.greyColor.withOpacity(0.3)),
-                                  child: CachedNetworkImage(
-                                    height: 150,
-                                    width: 200,
-                                    imageUrl: getSalesMenListModelData?[index].profilePic ?? "",
-                                    imageBuilder: (context, imageProvider) =>
-                                        Container(
-                                          decoration: BoxDecoration(
-                                            image: DecorationImage(
-                                                image: imageProvider,
-                                                fit: BoxFit.cover),
+                                  child: ClipOval(
+                                    child: CachedNetworkImage(
+
+                                      imageUrl: getSalesMenListModelData?[index].profilePic ?? "",
+                                      imageBuilder: (context, imageProvider) =>
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              image: DecorationImage(
+                                                  image: imageProvider,
+                                                  fit: BoxFit.cover),
+                                            ),
                                           ),
-                                        ),
-                                    placeholder: (context, url) =>  Center(
-                                        child: CircularProgressIndicator(color: AppConstant.appPrimaryColor,strokeWidth: 0.5,)),
-                                    errorWidget: (context, url, error) =>
-                                        Icon(Icons.person,
-                                            size: 24,
-                                            color: AppConstant.blackColor),
+                                      placeholder: (context, url) =>  Center(
+                                          child: CircularProgressIndicator(color: AppConstant.appPrimaryColor,strokeWidth: 0.5,)),
+                                      errorWidget: (context, url, error) =>
+                                          Icon(Icons.person,
+                                              size: 24,
+                                              color: AppConstant.blackColor),
+                                    ),
                                   ),
                                 ),
                                 getSalesMenListModelData?[index].isPresent == true ? Positioned(
