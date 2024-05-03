@@ -31,14 +31,14 @@ class _TaskListScreenState extends State<TaskListScreen>
   late TaskProvider taskProvider;
   String? userId;
 
-
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_)async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       taskProvider = Provider.of<TaskProvider>(context, listen: false);
-      taskProvider.panelController.animatePanelToSnapPoint(duration: const Duration(milliseconds: 0));
+      taskProvider.panelController
+          .animatePanelToSnapPoint(duration: const Duration(milliseconds: 0));
       taskProvider.selectedDate = DateTime.now();
       await callCallGetTaskByIdListApi(taskProvider: taskProvider);
       userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
@@ -51,8 +51,7 @@ class _TaskListScreenState extends State<TaskListScreen>
       print("taskApi");
     }
     taskProvider.apiCallGetTaskByIdList(
-        date :  taskProvider.selectedDate.toString()
-    );
+        date: taskProvider.selectedDate.toString());
   }
 
   @override
@@ -174,47 +173,55 @@ class _TaskListScreenState extends State<TaskListScreen>
               ),
             ],
           )
-        : (taskProvider.getAllTaskModel?.data?.length ?? 0) <= 0 ||
-                taskProvider.getAllTaskModel?.data == null
+        : taskProvider.isInternetAvailable == false
             ? Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  AppUtils.commonSizedBox(height: 15),
-                  AppUtils.commonSizedBox(
-                    height: 100,
-                    child: const Image(
-                      image: AssetImage(noDataFound),
-                    ),
-                  ),
-                  AppUtils.commonTextWidget(
-                    text: 'No task assigned!',
-                    textColor: AppConstant.blackColor.withOpacity(0.6),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0,
-                  ),
-                  AppUtils.commonTextWidget(
-                      letterSpacing: 0,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                      text: 'New task will be notified',
-                      textColor: AppConstant.blackColor.withOpacity(0.5)),
+                  AppUtils.commonSizedBox(height: height * 0.06),
+                  AppUtils.commonNoDataFound(
+                      text:"Internet is not available, please try again!"),
                 ],
               )
-            : SingleChildScrollView(
-                controller: p0,
-                child: Padding(
-                  padding:
-                      const EdgeInsets.only(left: 10, right: 10, bottom: 100),
-                  child: taskListWidget(
-                      taskProvider.getAllTaskModel?.data
-                          ?.where((element) => element.assignedTo == userId && element.taskStatus != "Complete")
-                          .toList() ??
-                      []
-                  ),
-                ),
-              );
+            : (taskProvider.getAllTaskModel?.data?.length ?? 0) <= 0 ||
+                    taskProvider.getAllTaskModel?.data == null
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      AppUtils.commonSizedBox(height: 15),
+                      AppUtils.commonSizedBox(
+                        height: 100,
+                        child: const Image(
+                          image: AssetImage(noDataFound),
+                        ),
+                      ),
+                      AppUtils.commonTextWidget(
+                        text: 'No task assigned!',
+                        textColor: AppConstant.blackColor.withOpacity(0.6),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0,
+                      ),
+                      AppUtils.commonTextWidget(
+                          letterSpacing: 0,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          text: 'New task will be notified',
+                          textColor: AppConstant.blackColor.withOpacity(0.5)),
+                    ],
+                  )
+                : SingleChildScrollView(
+                    controller: p0,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          left: 10, right: 10, bottom: 100),
+                      child: taskListWidget(taskProvider.getAllTaskModel?.data
+                              ?.where((element) =>
+                                  element.assignedTo == userId &&
+                                  element.taskStatus != "Complete")
+                              .toList() ??
+                          []),
+                    ),
+                  );
   }
 
   //All Task
@@ -228,65 +235,75 @@ class _TaskListScreenState extends State<TaskListScreen>
               ),
             ],
           )
-        : taskProvider.getAllTaskModel?.data?.length == null ||
-                (taskProvider.getAllTaskModel?.data?.length ?? 0) <= 0
+        : taskProvider.isInternetAvailable == false
             ? Column(
                 children: [
-                  AppUtils.commonSizedBox(height: 15),
-                  AppUtils.commonSizedBox(
-                    height: 100,
-                    child: const Image(
-                      image: AssetImage(noDataFound),
-                    ),
-                  ),
-                  AppUtils.commonTextWidget(
-                    text: 'No task assigned!',
-                    textColor: AppConstant.blackColor.withOpacity(0.6),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0,
-                  ),
-                  AppUtils.commonTextWidget(
-                      letterSpacing: 0,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                      text: 'New task will be notified',
-                      textColor: AppConstant.blackColor.withOpacity(0.5)),
+                  AppUtils.commonSizedBox(height: height * 0.06),
+                  AppUtils.commonNoDataFound(
+                      text: taskProvider.getAllTaskModel?.message ?? ""),
                 ],
               )
-            : SingleChildScrollView(
-                controller: p0,
-                child: Padding(
-                  padding:
-                      const EdgeInsets.only(left: 10, right: 10, bottom: 100),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            : taskProvider.getAllTaskModel?.data?.length == null ||
+                    (taskProvider.getAllTaskModel?.data?.length ?? 0) <= 0
+                ? Column(
                     children: [
-                      AppUtils.commonTextWidget(
-                          text: "Active Task",
-                          fontSize: 12,
-                          textColor: AppConstant.blackColor.withOpacity(0.9),
-                          fontWeight: FontWeight.w500),
-                      taskListWidget(taskProvider.getAllTaskModel?.data
-                              ?.where(
-                                  (element) => element.taskStatus != "Overdue")
-                              .toList() ??
-                          []),
                       AppUtils.commonSizedBox(height: 15),
+                      AppUtils.commonSizedBox(
+                        height: 100,
+                        child: const Image(
+                          image: AssetImage(noDataFound),
+                        ),
+                      ),
                       AppUtils.commonTextWidget(
-                          text: "Overdue Task",
+                        text: 'No task assigned!',
+                        textColor: AppConstant.blackColor.withOpacity(0.6),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0,
+                      ),
+                      AppUtils.commonTextWidget(
+                          letterSpacing: 0,
                           fontSize: 12,
-                          textColor: AppConstant.blackColor.withOpacity(0.9),
-                          fontWeight: FontWeight.w500),
-                      taskListWidget(taskProvider.getAllTaskModel?.data
-                              ?.where(
-                                  (element) => element.taskStatus == "Overdue")
-                              .toList() ??
-                          []),
+                          fontWeight: FontWeight.w400,
+                          text: 'New task will be notified',
+                          textColor: AppConstant.blackColor.withOpacity(0.5)),
                     ],
-                  ),
-                ),
-              );
+                  )
+                : SingleChildScrollView(
+                    controller: p0,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          left: 10, right: 10, bottom: 100),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          AppUtils.commonTextWidget(
+                              text: "Active Task",
+                              fontSize: 12,
+                              textColor:
+                                  AppConstant.blackColor.withOpacity(0.9),
+                              fontWeight: FontWeight.w500),
+                          taskListWidget(taskProvider.getAllTaskModel?.data
+                                  ?.where((element) =>
+                                      element.taskStatus != "Overdue")
+                                  .toList() ??
+                              []),
+                          AppUtils.commonSizedBox(height: 15),
+                          AppUtils.commonTextWidget(
+                              text: "Overdue Task",
+                              fontSize: 12,
+                              textColor:
+                                  AppConstant.blackColor.withOpacity(0.9),
+                              fontWeight: FontWeight.w500),
+                          taskListWidget(taskProvider.getAllTaskModel?.data
+                                  ?.where((element) =>
+                                      element.taskStatus == "Overdue")
+                                  .toList() ??
+                              []),
+                        ],
+                      ),
+                    ),
+                  );
   }
 
   Widget taskListWidget(List<Data> allTaskDataList) {
@@ -325,12 +342,11 @@ class _TaskListScreenState extends State<TaskListScreen>
                   Navigator.push(
                       context,
                       CupertinoPageRoute(
-                        builder: (context) => ViewTaskScreen(
-                          taskFormId: allTaskDataList[index].taskFormId,
-                          taskTitle: allTaskDataList[index].taskTitle,
-                          taskStatus: allTaskDataList[index].taskStatus,
-                        )
-                      )).then((value) {
+                          builder: (context) => ViewTaskScreen(
+                                taskFormId: allTaskDataList[index].taskFormId,
+                                taskTitle: allTaskDataList[index].taskTitle,
+                                taskStatus: allTaskDataList[index].taskStatus,
+                              ))).then((value) {
                     callCallGetTaskByIdListApi(taskProvider: taskProvider);
                   });
                 },
@@ -389,15 +405,14 @@ class _TaskListScreenState extends State<TaskListScreen>
                                     letterSpacing: -0.1)),
                             AppUtils.commonSizedBox(width: 15),
                             AppUtils.commonTextWidget(
-                                text: AppUtils.getDate(
-                                    date:
-                                        allTaskDataList[index].createdOn ?? "",
-                                    format: "hh:mm a"),
-                                textColor:
-                                    AppConstant.blackColor.withOpacity(0.9),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                overflow: TextOverflow.ellipsis,
+                              text: AppUtils.getDate(
+                                  date: allTaskDataList[index].createdOn ?? "",
+                                  format: "hh:mm a"),
+                              textColor:
+                                  AppConstant.blackColor.withOpacity(0.9),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),

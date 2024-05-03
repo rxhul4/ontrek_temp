@@ -1,10 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 
 class CustomMarkerWidget extends StatefulWidget {
   String? imageUrl;
+
 
   CustomMarkerWidget({super.key, this.imageUrl});
 
@@ -13,6 +15,18 @@ class CustomMarkerWidget extends StatefulWidget {
 }
 
 class _CustomMarkerWidgetState extends State<CustomMarkerWidget> {
+  String? image;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    if(!mounted){}
+    print("imageUrlllllll${widget.imageUrl}");
+    setState(() {
+      image = widget.imageUrl;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppUtils.commonSizedBox(
@@ -37,7 +51,7 @@ class _CustomMarkerWidgetState extends State<CustomMarkerWidget> {
                 color: Colors.white),
             child: ClipOval(
               child: CachedNetworkImage(
-                imageUrl: widget.imageUrl ?? "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+                imageUrl: image ?? "",
                 imageBuilder: (context, imageProvider) => Container(
                   margin: EdgeInsets.zero,
                   decoration: BoxDecoration(
@@ -45,11 +59,7 @@ class _CustomMarkerWidgetState extends State<CustomMarkerWidget> {
                         image: imageProvider, fit: BoxFit.cover),
                   ),
                 ),
-                placeholder: (context, url) => Center(
-                    child: CircularProgressIndicator(
-                  color: AppConstant.appPrimaryColor,
-                  strokeWidth: 0.5,
-                )),
+                placeholder: (context, url) => Icon(Icons.person, size: 24, color: AppConstant.appPrimaryColor),
                 errorWidget: (context, url, error) =>
                     Icon(Icons.person, size: 24, color: AppConstant.appPrimaryColor),
               ),

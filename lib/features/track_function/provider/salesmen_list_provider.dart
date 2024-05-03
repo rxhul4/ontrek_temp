@@ -54,6 +54,8 @@ class SalesMenListProvider extends ChangeNotifier {
   int? selectedIndex = 0;
   PanelController panelController = PanelController();
   TextEditingController searchController = TextEditingController();
+  List<Map<String,dynamic>> showUserInMap = [];
+  Map<String,dynamic> data ={};
 
 
   tabControllerAddListener() {
@@ -73,6 +75,7 @@ animatePanel(){
   Future<GetSalesMenListModel?> apiCallGetSalesManList() async {
     var userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     var orgId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
+    showUserInMap.clear();
     _isFetching = true;
     notifyListeners();
 
@@ -94,17 +97,36 @@ animatePanel(){
 
         for(int i = 0; i< (getSalesMenListModel?.data?.length ?? 0);i++){
           var saleMenList = getSalesMenListModel?.data?[i];
+          data = {
+            "userId": saleMenList?.userId,
+            "userName": saleMenList?.userName,
+            "userProfilePic": saleMenList?.profilePic,
+            "userLastLat": saleMenList?.lastActivityDto?.lastActivityLat,
+            "userLastLong": saleMenList?.lastActivityDto?.lastActivityLong,
+          };
+          print("data_OF_MAP$data");
+          showUserInMap.add(data);
           if(getSalesMenListModel?.data?[i].userId == userId){
             if(getSalesMenListModel?.data?[i] != null){
               getSalesMenListModel?.data?.removeAt(i);
               getSalesMenListModel?.data?.insert(0, saleMenList!);
             }
-
           }
         }
+
+        print("show_user_in_map${showUserInMap}");
         print("List${getSalesMenListModel?.data?.first.userName}");
       } else {
+
         AppUtils.showDialogBoxWithOneButton(text: getSalesMenListModel?.message ?? "",context: navigatorKey.currentState!.context);
+        bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
+        if (!isInternetAvailable) {
+          getSalesMenListModel = GetSalesMenListModel(
+              message: "Internet is not available, please try again!");
+        } else {
+          getSalesMenListModel =
+              GetSalesMenListModel(message: "Something went wrong!");
+        }
       }
     } catch (e) {
       print('catch at GetEmployee_Provider ${e}');

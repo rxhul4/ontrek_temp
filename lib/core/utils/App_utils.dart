@@ -833,7 +833,7 @@ class AppUtils {
               child: AppUtils.commonTextWidget(
                   text: onCancelString ?? "Cancel",
                   textColor: AppConstant.appPrimaryColor,
-                  fontSize: 14,
+                  fontSize: 12,
                   textAlign: TextAlign.center,
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.5),
@@ -846,7 +846,7 @@ class AppUtils {
               child: AppUtils.commonTextWidget(
                   text: onSuccessString ?? "OK",
                   textColor: AppConstant.appPrimaryColor,
-                  fontSize: 14,
+                  fontSize: 12,
                   textAlign: TextAlign.center,
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.5),

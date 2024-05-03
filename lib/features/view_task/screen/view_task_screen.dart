@@ -155,49 +155,63 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.person,
-                                  color: Colors.orangeAccent,
-                                  size: 18,
+                        AppUtils.commonContainer(
+                          width: double.infinity,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Flexible(
+                                flex: 3,
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.person,
+                                      color: Colors.orangeAccent,
+                                      size: 18,
+                                    ),
+                                    AppUtils.commonSizedBox(width: 5),
+                                    Expanded(
+                                      child: AppUtils.commonTextWidget(
+                                        text: viewTaskProvider.taskByIdModel?.data?.taskTitle ?? "",
+                                        fontSize: 12,
+                                        textColor: AppConstant.blackColor.withOpacity(0.9),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                AppUtils.commonSizedBox(width: 5),
-                                AppUtils.commonTextWidget(
-                                    text: viewTaskProvider
-                                            .taskByIdModel?.data?.taskTitle ??
-                                        "",
-                                    fontSize: 12,
-                                    textColor:
-                                        AppConstant.blackColor.withOpacity(0.9),
-                                    fontWeight: FontWeight.w500)
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.av_timer_rounded,
-                                  color: Colors.green,
-                                  size: 15,
+                              ),
+                              SizedBox(width: 25), // Adjust the width as per your requirement
+                              Flexible(
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.av_timer_rounded,
+                                      color: Colors.green,
+                                      size: 15,
+                                    ),
+                                    AppUtils.commonSizedBox(width: 3),
+                                    Expanded(
+                                      child: AppUtils.commonTextWidget(
+                                        text: AppUtils.getDate(
+                                          date: viewTaskProvider.taskByIdModel?.data?.createdOn ?? "",
+                                          format: "hh:mm a",
+                                        ),
+                                        fontSize: 12,
+                                        textColor: AppConstant.blackColor.withOpacity(0.9),
+                                        fontWeight: FontWeight.w500,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                AppUtils.commonSizedBox(width: 3),
-                                AppUtils.commonTextWidget(
-                                    text: AppUtils.getDate(
-                                        date: viewTaskProvider.taskByIdModel
-                                                ?.data?.createdOn ??
-                                            "",
-                                        format: "hh:mm a"),
-                                    fontSize: 12,
-                                    textColor:
-                                        AppConstant.blackColor.withOpacity(0.9),
-                                    fontWeight: FontWeight.w500)
-                              ],
-                            ),
-                          ],
+                              ),
+                            ],
+                          ),
                         ),
+
+
+
                         AppUtils.commonSizedBox(height: 5),
                         Divider(
                           color: AppConstant.greyColor.withOpacity(0.3),

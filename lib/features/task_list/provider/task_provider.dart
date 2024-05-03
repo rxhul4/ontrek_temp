@@ -27,6 +27,7 @@ class TaskProvider extends ChangeNotifier{
   GetAllTaskModel? getAllTaskModel;
   PanelController panelController = PanelController();
   DateTime selectedDate = DateTime.now();
+  bool? isInternetAvailable;
 
 
   Future<GetAllTaskModel?> apiCallGetTaskByIdList(
@@ -54,9 +55,9 @@ class TaskProvider extends ChangeNotifier{
       }
     } catch (e) {
       print('catch at Get Task Provider $e');
-      AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentContext,text: getAllTaskModel?.message ?? "");
-      bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
-      if (!isInternetAvailable) {
+      // AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentContext,text: getAllTaskModel?.message ?? "");
+      isInternetAvailable = await AppUtils.checkInternetConnectivity();
+      if (isInternetAvailable  == false) {
         getAllTaskModel = GetAllTaskModel(
             message: "Internet is not available, please try again!");
       } else {

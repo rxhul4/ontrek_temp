@@ -12,10 +12,11 @@ import 'package:ontrek/features/track_function/provider/salesmen_list_provider.d
 import 'package:provider/provider.dart';
 
 class TrackScreen extends StatefulWidget {
- List<Map<String,dynamic>>? getUsersFromSheet;
+
+ Function(List<Map<String,dynamic>>?)? onUserFetch;
   TrackScreen({
     super.key,
-    this.getUsersFromSheet
+    this.onUserFetch
   });
 
   @override
@@ -38,7 +39,15 @@ class _TrackScreenState extends State<TrackScreen>
           Provider.of<SalesMenListProvider>(context, listen: false);
       salesMenListProvider.panelController
           .animatePanelToSnapPoint(duration: Duration(milliseconds: 0));
-      salesMenListProvider.apiCallGetSalesManList();
+      salesMenListProvider.apiCallGetSalesManList().then((value) {
+        if(value?.isValidationFailed == false && value?.isError == false){
+          if(widget.onUserFetch != null){
+            widget.onUserFetch!(salesMenListProvider.showUserInMap);
+          }
+        }
+      });
+
+
     });
     tabController = TabController(length: 3, vsync: this);
     tabControllerAddListener();
@@ -57,6 +66,7 @@ class _TrackScreenState extends State<TrackScreen>
   @override
   Widget build(BuildContext context) {
     salesMenListProvider = Provider.of<SalesMenListProvider>(context);
+
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
     return AppUtils.commonSlidePanel(
@@ -81,8 +91,7 @@ class _TrackScreenState extends State<TrackScreen>
                     onTap: () {
                       salesMenListProvider.showAndHideSearchWidget(true);
                       salesMenListProvider.animatePanel();
-
-                    },
+                      },
                   ),
                   AppUtils.commonSizedBox(width: 10),
                   commonIconWidget(
@@ -234,8 +243,11 @@ class _TrackScreenState extends State<TrackScreen>
 
     String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
 
+
+
     return Column(
       children: [
+
         (salesMenListProvider?.isFetching ?? false)
             ? Padding(
                 padding: EdgeInsets.only(top: 80),
@@ -245,6 +257,7 @@ class _TrackScreenState extends State<TrackScreen>
                 ? Padding(
                     padding: EdgeInsets.only(top: 50),
                     child: AppUtils.commonNoDataFound(
+                      text: salesMenListProvider?.getSalesMenListModel?.message ?? "",
                       onPressed: () {
                         salesMenListProvider?.apiCallGetSalesManList();
                       },
@@ -334,5 +347,9 @@ class _TrackScreenState extends State<TrackScreen>
                   ),
       ],
     );
+  }
+   checkInternet()async{
+    bool? isInternetAvailable = await AppUtils.checkInternetConnectivity();
+    return isInternetAvailable;
   }
 }

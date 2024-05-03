@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:ontrek/core/common_widgets/marker_widget.dart';
 
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
@@ -28,6 +29,8 @@ class DashBoard extends StatefulWidget {
 
 class DashBoardState extends State<DashBoard> {
 
+  List<Map<String,dynamic>> showUserInMap = [];
+
   List<String> lableString = [
     "Attendance",
     "Track",
@@ -43,6 +46,7 @@ class DashBoardState extends State<DashBoard> {
     profileIconPath,
   ];
 late DashBoardProvider dashBoardProvider;
+  final GlobalKey globalKey = GlobalKey();
 
 GoogleMapController? googleMapController;
   @override
@@ -50,19 +54,18 @@ GoogleMapController? googleMapController;
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       dashBoardProvider = Provider.of<DashBoardProvider>(context,listen: false);
+      if(!mounted){}
       dashBoardProvider.initialIndex();
-      setState(() {});
       dashBoardProvider.checkPermission();
-      dashBoardProvider.getCurrentLocation();
+      // dashBoardProvider.addUsersMarker();
+      setState(() {});
     });
 
   }
 
-
-
   @override
   Widget build(BuildContext context) {
-    final dashBoardProvider = Provider.of<DashBoardProvider>(context);
+    dashBoardProvider = Provider.of<DashBoardProvider>(context);
     final height = MediaQuery.of(context).size.height;
     print("height====${height}");
     return Scaffold(
@@ -84,10 +87,22 @@ GoogleMapController? googleMapController;
           [
             AttendanceScreen(
                 onLocationFetch: (value) {
+                  print("locationFromBtn${value}");
               if (!mounted) {}
-              dashBoardProvider.getLocationFromSheet(position:  value);
+              dashBoardProvider.getLocationFromSheet(getCurrentLocation:  value);
             }),
-            TrackScreen(),
+            TrackScreen(onUserFetch: (value) {
+
+                if(value != null){
+                  dashBoardProvider.showUserInMap = value;
+                  dashBoardProvider.notifyListeners();
+                }
+                print("userInDashBoard${dashBoardProvider.showUserInMap}");
+                dashBoardProvider.markers.clear();
+                dashBoardProvider.addUsersMarker();
+
+
+            }),
             TaskListScreen(),
             LeadScreen(),
             ProfileScreen(),
@@ -114,10 +129,15 @@ GoogleMapController? googleMapController;
                 child: GestureDetector(
                   onTap: () {
                     HapticFeedback.vibrate();
-
                     if(!mounted){}
                     dashBoardProvider.selectIndex(index);
-                    dashBoardProvider.getCurrentLocation();
+                    if(dashBoardProvider.selectedIndex == 0 ){
+                      dashBoardProvider.getCurrentLocation();
+                    }else{
+                      // dashBoardProvider.markers.clear();
+                      // dashBoardProvider.addUsersMarker();
+                    }
+
                     print("selected----${dashBoardProvider.selectedIndex}&& $index");
                   },
                   child: AnimatedContainer(

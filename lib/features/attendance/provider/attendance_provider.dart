@@ -41,6 +41,7 @@ class AttendanceProvider extends ChangeNotifier {
   bool isBiometricAvailable = false;
   AnimationController? controller;
   FlutterBackgroundService service = FlutterBackgroundService();
+  bool? isInternetAvailable;
 
 
 
@@ -167,8 +168,8 @@ class AttendanceProvider extends ChangeNotifier {
       AppUtils.showDialogBoxWithOneButton(text: AppConstant.errorText,context: navigatorKey.currentState!.context);
       print("inCatch ${createActivityModel?.message}");
       print("inCatchE $e");
-      bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
-      if (!isInternetAvailable) {
+    isInternetAvailable = await AppUtils.checkInternetConnectivity();
+      if (isInternetAvailable == false) {
         createActivityModel = CreateActivityModel(
             message: "Internet is not available, please try again!");
       } else {
