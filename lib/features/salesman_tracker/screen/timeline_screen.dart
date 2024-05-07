@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:http/http.dart';
 import 'package:ontrek/core/common_widgets/common_dialog_widget.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
@@ -228,15 +230,14 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
       }
     }
 
-    // markers.clear();
-    saleMenTimeLineProvider.sessionEvents.forEach((element) {
+    saleMenTimeLineProvider.sessionEvents.forEach((element) async{
       print("element${element.eventLat} & ${element.eventLong}");
-      // markers.clear();
+      print("eventId${element.eventCode}");
       if (element.sessionNo == selectedIndex) {
         markers.add(Marker(
             markerId: MarkerId("${element.eventId}"),
             position: LatLng(element.eventLat ?? 0, element.eventLong ?? 0),
-            icon: BitmapDescriptor.defaultMarker,
+            icon: getMarkerColor("${element.eventCode}"),
             infoWindow: InfoWindow(title: "${element.eventName}")
             // Adjust icon as needed
             ));
@@ -245,7 +246,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
           markers.add(Marker(
               markerId: MarkerId("${element.eventId}"),
               position: LatLng(element.eventLat ?? 0, element.eventLong ?? 0),
-              icon: BitmapDescriptor.defaultMarker,
+              icon: getMarkerColor("${element.eventCode}"),
               infoWindow: InfoWindow(title: "${element.eventName}")
               // Adjust icon as needed
               ));
@@ -254,6 +255,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
 
       print("marker$markers");
     });
+
     if (polylines.isNotEmpty) {
       if (selectedIndex == 0) {
         await updateCameraLocation(
@@ -277,6 +279,40 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
       }
     }
   }
+final  BitmapDescriptor dayStartColor = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
+final  BitmapDescriptor dayEndEventColor = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
+final  BitmapDescriptor checkInCheckOut = BitmapDescriptor.defaultMarkerWithHue(212.0);
+final  BitmapDescriptor waitingColor = BitmapDescriptor.defaultMarkerWithHue(30.0);
+final  BitmapDescriptor internetEventColor = BitmapDescriptor.defaultMarkerWithHue(204.0);
+final  BitmapDescriptor gpsEventColor = BitmapDescriptor.defaultMarkerWithHue(38.0);
+  BitmapDescriptor getMarkerColor(String eventCode) {
+    if (eventCode != null) {
+      switch (eventCode) {
+        case 'tracking_event_day_start':
+          return dayStartColor;
+        case 'tracking_event_check_in':
+        case 'tracking_event_check_out':
+          return checkInCheckOut; // #1B4E89
+        case 'tracking_event_waiting_start':
+        case 'tracking_event_waiting_end':
+          return waitingColor; // #d18950
+        case 'tracking_event_internet_on':
+        case 'tracking_event_internet_off':
+          return internetEventColor; // #268dc6
+        case 'tracking_event_gps_off':
+        case 'tracking_event_gps_on':
+          return gpsEventColor; // #f29900
+        default:
+          return dayEndEventColor;
+      }
+    } else {
+      print("event_code$eventCode");
+      return dayEndEventColor;
+    }
+  }
+
+
+
 
   Widget datePickerWidget(bool? isFromSheet) {
     return Align(

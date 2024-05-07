@@ -254,7 +254,7 @@ class _TrackScreenState extends State<TrackScreen>
                 child: AppUtils.loaderWidget(),
               )
             : (getSalesMenListModelData?.length ?? 0) <= 0
-                ? Padding(
+                ?  Padding(
                     padding: EdgeInsets.only(top: 50),
                     child: AppUtils.commonNoDataFound(
                       text: salesMenListProvider?.getSalesMenListModel?.message ?? "",
@@ -273,7 +273,6 @@ class _TrackScreenState extends State<TrackScreen>
                         const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 4, childAspectRatio: 4 / 4.5),
                     itemBuilder: (BuildContext context, int index) {
-
                       return  AppUtils.commonInkWell(
                         onTap: () {
 

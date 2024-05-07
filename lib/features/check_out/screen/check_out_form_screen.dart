@@ -42,7 +42,8 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
   bool isBiometricAvailable = false;
   bool isLoading = false;
   String? userUid;
-  var battery = Battery();
+  int? battery;
+  // var battery = Battery();
   int? batteryLevel;
   String? image64;
   bool showNoDataFound = false;

@@ -90,12 +90,12 @@ GoogleMapController? googleMapController;
                   print("locationFromBtn${value}");
               if (!mounted) {}
               dashBoardProvider.getLocationFromSheet(getCurrentLocation:  value);
+
             }),
             TrackScreen(onUserFetch: (value) {
 
                 if(value != null){
                   dashBoardProvider.showUserInMap = value;
-                  dashBoardProvider.notifyListeners();
                 }
                 print("userInDashBoard${dashBoardProvider.showUserInMap}");
                 dashBoardProvider.markers.clear();
@@ -131,6 +131,7 @@ GoogleMapController? googleMapController;
                     HapticFeedback.vibrate();
                     if(!mounted){}
                     dashBoardProvider.selectIndex(index);
+                    dashBoardProvider.markers.clear();
                     if(dashBoardProvider.selectedIndex == 0 ){
                       dashBoardProvider.getCurrentLocation();
                     }else{

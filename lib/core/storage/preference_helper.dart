@@ -48,9 +48,13 @@ class PreferenceHelper {
   static const String AllowCheckInCheckOut = "AllowCheckInCheckOut";
 
   static const String LIVE_LOCATION_TRACKING = "LIVE_LOCATION_TRACKING";
-  static const String LIVE_LOCATION_INTERVAL = "LIVE_LOCATION_INTERVAL";
+  static const String ALLOW_WAITING = "ALLOW_WAITING";
+
   static const String RESTRICTED_LOCATION_METER = "RESTRICTED_LOCATION_METER";
   static const String ALLOW_FG_AUTH = "ALLOW_FG_AUTH";
+
+  static const String LIVE_LOCATION_INTERVAL = "LIVE_LOCATION_INTERVAL";
+  static const String WAITING_TIME_INTERVAL = "WAITING_TIME_INTERVAL";
 
 
   static SharedPreferences? _prefs;

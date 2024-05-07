@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/cupertino.dart';
@@ -46,8 +47,7 @@ class DashBoardProvider extends ChangeNotifier {
   ValueNotifier<bool> isWaiting = ValueNotifier(false);
   GetLastActivityModel? getLastActivityModel;
   FlutterBackgroundService service = FlutterBackgroundService();
-  List<Map<String,dynamic>> showUserInMap = [];
-
+  List<Map<String, dynamic>> showUserInMap = [];
 
   loaderFnc(bool isLoading) {
     _isLoading = isLoading;
@@ -137,21 +137,105 @@ class DashBoardProvider extends ChangeNotifier {
     }
   }
 
-  Future<BitmapDescriptor> _getCustomMarkerIcon() async {
-    final Uint8List markerIcon = await getBytesFromNetwork(
-        'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1');
-    return BitmapDescriptor.fromBytes(markerIcon);
-  }
+  // Future<Uint8List> loadNetworkImage(path) async {
+  //   final completed = Completer<ImageInfo>();
+  //   var image = NetworkImage(path);
+  //   image.resolve(const ImageConfiguration()).addListener(
+  //       ImageStreamListener((info, _) => completed.complete(info)));
+  //   final imageInfo = await completed.future;
+  //   final byteData =
+  //       await imageInfo.image.toByteData(format: ui.ImageByteFormat.png);
+  //   if (byteData?.buffer.asUint8List() != null) {
+  //     return byteData!.buffer.asUint8List();
+  //   }
+  //   return byteData!.buffer.asUint8List();
+  // }
 
-  Future<Uint8List> getBytesFromNetwork(String url) async {
-    final response = await http.get(Uri.parse(url));
-    final bytes = response.bodyBytes;
-    return bytes;
-  }
+  // Future<Uint8List> loadNetworkImage(String path, {double size = 130}) async {
+  //   final completed = Completer<ImageInfo>();
+  //   var image = NetworkImage(path);
+  //   image.resolve(const ImageConfiguration()).addListener(
+  //     ImageStreamListener((info, _) => completed.complete(info)),
+  //   );
+  //   final imageInfo = await completed.future;
+  //   final byteData = await imageInfo.image.toByteData(format: ui.ImageByteFormat.png);
+  //   if (byteData?.buffer.asUint8List() != null) {
+  //     final resizedImage = await _resizeAndRoundImage(byteData!.buffer.asUint8List(), size);
+  //     return resizedImage;
+  //   }
+  //   throw Exception("Failed to load image");
+  // }
+  //
+  // Future<Uint8List> _resizeAndRoundImage(Uint8List imageData, double size) async {
+  //   final Completer<Uint8List> completer = Completer();
+  //   final Codec imageCodec = await instantiateImageCodec(imageData);
+  //   final FrameInfo frameInfo = await imageCodec.getNextFrame();
+  //   final ui.Image image = frameInfo.image;
+  //
+  //   final resizedImage = await _resizeImage(image, size);
+  //   final roundedImage = await _roundImage(resizedImage,Colors.grey,1);
+  //
+  //   final ByteData? byteData = await roundedImage.toByteData(format: ui.ImageByteFormat.png);
+  //   completer.complete(byteData!.buffer.asUint8List());
+  //   return completer.future;
+  // }
+  //
+  // Future<ui.Image> _resizeImage(ui.Image image, double size) {
+  //   final Completer<ui.Image> completer = Completer();
+  //   final Size newSize = Size(size, size);
+  //   final Size imageSize = Size(image.width.toDouble(), image.height.toDouble());
+  //   final FittedSizes fittedSizes = applyBoxFit(BoxFit.cover, imageSize, newSize);
+  //   final Rect viewportRect = Alignment.center.inscribe(fittedSizes.destination, Offset.zero & newSize);
+  //
+  //   final PictureRecorder recorder = PictureRecorder();
+  //   final Canvas canvas = Canvas(recorder, viewportRect);
+  //   canvas.drawImageRect(image, Offset.zero & imageSize, viewportRect, Paint());
+  //   final Picture picture = recorder.endRecording();
+  //   picture.toImage(newSize.width.toInt(), newSize.height.toInt()).then((ui.Image image) {
+  //     completer.complete(image);
+  //   });
+  //   return completer.future;
+  // }
+  // Future<ui.Image> _roundImage(ui.Image image, Color borderColor, double borderWidth) {
+  //   final Completer<ui.Image> completer = Completer();
+  //   final Size size = Size(image.width.toDouble(), image.height.toDouble());
+  //
+  //   final PictureRecorder recorder = PictureRecorder();
+  //   final Canvas canvas = Canvas(recorder);
+  //
+  //   // Draw border
+  //   final Paint borderPaint = Paint()
+  //     ..isAntiAlias = true
+  //     ..color = borderColor
+  //     ..strokeWidth = borderWidth
+  //     ..style = PaintingStyle.stroke;
+  //   final Rect borderRect = Rect.fromLTWH(0, 0, size.width, size.height);
+  //   canvas.drawOval(borderRect, borderPaint);
+  //
+  //   final Paint paint = Paint()
+  //     ..isAntiAlias = true
+  //     ..color = Colors.transparent;
+  //   canvas.drawCircle(size.center(Offset.zero), size.shortestSide / 2.0, paint);
+  //
+  //   final Path clipPath = Path()
+  //     ..addOval(Rect.fromCircle(center: size.center(Offset.zero), radius: size.shortestSide / 2.0));
+  //   canvas.clipPath(clipPath);
+  //
+  //   canvas.drawImage(image, Offset.zero, Paint());
+  //   final Picture picture = recorder.endRecording();
+  //
+  //   picture.toImage(size.width.toInt(), size.height.toInt()).then((ui.Image image) {
+  //     completer.complete(image);
+  //   });
+  //   return completer.future;
+  // }
 
   Future addCurrentLocationMarker(LatLng location) async {
     try {
+      // Uint8List markerWithImage = await loadNetworkImage(
+      //     "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
       markers.clear(); // Clear previous markers
+
       await markers.add(
         Marker(
           markerId: MarkerId("currentLocation"),
@@ -199,15 +283,17 @@ class DashBoardProvider extends ChangeNotifier {
           Marker(
             markerId: MarkerId("$userId"),
             position: LatLng(userLat ?? 0, userLong ?? 0),
-            infoWindow: InfoWindow(title: userName ?? "",),
+            infoWindow: InfoWindow(
+              title: userName ?? "",
+            ),
             icon: (userProfilePic != null)
                 ? await CustomMarkerWidget(
-              imageUrl: userProfilePic,
-            ).toBitmapDescriptor(
-              logicalSize: Size(150, 150),
-              imageSize: Size(300, 300),
-              waitToRender: Duration(milliseconds: 300),
-            )
+                    imageUrl: userProfilePic,
+                  ).toBitmapDescriptor(
+                    logicalSize: Size(150, 150),
+                    imageSize: Size(300, 300),
+                    waitToRender: Duration(milliseconds: 300),
+                  )
                 : BitmapDescriptor.defaultMarker,
           ),
         );
@@ -217,21 +303,21 @@ class DashBoardProvider extends ChangeNotifier {
       }
     }
 
-
     sourceLat = showUserInMap.first["userLastLat"];
     sourceLong = showUserInMap.first["userLastLong"];
     destinationLat = showUserInMap.last["userLastLat"];
     destinationLong = showUserInMap.last["userLastLong"];
     print("source${LatLng(sourceLat ?? 0, sourceLong ?? 0)}");
     print("destination${LatLng(destinationLat ?? 0, destinationLong ?? 0)}");
-    updateCameraLocation(LatLng(sourceLat ?? 0, sourceLong ?? 0),LatLng(destinationLat ?? 0, destinationLong ?? 0));
+    updateCameraLocation(LatLng(sourceLat ?? 0, sourceLong ?? 0),
+        LatLng(destinationLat ?? 0, destinationLong ?? 0));
     notifyListeners();
   }
-  Future<void> updateCameraLocation(
-      LatLng source,
-      LatLng destination,
-      ) async {
 
+  Future<void> updateCameraLocation(
+    LatLng source,
+    LatLng destination,
+  ) async {
     if (googleMapController == null) return;
 
     LatLngBounds bounds;
@@ -255,6 +341,7 @@ class DashBoardProvider extends ChangeNotifier {
 
     return checkCameraLocation(cameraUpdate, googleMapController!);
   }
+
   Future<void> checkCameraLocation(
       CameraUpdate cameraUpdate, GoogleMapController mapController) async {
     mapController.animateCamera(cameraUpdate);
@@ -266,13 +353,13 @@ class DashBoardProvider extends ChangeNotifier {
     }
   }
 
- getLocationFromSheet({LatLng? getCurrentLocation}){
+  getLocationFromSheet({LatLng? getCurrentLocation}) {
     currentLocation = getCurrentLocation ?? LatLng(0, 0);
     print("currentLocation$currentLocation");
-    if(currentLocation != null){
+    if (currentLocation != null) {
       addCurrentLocationMarker(currentLocation ?? LatLng(0, 0));
       updateCameraPosition(currentLocation ?? LatLng(0, 0));
     }
     notifyListeners();
- }
+  }
 }

@@ -344,7 +344,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           attendanceProvider.getCurrentLocation().then((value) {
             if (widget.onLocationFetch != null) {
               widget.onLocationFetch!(
-                  LatLng(value?.latitude ?? 0, value?.latitude ?? 0));
+                  LatLng(value?.latitude ?? 0, value?.longitude ?? 0));
             }
           });
         });

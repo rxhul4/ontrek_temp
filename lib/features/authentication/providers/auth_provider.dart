@@ -292,10 +292,20 @@ class AuthenticationProvider extends ChangeNotifier {
         PreferenceHelper.LIVE_LOCATION_TRACKING,
         loginModel?.data?.appUserConfigTrackingRequest?.allowLiveTracking ??
             false);
+    PreferenceHelper.setBool(
+        PreferenceHelper.ALLOW_WAITING,
+        loginModel?.data?.appUserConfigTrackingRequest?.allowIdleMarker ??
+            false);
     PreferenceHelper.setInt(
         PreferenceHelper.LIVE_LOCATION_INTERVAL,
         loginModel?.data?.appUserConfigTrackingRequest?.liveTrackingInterval ??
             0);
+    PreferenceHelper.setInt(
+        PreferenceHelper.WAITING_TIME_INTERVAL,
+        loginModel?.data?.appUserConfigTrackingRequest?.idleMarkerTime ??
+            0);
+    int? liveLocationInterval= PreferenceHelper.getInt(PreferenceHelper.LIVE_LOCATION_INTERVAL);
+    print("intervalTime$liveLocationInterval");
 
 
     print("data : ${PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN)}");
