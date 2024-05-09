@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:ontrek/core/common_widgets/custom_upgrader_message.dart';
 import 'package:ontrek/core/common_widgets/marker_widget.dart';
 
 import 'package:ontrek/core/utils/app_constant.dart';
@@ -19,6 +20,7 @@ import 'package:ontrek/features/profile/screen/profile_screen.dart';
 import 'package:ontrek/features/task_list/screen/task_list_screen.dart';
 import 'package:ontrek/features/track_function/screen/track_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:upgrader/upgrader.dart';
 
 class DashBoard extends StatefulWidget {
   const DashBoard({super.key});
@@ -57,7 +59,7 @@ GoogleMapController? googleMapController;
       if(!mounted){}
       dashBoardProvider.initialIndex();
       dashBoardProvider.checkPermission();
-      // dashBoardProvider.addUsersMarker();
+
       setState(() {});
     });
 
@@ -69,45 +71,51 @@ GoogleMapController? googleMapController;
     final height = MediaQuery.of(context).size.height;
     print("height====${height}");
     return Scaffold(
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: GoogleMap(
-                zoomControlsEnabled: false,
-                padding: AppUtils.edgeInsetsOnly(
-                    bottom: MediaQuery.of(context).size.height * 0.3),
-                mapType: MapType.normal,
-                onMapCreated: (GoogleMapController  controller) {
-                  dashBoardProvider.googleMapController = controller;
-                },
-                markers: dashBoardProvider.markers,
-                initialCameraPosition:
-                    CameraPosition(target: LatLng(0, 0), zoom: 14)),
-          ),
-          [
-            AttendanceScreen(
-                onLocationFetch: (value) {
-                  print("locationFromBtn${value}");
-              if (!mounted) {}
-              dashBoardProvider.getLocationFromSheet(getCurrentLocation:  value);
+      body: UpgradeAlert(
+        showReleaseNotes: false,
+        upgrader: Upgrader(
+            messages: CustomUpgraderMessage()
+        ),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: GoogleMap(
+                  zoomControlsEnabled: false,
+                  padding: AppUtils.edgeInsetsOnly(
+                      bottom: MediaQuery.of(context).size.height * 0.3),
+                  mapType: MapType.normal,
+                  onMapCreated: (GoogleMapController  controller) {
+                    dashBoardProvider.googleMapController = controller;
+                  },
+                  markers: dashBoardProvider.markers,
+                  initialCameraPosition:
+                      CameraPosition(target: LatLng(0, 0), zoom: 14)),
+            ),
+            [
+              AttendanceScreen(
+                  onLocationFetch: (value) {
+                    print("locationFromBtn${value}");
+                if (!mounted) {}
+                dashBoardProvider.getLocationFromSheet(getCurrentLocation:  value);
 
-            }),
-            TrackScreen(onUserFetch: (value) {
+              }),
+              TrackScreen(onUserFetch: (value) {
 
-                if(value != null){
-                  dashBoardProvider.showUserInMap = value;
-                }
-                print("userInDashBoard${dashBoardProvider.showUserInMap}");
-                dashBoardProvider.markers.clear();
-                dashBoardProvider.addUsersMarker();
+                  if(value != null){
+                    dashBoardProvider.showUserInMap = value;
+                  }
+                  print("userInDashBoard${dashBoardProvider.showUserInMap}");
+                  dashBoardProvider.markers.clear();
+                  dashBoardProvider.addUsersMarker();
 
 
-            }),
-            TaskListScreen(),
-            LeadScreen(),
-            ProfileScreen(),
-          ][dashBoardProvider.selectedIndex],
-        ],
+              }),
+              TaskListScreen(),
+              LeadScreen(),
+              ProfileScreen(),
+            ][dashBoardProvider.selectedIndex],
+          ],
+        ),
       ),
       bottomNavigationBar: AppUtils.commonContainer(
         height: 60,

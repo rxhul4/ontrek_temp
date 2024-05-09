@@ -377,7 +377,8 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
   }
 
   radioWidget() {
-    return ListView.builder(
+    return GridView.builder(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2,childAspectRatio: 3/1),
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: viewTaskProvider.getTotByGroupTypeModel?.data?.length,
@@ -385,9 +386,8 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
         return RadioListTile(
           contentPadding: AppUtils.edgeInsetsAll(allPadding: 0),
           title: AppUtils.commonContainer(
-            margin: const EdgeInsets.only(right: 200),
-            padding:
-                AppUtils.edgeInsetsOnly(bottom: 3, top: 3, left: 10, right: 10),
+            height: 25,
+            margin: const EdgeInsets.only(right: 30),
             decoration: AppUtils.commonBoxDecoration(
                 borderRadius: BorderRadius.circular(6),
                 color: AppUtils.switchCaseForTaskStatus(viewTaskProvider

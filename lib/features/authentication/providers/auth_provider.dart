@@ -138,7 +138,7 @@ class AuthenticationProvider extends ChangeNotifier {
           loginModel?.isValidationFailed == false) {
         PreferenceHelper.setString(
             PreferenceHelper.USER_NAME, loginModel?.data?.userName ?? "");
-        navigatePushFnc(OTPVerificationCode(
+        navigatePushReplacementFnc(OTPVerificationCode(
           appUserId: loginModel?.data?.appUserId,
         ));
       } else {
@@ -213,7 +213,7 @@ class AuthenticationProvider extends ChangeNotifier {
       if (loginModel?.isError == false &&
           loginModel?.isValidationFailed == false) {
         saveDataToPref().then((value) {
-          navigatePushReplacementFnc(DashBoard());
+          navigatePushReplacementFnc(const DashBoard());
         });
       } else {
         AppUtils.showDialogBoxWithOneButton(

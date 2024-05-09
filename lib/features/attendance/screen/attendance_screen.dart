@@ -490,7 +490,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         int? restrictedLocationMeter = PreferenceHelper.getInt(
                             PreferenceHelper.RESTRICTED_LOCATION_METER);
                         Position position = await Geolocator.getCurrentPosition(
-                            desiredAccuracy: LocationAccuracy.low);
+                            desiredAccuracy: LocationAccuracy.best);
 
                         double? distance = Geolocator.distanceBetween(
                             restrictedLocationLat ?? 0,
@@ -749,7 +749,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                         .RESTRICTED_LOCATION_METER);
                                 Position position =
                                     await Geolocator.getCurrentPosition(
-                                        desiredAccuracy: LocationAccuracy.low);
+                                        desiredAccuracy: LocationAccuracy.best);
 
                                 double? distance = Geolocator.distanceBetween(
                                     restrictedLocationLat ?? 0,
@@ -808,7 +808,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                     PreferenceHelper.RESTRICTED_LOCATION_METER);
                             Position position =
                                 await Geolocator.getCurrentPosition(
-                                    desiredAccuracy: LocationAccuracy.low);
+                                    desiredAccuracy: LocationAccuracy.best);
 
                             double? distance = Geolocator.distanceBetween(
                                 restrictedLocationLat ?? 0,
@@ -984,7 +984,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                   PreferenceHelper.RESTRICTED_LOCATION_METER);
                           Position position =
                               await Geolocator.getCurrentPosition(
-                                  desiredAccuracy: LocationAccuracy.low);
+                                  desiredAccuracy: LocationAccuracy.best);
 
                           double? distance = Geolocator.distanceBetween(
                               restrictedLocationLat ?? 0,

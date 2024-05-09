@@ -1,6 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 
 class CustomMarkerWidget extends StatelessWidget {
@@ -31,7 +30,7 @@ class CustomMarkerWidget extends StatelessWidget {
             child: ClipOval(
               child: CachedNetworkImage(
                 imageUrl: imageUrl ?? "",
-                placeholder: (context, url) => Center(child: CircularProgressIndicator(strokeWidth: 0.5,color: AppConstant.appPrimaryColor,)),
+                placeholder: (context, url) => Center(child:Icon(Icons.person, size: 24, color: AppConstant.appPrimaryColor)),
                 errorWidget: (context, url, error) => Icon(Icons.person, size: 24, color: AppConstant.appPrimaryColor),
                 fit: BoxFit.cover,
               ),

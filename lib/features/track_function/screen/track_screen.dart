@@ -257,7 +257,7 @@ class _TrackScreenState extends State<TrackScreen>
                 ?  Padding(
                     padding: EdgeInsets.only(top: 50),
                     child: AppUtils.commonNoDataFound(
-                      text: salesMenListProvider?.getSalesMenListModel?.message ?? "",
+                      text: "No Salesman Found",
                       onPressed: () {
                         salesMenListProvider?.apiCallGetSalesManList();
                       },

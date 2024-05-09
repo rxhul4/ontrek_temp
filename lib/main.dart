@@ -86,6 +86,7 @@ class _MyAppState extends State<MyApp> {
       title: 'Project Base',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: AppConstant.btnColor),
+
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,

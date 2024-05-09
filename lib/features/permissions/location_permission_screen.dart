@@ -20,13 +20,25 @@ class LocationPermissionScreen extends StatefulWidget {
 }
 
 class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
-  String? roleId;
+  bool? isLogIn;
+  late ScrollController scrollController;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    roleId = PreferenceHelper.getString(PreferenceHelper.ROLE_ID);
+    isLogIn = PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN);
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      scrollController = ScrollController();
+      AppUtils.showDialogBoxForPrivacyPolicy(
+          titleText: "Location Access Policy",
+          context: context,
+          text3: "Application will collect user lattitude and longitude and will send to server for business purpose. User location will be provided to respective organization user associated with for business purposes.",
+          text2: "List of App Feature uses location \n 1. Day Start Activity\n 2. Day End Activity\n3. Check-in Activity\n4. Check-out Activity\n5. GPS On-Off Activity\n6. Internet On-Off Activity",
+          text: "Location data is collected during active sessions for business purposes, even when the application is in the background. Location will not be collected for the user if there is no active session.");
+    });
+
+
   }
 
   @override
@@ -122,7 +134,7 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
       // _showCustomPopup();
     } else {
       if (statusOfAlwaysOnPermission.isGranted) {
-        if (roleId == null) {
+        if (isLogIn == false) {
           Navigator.pushReplacement(
               context,
               CupertinoPageRoute(

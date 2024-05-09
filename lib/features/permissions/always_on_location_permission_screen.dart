@@ -24,6 +24,14 @@ class _AlwaysPermissionScreenState extends State<AlwaysPermissionScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      AppUtils.showDialogBoxForPrivacyPolicy(
+          titleText: "Location Access Policy",
+          context: context,
+          text3: "Application will collect user lattitude and longitude and will send to server for business purpose. User location will be provided to respective organization user associated with for business purposes.",
+          text2: "List of App Feature uses location \n 1. Day Start Activity\n 2. Day End Activity\n3. Check-in Activity\n4. Check-out Activity\n5. GPS On-Off Activity\n6. Internet On-Off Activity",
+          text: "Location data is collected during active sessions for business purposes, even when the application is in the background. Location will not be collected for the user if there is no active session.");
+    });
   }
   @override
   Widget build(BuildContext context) {

@@ -66,6 +66,7 @@ dependencies:
   pin_code_fields: ^8.0.1
   flutter_polyline_points: ^2.0.0
   widget_to_marker: ^1.0.4
+  webview_flutter: ^4.7.0
 
 
 dev_dependencies:

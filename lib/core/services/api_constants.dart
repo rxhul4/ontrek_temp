@@ -1,5 +1,10 @@
 class ApiConstants{
-   static const String baseUrl = "http://ontrek_v1api.epistic.net";
+
+   // encrypted url
+   static const String baseUrl = "https://api.ontrek.io";
+
+   //testing Url
+   // static const String baseUrl = "http://ontrek_v1api.epistic.net";
 
    //Authentication Api
       static const String login = "$baseUrl/FieldUser/Login";

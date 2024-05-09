@@ -817,7 +817,7 @@ class AppUtils {
       required Function() onSuccess,
       String? onCancelString,
       required Function() onCancel}) {
-    return showDialog(
+    return showCupertinoDialog(
       context: context ?? navigatorKey.currentState!.context,
       builder: (context) {
         return CupertinoAlertDialog(
@@ -870,10 +870,12 @@ class AppUtils {
 
   static showDialogBoxWithOneButton(
       {BuildContext? context, String? text, String? titleText}) {
-    return showDialog(
+    return showCupertinoDialog(
       context: context ?? navigatorKey.currentState!.context,
       builder: (context) {
         return CupertinoAlertDialog(
+          insetAnimationDuration: Duration(milliseconds: 400),
+          insetAnimationCurve: Curves.bounceIn,
           title: AppUtils.commonTextWidget(
               text: titleText ?? "Error",
               textColor: AppConstant.blackColor,
@@ -895,17 +897,109 @@ class AppUtils {
               },
             ),
           ],
-          content: AppUtils.commonTextWidget(
-              text: text ?? "",
-              textColor: AppConstant.blackColor,
-              fontSize: 12,
-              textAlign: TextAlign.center,
-              fontWeight: FontWeight.w500,
-              letterSpacing: 0.5),
+          content: Padding(
+            padding: const EdgeInsets.only(top: 10,left: 0,right: 0),
+            child: AppUtils.commonTextWidget(
+                text: text ?? "",
+                textColor: AppConstant.blackColor,
+                fontSize: 12,
+                textAlign: TextAlign.center,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.5),
+          ),
         );
       },
     );
   }
+
+  static showDialogBoxForPrivacyPolicy({
+    BuildContext? context,
+    String? text,
+    String? titleText,
+    String? text2,
+    String? text3,
+  }) {
+    return showDialog(
+
+      context: context ?? navigatorKey.currentState!.context,
+      builder: (context) {
+        return AlertDialog(backgroundColor: AppConstant.whiteColor,
+          surfaceTintColor: AppConstant.transparentColor,
+
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              AppUtils.commonSizedBox(height: 30, width: 30),
+              AppUtils.commonTextWidget(
+                text: titleText ?? "Error",
+                textColor: AppConstant.blackColor,
+                fontSize: 14,
+                textAlign: TextAlign.center,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+              ),
+              GestureDetector(onTap: () {
+                Navigator.pop(context);
+              },child: Icon(Icons.close,color: AppConstant.appPrimaryColor,size: 30,))
+            ],
+          ),
+          actions: [
+            CupertinoDialogAction(
+              child: AppUtils.commonTextWidget(
+                text: "I Accept",
+                textColor: AppConstant.appPrimaryColor,
+                fontSize: 14,
+                textAlign: TextAlign.center,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.5,
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+          content: Wrap(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: AppUtils.commonTextWidget(
+                  text: text ?? "",
+                  textColor: AppConstant.blackColor,
+                  fontSize: 12,
+                  textAlign: TextAlign.left,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: AppUtils.commonTextWidget(
+                  text: text3 ?? "",
+                  textColor: AppConstant.blackColor,
+                  fontSize: 12,
+                  textAlign: TextAlign.left,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: AppUtils.commonTextWidget(
+                  text: text2 ?? "",
+                  textColor: AppConstant.blackColor,
+                  fontSize: 12,
+                  textAlign: TextAlign.left,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
 
   static Widget commonContainer({
     double? height,

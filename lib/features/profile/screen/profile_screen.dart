@@ -2,11 +2,11 @@ import 'package:app_settings/app_settings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:ontrek/core/common_widgets/common_webview_widget.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/features/authentication/screens/login_with_phone_number.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -91,13 +91,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               path: profileImage),
                         ),
                       ),
-                      AppUtils.commonContainer(
-                        padding: EdgeInsets.all(5),
-                        decoration: AppUtils.commonBoxDecoration(
-                            color: AppConstant.appPrimaryColor,
-                            shape: BoxShape.circle),
-                        child: Icon(Icons.edit, size: 15, color: Colors.white),
-                      )
+
+
                     ],
                   ),
                   AppUtils.commonSizedBox(height: 10),
@@ -253,30 +248,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
       case 0:
         AppUtils.showDialogBoxWithOneButton(
           titleText: "Help",
-          text: "You Tapped on Help",
+          text: "For Help contact to your reporting manager",
           context: context,
         );
         break;
       case 1:
-        AppUtils.showDialogBoxWithOneButton(
-          titleText: "FAQ",
-          text: "You Tapped on FAQ",
-          context: context,
-        );
+        Navigator.push(context, CupertinoPageRoute(builder: (context) => CommonWebViewWidget(title: "FAQ",url:"https://ontrek.io/faq" ),));
         break;
       case 2:
-        AppUtils.showDialogBoxWithOneButton(
-          titleText: "Terms & Conditions",
-          text: "You Tapped on Terms & Conditions",
-          context: context,
-        );
+        Navigator.push(context, CupertinoPageRoute(builder: (context) => CommonWebViewWidget(title: "FAQ",url:"https://ontrek.io/terms-conditions" ),));
         break;
       case 3:
-        AppUtils.showDialogBoxWithOneButton(
-          titleText: "Privacy & Policy",
-          text: "You Tapped on Privacy & Policy",
-          context: context,
-        );
+        Navigator.push(context, CupertinoPageRoute(builder: (context) => CommonWebViewWidget(title: "Privacy Policy",url:"https://ontrek.io/privacy-policy" ),));
+        // AppUtils.launchToBrowser(Uri.parse("https://ontrek.io/privacy-policy"));
+        // https://ontrek.io/terms-conditions
         break;
       case 4:
         AppSettings.openAppSettings();
