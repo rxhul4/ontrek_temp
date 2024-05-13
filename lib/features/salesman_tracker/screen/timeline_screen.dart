@@ -72,9 +72,24 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
     controller.animateCamera(CameraUpdate.newCameraPosition(
       CameraPosition(
         target: location,
-        zoom: 10,
+        zoom: 12,
       ),
     ));
+  }
+
+  void addTimeLineMarker(
+      {String? eventId,
+      required LatLng location,
+      String? eventCode,
+      String? eventName}) {
+    markers.clear();
+    markers.add(Marker(
+        markerId: MarkerId("$eventId"),
+        position: location,
+        icon: getMarkerColor("$eventCode"),
+        infoWindow: InfoWindow(title: "${eventName}")
+        // Adjust icon as needed
+        ));
   }
 
   void addCurrentLocationMarker(LatLng location) async {
@@ -230,7 +245,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
       }
     }
 
-    saleMenTimeLineProvider.sessionEvents.forEach((element) async{
+    saleMenTimeLineProvider.sessionEvents.forEach((element) async {
       print("element${element.eventLat} & ${element.eventLong}");
       print("eventId${element.eventCode}");
       if (element.sessionNo == selectedIndex) {
@@ -258,33 +273,34 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
 
     if (polylines.isNotEmpty) {
       if (selectedIndex == 0) {
-        await updateCameraLocation(
-            LatLng(
-                saleMenTimeLineProvider.getTimeLineModel?.data?.sessionTimeLine
-                        ?.first.sessionRouteHistory?.latlongArray?.first.x ??
-                    0,
-                saleMenTimeLineProvider.getTimeLineModel?.data?.sessionTimeLine
-                        ?.first.sessionRouteHistory?.latlongArray?.first.y ??
-                    0),
-            LatLng(
-                saleMenTimeLineProvider.getTimeLineModel?.data?.sessionTimeLine
-                        ?.last.sessionRouteHistory?.latlongArray?.last.x ??
-                    0,
-                saleMenTimeLineProvider.getTimeLineModel?.data?.sessionTimeLine
-                        ?.last.sessionRouteHistory?.latlongArray?.last.y ??
-                    0));
+        List<LatLng> policoordinates = [];
+
+        saleMenTimeLineProvider.getTimeLineModel?.data?.sessionTimeLine
+            ?.forEach((session) {
+          session.sessionRouteHistory?.latlongArray?.forEach((latLng) {
+            policoordinates.add(LatLng(latLng.x ?? 0, latLng.y ?? 0));
+          });
+        });
+        await boundsFromLatLngList(policoordinates);
       } else {
-        await updateCameraLocation(
-            polylineCoordinates.first, polylineCoordinates.last);
+        await boundsFromLatLngList(polylineCoordinates);
       }
     }
   }
-final  BitmapDescriptor dayStartColor = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
-final  BitmapDescriptor dayEndEventColor = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
-final  BitmapDescriptor checkInCheckOut = BitmapDescriptor.defaultMarkerWithHue(212.0);
-final  BitmapDescriptor waitingColor = BitmapDescriptor.defaultMarkerWithHue(30.0);
-final  BitmapDescriptor internetEventColor = BitmapDescriptor.defaultMarkerWithHue(204.0);
-final  BitmapDescriptor gpsEventColor = BitmapDescriptor.defaultMarkerWithHue(38.0);
+
+  final BitmapDescriptor dayStartColor =
+      BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
+  final BitmapDescriptor dayEndEventColor =
+      BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
+  final BitmapDescriptor checkInCheckOut =
+      BitmapDescriptor.defaultMarkerWithHue(212.0);
+  final BitmapDescriptor waitingColor =
+      BitmapDescriptor.defaultMarkerWithHue(30.0);
+  final BitmapDescriptor internetEventColor =
+      BitmapDescriptor.defaultMarkerWithHue(204.0);
+  final BitmapDescriptor gpsEventColor =
+      BitmapDescriptor.defaultMarkerWithHue(38.0);
+
   BitmapDescriptor getMarkerColor(String eventCode) {
     if (eventCode != null) {
       switch (eventCode) {
@@ -311,9 +327,6 @@ final  BitmapDescriptor gpsEventColor = BitmapDescriptor.defaultMarkerWithHue(38
     }
   }
 
-
-
-
   Widget datePickerWidget(bool? isFromSheet) {
     return Align(
       alignment: Alignment.topCenter,
@@ -323,30 +336,22 @@ final  BitmapDescriptor gpsEventColor = BitmapDescriptor.defaultMarkerWithHue(38
     );
   }
 
-  Future<void> updateCameraLocation(
-    LatLng source,
-    LatLng destination,
-  ) async {
+  Future<void> boundsFromLatLngList(List<LatLng> list) async {
     final GoogleMapController mapController = await googleMapController.future;
-    if (mapController == null) return;
-
-    LatLngBounds bounds;
-
-    if (source.latitude > destination.latitude &&
-        source.longitude > destination.longitude) {
-      bounds = LatLngBounds(southwest: destination, northeast: source);
-    } else if (source.longitude > destination.longitude) {
-      bounds = LatLngBounds(
-          southwest: LatLng(source.latitude, destination.longitude),
-          northeast: LatLng(destination.latitude, source.longitude));
-    } else if (source.latitude > destination.latitude) {
-      bounds = LatLngBounds(
-          southwest: LatLng(destination.latitude, source.longitude),
-          northeast: LatLng(source.latitude, destination.longitude));
-    } else {
-      bounds = LatLngBounds(southwest: source, northeast: destination);
+    double? x0, x1, y0, y1;
+    for (LatLng latLng in list) {
+      if (x0 == null) {
+        x0 = x1 = latLng.latitude;
+        y0 = y1 = latLng.longitude;
+      } else {
+        if (latLng.latitude > x1!) x1 = latLng.latitude;
+        if (latLng.latitude < x0) x0 = latLng.latitude;
+        if (latLng.longitude > y1!) y1 = latLng.longitude;
+        if (latLng.longitude < y0!) y0 = latLng.longitude;
+      }
     }
-
+    LatLngBounds bounds =
+        LatLngBounds(northeast: LatLng(x1!, y1!), southwest: LatLng(x0!, y0!));
     CameraUpdate cameraUpdate = CameraUpdate.newLatLngBounds(bounds, 70);
 
     return checkCameraLocation(cameraUpdate, mapController);
@@ -507,6 +512,9 @@ final  BitmapDescriptor gpsEventColor = BitmapDescriptor.defaultMarkerWithHue(38
                                   onTap: () {
                                     setState(() {
                                       selectedIndex = 0;
+                                      panelController.animatePanelToSnapPoint(
+                                          duration:
+                                              Duration(milliseconds: 300));
                                     });
                                     print("selectedIndex $selectedIndex");
                                     polylines.clear();
@@ -564,6 +572,11 @@ final  BitmapDescriptor gpsEventColor = BitmapDescriptor.defaultMarkerWithHue(38
                                                             index]
                                                         .sessionNo ??
                                                     0;
+
+                                            panelController
+                                                .animatePanelToSnapPoint(
+                                                    duration: Duration(
+                                                        milliseconds: 300));
                                           });
                                           print("selectedIndex $selectedIndex");
                                           polylines.clear();
@@ -710,10 +723,10 @@ final  BitmapDescriptor gpsEventColor = BitmapDescriptor.defaultMarkerWithHue(38
                                 fontWeight: FontWeight.w400,
                                 fontSize: 12),
                             AppUtils.commonTextWidget(
-                                text: AppUtils.getDate(
+                                text: AppUtils.timeLineDate(
                                     date: sessionList?[index].eventStartDate ??
                                         "",
-                                    format: "HH:mm"),
+                                    ),
                                 textColor: AppConstant.blackColor,
                                 fontWeight: FontWeight.w400,
                                 fontSize: 10),
@@ -721,7 +734,18 @@ final  BitmapDescriptor gpsEventColor = BitmapDescriptor.defaultMarkerWithHue(38
                         ),
                       ),
                       endChild: AppUtils.commonInkWell(
-                        onTap: () {},
+                        onTap: () {
+                          panelController.animatePanelToSnapPoint(duration: Duration(milliseconds: 300));
+                          LatLng activityLatLong = LatLng(
+                              sessionList?[index].eventLat ?? 0,
+                              sessionList?[index].eventLong ?? 0);
+                          updateCameraPosition(activityLatLong);
+                          addTimeLineMarker(
+                              eventId: sessionList?[index].eventId,
+                              eventCode: sessionList?[index].eventCode,
+                              eventName: sessionList?[index].eventName,
+                              location: activityLatLong);
+                        },
                         child: AppUtils.commonContainer(
                           padding: AppUtils.edgeInsetsOnly(top: 5),
                           margin: AppUtils.edgeInsetsOnly(
@@ -992,6 +1016,8 @@ final  BitmapDescriptor gpsEventColor = BitmapDescriptor.defaultMarkerWithHue(38
                       value?.isValidationFailed == false) {
                     polylines.clear();
                     drawPolyLines();
+                    panelController.animatePanelToSnapPoint(
+                        duration: Duration(milliseconds: 300));
                   } else {
                     markers.clear();
                     polylines.clear();
@@ -1032,6 +1058,8 @@ final  BitmapDescriptor gpsEventColor = BitmapDescriptor.defaultMarkerWithHue(38
                     value?.isValidationFailed == false) {
                   polylines.clear();
                   drawPolyLines();
+                  panelController.animatePanelToSnapPoint(
+                      duration: Duration(milliseconds: 300));
                 } else {
                   markers.clear();
                   polylines.clear();
@@ -1097,6 +1125,8 @@ final  BitmapDescriptor gpsEventColor = BitmapDescriptor.defaultMarkerWithHue(38
         if (value?.isError == false && value?.isValidationFailed == false) {
           polylines.clear();
           drawPolyLines();
+          panelController.animatePanelToSnapPoint(
+              duration: Duration(milliseconds: 300));
         } else {
           markers.clear();
           polylines.clear();

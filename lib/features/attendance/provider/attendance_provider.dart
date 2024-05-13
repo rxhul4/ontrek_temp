@@ -273,10 +273,25 @@ class AttendanceProvider extends ChangeNotifier {
           await service.startService();
         }
 
+      }else{
+        if(getLastActivityModel?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(
+              context: navigatorKey.currentState!.context,
+              text: "Something went wrong, Please try again later!");
+        }
+        if( getLastActivityModel?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Validation Error",
+              context: navigatorKey.currentState!.context,
+              text: createActivityModel?.message ?? "");
+        }
       }
     } catch (e) {
       print("inCatch ${getLastActivityModel?.message}");
       print("inCatchE $e");
+      AppUtils.showDialogBoxWithOneButton(
+          context: navigatorKey.currentState!.context,
+          text: "Something went wrong, Please try again later!");
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
       if (!isInternetAvailable) {
         getLastActivityModel = GetLastActivityModel(

@@ -89,6 +89,13 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
         await callGetStateByCountryId();
         await callGetCityByStateId();
         await callLeadSourceApi();
+      }else{
+        if(getLeadByIdModel?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(text: "Something went wrong!",context: context);
+        }
+        if(getLeadByIdModel?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(text: value?.message,context: context);
+        }
       }
     });
   }
@@ -110,6 +117,13 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
                 element.countryId == getLeadByIdModel?.data?.countryId)
             .first
             .countryId;
+      }else{
+        if(getAllCountryModel?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(text: "Something went wrong!",context: context);
+        }
+        if(getAllCountryModel?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(text: getAllCountryModel?.message,context: context);
+        }
       }
     });
   }
@@ -131,6 +145,13 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
             ?.firstWhere(
                 (element) => element.stateId == getLeadByIdModel?.data?.stateId)
             .stateId;
+      }else{
+        if(getStateByIdModel?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(text: "Something went wrong!",context: context);
+        }
+        if(getStateByIdModel?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(text: getStateByIdModel?.message,context: context);
+        }
       }
     });
   }
@@ -152,6 +173,13 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
             ?.firstWhere(
                 (element) => element.cityId == getLeadByIdModel?.data?.cityId)
             .cityId;
+      }else{
+        if(getCityByIdModel?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(text: "Something went wrong!",context: context);
+        }
+        if(getCityByIdModel?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(text: getCityByIdModel?.message,context: context);
+        }
       }
     });
   }
@@ -527,8 +555,12 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
       if (value?.isError == false && value?.isValidationFailed == false) {
         Navigator.pop(context);
       } else {
-        AppUtils.showDialogBoxWithOneButton(
-            context: context, text: value?.message ?? "");
+        if(value?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(text: "Something went wrong!",context: context);
+        }
+        if(value?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(text: value?.message,context: context);
+        }
       }
     });
   }
@@ -552,8 +584,12 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
       if (value?.isError == false && value?.isValidationFailed == false) {
         Navigator.pop(context);
       } else {
-        AppUtils.showDialogBoxWithOneButton(
-            context: context, text: value?.message ?? "");
+        if(value?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(text: "Something went wrong!",context: context);
+        }
+        if(value?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(text: value?.message,context: context);
+        }
       }
     });
   }

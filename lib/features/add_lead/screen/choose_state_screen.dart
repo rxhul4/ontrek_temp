@@ -38,7 +38,14 @@ class _ChooseStateScreenState extends State<ChooseStateScreen> {
         getStateByIdModel = value;
       });
       if (getStateByIdModel?.isError == false &&
-          getStateByIdModel?.isValidationFailed == false) {}
+          getStateByIdModel?.isValidationFailed == false) {}else{
+        if(getStateByIdModel?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(text: "Something went wrong!",context: context);
+        }
+        if(getStateByIdModel?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(text: getStateByIdModel?.message,context: context);
+        }
+      }
     });
   }
 

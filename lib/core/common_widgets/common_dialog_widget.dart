@@ -32,6 +32,21 @@ class _CustomNoteDialogState extends State<CustomNoteDialog> {
    callGetVisitNoteApi(){
     checkOutProvider.apiCallGetVisitNote(trackingEventId: widget.eventId).then((value) {
       getVisitNotesModel = value;
+      if(getVisitNotesModel?.isError == false && getVisitNotesModel?.isValidationFailed == false){
+
+      }else{
+        if(getVisitNotesModel?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(
+              context: context,
+              text: "Something went wrong, Please try again later!");
+        }
+        if( getVisitNotesModel?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Validation Error",
+              context: context,
+              text: getVisitNotesModel?.message ?? "");
+        }
+      }
     });
 }
 

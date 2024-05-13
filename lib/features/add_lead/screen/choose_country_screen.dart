@@ -36,7 +36,14 @@ class _ChooseCountryScreenState extends State<ChooseCountryScreen> {
         getAllCountryModel = value;
       });
       if (getAllCountryModel?.isError == false &&
-          getAllCountryModel?.isValidationFailed == false) {}
+          getAllCountryModel?.isValidationFailed == false) {}else{
+        if(getAllCountryModel?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(text: "Something went wrong!",context: context);
+        }
+        if(getAllCountryModel?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(text: getAllCountryModel?.message,context: context);
+        }
+      }
     });
   }
 

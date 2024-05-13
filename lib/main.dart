@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:ontrek/core/services/background_service.dart';
+import 'package:ontrek/core/services/local_notification.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/add_lead/provider/add_lead_provider.dart';
@@ -62,6 +63,8 @@ void main() async {
     runApp(MultiProvider(providers: providers, child: const MyApp()));
   });
   BackgroundService backgroundService = BackgroundService();
+  NotificationService notificationService = NotificationService();
+  await notificationService.initNotification();
   await backgroundService.initializeService();
 }
 

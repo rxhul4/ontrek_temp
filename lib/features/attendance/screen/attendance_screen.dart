@@ -153,9 +153,18 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 text: "Something went wrong, Please try again later!");
           }
         } else {
-          AppUtils.showDialogBoxWithOneButton(
-              context: context,
-              text: "Something went wrong, Please try again later!");
+          if(response?.isError == true){
+            AppUtils.showDialogBoxWithOneButton(
+                context: context,
+                text: "Something went wrong, Please try again later!");
+          }
+          if( response?.isValidationFailed == true){
+            AppUtils.showDialogBoxWithOneButton(
+              titleText: "Validation Error",
+                context: context,
+                text: response?.message ?? "");
+          }
+
         }
       });
     } catch (e) {
@@ -192,9 +201,17 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
 
         } else {
-          AppUtils.showDialogBoxWithOneButton(
-              context: context,
-              text: "Something went wrong, Please try again later!");
+          if(response?.isError == true){
+            AppUtils.showDialogBoxWithOneButton(
+                context: context,
+                text: "Something went wrong, Please try again later!");
+          }
+          if( response?.isValidationFailed == true){
+            AppUtils.showDialogBoxWithOneButton(
+                titleText: "Validation Error",
+                context: context,
+                text: response?.message ?? "");
+          }
         }
       });
     } catch (e) {
@@ -228,9 +245,17 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           }
 
         } else {
-          AppUtils.showDialogBoxWithOneButton(
-              context: context,
-              text: "Something went wrong, Please try again later!");
+          if(response?.isError == true){
+            AppUtils.showDialogBoxWithOneButton(
+                context: context,
+                text: "Something went wrong, Please try again later!");
+          }
+          if( response?.isValidationFailed == true){
+            AppUtils.showDialogBoxWithOneButton(
+                titleText: "Validation Error",
+                context: context,
+                text: response?.message ?? "");
+          }
         }
       });
     } catch (e) {
@@ -267,9 +292,17 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           await callDayEndApiAndUpdateUI(postMdl);
         }
       } else {
-        AppUtils.showDialogBoxWithOneButton(
-            context: context,
-            text: "Something went wrong, Please try again later!");
+        if(response?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(
+              context: context,
+              text: "Something went wrong, Please try again later!");
+        }
+        if( response?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Validation Error",
+              context: context,
+              text: response?.message ?? "");
+        }
       }
     } catch (e) {
       print("catch_at_waitingEndApi");

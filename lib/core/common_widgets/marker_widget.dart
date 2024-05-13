@@ -2,11 +2,16 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 
-class CustomMarkerWidget extends StatelessWidget {
+class CustomMarkerWidget extends StatefulWidget {
   final String? imageUrl;
 
   const CustomMarkerWidget({Key? key, this.imageUrl}) : super(key: key);
 
+  @override
+  State<CustomMarkerWidget> createState() => _CustomMarkerWidgetState();
+}
+
+class _CustomMarkerWidgetState extends State<CustomMarkerWidget> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -29,7 +34,10 @@ class CustomMarkerWidget extends StatelessWidget {
             ),
             child: ClipOval(
               child: CachedNetworkImage(
-                imageUrl: imageUrl ?? "",
+                height: 70,
+                width: 70,
+                placeholderFadeInDuration: Duration(milliseconds: 100),
+                imageUrl: widget.imageUrl ?? "",
                 placeholder: (context, url) => Center(child:Icon(Icons.person, size: 24, color: AppConstant.appPrimaryColor)),
                 errorWidget: (context, url, error) => Icon(Icons.person, size: 24, color: AppConstant.appPrimaryColor),
                 fit: BoxFit.cover,

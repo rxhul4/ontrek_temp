@@ -40,7 +40,14 @@ class _ChooseCityScreenState extends State<ChooseCityScreen> {
         getCityByIdModel = value;
       });
       if (getCityByIdModel?.isError == false &&
-          getCityByIdModel?.isValidationFailed == false) {}
+          getCityByIdModel?.isValidationFailed == false) {}else{
+        if(getCityByIdModel?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(text: "Something went wrong!",context: context);
+        }
+        if(getCityByIdModel?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(text: getCityByIdModel?.message,context: context);
+        }
+      }
     });
   }
 

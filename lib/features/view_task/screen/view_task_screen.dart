@@ -81,6 +81,18 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
         .then((value) {
       if (value?.isError == false && value?.isValidationFailed == false) {
         Navigator.pop(context);
+      }else{
+        if(value?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(
+              context: context,
+              text: "Something went wrong, Please try again later!");
+        }
+        if( value?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Validation Error",
+              context: context,
+              text: value?.message ?? "");
+        }
       }
     });
   }

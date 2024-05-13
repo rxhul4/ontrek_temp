@@ -17,6 +17,8 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:ontrek/core/common_widgets/marker_widget.dart';
+import 'package:ontrek/core/storage/preference_helper.dart';
+import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
 import 'package:ontrek/main.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -78,18 +80,28 @@ class DashBoardProvider extends ChangeNotifier {
 
   selectIndex(int index) {
     selectedIndex = index;
+    markers.clear();
     notifyListeners();
   }
 
   Future checkPermission() async {
     final status = await Permission.location.status;
+    final status2 = await Permission.locationAlways.status;
     if (status.isDenied) {
       await Permission.location.request();
     } else if (status.isPermanentlyDenied) {
       AppSettings.openAppSettings(type: AppSettingsType.location);
     } else {
       // Location permission is granted
-      await getCurrentLocation();
+      if(status2.isDenied){
+        await Permission.locationAlways.request();
+      }else if(status2.isPermanentlyDenied){
+        AppUtils.showDialogBoxWithOneButton(titleText: "Location",text: "Please enable your always on location service.");
+      }else{
+        await getCurrentLocation();
+
+      }
+
     }
   }
 
@@ -103,6 +115,10 @@ class DashBoardProvider extends ChangeNotifier {
       if (currentLocation != null) {
         await updateCameraPosition(currentLocation ?? LatLng(0, 0));
         await addCurrentLocationMarker(currentLocation ?? LatLng(0, 0));
+        markers.clear();
+        Future.delayed(Duration(milliseconds: 300),() async{
+          await addCurrentLocationMarker(currentLocation ?? LatLng(0, 0));
+        },);
       }
       notifyListeners();
     } catch (e) {
@@ -141,21 +157,38 @@ class DashBoardProvider extends ChangeNotifier {
 
   Future addCurrentLocationMarker(LatLng location) async {
     try {
-      markers.clear(); // Clear previous markers
-
+      String? imgUrl = PreferenceHelper.getString(PreferenceHelper.PROFILE_PIC);
       await markers.add(
         Marker(
           markerId: MarkerId("currentLocation"),
           position: location,
           infoWindow: InfoWindow(title: "Current Location"),
           icon: await CustomMarkerWidget(
-            imageUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+            imageUrl: imgUrl,
           ).toBitmapDescriptor(
               logicalSize: Size(150, 150),
               imageSize: Size(300, 300),
-              waitToRender: Duration(milliseconds: 500)),
+              ),
         ),
       );
+      // Future.delayed(Duration(milliseconds: 1000),() async{
+      //   markers.clear();
+      //   await markers.add(
+      //     Marker(
+      //       markerId: MarkerId("currentLocation"),
+      //       position: location,
+      //       infoWindow: InfoWindow(title: "Current Location"),
+      //       icon: await CustomMarkerWidget(
+      //       imageUrl: imgUrl,
+      //     ).toBitmapDescriptor(
+      //       logicalSize: Size(150, 150),
+      //       imageSize: Size(300, 300),
+      //     ),
+      //   ),
+      //   );
+      //   notifyListeners();
+      //   print("ceckkkkkkkkkk");
+      // },);
     } catch (e) {
       print("Error_in_marker$e");
     }
@@ -172,9 +205,9 @@ class DashBoardProvider extends ChangeNotifier {
   double? sourceLong;
   double? destinationLat;
   double? destinationLong;
+  List<LatLng> userLatLng = [];
 
   Future addUsersMarker() async {
-    markers.clear();
     print("showDashBoardUser$showUserInMap");
 
     for (var element in showUserInMap) {
@@ -184,6 +217,7 @@ class DashBoardProvider extends ChangeNotifier {
       userLat = element["userLastLat"];
       userLong = element["userLastLong"];
       print("userId=======$userId");
+      userLatLng.add(LatLng(userLat ?? 0, userLong ?? 0));
 
 
       try {
@@ -205,6 +239,29 @@ class DashBoardProvider extends ChangeNotifier {
                 : BitmapDescriptor.defaultMarker,
           ),
         );
+        // Future.delayed(Duration(milliseconds: 500),() async{
+        //   await markers.add(
+        //     Marker(
+        //       markerId: MarkerId("$userId"),
+        //       position: LatLng(userLat ?? 0, userLong ?? 0),
+        //       infoWindow: InfoWindow(
+        //         title: userName ?? "",
+        //       ),
+        //       icon: (userProfilePic != null)
+        //           ? await CustomMarkerWidget(
+        //         imageUrl: userProfilePic,
+        //       ).toBitmapDescriptor(
+        //         logicalSize: Size(150, 150),
+        //         imageSize: Size(300, 300),
+        //         waitToRender: Duration(milliseconds: 300),
+        //       )
+        //           : BitmapDescriptor.defaultMarker,
+        //     ),
+        //   );
+        //   notifyListeners();
+        //   print("ceckkkkkkkkkk2");
+        // },);
+
         print("marker$markers");
       } catch (e) {
         print("Error_in_marker$e");
@@ -217,8 +274,9 @@ class DashBoardProvider extends ChangeNotifier {
     destinationLong = showUserInMap.last["userLastLong"];
     print("source${LatLng(sourceLat ?? 0, sourceLong ?? 0)}");
     print("destination${LatLng(destinationLat ?? 0, destinationLong ?? 0)}");
-    updateCameraLocation(LatLng(sourceLat ?? 0, sourceLong ?? 0),
-        LatLng(destinationLat ?? 0, destinationLong ?? 0));
+    boundsFromLatLngList(userLatLng);
+    // updateCameraLocation(LatLng(sourceLat ?? 0, sourceLong ?? 0),
+    //     LatLng(destinationLat ?? 0, destinationLong ?? 0));
     notifyListeners();
   }
 
@@ -229,6 +287,8 @@ class DashBoardProvider extends ChangeNotifier {
     LatLng destination,
   ) async {
     if (googleMapController == null) return;
+
+
 
     LatLngBounds bounds;
 
@@ -248,7 +308,29 @@ class DashBoardProvider extends ChangeNotifier {
     }
     CameraUpdate cameraUpdate = CameraUpdate.newLatLngBounds(bounds, 70);
 
+
     return checkCameraLocation(cameraUpdate, googleMapController!);
+  }
+
+
+  Future<void> boundsFromLatLngList(List<LatLng> list) {
+    double? x0, x1, y0, y1;
+    for (LatLng latLng in list) {
+      if (x0 == null) {
+        x0 = x1 = latLng.latitude;
+        y0 = y1 = latLng.longitude;
+      } else {
+        if (latLng.latitude > x1!) x1 = latLng.latitude;
+        if (latLng.latitude < x0) x0 = latLng.latitude;
+        if (latLng.longitude > y1!) y1 = latLng.longitude;
+        if (latLng.longitude < y0!) y0 = latLng.longitude;
+      }
+    }
+    LatLngBounds bounds = LatLngBounds(northeast: LatLng(x1!, y1!), southwest: LatLng(x0!, y0!));
+    CameraUpdate cameraUpdate = CameraUpdate.newLatLngBounds(bounds, 70);
+
+    return checkCameraLocation(cameraUpdate, googleMapController!);
+
   }
 
   Future<void> checkCameraLocation(

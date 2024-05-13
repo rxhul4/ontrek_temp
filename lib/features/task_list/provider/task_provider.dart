@@ -52,6 +52,18 @@ class TaskProvider extends ChangeNotifier{
       print('response ${getAllTaskModel?.toJson()}');
       if(getAllTaskModel?.isError == false && getAllTaskModel?.isValidationFailed == false){
 
+      }else{
+        if(getAllTaskModel?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(
+              context: navigatorKey.currentState!.context,
+              text: "Something went wrong, Please try again later!");
+        }
+        if( getAllTaskModel?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Validation Error",
+              context: navigatorKey.currentState!.context,
+              text: getAllTaskModel?.message ?? "");
+        }
       }
     } catch (e) {
       print('catch at Get Task Provider $e');

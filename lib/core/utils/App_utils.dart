@@ -798,6 +798,19 @@ class AppUtils {
     return parseDate;
   }
 
+  static String timeLineDate({required String date,}) {
+    // print("uuuuuuuuu $date");
+    String parseDate = '';
+    if (date != '') {
+      try {
+        parseDate = DateFormat.jm().format(DateTime.parse(date));
+      } catch (e) {
+        return parseDate;
+      }
+    }
+    return parseDate;
+  }
+
   static String removeMilliseconds(String durationString) {
     // Parse the duration string into a DateTime object
     DateTime dateTime = DateTime.parse("1970-01-01T$durationString");

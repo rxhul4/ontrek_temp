@@ -118,14 +118,17 @@ animatePanel(){
         print("List${getSalesMenListModel?.data?.first.userName}");
       } else {
 
-        AppUtils.showDialogBoxWithOneButton(text: getSalesMenListModel?.message ?? "",context: navigatorKey.currentState!.context);
-        bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
-        if (!isInternetAvailable) {
-          getSalesMenListModel = GetSalesMenListModel(
-              message: "Internet is not available, please try again!");
-        } else {
-          getSalesMenListModel =
-              GetSalesMenListModel(message: "Something went wrong!");
+        if (getSalesMenListModel?.isValidationFailed == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Error",
+              context: navigatorKey.currentState!.context,
+              text: getSalesMenListModel?.message ?? "");
+        }
+        if (getSalesMenListModel?.isError == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Error",
+              context: navigatorKey.currentState!.context,
+              text: "Something went wrong!");
         }
       }
     } catch (e) {

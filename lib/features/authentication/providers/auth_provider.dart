@@ -42,9 +42,6 @@ class AuthenticationProvider extends ChangeNotifier {
   TextEditingController otpController = TextEditingController();
   DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
 
-
-
-
   loaderFnc(bool isLoading) {
     _isLoading = isLoading;
     notifyListeners();
@@ -101,29 +98,28 @@ class AuthenticationProvider extends ChangeNotifier {
     loaderFnc(true);
     Map<String, dynamic> body;
 
-    if(Platform.isIOS){
+    if (Platform.isIOS) {
       var iosInfo = await deviceInfo.iosInfo;
-       body = {
+      body = {
         "countryCode": countryCode,
         "phoneNumber": mobileNumberController.text,
         "deviceInfo": {
-          "deviceId" : iosInfo.identifierForVendor,
-          "deviceModel" :iosInfo.model,
-          "deviceOs " : iosInfo.systemName,
-          "osVersion " : iosInfo.systemVersion,
+          "deviceId": iosInfo.identifierForVendor,
+          "deviceModel": iosInfo.model,
+          "deviceOs ": iosInfo.systemName,
+          "osVersion ": iosInfo.systemVersion,
         }
       };
-
-    }else{
+    } else {
       AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
       body = {
         "countryCode": countryCode,
         "phoneNumber": mobileNumberController.text,
         "deviceInfo": {
-          "deviceId" : androidInfo.id,
-          "deviceModel" :androidInfo.model,
-          "deviceOs " : androidInfo.version.release,
-          "osVersion " : Platform.operatingSystemVersion,
+          "deviceId": androidInfo.id,
+          "deviceModel": androidInfo.model,
+          "deviceOs ": androidInfo.version.release,
+          "osVersion ": Platform.operatingSystemVersion,
         }
       };
     }
@@ -142,11 +138,19 @@ class AuthenticationProvider extends ChangeNotifier {
           appUserId: loginModel?.data?.appUserId,
         ));
       } else {
-        AppUtils.showDialogBoxWithOneButton(
-          titleText: "Error",
-            context: navigatorKey.currentState!.context,
-            text: loginModel?.message ?? "");
-             }
+        if (loginModel?.isValidationFailed == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Error",
+              context: navigatorKey.currentState!.context,
+              text: loginModel?.message ?? "");
+        }
+        if (loginModel?.isError == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Error",
+              context: navigatorKey.currentState!.context,
+              text: "Something went wrong!");
+        }
+      }
     } catch (e) {
       print("inCatch ${loginModel?.message}");
       print("inCatchE ${e}");
@@ -177,33 +181,31 @@ class AuthenticationProvider extends ChangeNotifier {
     loaderFnc(true);
     try {
       Map<String, dynamic> body;
-    if(Platform.isIOS){
-      var iosInfo = await deviceInfo.iosInfo;
-      body = {
-        "userId": userUid,
-        "otp": otpText,
-        "deviceInfo": {
-          "deviceId" :  iosInfo.identifierForVendor,
-          "deviceModel" :  iosInfo.model,
-          "deviceOs " :  iosInfo.systemName,
-          "osVersion " : Platform.operatingSystemVersion,
-        }
-      };
-    }else{
-      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-      body = {
-        "userId": userUid,
-        "otp": otpText,
-        "deviceInfo": {
-          "deviceId" :  androidInfo.id,
-          "deviceModel" :  androidInfo.model,
-          "deviceOs " :  androidInfo.version.release,
-          "osVersion " : Platform.operatingSystemVersion,
-
-        }
-      };
-    }
-
+      if (Platform.isIOS) {
+        var iosInfo = await deviceInfo.iosInfo;
+        body = {
+          "userId": userUid,
+          "otp": otpText,
+          "deviceInfo": {
+            "deviceId": iosInfo.identifierForVendor,
+            "deviceModel": iosInfo.model,
+            "deviceOs ": iosInfo.systemName,
+            "osVersion ": Platform.operatingSystemVersion,
+          }
+        };
+      } else {
+        AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+        body = {
+          "userId": userUid,
+          "otp": otpText,
+          "deviceInfo": {
+            "deviceId": androidInfo.id,
+            "deviceModel": androidInfo.model,
+            "deviceOs ": androidInfo.version.release,
+            "osVersion ": Platform.operatingSystemVersion,
+          }
+        };
+      }
 
       loginModel = LoginModel();
       String endPoint = ApiConstants.verifyOtp;
@@ -216,9 +218,18 @@ class AuthenticationProvider extends ChangeNotifier {
           navigatePushReplacementFnc(const DashBoard());
         });
       } else {
-        AppUtils.showDialogBoxWithOneButton(
-            context: navigatorKey.currentState!.context,
-            text: loginModel?.message ?? "");
+        if (loginModel?.isValidationFailed == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Error",
+              context: navigatorKey.currentState!.context,
+              text: loginModel?.message ?? "");
+        }
+        if (loginModel?.isError == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Error",
+              context: navigatorKey.currentState!.context,
+              text: "Something went wrong!");
+        }
       }
     } catch (e) {
       print("inCatch ${loginModel?.message}");
@@ -260,18 +271,18 @@ class AuthenticationProvider extends ChangeNotifier {
         PreferenceHelper.ROLE_ID, loginModel?.data?.roleId ?? '');
     PreferenceHelper.setString(
         PreferenceHelper.REPORTING_MANAGER, loginModel?.data?.createdBy ?? '');
-    /*PreferenceHelper.setString(
-        PreferenceHelper.PROFILE_PIC, loginModel?.data?. ?? '');*/
-    PreferenceHelper.setBool(PreferenceHelper.ALLOW_FG_AUTH,loginModel?.data?.appUserConfigAttendanceRequest?.allowFgAuth ?? false);
+    PreferenceHelper.setString(
+        PreferenceHelper.PROFILE_PIC, loginModel?.data?.profilePic ?? '');
+    PreferenceHelper.setBool(PreferenceHelper.ALLOW_FG_AUTH,
+        loginModel?.data?.appUserConfigAttendanceRequest?.allowFgAuth ?? false);
     PreferenceHelper.setBool(
         PreferenceHelper.AllowCheckInCheckOut,
-        loginModel?.data?.appUserConfigAttendanceRequest
-                ?.allowCheckinOut ??
+        loginModel?.data?.appUserConfigAttendanceRequest?.allowCheckinOut ??
             false);
     PreferenceHelper.setBool(
         PreferenceHelper.LOCATION_RESTRICTION,
         loginModel?.data?.appUserConfigAttendanceRequest
-            ?.allowLocationRestriction ??
+                ?.allowLocationRestriction ??
             false);
     PreferenceHelper.setDouble(
         PreferenceHelper.LOCATION_RESTRICTION_LAT,
@@ -300,13 +311,11 @@ class AuthenticationProvider extends ChangeNotifier {
         PreferenceHelper.LIVE_LOCATION_INTERVAL,
         loginModel?.data?.appUserConfigTrackingRequest?.liveTrackingInterval ??
             0);
-    PreferenceHelper.setInt(
-        PreferenceHelper.WAITING_TIME_INTERVAL,
-        loginModel?.data?.appUserConfigTrackingRequest?.idleMarkerTime ??
-            0);
-    int? liveLocationInterval= PreferenceHelper.getInt(PreferenceHelper.LIVE_LOCATION_INTERVAL);
+    PreferenceHelper.setInt(PreferenceHelper.WAITING_TIME_INTERVAL,
+        loginModel?.data?.appUserConfigTrackingRequest?.idleMarkerTime ?? 0);
+    int? liveLocationInterval =
+        PreferenceHelper.getInt(PreferenceHelper.LIVE_LOCATION_INTERVAL);
     print("intervalTime$liveLocationInterval");
-
 
     print("data : ${PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN)}");
     return true;

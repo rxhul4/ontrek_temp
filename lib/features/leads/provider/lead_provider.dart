@@ -86,6 +86,21 @@ class LeadProvider extends ChangeNotifier {
       var response = await callPostMethod(endPoint, body);
       getAllLeadModel = GetAllLeadModel.fromJson(json.decode(response));
       print('response ${getAllLeadModel?.toJson()}');
+      if(getAllLeadModel?.isError == false && getLeadByIdModel?.isValidationFailed == false){
+
+      }else{
+        if(getAllLeadModel?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(
+              context: navigatorKey.currentState!.context,
+              text: "Something went wrong, Please try again later!");
+        }
+        if( getAllLeadModel?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Validation Error",
+              context: navigatorKey.currentState!.context,
+              text: getAllLeadModel?.message ?? "");
+        }
+      }
     } catch (e) {
       print('catch at Get Task Provider ${e}');
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();

@@ -7,8 +7,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
 import 'package:ontrek/core/background_service_model/create_route_history_model.dart';
 import 'package:ontrek/core/services/api_constants.dart';
+import 'package:ontrek/core/services/local_notification.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
@@ -19,6 +21,7 @@ import 'package:flutter_background_service_android/flutter_background_service_an
 import 'package:shared_preferences/shared_preferences.dart';
 
 class BackgroundService {
+
   Future<void> initializeService() async {
     int? liveLocationInterval =
         PreferenceHelper.getInt(PreferenceHelper.LIVE_LOCATION_INTERVAL);
@@ -114,6 +117,16 @@ void onStart(ServiceInstance service) async {
               ? liveLocationInterval ?? 15
               : 15),
       (timer) async {
+        var now = DateTime.now();
+        print("current_TIME$now");
+        if (now.hour == 11 && now.minute >= 59 && now.minute <= 59) {
+          print("its_11:59:59");
+          // If it's between 11:55:00 PM and 11:59:59 PM, clear preferences and stop the service
+          PreferenceHelper.clear();
+          service.stopSelf();
+          timer.cancel(); // Stop the timer
+        }
+
         if (service is AndroidServiceInstance) {
           if (await service.isForegroundService()) {
             service.setForegroundNotificationInfo(
@@ -122,7 +135,6 @@ void onStart(ServiceInstance service) async {
             );
           }
         }
-
         try {
           final connectivityResult = await Connectivity().checkConnectivity();
           var isInternetAvailable =
@@ -163,6 +175,7 @@ void onStart(ServiceInstance service) async {
                   print("distance$distance");
                   print("waiting_using_background_service${isWaiting.value}");
                   if (isWaiting.value == true) {
+
                     print("waiting${isWaiting.value}");
                     await waitingEndApi(service: service);
                   }
@@ -210,6 +223,13 @@ void onStart(ServiceInstance service) async {
                       }
                     } catch (e) {
                       print("Error parsing waitingStartTime: $e");
+                    }
+                  }else{
+                    print("time_of_notification${DateTime.now().difference(DateTime.parse(waitingStartTime ?? "")).inMinutes}");
+                    if(DateTime.now().difference(DateTime.parse(waitingStartTime ?? "")).inMinutes >= 30){
+                      print("notifaction_code_here");
+                      NotificationService().showNotification(title: "Waiting",body: "Your waiting period has started Before 30 min.", id: 0);
+                      PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
                     }
                   }
                 }

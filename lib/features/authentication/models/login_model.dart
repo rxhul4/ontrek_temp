@@ -39,7 +39,8 @@ class Data {
   int? countryCode;
   String? phoneNo;
   String? userEmail;
-  String? token;
+  String? profilePic;
+  Null? token;
   String? deviceModel;
   bool? isAdmin;
   String? orgId;
@@ -62,6 +63,7 @@ class Data {
         this.countryCode,
         this.phoneNo,
         this.userEmail,
+        this.profilePic,
         this.token,
         this.deviceModel,
         this.isAdmin,
@@ -85,6 +87,7 @@ class Data {
     countryCode = json['countryCode'];
     phoneNo = json['phoneNo'];
     userEmail = json['userEmail'];
+    profilePic = json['profilePic'];
     token = json['token'];
     deviceModel = json['deviceModel'];
     isAdmin = json['isAdmin'];
@@ -117,6 +120,7 @@ class Data {
     data['countryCode'] = this.countryCode;
     data['phoneNo'] = this.phoneNo;
     data['userEmail'] = this.userEmail;
+    data['profilePic'] = this.profilePic;
     data['token'] = this.token;
     data['deviceModel'] = this.deviceModel;
     data['isAdmin'] = this.isAdmin;
@@ -152,7 +156,7 @@ class AppUserConfigAttendanceRequest {
   double? locationRestrictionLong;
   int? locRestrictionMtrs;
   bool? allowAutoLogout;
-  int? defaultAutoLogoutTime;
+  Null? defaultAutoLogoutTime;
 
   AppUserConfigAttendanceRequest(
       {this.allowWebAccess,
@@ -196,7 +200,7 @@ class AppUserConfigTrackingRequest {
   bool? allowLiveTracking;
   int? liveTrackingInterval;
   bool? allowCheckoutReminder;
-  int? chekoutReminderDistance;
+  Null? chekoutReminderDistance;
   bool? allowIdleMarker;
   int? idleMarkerTime;
   bool? allowNotification;

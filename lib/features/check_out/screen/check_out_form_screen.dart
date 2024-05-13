@@ -87,13 +87,22 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
         .apiCallGetTotByType(groupType: AppConstant.visitTypeCode)
         .then((value) {
       getTotByGroupTypeModel = value;
-      if (getTotByGroupTypeModel?.isValidationFailed == true &&
-          getTotByGroupTypeModel?.isError == true) {
-        AppUtils.showDialogBoxWithOneButton(
-            context: context, text: getTotByGroupTypeModel?.message ?? "");
-      } else {
+      if (getTotByGroupTypeModel?.isValidationFailed == false &&
+          getTotByGroupTypeModel?.isError == false) {
         selectedTotValue = getTotByGroupTypeModel?.data?.first.totValue;
         selectedTotId =getTotByGroupTypeModel?.data?.first.totId;
+      } else {
+        if(getTotByGroupTypeModel?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(
+              context: context,
+              text: "Something went wrong, Please try again later!");
+        }
+        if( getTotByGroupTypeModel?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Validation Error",
+              context: context,
+              text: getTotByGroupTypeModel?.message ?? "");
+        }
       }
     });
   }
@@ -131,10 +140,17 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
           "lastLong": position?.longitude,
         });
       } else {
-        print("day start not 200");
-        AppUtils.showDialogBoxWithOneButton(
-            context: context,
-            text: createActivityModel?.message.toString() ?? "");
+        if(createActivityModel?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(
+              context: context,
+              text: "Something went wrong, Please try again later!");
+        }
+        if( createActivityModel?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Validation Error",
+              context: context,
+              text: createActivityModel?.message ?? "");
+        }
       }
     });
     setState(() {
@@ -164,7 +180,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
             backgroundColor: Colors.white,
             elevation: 0,
             leading: InkWell(
-                onTap: () {
+                onTap: checkOutProvider.isFetching ? (){}: () {
                   Navigator.pop(context);
                 },
                 child: Icon(
@@ -194,13 +210,13 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                         Column(
                           children: [
                             Expanded(
-                              child: SingleChildScrollView(
+                              child:SingleChildScrollView(
+                                physics: isLoading ? NeverScrollableScrollPhysics() : AlwaysScrollableScrollPhysics(),
                                 child: Padding(
                                   padding: const EdgeInsets.only(
                                       left: 10, right: 10, top: 10, bottom: 10),
                                   child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       AppUtils.commonTextWidget(
                                           text: "Add Image",
@@ -344,7 +360,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                               alignment: Alignment.bottomCenter,
                               child: AppUtils.commonElevatedBtn(
                                 backgroundColor: AppConstant.transparentColor,
-                                onPressed: () {
+                                onPressed: isLoading ? (){}:() {
                                   checkValidation(attendanceProvider);
                                 },
                                 topMargin: 10,
@@ -423,6 +439,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
           height: 5,
         ),
         AppTextField(
+          readOnly: isLoading ? true : false,
           controller: controller,
           hintText: text ?? "",
           maxLines: maxLine ?? 1,

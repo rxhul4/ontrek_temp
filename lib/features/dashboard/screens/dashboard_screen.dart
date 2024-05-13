@@ -3,17 +3,20 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:app_settings/app_settings.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:ontrek/core/common_widgets/custom_upgrader_message.dart';
 import 'package:ontrek/core/common_widgets/marker_widget.dart';
+import 'package:ontrek/core/storage/preference_helper.dart';
 
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/features/attendance/screen/attendance_screen.dart';
+import 'package:ontrek/features/authentication/screens/login_with_phone_number.dart';
 import 'package:ontrek/features/dashboard/provider/dashboard_provider.dart';
 import 'package:ontrek/features/leads/screen/lead_screen.dart';
 import 'package:ontrek/features/profile/screen/profile_screen.dart';
@@ -55,12 +58,15 @@ GoogleMapController? googleMapController;
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      dashBoardProvider = Provider.of<DashBoardProvider>(context,listen: false);
+      bool? isLogin = PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN);
+      if(isLogin == false){
+        Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => LoginScreen(),));
+      }
+      final dashBoardProvider = Provider.of<DashBoardProvider>(context,listen: false);
       if(!mounted){}
       dashBoardProvider.initialIndex();
       dashBoardProvider.checkPermission();
-
-      setState(() {});
+      // setState(() {});
     });
 
   }
@@ -99,14 +105,16 @@ GoogleMapController? googleMapController;
                 dashBoardProvider.getLocationFromSheet(getCurrentLocation:  value);
 
               }),
-              TrackScreen(onUserFetch: (value) {
-
-                  if(value != null){
+              TrackScreen(onUserFetch: (value) async{
+                if(value != null){
                     dashBoardProvider.showUserInMap = value;
                   }
                   print("userInDashBoard${dashBoardProvider.showUserInMap}");
+                  await dashBoardProvider.addUsersMarker();
                   dashBoardProvider.markers.clear();
-                  dashBoardProvider.addUsersMarker();
+                  Future.delayed(Duration(milliseconds: 300),() async{
+                    await dashBoardProvider.addUsersMarker();
+                  },);
 
 
               }),
@@ -139,7 +147,6 @@ GoogleMapController? googleMapController;
                     HapticFeedback.vibrate();
                     if(!mounted){}
                     dashBoardProvider.selectIndex(index);
-                    dashBoardProvider.markers.clear();
                     if(dashBoardProvider.selectedIndex == 0 ){
                       dashBoardProvider.getCurrentLocation();
                     }else{

@@ -104,7 +104,20 @@ class SalemenTimeLineProvider extends ChangeNotifier {
         print("testttttttttttttt${getTimeLineModel?.data?.sessionTimeLine?.map((e) => e.sessionRouteHistory?.latlongArray).toList()}");
         print("allllSessionData${allSessionLatLong.length}");
         print("Event list: ${sessionEvents.length}");
-      } else {}
+      } else {
+        if (getTimeLineModel?.isValidationFailed == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Error",
+              context: navigatorKey.currentState!.context,
+              text: getTimeLineModel?.message ?? "");
+        }
+        if (getTimeLineModel?.isError == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Error",
+              context: navigatorKey.currentState!.context,
+              text: "Something went wrong!");
+        }
+      }
     } catch (e) {
       print('catch at GetTimeLineProvider ${e}');
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
