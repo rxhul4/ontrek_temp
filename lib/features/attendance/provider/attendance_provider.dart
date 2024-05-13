@@ -281,7 +281,6 @@ class AttendanceProvider extends ChangeNotifier {
         }
         if( getLastActivityModel?.isValidationFailed == true){
           AppUtils.showDialogBoxWithOneButton(
-              titleText: "Validation Error",
               context: navigatorKey.currentState!.context,
               text: createActivityModel?.message ?? "");
         }

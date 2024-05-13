@@ -160,7 +160,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           }
           if( response?.isValidationFailed == true){
             AppUtils.showDialogBoxWithOneButton(
-              titleText: "Validation Error",
                 context: context,
                 text: response?.message ?? "");
           }
@@ -208,7 +207,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           }
           if( response?.isValidationFailed == true){
             AppUtils.showDialogBoxWithOneButton(
-                titleText: "Validation Error",
                 context: context,
                 text: response?.message ?? "");
           }
@@ -252,7 +250,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           }
           if( response?.isValidationFailed == true){
             AppUtils.showDialogBoxWithOneButton(
-                titleText: "Validation Error",
                 context: context,
                 text: response?.message ?? "");
           }
@@ -299,7 +296,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         }
         if( response?.isValidationFailed == true){
           AppUtils.showDialogBoxWithOneButton(
-              titleText: "Validation Error",
               context: context,
               text: response?.message ?? "");
         }

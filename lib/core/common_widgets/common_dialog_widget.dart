@@ -42,7 +42,6 @@ class _CustomNoteDialogState extends State<CustomNoteDialog> {
         }
         if( getVisitNotesModel?.isValidationFailed == true){
           AppUtils.showDialogBoxWithOneButton(
-              titleText: "Validation Error",
               context: context,
               text: getVisitNotesModel?.message ?? "");
         }

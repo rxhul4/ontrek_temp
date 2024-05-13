@@ -96,7 +96,6 @@ class LeadProvider extends ChangeNotifier {
         }
         if( getAllLeadModel?.isValidationFailed == true){
           AppUtils.showDialogBoxWithOneButton(
-              titleText: "Validation Error",
               context: navigatorKey.currentState!.context,
               text: getAllLeadModel?.message ?? "");
         }

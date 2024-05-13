@@ -99,7 +99,6 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
         }
         if( getTotByGroupTypeModel?.isValidationFailed == true){
           AppUtils.showDialogBoxWithOneButton(
-              titleText: "Validation Error",
               context: context,
               text: getTotByGroupTypeModel?.message ?? "");
         }
@@ -147,7 +146,6 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
         }
         if( createActivityModel?.isValidationFailed == true){
           AppUtils.showDialogBoxWithOneButton(
-              titleText: "Validation Error",
               context: context,
               text: createActivityModel?.message ?? "");
         }

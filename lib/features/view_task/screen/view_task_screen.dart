@@ -89,7 +89,6 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
         }
         if( value?.isValidationFailed == true){
           AppUtils.showDialogBoxWithOneButton(
-              titleText: "Validation Error",
               context: context,
               text: value?.message ?? "");
         }

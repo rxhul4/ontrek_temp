@@ -60,7 +60,6 @@ class TaskProvider extends ChangeNotifier{
         }
         if( getAllTaskModel?.isValidationFailed == true){
           AppUtils.showDialogBoxWithOneButton(
-              titleText: "Validation Error",
               context: navigatorKey.currentState!.context,
               text: getAllTaskModel?.message ?? "");
         }
