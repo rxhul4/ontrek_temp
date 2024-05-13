@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:ontrek/core/common_widgets/textfield_widget.dart';
 import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
@@ -10,6 +12,7 @@ import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/attendance/model/add_activity_model.dart';
+import 'package:ontrek/features/attendance/model/get_check_panding_dayend.dart';
 import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
 import 'package:ontrek/main.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
@@ -30,6 +33,7 @@ class AttendanceProvider extends ChangeNotifier {
 
   CreateActivityModel? createActivityModel;
   GetLastActivityModel? getLastActivityModel;
+  GetLastPendingDayEnd? getLastPendingDayEnd;
   int? battery;
   PanelController panelController = PanelController();
   ValueNotifier<bool> isDayStart = ValueNotifier(false);
@@ -42,8 +46,9 @@ class AttendanceProvider extends ChangeNotifier {
   AnimationController? controller;
   FlutterBackgroundService service = FlutterBackgroundService();
   bool? isInternetAvailable;
-
-
+  TextEditingController dateController = TextEditingController();
+  TextEditingController timeController = TextEditingController();
+  TextEditingController reasonController = TextEditingController();
 
   loaderFnc(bool isLoading) {
     _isLoading = isLoading;
@@ -60,7 +65,6 @@ class AttendanceProvider extends ChangeNotifier {
       builder: (context) => screen,
     ));
   }
-
 
   void toggleButtons() {
     isDayEnd.value = !isDayEnd.value;
@@ -96,14 +100,16 @@ class AttendanceProvider extends ChangeNotifier {
           options: const AuthenticationOptions(
               stickyAuth: true, useErrorDialogs: true));
       if (isAuthenticated) {
-
         afterSuccessfulVerificationFnc();
       } else {
-        AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentContext ,text: "Authentication Fail! Please Try Again");
-
+        AppUtils.showDialogBoxWithOneButton(
+            context: navigatorKey.currentContext,
+            text: "Authentication Fail! Please Try Again");
       }
     } else {
-      AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentContext ,text: "Biometric Auth is not available on this device");
+      AppUtils.showDialogBoxWithOneButton(
+          context: navigatorKey.currentContext,
+          text: "Biometric Auth is not available on this device");
     }
   }
 
@@ -117,7 +123,9 @@ class AttendanceProvider extends ChangeNotifier {
         position = await Geolocator.getCurrentPosition(
             desiredAccuracy: LocationAccuracy.medium);
       } catch (e) {
-        AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentContext ,text: "Please Enable Your Location Service");
+        AppUtils.showDialogBoxWithOneButton(
+            context: navigatorKey.currentContext,
+            text: "Please Enable Your Location Service");
       }
     }
     return position;
@@ -165,10 +173,12 @@ class AttendanceProvider extends ChangeNotifier {
       createActivityModel = CreateActivityModel.fromJson(json.decode(response));
       print("response : ${response}");
     } catch (e) {
-      AppUtils.showDialogBoxWithOneButton(text: AppConstant.errorText,context: navigatorKey.currentState!.context);
+      AppUtils.showDialogBoxWithOneButton(
+          text: AppConstant.errorText,
+          context: navigatorKey.currentState!.context);
       print("inCatch ${createActivityModel?.message}");
       print("inCatchE $e");
-    isInternetAvailable = await AppUtils.checkInternetConnectivity();
+      isInternetAvailable = await AppUtils.checkInternetConnectivity();
       if (isInternetAvailable == false) {
         createActivityModel = CreateActivityModel(
             message: "Internet is not available, please try again!");
@@ -186,100 +196,133 @@ class AttendanceProvider extends ChangeNotifier {
     String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     Map<String, dynamic> body = {
       "userId": userId,
-      "currentDate": AppUtils.dateFormat(date: DateTime.now(),dateFormat: AppConstant.dateFormat)
+      "currentDate": AppUtils.dateFormat(
+          date: DateTime.now(), dateFormat: AppConstant.dateFormat)
     };
     try {
       String endPoint = ApiConstants.getLastActivity;
       final response = await callPostMethod(endPoint, body);
-      getLastActivityModel = GetLastActivityModel.fromJson(json.decode(response));
+      getLastActivityModel =
+          GetLastActivityModel.fromJson(json.decode(response));
       print("response_of_lastActivity: $response");
-      if(getLastActivityModel?.isError == false && getLastActivityModel?.isValidationFailed == false){
+      if (getLastActivityModel?.isError == false &&
+          getLastActivityModel?.isValidationFailed == false) {
+        dateController.text =
+            getLastActivityModel?.data?.pendingSessionDate ?? "";
         print("totEvent${getLastActivityModel?.data?.trackingEventId}");
         String? totEventCode = getLastActivityModel?.data?.trackingEventId;
         switch (totEventCode) {
-          case AppConstant.dayStartEvent :
+          case AppConstant.dayStartEvent:
             PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-            isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+            isDayStart.value =
+                PreferenceHelper.getBool(PreferenceHelper.DayStart);
             break;
           case AppConstant.checkInEvent:
             PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
             PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
-            isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
-            isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+            isDayStart.value =
+                PreferenceHelper.getBool(PreferenceHelper.DayStart);
+            isCheckIn.value =
+                PreferenceHelper.getBool(PreferenceHelper.checkIn);
             break;
           case AppConstant.checkOutEvent:
             PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
             PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-            isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
-            isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+            isDayStart.value =
+                PreferenceHelper.getBool(PreferenceHelper.DayStart);
+            isCheckIn.value =
+                PreferenceHelper.getBool(PreferenceHelper.checkIn);
             break;
           case AppConstant.dayEndEvent:
             PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
             PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-            isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
-            isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+            isDayStart.value =
+                PreferenceHelper.getBool(PreferenceHelper.DayStart);
+            isCheckIn.value =
+                PreferenceHelper.getBool(PreferenceHelper.checkIn);
             break;
           case AppConstant.trackingWaitingStartEvent:
             PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
             PreferenceHelper.setBool(PreferenceHelper.isWaiting, true);
             PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-            isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
-            isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
-            isWaiting.value = PreferenceHelper.getBool(PreferenceHelper.isWaiting);
+            isDayStart.value =
+                PreferenceHelper.getBool(PreferenceHelper.DayStart);
+            isCheckIn.value =
+                PreferenceHelper.getBool(PreferenceHelper.checkIn);
+            isWaiting.value =
+                PreferenceHelper.getBool(PreferenceHelper.isWaiting);
             break;
           case AppConstant.trackingWaitingStopEvent:
             PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
             PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
             PreferenceHelper.setBool(PreferenceHelper.isWaiting, false);
-            isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
-            isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
-            isWaiting.value = PreferenceHelper.getBool(PreferenceHelper.isWaiting);
+            isDayStart.value =
+                PreferenceHelper.getBool(PreferenceHelper.DayStart);
+            isCheckIn.value =
+                PreferenceHelper.getBool(PreferenceHelper.checkIn);
+            isWaiting.value =
+                PreferenceHelper.getBool(PreferenceHelper.isWaiting);
             break;
           case AppConstant.internetOffEvent:
             PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
             PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-            isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
-            isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+            isDayStart.value =
+                PreferenceHelper.getBool(PreferenceHelper.DayStart);
+            isCheckIn.value =
+                PreferenceHelper.getBool(PreferenceHelper.checkIn);
 
             break;
           case AppConstant.internetOnEvent:
             PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
             PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-            isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
-            isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+            isDayStart.value =
+                PreferenceHelper.getBool(PreferenceHelper.DayStart);
+            isCheckIn.value =
+                PreferenceHelper.getBool(PreferenceHelper.checkIn);
             break;
           case AppConstant.gpsOffEvent:
             PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
             PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-            isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
-            isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+            isDayStart.value =
+                PreferenceHelper.getBool(PreferenceHelper.DayStart);
+            isCheckIn.value =
+                PreferenceHelper.getBool(PreferenceHelper.checkIn);
             break;
           case AppConstant.gpsOnEvent:
             PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
             PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-            isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
-            isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+            isDayStart.value =
+                PreferenceHelper.getBool(PreferenceHelper.DayStart);
+            isCheckIn.value =
+                PreferenceHelper.getBool(PreferenceHelper.checkIn);
             break;
           default:
             print('Unknown eventCode');
             PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
             PreferenceHelper.setBool(PreferenceHelper.isWaiting, false);
             PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-            isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
-            isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
-            isWaiting.value = PreferenceHelper.getBool(PreferenceHelper.isWaiting);
+            isDayStart.value =
+                PreferenceHelper.getBool(PreferenceHelper.DayStart);
+            isCheckIn.value =
+                PreferenceHelper.getBool(PreferenceHelper.checkIn);
+            isWaiting.value =
+                PreferenceHelper.getBool(PreferenceHelper.isWaiting);
         }
-        if(isDayStart.value == true){
-          await service.startService();
+        if (isDayStart.value == true) {
+          bool? liveLocationTracking = PreferenceHelper.getBool(PreferenceHelper.LIVE_LOCATION_TRACKING);
+          if(liveLocationTracking  == true){
+            await service.startService();
+          }
+
         }
 
-      }else{
-        if(getLastActivityModel?.isError == true){
+      } else {
+        if (getLastActivityModel?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(
               context: navigatorKey.currentState!.context,
               text: "Something went wrong, Please try again later!");
         }
-        if( getLastActivityModel?.isValidationFailed == true){
+        if (getLastActivityModel?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
               context: navigatorKey.currentState!.context,
               text: createActivityModel?.message ?? "");
@@ -303,9 +346,38 @@ class AttendanceProvider extends ChangeNotifier {
     loaderFnc(false);
     return getLastActivityModel;
   }
+  Future<GetLastPendingDayEnd?> apiCallCheckPendingEndDate() async {
+    String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
 
-
-
-
-
+    loaderFnc(true);
+    Map<String, dynamic> body = {
+      "userId": userId,
+    };
+    try {
+      String endPoint = ApiConstants.checkPendingEndDate;
+      final response = await callPostMethod(endPoint, body);
+      getLastPendingDayEnd = GetLastPendingDayEnd.fromJson(json.decode(response));
+      print("response : ${response}");
+      if(getLastPendingDayEnd?.isValidationFailed == true){
+        dateController.text = getLastPendingDayEnd?.data?.sessionDateOnly ?? "";
+        print("date==$dateController");
+      }
+    } catch (e) {
+      AppUtils.showDialogBoxWithOneButton(
+          text: AppConstant.errorText,
+          context: navigatorKey.currentState!.context);
+      print("inCatch ${getLastPendingDayEnd?.message}");
+      print("inCatchE $e");
+      isInternetAvailable = await AppUtils.checkInternetConnectivity();
+      if (isInternetAvailable == false) {
+        getLastPendingDayEnd = GetLastPendingDayEnd(
+            message: "Internet is not available, please try again!");
+      } else {
+        getLastPendingDayEnd =
+            GetLastPendingDayEnd(message: "Something went wrong!");
+      }
+    }
+    loaderFnc(false);
+    return getLastPendingDayEnd;
+  }
 }

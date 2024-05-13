@@ -11,6 +11,7 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:ontrek/core/common_widgets/loader_widget.dart';
+import 'package:ontrek/core/common_widgets/textfield_widget.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
@@ -48,7 +49,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   String? orgName;
   bool? isAllowFgAuth;
 
-
   @override
   void initState() {
     // TODO: implement initState
@@ -62,6 +62,13 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           Provider.of<AttendanceProvider>(context, listen: false);
       attendanceProvider.panelController.animatePanelToPosition(0.99);
       attendanceProvider.callGetLastActivity();
+      attendanceProvider.apiCallCheckPendingEndDate().then((value) {
+        if(value?.isValidationFailed == true){
+          attendanceProvider.dateController.text = value?.data?.sessionDateOnly ?? "";
+          print("dateeeeeeeee${ attendanceProvider.dateController.text}");
+          LastActivityDayEndPopup();
+        }
+      });
       attendanceProvider.isAllowCheckInCheckOut =
           PreferenceHelper.getBool(PreferenceHelper.AllowCheckInCheckOut);
       attendanceProvider.checkBiometricAvailable();
@@ -69,6 +76,194 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     });
     super.initState();
   }
+
+
+  LastActivityDayEndPopup() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          surfaceTintColor: AppConstant.transparentColor,
+          backgroundColor: AppConstant.whiteColor,
+          contentPadding: EdgeInsets.zero,
+          insetPadding:
+              AppUtils.edgeInsetsOnly(top: 100, bottom: 0, right: 0, left: 0),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(12))),
+          titlePadding: EdgeInsets.only(top: 30),
+          title: Center(
+              child: AppUtils.commonTextWidget(
+                  text: "Request for DayEnd",
+                  textColor: AppConstant.appPrimaryColor,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14,
+                  letterSpacing: 0)),
+          content: SingleChildScrollView(
+            child: Container(
+              width: MediaQuery.of(context).size.width - 70,
+              padding: AppUtils.edgeInsetsAll(allPadding: 12),
+              child: Column(
+                children: [
+                  AppUtils.commonSizedBox(height: 10),
+                  commonTextField(text: "Date", controller: attendanceProvider.dateController,readOnly: true),
+                  AppUtils.commonSizedBox(height: 20),
+                  commonTextField2(
+                      text: "Dayend Time", controller: attendanceProvider.timeController),
+                  AppUtils.commonSizedBox(height: 20),
+                  commonTextField(
+                      text: "Reason", controller: attendanceProvider.reasonController, maxLine: 3),
+                  AppUtils.commonSizedBox(height: 20),
+                  AppUtils.commonElevatedBtn(
+                      text: "Submit",
+                      height: 50,
+                      bgColor: AppConstant.appPrimaryColor,
+                      fontSize: 12,
+                      backgroundColor: AppConstant.appPrimaryColor,
+                      width: double.infinity),
+                  AppUtils.commonSizedBox(height: 10),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  commonTextField({
+    String? text,
+    int? maxLine,
+    Function()? onTap,
+    TextEditingController? controller,
+    bool? showCursor,
+    TextInputType? textInputType,
+    Widget? suffixIcon,
+    bool? readOnly,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppUtils.commonTextWidget(
+            text: text ?? "",
+            textColor: AppConstant.blackColor.withOpacity(0.6),
+            fontWeight: FontWeight.w500,
+            fontSize: 14),
+        const SizedBox(
+          height: 5,
+        ),
+        AppTextField(
+          readOnly: readOnly,
+          suffixIcon: suffixIcon,
+          controller: controller,
+          hintText: text ?? "",
+          maxLines: maxLine ?? 1,
+          cursorColor: AppConstant.appPrimaryColor.withOpacity(0.9),
+          allBorderRadius: 3,
+          fillColor: AppConstant.whiteColor,
+          hintTextColor: AppConstant.greyColor.withOpacity(0.3),
+          hintFontSize: 12,
+          textInputType: textInputType,
+          onTap: onTap,
+          showCursor: showCursor,
+        ),
+      ],
+    );
+  }
+  String selectedPeriod = 'AM';
+
+
+  commonTextField2({
+    String? text,
+    int? maxLine,
+    Function()? onTap,
+    TextEditingController? controller,
+    bool? showCursor,
+    TextInputType? textInputType,
+    Widget? suffixIcon,
+    bool? readOnly,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppUtils.commonTextWidget(
+          text: text ?? "",
+          textColor: AppConstant.blackColor.withOpacity(0.6),
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+        ),
+        const SizedBox(
+          height: 5,
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: AppTextField(
+                readOnly: readOnly,
+                suffixIcon: suffixIcon,
+                controller: controller,
+                hintText: "HH",
+                maxLength: 2, // Maximum of two characters
+                maxLines: maxLine ?? 1,
+                cursorColor: AppConstant.appPrimaryColor.withOpacity(0.9),
+                allBorderRadius: 3,
+                fillColor: AppConstant.whiteColor,
+                hintTextColor: AppConstant.greyColor.withOpacity(0.3),
+                hintFontSize: 12,
+                textInputType: TextInputType.number, // Numeric keyboard
+                onTap: onTap,
+                showCursor: showCursor,
+              ),
+            ),
+            SizedBox(width: 10), // Add space here
+            Expanded(
+              child: AppTextField(
+                readOnly: readOnly,
+                suffixIcon: suffixIcon,
+                controller: controller,
+                hintText: "MM",
+                maxLength: 2, // Maximum of two characters
+                maxLines: maxLine ?? 1,
+                cursorColor: AppConstant.appPrimaryColor.withOpacity(0.9),
+                allBorderRadius: 3,
+                fillColor: AppConstant.whiteColor,
+                hintTextColor: AppConstant.greyColor.withOpacity(0.3),
+                hintFontSize: 12,
+                textInputType: TextInputType.number, // Numeric keyboard
+                onTap: onTap,
+                showCursor: showCursor,
+              ),
+            ),
+            SizedBox(width: 10), // Add space here
+            Expanded(
+              child: AppUtils.commonContainer(
+                decoration: AppUtils.commonBoxDecoration(
+                  borderRadius: AppUtils.borderRadiusAll(raduis: 3),
+                  border: Border.all(color: AppConstant.greyColor.withOpacity(0.3)),
+                  color: AppConstant.whiteColor,
+                ),
+                child: DropdownButton<String>(
+                  underline: Container(),
+                  value: selectedPeriod,
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      selectedPeriod = newValue ?? "";
+                    });
+                  },
+                  items: <String>['AM', 'PM'].map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
 
   @override
   void dispose() {
@@ -146,24 +341,21 @@ class _AttendanceScreenState extends State<AttendanceScreen>
               "lastLong": lastLong,
               "waitingStartTime": waitingStartTime,
             });
-          }else{
+          } else {
             AppUtils.showDialogBoxWithOneButton(
-
                 context: context,
                 text: "Something went wrong, Please try again later!");
           }
         } else {
-          if(response?.isError == true){
+          if (response?.isError == true) {
             AppUtils.showDialogBoxWithOneButton(
                 context: context,
                 text: "Something went wrong, Please try again later!");
           }
-          if( response?.isValidationFailed == true){
+          if (response?.isValidationFailed == true) {
             AppUtils.showDialogBoxWithOneButton(
-                context: context,
-                text: response?.message ?? "");
+                context: context, text: response?.message ?? "");
           }
-
         }
       });
     } catch (e) {
@@ -190,25 +382,22 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         if (response?.isError == false &&
             response?.isValidationFailed == false) {
           //after success update UI
-          if(value != null){
+          if (value != null) {
             callCheckInFunction(value);
-          }else{
+          } else {
             AppUtils.showDialogBoxWithOneButton(
                 context: context,
                 text: "Something went wrong, Please try again later!");
           }
-
-
         } else {
-          if(response?.isError == true){
+          if (response?.isError == true) {
             AppUtils.showDialogBoxWithOneButton(
                 context: context,
                 text: "Something went wrong, Please try again later!");
           }
-          if( response?.isValidationFailed == true){
+          if (response?.isValidationFailed == true) {
             AppUtils.showDialogBoxWithOneButton(
-                context: context,
-                text: response?.message ?? "");
+                context: context, text: response?.message ?? "");
           }
         }
       });
@@ -234,24 +423,22 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         if (response?.isError == false &&
             response?.isValidationFailed == false) {
           //after success update UI
-          if(value != null){
+          if (value != null) {
             callDayEndFunction(value);
-          }else{
+          } else {
             AppUtils.showDialogBoxWithOneButton(
                 context: context,
                 text: "Something went wrong, Please try again later!");
           }
-
         } else {
-          if(response?.isError == true){
+          if (response?.isError == true) {
             AppUtils.showDialogBoxWithOneButton(
                 context: context,
                 text: "Something went wrong, Please try again later!");
           }
-          if( response?.isValidationFailed == true){
+          if (response?.isValidationFailed == true) {
             AppUtils.showDialogBoxWithOneButton(
-                context: context,
-                text: response?.message ?? "");
+                context: context, text: response?.message ?? "");
           }
         }
       });
@@ -289,15 +476,14 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           await callDayEndApiAndUpdateUI(postMdl);
         }
       } else {
-        if(response?.isError == true){
+        if (response?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(
               context: context,
               text: "Something went wrong, Please try again later!");
         }
-        if( response?.isValidationFailed == true){
+        if (response?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
-              context: context,
-              text: response?.message ?? "");
+              context: context, text: response?.message ?? "");
         }
       }
     } catch (e) {

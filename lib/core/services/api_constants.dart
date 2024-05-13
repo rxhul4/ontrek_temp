@@ -17,6 +17,8 @@ class ApiConstants{
       static const String getLeadList = "$baseUrl/FieldUser/LeadList";
       static const String getVisitNote = "$baseUrl/FieldUser/GetVisitNote";
       static const String getAllTaskByUserId = "$baseUrl/FieldUser/TaskList";
+      static const String dayEndManualRequest = "$baseUrl/FieldUser/DayEndManualRequest";
+      static const String checkPendingEndDate = "$baseUrl/FieldUser/CheckPendingEndDate";
 
    
       static const String getTotByGroupType = "$baseUrl/Super/Tot/GetTotByGroupType";
