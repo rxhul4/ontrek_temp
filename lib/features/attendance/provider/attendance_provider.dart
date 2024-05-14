@@ -431,9 +431,8 @@ class AttendanceProvider extends ChangeNotifier {
   }
 
   clearController(){
-    dateController.clear();
+
     timeController.clear();
-    dayStartTimeController.clear();
     reasonController.clear();
   }
 }

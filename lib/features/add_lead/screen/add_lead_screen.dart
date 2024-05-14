@@ -94,7 +94,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
           AppUtils.showDialogBoxWithOneButton(text: "Something went wrong!",context: context);
         }
         if(getLeadByIdModel?.isValidationFailed == true){
-          AppUtils.showDialogBoxWithOneButton(text: value?.message,context: context);
+          AppUtils.showDialogBoxWithOneButton(titleText: "",text: value?.message,context: context);
         }
       }
     });
@@ -150,7 +150,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
           AppUtils.showDialogBoxWithOneButton(text: "Something went wrong!",context: context);
         }
         if(getStateByIdModel?.isValidationFailed == true){
-          AppUtils.showDialogBoxWithOneButton(text: getStateByIdModel?.message,context: context);
+          AppUtils.showDialogBoxWithOneButton( titleText: "",text: getStateByIdModel?.message,context: context);
         }
       }
     });
@@ -178,7 +178,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
           AppUtils.showDialogBoxWithOneButton(text: "Something went wrong!",context: context);
         }
         if(getCityByIdModel?.isValidationFailed == true){
-          AppUtils.showDialogBoxWithOneButton(text: getCityByIdModel?.message,context: context);
+          AppUtils.showDialogBoxWithOneButton(titleText : "",text: getCityByIdModel?.message,context: context);
         }
       }
     });

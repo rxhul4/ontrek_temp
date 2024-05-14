@@ -890,7 +890,7 @@ class AppUtils {
           insetAnimationDuration: Duration(milliseconds: 400),
           insetAnimationCurve: Curves.bounceIn,
           title: AppUtils.commonTextWidget(
-              text: titleText ?? "Error",
+              text: titleText ?? "",
               textColor: AppConstant.blackColor,
               fontSize: 14,
               textAlign: TextAlign.center,
@@ -944,7 +944,7 @@ class AppUtils {
             children: [
               AppUtils.commonSizedBox(height: 30, width: 30),
               AppUtils.commonTextWidget(
-                text: titleText ?? "Error",
+                text: titleText ?? "",
                 textColor: AppConstant.blackColor,
                 fontSize: 14,
                 textAlign: TextAlign.center,

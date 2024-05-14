@@ -140,7 +140,7 @@ class AuthenticationProvider extends ChangeNotifier {
       } else {
         if (loginModel?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
-              titleText: "Error",
+              titleText: "",
               context: navigatorKey.currentState!.context,
               text: loginModel?.message ?? "");
         }
@@ -220,7 +220,7 @@ class AuthenticationProvider extends ChangeNotifier {
       } else {
         if (loginModel?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
-              titleText: "Error",
+              titleText: "",
               context: navigatorKey.currentState!.context,
               text: loginModel?.message ?? "");
         }
