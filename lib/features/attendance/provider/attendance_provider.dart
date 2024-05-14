@@ -12,6 +12,7 @@ import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/attendance/model/add_activity_model.dart';
+import 'package:ontrek/features/attendance/model/dayend_manual_request_model.dart';
 import 'package:ontrek/features/attendance/model/get_check_panding_dayend.dart';
 import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
 import 'package:ontrek/main.dart';
@@ -34,6 +35,7 @@ class AttendanceProvider extends ChangeNotifier {
   CreateActivityModel? createActivityModel;
   GetLastActivityModel? getLastActivityModel;
   GetLastPendingDayEnd? getLastPendingDayEnd;
+  DayEndManualRequestModel? dayEndManualRequestModel;
   int? battery;
   PanelController panelController = PanelController();
   ValueNotifier<bool> isDayStart = ValueNotifier(false);
@@ -49,6 +51,7 @@ class AttendanceProvider extends ChangeNotifier {
   TextEditingController dateController = TextEditingController();
   TextEditingController timeController = TextEditingController();
   TextEditingController reasonController = TextEditingController();
+  TextEditingController dayStartTimeController = TextEditingController();
 
   loaderFnc(bool isLoading) {
     _isLoading = isLoading;
@@ -207,8 +210,6 @@ class AttendanceProvider extends ChangeNotifier {
       print("response_of_lastActivity: $response");
       if (getLastActivityModel?.isError == false &&
           getLastActivityModel?.isValidationFailed == false) {
-        dateController.text =
-            getLastActivityModel?.data?.pendingSessionDate ?? "";
         print("totEvent${getLastActivityModel?.data?.trackingEventId}");
         String? totEventCode = getLastActivityModel?.data?.trackingEventId;
         switch (totEventCode) {
@@ -358,10 +359,6 @@ class AttendanceProvider extends ChangeNotifier {
       final response = await callPostMethod(endPoint, body);
       getLastPendingDayEnd = GetLastPendingDayEnd.fromJson(json.decode(response));
       print("response : ${response}");
-      if(getLastPendingDayEnd?.isValidationFailed == true){
-        dateController.text = getLastPendingDayEnd?.data?.sessionDateOnly ?? "";
-        print("date==$dateController");
-      }
     } catch (e) {
       AppUtils.showDialogBoxWithOneButton(
           text: AppConstant.errorText,
@@ -379,5 +376,64 @@ class AttendanceProvider extends ChangeNotifier {
     }
     loaderFnc(false);
     return getLastPendingDayEnd;
+  }
+
+  Future<DayEndManualRequestModel?> apiCallDayEndManualRequest({String? sessionId,String? sessionEndDate}) async {
+    String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
+    String? orgId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
+    print("endDate${sessionEndDate}");
+
+    loaderFnc(true);
+    Map<String, dynamic> body ={
+      "orgId": orgId,
+      "userId": userId,
+      "sessionId": sessionId,
+      "sessionEndDateTime": sessionEndDate,
+      "comment": reasonController.text
+    };
+    try {
+      String endPoint = ApiConstants.dayEndManualRequest;
+      final response = await callPostMethod(endPoint, body);
+      dayEndManualRequestModel = DayEndManualRequestModel.fromJson(json.decode(response));
+      print("response : ${response}");
+      if(dayEndManualRequestModel?.data == true){
+        Navigator.pop(navigatorKey.currentState!.context);
+      }
+    } catch (e) {
+      AppUtils.showDialogBoxWithOneButton(
+          text: AppConstant.errorText,
+          context: navigatorKey.currentState!.context);
+      print("inCatch ${dayEndManualRequestModel?.message}");
+      print("inCatchE $e");
+      isInternetAvailable = await AppUtils.checkInternetConnectivity();
+      if (isInternetAvailable == false) {
+        dayEndManualRequestModel = DayEndManualRequestModel(
+            message: "Internet is not available, please try again!");
+      } else {
+        dayEndManualRequestModel =
+            DayEndManualRequestModel(message: "Something went wrong!");
+      }
+    }
+    loaderFnc(false);
+    return dayEndManualRequestModel;
+  }
+
+  checkValidationOfRequestNote({
+    String? sessionId,String? sessionEndDate
+})async{
+    if(timeController.text.isEmpty){
+      AppUtils.showSnackBarWithColor(message: "Please select day end Time",context: navigatorKey.currentState!.context,giveColor: AppConstant.appPrimaryColor);
+    }else if(reasonController.text.isEmpty){
+      AppUtils.showSnackBarWithColor(message: "Please Enter reason",context: navigatorKey.currentState!.context,giveColor: AppConstant.appPrimaryColor);
+    }else{
+      await apiCallDayEndManualRequest(sessionId: sessionId,sessionEndDate: sessionEndDate);
+    }
+  }
+
+  clearController(){
+    dateController.clear();
+    timeController.clear();
+    dayStartTimeController.clear();
+    reasonController.clear();
   }
 }

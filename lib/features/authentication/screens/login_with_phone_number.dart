@@ -117,6 +117,7 @@ AuthenticationProvider? authenticationProvider;
                                     backgroundColor: Colors.white,
                                     surfaceTintColor: Colors.white)),
                             child: IntlPhoneField(
+
                               textAlignVertical: TextAlignVertical.center,
                               flagsButtonPadding: EdgeInsets.zero,
 
@@ -147,6 +148,7 @@ AuthenticationProvider? authenticationProvider;
                                 }
                               },
                               pickerDialogStyle: PickerDialogStyle(
+                                backgroundColor:AppConstant.whiteColor ,
                                 searchFieldPadding:
                                     AppUtils.edgeInsetsOnly(left: 10, right: 10),
                                 searchFieldCursorColor:
@@ -165,6 +167,9 @@ AuthenticationProvider? authenticationProvider;
                                 fontWeight: FontWeight.w500,
                               ),
                               decoration: InputDecoration(
+                                // contentPadding: EdgeInsets.zero,
+                                alignLabelWithHint: true,
+
                                 hintText: "Phone Number",
                                 hintStyle: TextStyle(
                                   fontSize: 14,

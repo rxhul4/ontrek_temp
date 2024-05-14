@@ -119,7 +119,7 @@ void onStart(ServiceInstance service) async {
       (timer) async {
         var now = DateTime.now();
         print("current_TIME$now");
-        if (now.hour == 11 && now.minute >= 59 && now.minute <= 59) {
+        if (now.hour == 23 && now.minute >= 50 && now.minute <= 59) {
           print("its_11:59:59");
           // If it's between 11:55:00 PM and 11:59:59 PM, clear preferences and stop the service
           PreferenceHelper.clear();

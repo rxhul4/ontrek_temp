@@ -38,27 +38,33 @@ class Data {
   String? userId;
   int? sessionNo;
   String? sessionStartDatetime;
+  String? startTime;
   String? sessionEndDatetime;
   bool? isActiveSession;
   String? sessionDateOnly;
+  bool? alreadyRequested;
 
   Data(
       {this.sessionId,
         this.userId,
         this.sessionNo,
         this.sessionStartDatetime,
+        this.startTime,
         this.sessionEndDatetime,
         this.isActiveSession,
-        this.sessionDateOnly});
+        this.sessionDateOnly,
+        this.alreadyRequested});
 
   Data.fromJson(Map<String, dynamic> json) {
     sessionId = json['sessionId'];
     userId = json['userId'];
     sessionNo = json['sessionNo'];
     sessionStartDatetime = json['sessionStartDatetime'];
+    startTime = json['startTime'];
     sessionEndDatetime = json['sessionEndDatetime'];
     isActiveSession = json['isActiveSession'];
     sessionDateOnly = json['sessionDateOnly'];
+    alreadyRequested = json['alreadyRequested'];
   }
 
   Map<String, dynamic> toJson() {
@@ -67,9 +73,11 @@ class Data {
     data['userId'] = this.userId;
     data['sessionNo'] = this.sessionNo;
     data['sessionStartDatetime'] = this.sessionStartDatetime;
+    data['startTime'] = this.startTime;
     data['sessionEndDatetime'] = this.sessionEndDatetime;
     data['isActiveSession'] = this.isActiveSession;
     data['sessionDateOnly'] = this.sessionDateOnly;
+    data['alreadyRequested'] = this.alreadyRequested;
     return data;
   }
 }

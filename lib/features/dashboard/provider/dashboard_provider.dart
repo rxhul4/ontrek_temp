@@ -171,24 +171,24 @@ class DashBoardProvider extends ChangeNotifier {
               ),
         ),
       );
-      // Future.delayed(Duration(milliseconds: 1000),() async{
-      //   markers.clear();
-      //   await markers.add(
-      //     Marker(
-      //       markerId: MarkerId("currentLocation"),
-      //       position: location,
-      //       infoWindow: InfoWindow(title: "Current Location"),
-      //       icon: await CustomMarkerWidget(
-      //       imageUrl: imgUrl,
-      //     ).toBitmapDescriptor(
-      //       logicalSize: Size(150, 150),
-      //       imageSize: Size(300, 300),
-      //     ),
-      //   ),
-      //   );
-      //   notifyListeners();
-      //   print("ceckkkkkkkkkk");
-      // },);
+      Future.delayed(Duration(milliseconds: 1000),() async{
+        markers.clear();
+        await markers.add(
+          Marker(
+            markerId: MarkerId("currentLocation"),
+            position: location,
+            infoWindow: InfoWindow(title: "Current Location"),
+            icon: await CustomMarkerWidget(
+            imageUrl: imgUrl,
+          ).toBitmapDescriptor(
+            logicalSize: Size(150, 150),
+            imageSize: Size(300, 300),
+          ),
+        ),
+        );
+        notifyListeners();
+        print("ceckkkkkkkkkk");
+      },);
     } catch (e) {
       print("Error_in_marker$e");
     }

@@ -786,7 +786,7 @@ class AppUtils {
   }
 
   static String getDate({required String date, required String format}) {
-    // print("uuuuuuuuu $date");
+    print("uuuuuuuuu $date");
     String parseDate = '';
     if (date != '') {
       try {
