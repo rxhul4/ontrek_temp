@@ -93,8 +93,6 @@ class _ChooseCountryScreenState extends State<ChooseCountryScreen> {
                             getAllCountryModel?.data?[index].countryId;
                         selectedCountryName =
                             getAllCountryModel?.data?[index].countryName;
-                        print("selectedCountry$selectedCountryName");
-                        print("selectedCountryId$selectedCountryId");
                       });
                       Navigator.pop(
                         context,

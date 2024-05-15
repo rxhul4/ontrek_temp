@@ -34,12 +34,6 @@ class _SplashScreenState extends State<SplashScreen> {
     isWaiting = PreferenceHelper.getBool(PreferenceHelper.isWaiting);
     var status = await Permission.location.status;
     var statusOfAlwaysOnLocation = await Permission.locationAlways.status;
-    print("isLogIn $isLogIn");
-    print("roleId $roleId");
-    print("isDayStart $isDayStart");
-    print("isCheckIn $isCheckIn");
-    print("isWaiting $isWaiting");
-    print("status $status");
     Timer(const Duration(milliseconds: 3000), () {
       if(status.isGranted){
         if(statusOfAlwaysOnLocation.isGranted){
@@ -63,8 +57,6 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
-
-    // redirectToLogin();
     gotoLogin();
   }
 
@@ -76,8 +68,6 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
         backgroundColor: AppConstant.whiteColor,
         body: Column(
-          // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          // crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
               child: Column(

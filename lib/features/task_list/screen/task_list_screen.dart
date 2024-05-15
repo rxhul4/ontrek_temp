@@ -47,9 +47,6 @@ class _TaskListScreenState extends State<TaskListScreen>
   }
 
   callCallGetTaskByIdListApi({required TaskProvider taskProvider}) {
-    if (kDebugMode) {
-      print("taskApi");
-    }
     taskProvider.apiCallGetTaskByIdList(
         date: taskProvider.selectedDate.toString());
   }
@@ -178,7 +175,7 @@ class _TaskListScreenState extends State<TaskListScreen>
                 children: [
                   AppUtils.commonSizedBox(height: height * 0.06),
                   AppUtils.commonNoDataFound(
-                      text:"Internet is not available, please try again!"),
+                      text: "Internet is not available, please try again!"),
                 ],
               )
             : (taskProvider.getAllTaskModel?.data?.length ?? 0) <= 0 ||
@@ -307,7 +304,6 @@ class _TaskListScreenState extends State<TaskListScreen>
   }
 
   Widget taskListWidget(List<Data> allTaskDataList) {
-    print("allTaskDataList${allTaskDataList.length}");
     return (allTaskDataList.length ?? 0) <= 0
         ? Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -338,7 +334,6 @@ class _TaskListScreenState extends State<TaskListScreen>
             itemBuilder: (context, index) {
               return GestureDetector(
                 onTap: () {
-                  print("index$index");
                   Navigator.push(
                       context,
                       CupertinoPageRoute(

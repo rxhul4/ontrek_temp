@@ -99,8 +99,6 @@ class _ChooseCityScreenState extends State<ChooseCityScreen> {
                             getCityByIdModel?.data?[index].cityId;
                         selectedCityName =
                             getCityByIdModel?.data?[index].cityName;
-                        print("selectedCountry$selectedCityName");
-                        print("selectedCountryId$selectedCityId");
                       });
                       Navigator.pop(
                         context,

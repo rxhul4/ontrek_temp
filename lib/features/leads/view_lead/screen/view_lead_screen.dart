@@ -34,55 +34,12 @@ class _ViewLeadScreenState extends State<ViewLeadScreen> {
   @override
   void initState() {
     super.initState();
-    print("intaskList");
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       leadProvider = Provider.of<LeadProvider>(context, listen: false);
       leadProvider.apiCallGetLeadById(leadId: widget.leadId);
     });
   }
 
-  // Future<void> fetchData() async {
-  //   final totByTypeResult = await viewTaskProvider.apiCallGetTotByType(
-  //       groupType: AppConstant.taskStatusCode);
-  //   if (totByTypeResult?.isError == false &&
-  //       totByTypeResult?.isValidationFailed == false) {
-  //     for (int i = 0;
-  //         i < (viewTaskProvider.getTotByGroupTypeModel?.data?.length ?? 0);
-  //         i++) {
-  //       if (viewTaskProvider.getTotByGroupTypeModel?.data?[i].totValue ==
-  //           viewTaskProvider.taskByIdModel?.data?.taskStatus) {
-  //         setState(() {
-  //           selectedTotValue =
-  //               viewTaskProvider.getTotByGroupTypeModel?.data?[i].totValue;
-  //         });
-  //         print("selectedTotValue_$selectedTotValue");
-  //       }
-  //     }
-  //     setState(() {
-  //       selectedTotId =
-  //           viewTaskProvider.getTotByGroupTypeModel?.data?.first.totId;
-  //     });
-  //   }
-  // }
-
-  // callUpdateTaskApi() async {
-  //   viewTaskProvider
-  //       .apiCallUpdateStatus(
-  //     taskTitle: viewTaskProvider.taskByIdModel?.data?.taskTitle,
-  //     taskFormId: widget.taskFormId,
-  //     assignedBy: viewTaskProvider.taskByIdModel?.data?.assignedBy,
-  //     assignedTo: viewTaskProvider.taskByIdModel?.data?.assignedTo,
-  //     startDate: viewTaskProvider.taskByIdModel?.data?.startDate,
-  //     endDate: viewTaskProvider.taskByIdModel?.data?.endDate,
-  //     taskDescription: viewTaskProvider.taskByIdModel?.data?.taskDescription,
-  //     totTaskStatusId: selectedTotId,
-  //   )
-  //       .then((value) {
-  //     if (value?.isError == false && value?.isValidationFailed == false) {
-  //       Navigator.pop(context);
-  //     }
-  //   });
-  // }
 
   @override
   Widget build(BuildContext context) {

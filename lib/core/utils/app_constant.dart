@@ -3,7 +3,7 @@ import 'package:ontrek/core/utils/App_utils.dart';
 
 class AppConstant {
 
-
+  static const String appVersionAndroid = "1.0.1" ;
   //tot tracking events
   static const String  dayStartEvent = "826c88aa-d18e-46f4-967b-4f973126765e" ;
   static const String  dayEndEvent = "a2864068-8305-472f-a3a9-16d9e1d0e2dd" ;
@@ -17,8 +17,8 @@ class AppConstant {
   static const String  trackingWaitingStopEvent = "714a0fbe-5485-4207-a147-b626738a5f2c" ;
 
   //totString
-  static const String  visitTypeCode = "visit_type" ;
-  static const String  taskStatusCode = "task_status" ;
+  static const String  visitTypeCode = "visit_type";
+  static const String  taskStatusCode = "task_status";
   static const String  leadTypeCode = "lead_source" ;
 
 
@@ -26,11 +26,6 @@ class AppConstant {
   static const String  errorText = "Something went wrong!" ;
   // date format
   static const String dateFormat= "yyyy-MM-dd'T'HH:mm:ss";
-
-  // api method constant
-
-  static String appLevelAuthKey = "abcd123xyz";
-
 
   //app colors constant
   static Color appPrimaryColor = Color.fromRGBO(27, 78, 137, 1);

@@ -9,6 +9,7 @@ import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
+import 'package:ontrek/core/utils/app_constant.dart';
 
 import 'package:ontrek/features/authentication/models/login_model.dart';
 import 'package:ontrek/features/authentication/screens/otp_verification%20screen.dart';
@@ -120,6 +121,7 @@ class AuthenticationProvider extends ChangeNotifier {
           "deviceModel": androidInfo.model,
           "deviceOs ": androidInfo.version.release,
           "osVersion ": Platform.operatingSystemVersion,
+          "appVersion": AppConstant.appVersionAndroid
         }
       };
     }
@@ -203,6 +205,7 @@ class AuthenticationProvider extends ChangeNotifier {
             "deviceModel": androidInfo.model,
             "deviceOs ": androidInfo.version.release,
             "osVersion ": Platform.operatingSystemVersion,
+            "appVersion": AppConstant.appVersionAndroid
           }
         };
       }
@@ -315,9 +318,7 @@ class AuthenticationProvider extends ChangeNotifier {
         loginModel?.data?.appUserConfigTrackingRequest?.idleMarkerTime ?? 0);
     int? liveLocationInterval =
         PreferenceHelper.getInt(PreferenceHelper.LIVE_LOCATION_INTERVAL);
-    print("intervalTime$liveLocationInterval");
 
-    print("data : ${PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN)}");
     return true;
   }
 

@@ -56,7 +56,6 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
       );
       setState(() {
         currentLocation = LatLng(position.latitude, position.longitude);
-        print("${currentLocation}");
         if (currentLocation != null) {
           updateCameraPosition(currentLocation);
           addCurrentLocationMarker(currentLocation);
@@ -172,8 +171,6 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
         points: polylineCoordinates,
         color: AppConstant.appPrimaryColor,
       ));
-
-      print("length_of_array_data ${polylineCoordinates.length}");
     } else {
       var sessionTimeLine =
           saleMenTimeLineProvider.getTimeLineModel?.data?.sessionTimeLine;
@@ -189,7 +186,6 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
               ));
             });
           }
-          print("length_of_array_data_0 ${polylineCoordinates.length}");
           polylines.add(Polyline(
             polylineId: PolylineId("PolyLine${session.sessionNo}"),
             visible: true,
@@ -200,8 +196,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
 
           if (polylineCoordinates.isNotEmpty) {
             var startLatLng = polylineCoordinates.first;
-            print(
-                "Start LatLng: $startLatLng"); // Print startLatLng for debugging
+            // Print startLatLng for debugging
             markers.add(Marker(
               markerId: MarkerId("StartMarker${session.sessionNo}"),
               position: startLatLng,
@@ -219,15 +214,10 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
           }
         }
       }
-
-      print("length_of_array_data_0${polylineCoordinates.length}");
-      print("print_polyLineLength${polylines.first.points.length}");
-      print("print_polyLineLength${polylines.length}");
     }
     if (selectedIndex != 0) {
       if (polylineCoordinates.isNotEmpty) {
         var startLatLng = polylineCoordinates.first;
-        print("Start LatLng: $startLatLng");
         markers.clear();
         markers.add(Marker(
           markerId: MarkerId("StartMarker"),
@@ -246,8 +236,6 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
     }
 
     saleMenTimeLineProvider.sessionEvents.forEach((element) async {
-      print("element${element.eventLat} & ${element.eventLong}");
-      print("eventId${element.eventCode}");
       if (element.sessionNo == selectedIndex) {
         markers.add(Marker(
             markerId: MarkerId("${element.eventId}"),
@@ -267,8 +255,6 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
               ));
         }
       }
-
-      print("marker$markers");
     });
 
     if (polylines.isNotEmpty) {
@@ -322,7 +308,6 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
           return dayEndEventColor;
       }
     } else {
-      print("event_code$eventCode");
       return dayEndEventColor;
     }
   }
@@ -516,7 +501,6 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                                           duration:
                                               Duration(milliseconds: 300));
                                     });
-                                    print("selectedIndex $selectedIndex");
                                     polylines.clear();
                                     drawPolyLines();
                                   },
@@ -578,7 +562,6 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                                                     duration: Duration(
                                                         milliseconds: 300));
                                           });
-                                          print("selectedIndex $selectedIndex");
                                           polylines.clear();
                                           drawPolyLines();
                                         },
@@ -724,9 +707,9 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                                 fontSize: 12),
                             AppUtils.commonTextWidget(
                                 text: AppUtils.timeLineDate(
-                                    date: sessionList?[index].eventStartDate ??
-                                        "",
-                                    ),
+                                  date:
+                                      sessionList?[index].eventStartDate ?? "",
+                                ),
                                 textColor: AppConstant.blackColor,
                                 fontWeight: FontWeight.w400,
                                 fontSize: 10),
@@ -735,7 +718,8 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                       ),
                       endChild: AppUtils.commonInkWell(
                         onTap: () {
-                          panelController.animatePanelToSnapPoint(duration: Duration(milliseconds: 300));
+                          panelController.animatePanelToSnapPoint(
+                              duration: Duration(milliseconds: 300));
                           LatLng activityLatLong = LatLng(
                               sessionList?[index].eventLat ?? 0,
                               sessionList?[index].eventLong ?? 0);

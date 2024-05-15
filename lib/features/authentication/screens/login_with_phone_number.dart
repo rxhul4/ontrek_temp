@@ -58,10 +58,8 @@ AuthenticationProvider? authenticationProvider;
             actions: [
               GestureDetector(
                 onTap: () {
-
-                 AppUtils.launchToBrowser(Uri.parse("https://ontrek.io/privacy-policy"));
-
-                },
+                  AppUtils.launchToBrowser(Uri.parse("https://ontrek.io/privacy-policy"));
+                  },
                 child: Padding(
                   padding: const EdgeInsets.only(right: 10),
                   child: Icon(Icons.security,color: AppConstant.blackColor,),
@@ -211,9 +209,9 @@ AuthenticationProvider? authenticationProvider;
                             bgColor: AppConstant.appPrimaryColor.withOpacity(0.9),
                             borderRadiusAll: 8,
                             onPressed: () {
-                              print(
-                                  "onPressed-----${authenticationProvider.mobileNumberController.text}");
-                              print("onPressed-----${authenticationProvider.countryCode}");
+                              // print(
+                              //     "onPressed-----${authenticationProvider.mobileNumberController.text}");
+                              // print("onPressed-----${authenticationProvider.countryCode}");
                               authenticationProvider.checkValidationAndCallLoginApi();
                             },
                           ),

@@ -1,13 +1,11 @@
 import 'package:battery_plus/battery_plus.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_geocoding_api/google_geocoding_api.dart';
 import 'package:intl/intl.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
@@ -89,17 +87,6 @@ class AppUtils {
     );
   }
 
-  // static getAddress(double lat ,double long) async {
-  //   const String googelApiKey = 'AIzaSyBtIPj5XDL4wiGpUaiXrYfTyWLDLlyvgbs';
-  //   final bool isDebugMode = true;
-  //   final api = GoogleGeocodingApi(googelApiKey, isLogged: isDebugMode);
-  //   final reversedSearchResults = await api.reverse(
-  //     '${lat},${long}',
-  //     language: 'en',
-  //   );
-  //   print("address please111   \n${reversedSearchResults.results.first.formattedAddress}");
-  //   return reversedSearchResults;
-  // }
 
   static bool validateEmail(String value) {
     Pattern pattern =

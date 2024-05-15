@@ -1,15 +1,11 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'dart:ui';
 
-import 'package:app_settings/app_settings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:ontrek/core/common_widgets/custom_upgrader_message.dart';
-import 'package:ontrek/core/common_widgets/marker_widget.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 
 import 'package:ontrek/core/utils/app_constant.dart';
@@ -33,8 +29,7 @@ class DashBoard extends StatefulWidget {
 }
 
 class DashBoardState extends State<DashBoard> {
-
-  List<Map<String,dynamic>> showUserInMap = [];
+  List<Map<String, dynamic>> showUserInMap = [];
 
   List<String> lableString = [
     "Attendance",
@@ -50,38 +45,39 @@ class DashBoardState extends State<DashBoard> {
     leadIconPath,
     profileIconPath,
   ];
-late DashBoardProvider dashBoardProvider;
+  late DashBoardProvider dashBoardProvider;
   final GlobalKey globalKey = GlobalKey();
 
-GoogleMapController? googleMapController;
+  GoogleMapController? googleMapController;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       bool? isLogin = PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN);
-      if(isLogin == false){
-        Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => LoginScreen(),));
+      if (isLogin == false) {
+        Navigator.pushReplacement(
+            context,
+            CupertinoPageRoute(
+              builder: (context) => LoginScreen(),
+            ));
       }
-      final dashBoardProvider = Provider.of<DashBoardProvider>(context,listen: false);
-      if(!mounted){}
+      final dashBoardProvider =
+          Provider.of<DashBoardProvider>(context, listen: false);
+      if (!mounted) {}
       dashBoardProvider.initialIndex();
       dashBoardProvider.checkPermission();
       // setState(() {});
     });
-
   }
 
   @override
   Widget build(BuildContext context) {
     dashBoardProvider = Provider.of<DashBoardProvider>(context);
-    final height = MediaQuery.of(context).size.height;
-    print("height====${height}");
     return Scaffold(
       body: UpgradeAlert(
         showReleaseNotes: false,
-        upgrader: Upgrader(
-            messages: CustomUpgraderMessage()
-        ),
+        upgrader: Upgrader(messages: CustomUpgraderMessage()),
         child: Stack(
           children: [
             Positioned.fill(
@@ -90,7 +86,7 @@ GoogleMapController? googleMapController;
                   padding: AppUtils.edgeInsetsOnly(
                       bottom: MediaQuery.of(context).size.height * 0.3),
                   mapType: MapType.normal,
-                  onMapCreated: (GoogleMapController  controller) {
+                  onMapCreated: (GoogleMapController controller) {
                     dashBoardProvider.googleMapController = controller;
                   },
                   markers: dashBoardProvider.markers,
@@ -98,25 +94,23 @@ GoogleMapController? googleMapController;
                       CameraPosition(target: LatLng(0, 0), zoom: 14)),
             ),
             [
-              AttendanceScreen(
-                  onLocationFetch: (value) {
-                    print("locationFromBtn${value}");
+              AttendanceScreen(onLocationFetch: (value) {
                 if (!mounted) {}
-                dashBoardProvider.getLocationFromSheet(getCurrentLocation:  value);
-
+                dashBoardProvider.getLocationFromSheet(
+                    getCurrentLocation: value);
               }),
-              TrackScreen(onUserFetch: (value) async{
-                if(value != null){
-                    dashBoardProvider.showUserInMap = value;
-                  }
-                  print("userInDashBoard${dashBoardProvider.showUserInMap}");
-                  await dashBoardProvider.addUsersMarker();
-                  dashBoardProvider.markers.clear();
-                  Future.delayed(Duration(milliseconds: 300),() async{
+              TrackScreen(onUserFetch: (value) async {
+                if (value != null) {
+                  dashBoardProvider.showUserInMap = value;
+                }
+                await dashBoardProvider.addUsersMarker();
+                dashBoardProvider.markers.clear();
+                Future.delayed(
+                  Duration(milliseconds: 300),
+                  () async {
                     await dashBoardProvider.addUsersMarker();
-                  },);
-
-
+                  },
+                );
               }),
               TaskListScreen(),
               LeadScreen(),
@@ -139,22 +133,20 @@ GoogleMapController? googleMapController;
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
-            children: List.generate(
-                lableString.length, (index) {
+            children: List.generate(lableString.length, (index) {
               return Expanded(
                 child: GestureDetector(
                   onTap: () {
                     HapticFeedback.vibrate();
-                    if(!mounted){}
+                    if (!mounted) {}
                     dashBoardProvider.selectIndex(index);
-                    if(dashBoardProvider.selectedIndex == 0 ){
+                    if (dashBoardProvider.selectedIndex == 0) {
                       dashBoardProvider.getCurrentLocation();
-                    }else{
-                      // dashBoardProvider.markers.clear();
-                      // dashBoardProvider.addUsersMarker();
+                    } else {
+
                     }
 
-                    print("selected----${dashBoardProvider.selectedIndex}&& $index");
+
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
@@ -166,8 +158,8 @@ GoogleMapController? googleMapController;
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Image.asset(
-                          width:  22 ,
-                          height:  22 ,
+                          width: 22,
+                          height: 22,
                           iconString[index],
                           color: dashBoardProvider.selectedIndex == index
                               ? AppConstant.appPrimaryColor
@@ -195,5 +187,4 @@ GoogleMapController? googleMapController;
       ),
     );
   }
-
 }

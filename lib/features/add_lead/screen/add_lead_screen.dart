@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ontrek/core/common_widgets/app_scaffold.dart';
-import 'package:ontrek/core/common_widgets/common_selection_widget.dart';
 import 'package:ontrek/core/common_widgets/textfield_widget.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
@@ -89,12 +88,15 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
         await callGetStateByCountryId();
         await callGetCityByStateId();
         await callLeadSourceApi();
-      }else{
-        if(getLeadByIdModel?.isError == true){
-          AppUtils.showDialogBoxWithOneButton(text: "Something went wrong!",context: context);
+      } else {
+        if (getLeadByIdModel?.isError == true) {
+          AppUtils.showDialogBoxWithOneButton(
+            titleText: "Error",
+              text: "Something went wrong!", context: context);
         }
-        if(getLeadByIdModel?.isValidationFailed == true){
-          AppUtils.showDialogBoxWithOneButton(text: value?.message,context: context);
+        if (getLeadByIdModel?.isValidationFailed == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              text: value?.message, context: context);
         }
       }
     });
@@ -117,12 +119,15 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
                 element.countryId == getLeadByIdModel?.data?.countryId)
             .first
             .countryId;
-      }else{
-        if(getAllCountryModel?.isError == true){
-          AppUtils.showDialogBoxWithOneButton(text: "Something went wrong!",context: context);
+      } else {
+        if (getAllCountryModel?.isError == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Error",
+              text: "Something went wrong!", context: context);
         }
-        if(getAllCountryModel?.isValidationFailed == true){
-          AppUtils.showDialogBoxWithOneButton(text: getAllCountryModel?.message,context: context);
+        if (getAllCountryModel?.isValidationFailed == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              text: getAllCountryModel?.message, context: context);
         }
       }
     });
@@ -145,12 +150,15 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
             ?.firstWhere(
                 (element) => element.stateId == getLeadByIdModel?.data?.stateId)
             .stateId;
-      }else{
-        if(getStateByIdModel?.isError == true){
-          AppUtils.showDialogBoxWithOneButton(text: "Something went wrong!",context: context);
+      } else {
+        if (getStateByIdModel?.isError == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Error",
+              text: "Something went wrong!", context: context);
         }
-        if(getStateByIdModel?.isValidationFailed == true){
-          AppUtils.showDialogBoxWithOneButton(text: getStateByIdModel?.message,context: context);
+        if (getStateByIdModel?.isValidationFailed == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              text: getStateByIdModel?.message, context: context);
         }
       }
     });
@@ -173,12 +181,16 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
             ?.firstWhere(
                 (element) => element.cityId == getLeadByIdModel?.data?.cityId)
             .cityId;
-      }else{
-        if(getCityByIdModel?.isError == true){
-          AppUtils.showDialogBoxWithOneButton(text: "Something went wrong!",context: context);
+      } else {
+        if (getCityByIdModel?.isError == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Error",
+
+              text: "Something went wrong!", context: context);
         }
-        if(getCityByIdModel?.isValidationFailed == true){
-          AppUtils.showDialogBoxWithOneButton(text: getCityByIdModel?.message,context: context);
+        if (getCityByIdModel?.isValidationFailed == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              text: getCityByIdModel?.message, context: context);
         }
       }
     });
@@ -223,11 +235,11 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
         body: widget.isEdit == true && addLeadProvider.isFetching
             ? AppUtils.loaderWidget()
             : Stack(
-              children: [
-                SingleChildScrollView(
+                children: [
+                  SingleChildScrollView(
                     child: Padding(
-                      padding:
-                          const EdgeInsets.only(left: 10, right: 10, bottom: 20),
+                      padding: const EdgeInsets.only(
+                          left: 10, right: 10, bottom: 20),
                       child: Column(
                         children: [
                           AppUtils.commonSizedBox(height: 20),
@@ -277,13 +289,10 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
                                     builder: (context) =>
                                         const ChooseCountryScreen()),
                               ).then((value) {
-                                print("value_$value");
                                 if (value != null) {
                                   setState(() {
                                     selectedCountryId = value['countryId'];
                                     selectedCountryName = value['countryName'];
-                                    print("selectedCountry$selectedCountryName");
-                                    print("selectedCountryId$selectedCountryId");
                                     selectedStateName = "";
                                     selectedStateId = "";
                                     selectedCityId = "";
@@ -317,8 +326,6 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
                                     selectedStateName = value['stateName'];
                                     selectedCityId = "";
                                     selectedCityName = "";
-                                    print("selectedCountry$selectedStateName");
-                                    print("selectedCountryId$selectedStateId");
                                   });
                                 }
                               });
@@ -346,8 +353,6 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
                                   setState(() {
                                     selectedCityId = value['cityId'];
                                     selectedCityName = value['cityName'];
-                                    print("selectedCountry$selectedStateName");
-                                    print("selectedCountryId$selectedStateId");
                                   });
                                 }
                               });
@@ -389,7 +394,10 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
                                 },
                                 child: AppUtils.commonContainer(
                                     padding: const EdgeInsets.only(
-                                        left: 15, right: 15, bottom: 10, top: 10),
+                                        left: 15,
+                                        right: 15,
+                                        bottom: 10,
+                                        top: 10),
                                     decoration: AppUtils.commonBoxDecoration(
                                       color: Colors.white,
                                       borderRadius: const BorderRadius.all(
@@ -412,7 +420,10 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
                                 },
                                 child: AppUtils.commonContainer(
                                     padding: const EdgeInsets.only(
-                                        left: 15, right: 15, bottom: 10, top: 10),
+                                        left: 15,
+                                        right: 15,
+                                        bottom: 10,
+                                        top: 10),
                                     decoration: AppUtils.commonBoxDecoration(
                                       color: AppConstant.appPrimaryColor,
                                       borderRadius: const BorderRadius.all(
@@ -435,9 +446,11 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
                       ),
                     ),
                   ),
-                addLeadProvider.isLoading? AppUtils.loaderWidget(color: Colors.blue) : AppUtils.commonSizedBox()
-              ],
-            ),
+                  addLeadProvider.isLoading
+                      ? AppUtils.loaderWidget(color: Colors.blue)
+                      : AppUtils.commonSizedBox()
+                ],
+              ),
       ),
     );
   }
@@ -555,11 +568,15 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
       if (value?.isError == false && value?.isValidationFailed == false) {
         Navigator.pop(context);
       } else {
-        if(value?.isError == true){
-          AppUtils.showDialogBoxWithOneButton(text: "Something went wrong!",context: context);
+        if (value?.isError == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Error",
+
+              text: "Something went wrong!", context: context);
         }
-        if(value?.isValidationFailed == true){
-          AppUtils.showDialogBoxWithOneButton(text: value?.message,context: context);
+        if (value?.isValidationFailed == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              text: value?.message, context: context);
         }
       }
     });
@@ -584,11 +601,15 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
       if (value?.isError == false && value?.isValidationFailed == false) {
         Navigator.pop(context);
       } else {
-        if(value?.isError == true){
-          AppUtils.showDialogBoxWithOneButton(text: "Something went wrong!",context: context);
+        if (value?.isError == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Error",
+
+              text: "Something went wrong!", context: context);
         }
-        if(value?.isValidationFailed == true){
-          AppUtils.showDialogBoxWithOneButton(text: value?.message,context: context);
+        if (value?.isValidationFailed == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              text: value?.message, context: context);
         }
       }
     });

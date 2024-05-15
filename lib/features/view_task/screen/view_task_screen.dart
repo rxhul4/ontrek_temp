@@ -28,7 +28,6 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
   @override
   void initState() {
     super.initState();
-    print("intaskList");
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       try {
         viewTaskProvider =
@@ -56,7 +55,6 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
             selectedTotValue =
                 viewTaskProvider.getTotByGroupTypeModel?.data?[i].totValue;
           });
-          print("selectedTotValue_$selectedTotValue");
         }
       }
       setState(() {
@@ -81,16 +79,15 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
         .then((value) {
       if (value?.isError == false && value?.isValidationFailed == false) {
         Navigator.pop(context);
-      }else{
-        if(value?.isError == true){
+      } else {
+        if (value?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(
               context: context,
               text: "Something went wrong, Please try again later!");
         }
-        if( value?.isValidationFailed == true){
+        if (value?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
-              context: context,
-              text: value?.message ?? "");
+              context: context, text: value?.message ?? "");
         }
       }
     });
@@ -127,7 +124,6 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
         actions: [
           GestureDetector(
             onTap: () {
-              print("you Have code About Refresh");
               viewTaskProvider.apiCallGetTaskByID(
                   taskFormId: widget.taskFormId);
             },
@@ -183,16 +179,20 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
                                     AppUtils.commonSizedBox(width: 5),
                                     Expanded(
                                       child: AppUtils.commonTextWidget(
-                                        text: viewTaskProvider.taskByIdModel?.data?.taskTitle ?? "",
+                                        text: viewTaskProvider.taskByIdModel
+                                                ?.data?.taskTitle ??
+                                            "",
                                         fontSize: 12,
-                                        textColor: AppConstant.blackColor.withOpacity(0.9),
+                                        textColor: AppConstant.blackColor
+                                            .withOpacity(0.9),
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                              SizedBox(width: 25), // Adjust the width as per your requirement
+                              SizedBox(width: 25),
+                              // Adjust the width as per your requirement
                               Flexible(
                                 child: Row(
                                   children: [
@@ -205,11 +205,14 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
                                     Expanded(
                                       child: AppUtils.commonTextWidget(
                                         text: AppUtils.getDate(
-                                          date: viewTaskProvider.taskByIdModel?.data?.createdOn ?? "",
+                                          date: viewTaskProvider.taskByIdModel
+                                                  ?.data?.createdOn ??
+                                              "",
                                           format: "hh:mm a",
                                         ),
                                         fontSize: 12,
-                                        textColor: AppConstant.blackColor.withOpacity(0.9),
+                                        textColor: AppConstant.blackColor
+                                            .withOpacity(0.9),
                                         fontWeight: FontWeight.w500,
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -220,9 +223,6 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
                             ],
                           ),
                         ),
-
-
-
                         AppUtils.commonSizedBox(height: 5),
                         Divider(
                           color: AppConstant.greyColor.withOpacity(0.3),
@@ -312,74 +312,80 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
                       date: viewTaskProvider.taskByIdModel?.data?.createdOn,
                       titleText: "Assigned To",
                       username: viewTaskProvider.taskByIdModel?.data?.userName),
-                  viewTaskProvider.isFetching ? AppUtils.loaderWidget(color: Colors.black,): viewTaskProvider.getTotByGroupTypeModel?.data == null ||
-                          (viewTaskProvider
-                                      .getTotByGroupTypeModel?.data?.length ??
-                                  0) <=
-                              0
-                      ? AppUtils.commonSizedBox()
-                      : AppUtils.commonContainer(
-                          width: double.infinity,
-                          margin: const EdgeInsets.only(
-                              left: 10, right: 10, top: 20),
-                          padding: const EdgeInsets.only(
-                              left: 15, right: 15, top: 20, bottom: 20),
-                          decoration: BoxDecoration(
-                              color: AppConstant.whiteColor,
-                              borderRadius:
-                                  AppUtils.borderRadiusAll(raduis: 10),
-                              boxShadow: [
-                                BoxShadow(
+                  viewTaskProvider.isFetching
+                      ? AppUtils.loaderWidget(
+                          color: Colors.black,
+                        )
+                      : viewTaskProvider.getTotByGroupTypeModel?.data == null ||
+                              (viewTaskProvider.getTotByGroupTypeModel?.data
+                                          ?.length ??
+                                      0) <=
+                                  0
+                          ? AppUtils.commonSizedBox()
+                          : AppUtils.commonContainer(
+                              width: double.infinity,
+                              margin: const EdgeInsets.only(
+                                  left: 10, right: 10, top: 20),
+                              padding: const EdgeInsets.only(
+                                  left: 15, right: 15, top: 20, bottom: 20),
+                              decoration: BoxDecoration(
+                                  color: AppConstant.whiteColor,
+                                  borderRadius:
+                                      AppUtils.borderRadiusAll(raduis: 10),
+                                  boxShadow: [
+                                    BoxShadow(
+                                        color: AppConstant.greyColor
+                                            .withOpacity(0.3),
+                                        blurRadius: 8,
+                                        blurStyle: BlurStyle.solid,
+                                        spreadRadius: 0.8),
+                                  ]),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.task,
+                                        color: Colors.blue,
+                                        size: 18,
+                                      ),
+                                      AppUtils.commonSizedBox(width: 5),
+                                      AppUtils.commonTextWidget(
+                                          text: "Update Status",
+                                          fontSize: 12,
+                                          textColor: AppConstant.blackColor
+                                              .withOpacity(0.9),
+                                          fontWeight: FontWeight.w500),
+                                    ],
+                                  ),
+                                  AppUtils.commonSizedBox(height: 5),
+                                  Divider(
                                     color:
                                         AppConstant.greyColor.withOpacity(0.3),
-                                    blurRadius: 8,
-                                    blurStyle: BlurStyle.solid,
-                                    spreadRadius: 0.8),
-                              ]),
-                          child: Column(
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.task,
-                                    color: Colors.blue,
-                                    size: 18,
                                   ),
-                                  AppUtils.commonSizedBox(width: 5),
-                                  AppUtils.commonTextWidget(
-                                      text: "Update Status",
-                                      fontSize: 12,
-                                      textColor: AppConstant.blackColor
-                                          .withOpacity(0.9),
-                                      fontWeight: FontWeight.w500),
+                                  radioWidget(),
+                                  Divider(
+                                    color:
+                                        AppConstant.greyColor.withOpacity(0.3),
+                                  ),
+                                  AppUtils.commonSizedBox(height: 5),
+                                  Align(
+                                    alignment: Alignment.centerRight,
+                                    child: AppUtils.commonElevatedBtn(
+                                      onPressed: () async {
+                                        await callUpdateTaskApi();
+                                      },
+                                      isLoading: viewTaskProvider.isLoading,
+                                      borderRadiusAll: 10,
+                                      text: "Submit",
+                                      height: 40,
+                                      width: double.infinity,
+                                      bgColor: AppConstant.appPrimaryColor,
+                                    ),
+                                  )
                                 ],
                               ),
-                              AppUtils.commonSizedBox(height: 5),
-                              Divider(
-                                color: AppConstant.greyColor.withOpacity(0.3),
-                              ),
-                              radioWidget(),
-                              Divider(
-                                color: AppConstant.greyColor.withOpacity(0.3),
-                              ),
-                              AppUtils.commonSizedBox(height: 5),
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: AppUtils.commonElevatedBtn(
-                                  onPressed: () async {
-                                    await callUpdateTaskApi();
-                                  },
-                                  isLoading: viewTaskProvider.isLoading,
-                                  borderRadiusAll: 10,
-                                  text: "Submit",
-                                  height: 40,
-                                  width: double.infinity,
-                                  bgColor: AppConstant.appPrimaryColor,
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
+                            ),
                   AppUtils.commonSizedBox(height: 10),
                 ],
               ),
@@ -389,7 +395,8 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
 
   radioWidget() {
     return GridView.builder(
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2,childAspectRatio: 3/1),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2, childAspectRatio: 3 / 1),
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: viewTaskProvider.getTotByGroupTypeModel?.data?.length,
@@ -423,8 +430,6 @@ class _ViewTaskScreenState extends State<ViewTaskScreen> {
                   .getTotByGroupTypeModel?.data?[index].totValue;
               selectedTotId =
                   viewTaskProvider.getTotByGroupTypeModel?.data?[index].totId;
-              print("selectedTotId $selectedTotId");
-              print("selectedTotValue $selectedTotValue");
             });
           },
         );

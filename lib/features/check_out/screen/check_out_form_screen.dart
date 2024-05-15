@@ -26,8 +26,10 @@ import 'package:provider/provider.dart';
 class CheckOutFormScreen extends StatefulWidget {
   Function(Position)? onLocationFetch;
 
-
-  CheckOutFormScreen({super.key, this.onLocationFetch, });
+  CheckOutFormScreen({
+    super.key,
+    this.onLocationFetch,
+  });
 
   @override
   State<CheckOutFormScreen> createState() => _CheckOutFormScreenState();
@@ -43,6 +45,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
   bool isLoading = false;
   String? userUid;
   int? battery;
+
   // var battery = Battery();
   int? batteryLevel;
   String? image64;
@@ -58,9 +61,6 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
 
   checkBiometricAvailable() async {
     isBiometricAvailable = await _localAuthentication.canCheckBiometrics;
-    if (kDebugMode) {
-      print("isBiometricAvailable $isBiometricAvailable");
-    }
   }
 
   @override
@@ -73,7 +73,8 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
     checkBiometricAvailable();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       checkOutProvider = Provider.of<CheckOutProvider>(context, listen: false);
-      attendanceProvider = Provider.of<AttendanceProvider>(context, listen: false);
+      attendanceProvider =
+          Provider.of<AttendanceProvider>(context, listen: false);
       callGetTotByType(checkOutProvider);
     });
   }
@@ -90,29 +91,26 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
       if (getTotByGroupTypeModel?.isValidationFailed == false &&
           getTotByGroupTypeModel?.isError == false) {
         selectedTotValue = getTotByGroupTypeModel?.data?.first.totValue;
-        selectedTotId =getTotByGroupTypeModel?.data?.first.totId;
+        selectedTotId = getTotByGroupTypeModel?.data?.first.totId;
       } else {
-        if(getTotByGroupTypeModel?.isError == true){
+        if (getTotByGroupTypeModel?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(
+            titleText: "Error",
               context: context,
               text: "Something went wrong, Please try again later!");
         }
-        if( getTotByGroupTypeModel?.isValidationFailed == true){
+        if (getTotByGroupTypeModel?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
-              context: context,
-              text: getTotByGroupTypeModel?.message ?? "");
+              context: context, text: getTotByGroupTypeModel?.message ?? "");
         }
       }
     });
   }
 
-
   callAddActivityApi({
     required AttendanceProvider postMdl,
     Position? position,
   }) {
-    print("userUid${userUid}");
-
     postMdl
         .apiCallCreateActivity(
             picturePath: image64,
@@ -139,15 +137,15 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
           "lastLong": position?.longitude,
         });
       } else {
-        if(createActivityModel?.isError == true){
+        if (createActivityModel?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(
+              titleText: "Error",
               context: context,
               text: "Something went wrong, Please try again later!");
         }
-        if( createActivityModel?.isValidationFailed == true){
+        if (createActivityModel?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
-              context: context,
-              text: createActivityModel?.message ?? "");
+              context: context, text: createActivityModel?.message ?? "");
         }
       }
     });
@@ -178,9 +176,11 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
             backgroundColor: Colors.white,
             elevation: 0,
             leading: InkWell(
-                onTap: checkOutProvider.isFetching ? (){}: () {
-                  Navigator.pop(context);
-                },
+                onTap: checkOutProvider.isFetching
+                    ? () {}
+                    : () {
+                        Navigator.pop(context);
+                      },
                 child: Icon(
                   Icons.arrow_back_ios_new,
                   color: AppConstant.blackColor.withOpacity(0.7),
@@ -204,101 +204,100 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
           body: checkOutProvider.isFetching
               ? AppUtils.loaderWidget()
               : Stack(
+                  children: [
+                    Column(
                       children: [
-                        Column(
-                          children: [
-                            Expanded(
-                              child:SingleChildScrollView(
-                                physics: isLoading ? NeverScrollableScrollPhysics() : AlwaysScrollableScrollPhysics(),
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 10, right: 10, top: 10, bottom: 10),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      AppUtils.commonTextWidget(
-                                          text: "Add Image",
-                                          textColor: AppConstant.blackColor,
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 16),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      _image != null
-                                          ? Align(
-                                              alignment: Alignment.center,
-                                              child: Column(
-                                                children: [
-                                                  AppUtils.commonContainer(
-                                                      padding:
-                                                          EdgeInsets.all(15),
-                                                      height: 150,
-                                                      width: 150,
-                                                      decoration: AppUtils
-                                                          .commonBoxDecoration(
-                                                        color: AppConstant
-                                                            .greyWithShade,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(10),
-                                                      ),
-                                                      child:
-                                                          // isImageLoading
-                                                          Image.file(
-                                                        _image ??
-                                                            File(_image?.path ??
-                                                                ""),
-                                                        fit: BoxFit.cover,
-                                                        height: 0,
-                                                        width: 0,
-                                                      )),
-                                                  AppUtils.commonSizedBox(
-                                                      height: 15),
-                                                  AppUtils.commonInkWell(
-                                                    onTap: () {
-                                                      _image = null;
-                                                      setState(() {});
-                                                    },
-                                                    child: AppUtils
-                                                        .commonTextWidget(
-                                                      text: "Remove",
-                                                      textColor: Colors.red,
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                    ),
-                                                  )
-                                                ],
-                                              ),
-                                            )
-                                          : InkWell(
-                                              enableFeedback: true,
-                                              borderRadius:
-                                                  BorderRadius.circular(5),
-                                              onTap: () {
-                                                getImage();
-                                              },
-                                              child: Center(
-                                                child: AppUtils.commonContainer(
-                                                  padding:
-                                                      AppUtils.edgeInsetsOnly(
-                                                          left: 15, right: 15),
-                                                  // alignment: Alignment.center,
-                                                  height: 50,
-                                                  width: double.infinity,
+                        Expanded(
+                          child: SingleChildScrollView(
+                            physics: isLoading
+                                ? NeverScrollableScrollPhysics()
+                                : AlwaysScrollableScrollPhysics(),
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                  left: 10, right: 10, top: 10, bottom: 10),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  AppUtils.commonTextWidget(
+                                      text: "Add Image",
+                                      textColor: AppConstant.blackColor,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 16),
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                  _image != null
+                                      ? Align(
+                                          alignment: Alignment.center,
+                                          child: Column(
+                                            children: [
+                                              AppUtils.commonContainer(
+                                                  padding: EdgeInsets.all(15),
+                                                  height: 150,
+                                                  width: 150,
                                                   decoration: AppUtils
                                                       .commonBoxDecoration(
                                                     color: AppConstant
                                                         .greyWithShade,
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                            5),
-                                                    border: Border.all(
-                                                        color: AppConstant
-                                                            .appPrimaryColor),
+                                                            10),
                                                   ),
-                                                  child: Center(
-                                                    child: AppUtils.commonTextWidget(
+                                                  child:
+                                                      // isImageLoading
+                                                      Image.file(
+                                                    _image ??
+                                                        File(
+                                                            _image?.path ?? ""),
+                                                    fit: BoxFit.cover,
+                                                    height: 0,
+                                                    width: 0,
+                                                  )),
+                                              AppUtils.commonSizedBox(
+                                                  height: 15),
+                                              AppUtils.commonInkWell(
+                                                onTap: () {
+                                                  _image = null;
+                                                  setState(() {});
+                                                },
+                                                child:
+                                                    AppUtils.commonTextWidget(
+                                                  text: "Remove",
+                                                  textColor: Colors.red,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                        )
+                                      : InkWell(
+                                          enableFeedback: true,
+                                          borderRadius:
+                                              BorderRadius.circular(5),
+                                          onTap: () {
+                                            getImage();
+                                          },
+                                          child: Center(
+                                            child: AppUtils.commonContainer(
+                                              padding: AppUtils.edgeInsetsOnly(
+                                                  left: 15, right: 15),
+                                              // alignment: Alignment.center,
+                                              height: 50,
+                                              width: double.infinity,
+                                              decoration:
+                                                  AppUtils.commonBoxDecoration(
+                                                color:
+                                                    AppConstant.greyWithShade,
+                                                borderRadius:
+                                                    BorderRadius.circular(5),
+                                                border: Border.all(
+                                                    color: AppConstant
+                                                        .appPrimaryColor),
+                                              ),
+                                              child: Center(
+                                                child:
+                                                    AppUtils.commonTextWidget(
                                                         text:
                                                             "Add Visit Picture",
                                                         textColor: AppConstant
@@ -307,81 +306,83 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                                                         fontWeight:
                                                             FontWeight.w500,
                                                         fontSize: 16),
-                                                  ),
-                                                ),
                                               ),
                                             ),
-                                      AppUtils.commonSizedBox(height: 10),
-                                      commonTextField(
-                                          text: "Company Name",
-                                          controller: companyNameController),
-                                      AppUtils.commonSizedBox(height: 10),
-                                      commonTextField(
-                                          text: "Customer Name",
-                                          controller: customerNameController),
-                                      AppUtils.commonSizedBox(height: 10),
-                                      commonTextField(
-                                          text: "Customer Phone Number",
-                                          controller:
-                                              customerPhoneNumberController,
-                                          textInputType: TextInputType.number),
-                                      AppUtils.commonSizedBox(height: 10),
-                                      AppUtils.commonContainer(
-                                          child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          AppUtils.commonTextWidget(
-                                              text: "Visit Type",
-                                              textColor: AppConstant.blackColor,
-                                              fontWeight: FontWeight.w500,
-                                              fontSize: 16),
-                                          const SizedBox(
-                                            height: 5,
                                           ),
-                                          radioWidget()
-                                        ],
-                                      )),
-                                      AppUtils.commonSizedBox(height: 10),
-                                      commonTextField(
-                                          text: "Visit Discussion",
-                                          maxLine: 3,
-                                          controller:
-                                              visitDiscussionNameController),
+                                        ),
+                                  AppUtils.commonSizedBox(height: 10),
+                                  commonTextField(
+                                      text: "Company Name",
+                                      controller: companyNameController),
+                                  AppUtils.commonSizedBox(height: 10),
+                                  commonTextField(
+                                      text: "Customer Name",
+                                      controller: customerNameController),
+                                  AppUtils.commonSizedBox(height: 10),
+                                  commonTextField(
+                                      text: "Customer Phone Number",
+                                      controller: customerPhoneNumberController,
+                                      textInputType: TextInputType.number),
+                                  AppUtils.commonSizedBox(height: 10),
+                                  AppUtils.commonContainer(
+                                      child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      AppUtils.commonTextWidget(
+                                          text: "Visit Type",
+                                          textColor: AppConstant.blackColor,
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 16),
+                                      const SizedBox(
+                                        height: 5,
+                                      ),
+                                      radioWidget()
                                     ],
-                                  ),
-                                ),
+                                  )),
+                                  AppUtils.commonSizedBox(height: 10),
+                                  commonTextField(
+                                      text: "Visit Discussion",
+                                      maxLine: 3,
+                                      controller:
+                                          visitDiscussionNameController),
+                                ],
                               ),
                             ),
-                            Align(
-                              alignment: Alignment.bottomCenter,
-                              child: AppUtils.commonElevatedBtn(
-                                backgroundColor: AppConstant.transparentColor,
-                                onPressed: isLoading ? (){}:() {
-                                  checkValidation(attendanceProvider);
-                                },
-                                topMargin: 10,
-                                bottomMargin: 10,
-                                leftMargin: 10,
-                                rightMargin: 10,
-                                borderRadiusAll: 10,
-                                text: "Submit",
-                                fontSize: 16,
-                                bgColor: AppConstant.appPrimaryColor,
-                                height: 56,
-                                width: double.infinity,
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
-                        isLoading
-                            ? Center(
-                                child: AppUtils.loaderWidget(color: AppConstant.appPrimaryColor),
-                              )
-                            : SizedBox(),
+                        Align(
+                          alignment: Alignment.bottomCenter,
+                          child: AppUtils.commonElevatedBtn(
+                            backgroundColor: AppConstant.transparentColor,
+                            onPressed: isLoading
+                                ? () {}
+                                : () {
+                                    checkValidation(attendanceProvider);
+                                  },
+                            topMargin: 10,
+                            bottomMargin: 10,
+                            leftMargin: 10,
+                            rightMargin: 10,
+                            borderRadiusAll: 10,
+                            text: "Submit",
+                            fontSize: 16,
+                            bgColor: AppConstant.appPrimaryColor,
+                            height: 56,
+                            width: double.infinity,
+                          ),
+                        ),
                       ],
-                    )),
+                    ),
+                    isLoading
+                        ? Center(
+                            child: AppUtils.loaderWidget(
+                                color: AppConstant.appPrimaryColor),
+                          )
+                        : SizedBox(),
+                  ],
+                )),
     );
   }
 
@@ -399,7 +400,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
       itemBuilder: (context, index) {
         return RadioListTile(
           contentPadding: AppUtils.edgeInsetsAll(allPadding: 0),
-          title:AppUtils.commonTextWidget(
+          title: AppUtils.commonTextWidget(
               text: getTotByGroupTypeModel?.data?[index].totValue ?? "",
               fontWeight: FontWeight.w500,
               textColor: AppConstant.blackColor,
@@ -411,8 +412,6 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
             setState(() {
               selectedTotValue = getTotByGroupTypeModel?.data?[index].totValue;
               selectedTotId = getTotByGroupTypeModel?.data?[index].totId;
-              print("selectedTotId $selectedTotId");
-              print("selectedTotValue $selectedTotValue");
             });
           },
         );
@@ -461,8 +460,6 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
 
     // Check if permission is permanently denied or denied
     if (status.isPermanentlyDenied || status.isDenied) {
-      print(status.isPermanentlyDenied);
-      print(status.isDenied);
       openAppSettings();
       return null; // Return null as permission is not granted
     }
@@ -488,7 +485,6 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
     }
   }
 
-
   Future getCurrentLocation() async {
     setState(() {
       isLoading = true;
@@ -497,10 +493,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
     Position position = await Geolocator.getCurrentPosition();
     try {
       currentLocation = LatLng(position.latitude, position.longitude);
-      print("jskdfhjsdhfkjdf${currentLocation}");
-    } catch (e) {
-      print("erorrrrrrr${e}");
-    }
+    } catch (e) {}
     return position;
   }
 
@@ -512,24 +505,14 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
           options: const AuthenticationOptions(
               stickyAuth: true, useErrorDialogs: true));
       if (isAuthenticated) {
-        if (kDebugMode) {
-          print("isAuthenticated $isAuthenticated");
-        }
-
-        // openDialogFnc("Authentication Successful");
         afterSuccessfulVerificationFnc();
       } else {
-        if (kDebugMode) {
-          print("isAuthenticated $isAuthenticated");
-        }
+        if (kDebugMode) {}
         AppUtils.showDialogBoxWithOneButton(
             context: context, text: "Authentication Fail! Please Try Again");
         // openDialogFnc("Authentication Fail! Please Try Again");
       }
     } else {
-      if (kDebugMode) {
-        print("Biometric Auth is not available on this device");
-      }
       AppUtils.showDialogBoxWithOneButton(
           context: context,
           text: "Biometric Auth is not available on this device");
@@ -564,14 +547,13 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
           message: "Enter Visit Discussion",
           giveColor: Colors.red);
     } else {
-      if(isAllowFgAuth == true){
+      if (isAllowFgAuth == true) {
         doLocalVerification(afterSuccessfulVerificationFnc: () {
           getLocationAndRedirect(postMdl);
         });
-      }else{
+      } else {
         getLocationAndRedirect(postMdl);
       }
-
     }
   }
 

@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:ontrek/core/common_widgets/app_scaffold.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
-import 'package:ontrek/features/add_lead/model/get_all_country_model.dart';
-import 'package:ontrek/features/add_lead/provider/add_lead_provider.dart';
 import 'package:ontrek/features/check_out/model/check_out_form_model.dart';
-import 'package:ontrek/features/view_task/model/get_task_by_id_model.dart';
 import 'package:ontrek/features/view_task/provider/view_task_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -88,8 +85,6 @@ class _ChooseLeadSourceScreenState extends State<ChooseLeadSourceScreen> {
                         selectedLeadId =
                             getTotByGroupTypeModel?.data?[index].totId;
                         selectedLeadName = getTotByGroupTypeModel?.data?[index].totValue;
-                        print("selectedId$selectedLeadId");
-                        print("selectedValue$selectedLeadName");
                       });
                       Navigator.pop(
                         context,

@@ -97,8 +97,6 @@ class _ChooseStateScreenState extends State<ChooseStateScreen> {
                             getStateByIdModel?.data?[index].stateId;
                         selectedStateName =
                             getStateByIdModel?.data?[index].stateName;
-                        print("selectedCountry$selectedStateName");
-                        print("selectedCountryId$selectedStateId");
                       });
                       Navigator.pop(
                         context,
