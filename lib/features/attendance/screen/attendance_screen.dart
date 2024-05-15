@@ -10,7 +10,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:interval_time_picker/interval_time_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:ontrek/core/common_widgets/loader_widget.dart';
+import 'package:ontrek/core/common_widgets/textfield_widget.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
@@ -59,36 +62,39 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     if (!mounted) {}
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       var now = DateTime.now();
+      print("current_TIME$now");
       final attendanceProvider =
-          Provider.of<AttendanceProvider>(context, listen: false);
+      Provider.of<AttendanceProvider>(context, listen: false);
       attendanceProvider.panelController.animatePanelToPosition(0.99);
       await attendanceProvider.apiCallCheckPendingEndDate().then((value) async {
-        if (value?.isValidationFailed == true) {
-          setState(() {
-            attendanceProvider.dateController.text = AppUtils.getDate(
-                date: value?.data?.sessionDateOnly ?? "", format: "dd-MM-yyyy");
-            attendanceProvider.dayStartTimeController.text =
-                value?.data?.startTime ?? "";
-          });
-          if (value?.data?.alreadyRequested == false) {
-            await Navigator.push(
-                context,
-                CupertinoPageRoute(
-                  builder: (context) => PendingDayEndScreen(
-                      sessionId: value?.data?.sessionId,
-                      sessionStartDate: value?.data?.sessionDateOnly ?? ""),
-                )).then((value) async {
-              AppUtils.showDialogBoxWithOneButton(
-                  context: context,
-                  titleText: "Requested",
-                  text:
-                      "Your request has been submitted. Please wait for approval.");
-              await attendanceProvider.callGetLastActivity();
+
+        if(value?.isError == false && value?.isValidationFailed == false){
+          await attendanceProvider.callGetLastActivity();
+        }else{
+          if (value?.isValidationFailed == true) {
+            setState(() {
+              attendanceProvider.dateController.text = AppUtils.getDate(
+                  date: value?.data?.sessionDateOnly ?? "", format: "dd-MM-yyyy");
+              attendanceProvider.dayStartTimeController.text =
+                  value?.data?.startTime ?? "";
             });
-          } else {
-            await attendanceProvider.callGetLastActivity();
+            print("dateeeeeeeee${ attendanceProvider.dateController.text}");
+            if (value?.data?.alreadyRequested == false) {
+              await Navigator.push(context, CupertinoPageRoute(builder: (context) =>
+                  PendingDayEndScreen(sessionId: value?.data?.sessionId,
+                      sessionStartDate: value?.data?.sessionDateOnly ?? ""),))
+                  .then((value) async {
+                AppUtils.showDialogBoxWithOneButton(context: context,
+                    titleText: "Requested",
+                    text: "Your request has been submitted. Please wait for approval.");
+                await attendanceProvider.callGetLastActivity();
+              });
+            } else {
+              await attendanceProvider.callGetLastActivity();
+            }
           }
         }
+
       });
       attendanceProvider.isAllowCheckInCheckOut =
           PreferenceHelper.getBool(PreferenceHelper.AllowCheckInCheckOut);
@@ -97,6 +103,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     });
     super.initState();
   }
+
 
   @override
   void dispose() {
@@ -117,12 +124,12 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   //call General api
   Future<CreateActivityModel?> callCreateActivityApi(
       {AttendanceProvider? attendanceProvider,
-      String? totTrackingEventCode,
-      Position? position}) async {
+        String? totTrackingEventCode,
+        Position? position}) async {
     try {
       String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
       CreateActivityModel? createActivityModel =
-          await attendanceProvider?.apiCallCreateActivity(
+      await attendanceProvider?.apiCallCreateActivity(
         userId: userId,
         totTrackingEventCode: totTrackingEventCode,
         isFromCheckOut: false,
@@ -131,7 +138,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         batteryLevel: attendanceProvider.battery,
       );
       return createActivityModel;
-    } catch (e) {}
+    } catch (e) {
+      print("catch_at_callCreateActivityApi$e");
+    }
     return createActivityModel;
   }
 
@@ -161,11 +170,11 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
             callLoginFunction(value);
             double? lastLat =
-                PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+            PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
             double? lastLong =
-                PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+            PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
             String? waitingStartTime =
-                PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
+            PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
 
             FlutterBackgroundService().invoke("background", {
               "lastLat": lastLat,
@@ -191,6 +200,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         }
       });
     } catch (e) {
+      print("catch_at_dayStartApi");
       AppUtils.showDialogBoxWithOneButton(
           context: context,
           text: "Something went wrong, Please try again later!");
@@ -234,8 +244,8 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         }
       });
     } catch (e) {
+      print("catch_at_checkInApi");
       AppUtils.showDialogBoxWithOneButton(
-          titleText: "Error",
           context: context,
           text: "Something went wrong, Please try again later!");
     }
@@ -278,17 +288,15 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     } catch (e) {
       print("catch_at_checkInApi");
       AppUtils.showDialogBoxWithOneButton(
-          titleText: "Error",
           context: context,
           text: "Something went wrong, Please try again later!");
     }
   }
 
-  callWaitingEndApi(
-      {AttendanceProvider? postMdl,
-      Position? position,
-      bool? checkIn,
-      bool? dayEnd}) async {
+  callWaitingEndApi({AttendanceProvider? postMdl,
+    Position? position,
+    bool? checkIn,
+    bool? dayEnd}) async {
     // then call Api
     try {
       var response = await callCreateActivityApi(
@@ -355,7 +363,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   Future dayStartAndUpdateUIFunction() async {
     try {
       bool? isAllowBackgroundLocation =
-          PreferenceHelper.getBool(PreferenceHelper.LIVE_LOCATION_TRACKING);
+      PreferenceHelper.getBool(PreferenceHelper.LIVE_LOCATION_TRACKING);
       if (isAllowBackgroundLocation == true) {
         service.startService();
       }
@@ -380,7 +388,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   Future checkOutFunction() async {
     bool isLocationServiceAvailable =
-        await AppUtils.checkLocationServiceAvailability();
+    await AppUtils.checkLocationServiceAvailability();
 
     if (isLocationServiceAvailable) {
       try {
@@ -423,9 +431,17 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   @override
   Widget build(BuildContext context) {
-    double height = MediaQuery.of(context).size.height;
-    double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery
+        .of(context)
+        .size
+        .height;
+    double width = MediaQuery
+        .of(context)
+        .size
+        .width;
     attendanceProvider = Provider.of<AttendanceProvider>(context);
+    print("isDayStartValue${attendanceProvider.isDayStart.value}");
+    print("isCheckIn${attendanceProvider.isCheckIn.value}");
     return AppUtils.commonSlidePanel(
         maxHeight: height * 0.4,
         minHeight: height * 0.09,
@@ -445,13 +461,13 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     builder: (context, value, child) {
                       return Center(
                         child:
-                            attendanceProvider.isAllowCheckInCheckOut == false
-                                ? dayStartDayEndBtn(
-                                    attendanceProvider, height, width)
-                                : !attendanceProvider.isDayEnd.value
-                                    ? buttonWidget(
-                                        attendanceProvider, height, width)
-                                    : logOut(attendanceProvider, height, width),
+                        attendanceProvider.isAllowCheckInCheckOut == false
+                            ? dayStartDayEndBtn(
+                            attendanceProvider, height, width)
+                            : !attendanceProvider.isDayEnd.value
+                            ? buttonWidget(
+                            attendanceProvider, height, width)
+                            : logOut(attendanceProvider, height, width),
                       );
                     },
                   ),
@@ -461,34 +477,34 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   ),
                   attendanceProvider.isAllowCheckInCheckOut == false
                       ? AppUtils.commonTextWidget(
-                          text: "Press & Hold",
-                          fontSize: 14,
-                          letterSpacing: 0.2,
-                          fontWeight: FontWeight.w600,
-                          textColor: AppConstant.blackColor,
-                        )
+                    text: "Press & Hold",
+                    fontSize: 14,
+                    letterSpacing: 0.2,
+                    fontWeight: FontWeight.w600,
+                    textColor: AppConstant.blackColor,
+                  )
                       : !attendanceProvider.isDayStart.value ||
-                              attendanceProvider.isCheckIn.value
-                          ? AppUtils.commonTextWidget(
-                              text: "Press & Hold",
-                              fontSize: 14,
-                              letterSpacing: 0.2,
-                              fontWeight: FontWeight.w600,
-                              textColor: AppConstant.blackColor,
-                            )
-                          : GestureDetector(
-                              onTap: attendanceProvider.toggleButtons,
-                              child: AppUtils.commonTextWidget(
-                                text: !attendanceProvider.isDayEnd.value
-                                    ? "Show End"
-                                    : "Show CheckIn",
-                                fontSize: 14,
-                                letterSpacing: 0.2,
-                                fontWeight: FontWeight.w600,
-                                textColor: !attendanceProvider.isDayEnd.value
-                                    ? Colors.red
-                                    : AppConstant.appPrimaryColor,
-                              )),
+                      attendanceProvider.isCheckIn.value
+                      ? AppUtils.commonTextWidget(
+                    text: "Press & Hold",
+                    fontSize: 14,
+                    letterSpacing: 0.2,
+                    fontWeight: FontWeight.w600,
+                    textColor: AppConstant.blackColor,
+                  )
+                      : GestureDetector(
+                      onTap: attendanceProvider.toggleButtons,
+                      child: AppUtils.commonTextWidget(
+                        text: !attendanceProvider.isDayEnd.value
+                            ? "Show End"
+                            : "Show CheckIn",
+                        fontSize: 14,
+                        letterSpacing: 0.2,
+                        fontWeight: FontWeight.w600,
+                        textColor: !attendanceProvider.isDayEnd.value
+                            ? Colors.red
+                            : AppConstant.appPrimaryColor,
+                      )),
                 ],
               ),
             ),
@@ -519,9 +535,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 });
                 controller?.forward().whenComplete(() async {
                   bool? isInternetAvailable =
-                      await AppUtils.checkInternetConnectivity();
+                  await AppUtils.checkInternetConnectivity();
                   bool? isGpsAvailable =
-                      await AppUtils.checkLocationServiceAvailability();
+                  await AppUtils.checkLocationServiceAvailability();
                   HapticFeedback.vibrate();
                   controller?.reset();
                   if (isInternetAvailable) {
@@ -530,11 +546,11 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         bool? isLocationRestricted = PreferenceHelper.getBool(
                             PreferenceHelper.LOCATION_RESTRICTION);
                         double? restrictedLocationLat =
-                            PreferenceHelper.getDouble(
-                                PreferenceHelper.LOCATION_RESTRICTION_LAT);
+                        PreferenceHelper.getDouble(
+                            PreferenceHelper.LOCATION_RESTRICTION_LAT);
                         double? restrictedLocationLong =
-                            PreferenceHelper.getDouble(
-                                PreferenceHelper.LOCATION_RESTRICTION_LONG);
+                        PreferenceHelper.getDouble(
+                            PreferenceHelper.LOCATION_RESTRICTION_LONG);
                         int? restrictedLocationMeter = PreferenceHelper.getInt(
                             PreferenceHelper.RESTRICTED_LOCATION_METER);
                         Position position = await Geolocator.getCurrentPosition(
@@ -579,12 +595,19 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         }
                       } else if (!attendanceProvider.isCheckIn.value) {
                         PreferenceHelper.reload().then((value) {
+                          print(
+                              "value_new_isWaiting${value?.getBool(
+                                  PreferenceHelper.isWaiting)}");
                           attendanceProvider.isWaiting.value =
                               value?.getBool(PreferenceHelper.isWaiting) ??
                                   false;
                           if (isAllowFgAuth == true) {
                             attendanceProvider.doLocalVerification(
                               afterSuccessfulVerificationFnc: () async {
+                                print(
+                                    "isWaiting_from_UI${attendanceProvider
+                                        .isWaiting.value}");
+
                                 attendanceProvider
                                     .getCurrentLocation()
                                     .then((position) async {
@@ -602,6 +625,10 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                               },
                             );
                           } else {
+                            print(
+                                "isWaiting_from_UI${attendanceProvider.isWaiting
+                                    .value}");
+
                             attendanceProvider
                                 .getCurrentLocation()
                                 .then((position) async {
@@ -658,21 +685,21 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                     children: <Widget>[
                       postMdl.isLoading
                           ? LoaderWidget(
-                              color: !attendanceProvider.isDayStart.value
-                                  ? Colors.lightGreen
-                                  : Colors.blue,
-                            )
+                        color: !attendanceProvider.isDayStart.value
+                            ? Colors.lightGreen
+                            : Colors.blue,
+                      )
                           : Positioned.fill(
-                              child: CircularProgressIndicator(
-                                value: controller?.value,
-                                strokeCap: StrokeCap.round,
-                                strokeWidth: 8,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    !attendanceProvider.isDayStart.value
-                                        ? Colors.lightGreen
-                                        : Colors.blue),
-                              ),
-                            ),
+                        child: CircularProgressIndicator(
+                          value: controller?.value,
+                          strokeCap: StrokeCap.round,
+                          strokeWidth: 8,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              !attendanceProvider.isDayStart.value
+                                  ? Colors.lightGreen
+                                  : Colors.blue),
+                        ),
+                      ),
                       Positioned.fill(
                         child: CircularProgressIndicator(
                           value: 1,
@@ -710,10 +737,10 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                             text: !attendanceProvider.isDayStart.value
                                 ? "Start"
                                 : !attendanceProvider.isCheckIn.value
-                                    ? "Check-In"
-                                    : "Check-Out",
+                                ? "Check-In"
+                                : "Check-Out",
                             fontSize:
-                                !attendanceProvider.isDayStart.value ? 16 : 12,
+                            !attendanceProvider.isDayStart.value ? 16 : 12,
                             textColor: Colors.white,
                             fontWeight: FontWeight.w600,
                           ),
@@ -757,12 +784,17 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 onCancelString: "NO",
                 onSuccess: () async {
                   bool? isInternetAvailable =
-                      await AppUtils.checkInternetConnectivity();
+                  await AppUtils.checkInternetConnectivity();
                   bool? isGpsAvailable =
-                      await AppUtils.checkLocationServiceAvailability();
+                  await AppUtils.checkLocationServiceAvailability();
                   if (isInternetAvailable) {
                     if (isGpsAvailable) {
                       PreferenceHelper.reload().then((value) {
+                        if (kDebugMode) {
+                          print(
+                              "value_new_isWaiting${value?.getBool(
+                                  PreferenceHelper.isWaiting)}");
+                        }
                         attendanceProvider.isWaiting.value =
                             value?.getBool(PreferenceHelper.isWaiting) ?? false;
                         if (isAllowFgAuth == true) {
@@ -772,20 +804,20 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                   .getCurrentLocation()
                                   .then((position) async {
                                 bool? isLocationRestricted =
-                                    PreferenceHelper.getBool(
-                                        PreferenceHelper.LOCATION_RESTRICTION);
+                                PreferenceHelper.getBool(
+                                    PreferenceHelper.LOCATION_RESTRICTION);
                                 double? restrictedLocationLat =
-                                    PreferenceHelper.getDouble(PreferenceHelper
-                                        .LOCATION_RESTRICTION_LAT);
+                                PreferenceHelper.getDouble(PreferenceHelper
+                                    .LOCATION_RESTRICTION_LAT);
                                 double? restrictedLocationLong =
-                                    PreferenceHelper.getDouble(PreferenceHelper
-                                        .LOCATION_RESTRICTION_LONG);
+                                PreferenceHelper.getDouble(PreferenceHelper
+                                    .LOCATION_RESTRICTION_LONG);
                                 int? restrictedLocationMeter =
-                                    PreferenceHelper.getInt(PreferenceHelper
-                                        .RESTRICTED_LOCATION_METER);
+                                PreferenceHelper.getInt(PreferenceHelper
+                                    .RESTRICTED_LOCATION_METER);
                                 Position position =
-                                    await Geolocator.getCurrentPosition(
-                                        desiredAccuracy: LocationAccuracy.best);
+                                await Geolocator.getCurrentPosition(
+                                    desiredAccuracy: LocationAccuracy.best);
 
                                 double? distance = Geolocator.distanceBetween(
                                     restrictedLocationLat ?? 0,
@@ -831,20 +863,20 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                               .getCurrentLocation()
                               .then((position) async {
                             bool? isLocationRestricted =
-                                PreferenceHelper.getBool(
-                                    PreferenceHelper.LOCATION_RESTRICTION);
+                            PreferenceHelper.getBool(
+                                PreferenceHelper.LOCATION_RESTRICTION);
                             double? restrictedLocationLat =
-                                PreferenceHelper.getDouble(
-                                    PreferenceHelper.LOCATION_RESTRICTION_LAT);
+                            PreferenceHelper.getDouble(
+                                PreferenceHelper.LOCATION_RESTRICTION_LAT);
                             double? restrictedLocationLong =
-                                PreferenceHelper.getDouble(
-                                    PreferenceHelper.LOCATION_RESTRICTION_LONG);
+                            PreferenceHelper.getDouble(
+                                PreferenceHelper.LOCATION_RESTRICTION_LONG);
                             int? restrictedLocationMeter =
-                                PreferenceHelper.getInt(
-                                    PreferenceHelper.RESTRICTED_LOCATION_METER);
+                            PreferenceHelper.getInt(
+                                PreferenceHelper.RESTRICTED_LOCATION_METER);
                             Position position =
-                                await Geolocator.getCurrentPosition(
-                                    desiredAccuracy: LocationAccuracy.best);
+                            await Geolocator.getCurrentPosition(
+                                desiredAccuracy: LocationAccuracy.best);
 
                             double? distance = Geolocator.distanceBetween(
                                 restrictedLocationLat ?? 0,
@@ -922,14 +954,14 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 postMdl.isLoading
                     ? LoaderWidget(color: Colors.red)
                     : Positioned.fill(
-                        child: CircularProgressIndicator(
-                          value: controller?.value,
-                          strokeCap: StrokeCap.round,
-                          strokeWidth: 8,
-                          valueColor:
-                              const AlwaysStoppedAnimation<Color>(Colors.red),
-                        ),
-                      ),
+                  child: CircularProgressIndicator(
+                    value: controller?.value,
+                    strokeCap: StrokeCap.round,
+                    strokeWidth: 8,
+                    valueColor:
+                    const AlwaysStoppedAnimation<Color>(Colors.red),
+                  ),
+                ),
                 Positioned.fill(
                   child: CircularProgressIndicator(
                     value: 1.0,
@@ -973,8 +1005,8 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     );
   }
 
-  Widget dayStartDayEndBtn(
-      AttendanceProvider attendanceProvider, height, width) {
+  Widget dayStartDayEndBtn(AttendanceProvider attendanceProvider, height,
+      width) {
     return ValueListenableBuilder(
       valueListenable: attendanceProvider.isDayStart,
       builder: (context, value, child) {
@@ -996,9 +1028,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 HapticFeedback.vibrate();
                 controller?.reset();
                 bool? isInternetAvailable =
-                    await AppUtils.checkInternetConnectivity();
+                await AppUtils.checkInternetConnectivity();
                 bool? isGpsAvailable =
-                    await AppUtils.checkLocationServiceAvailability();
+                await AppUtils.checkLocationServiceAvailability();
                 if (isInternetAvailable) {
                   if (isGpsAvailable) {
                     PreferenceHelper.reload().then((value) async {
@@ -1007,65 +1039,71 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                       if (isAllowFgAuth == true) {
                         attendanceProvider.doLocalVerification(
                             afterSuccessfulVerificationFnc: () async {
-                          bool? isLocationRestricted = PreferenceHelper.getBool(
-                              PreferenceHelper.LOCATION_RESTRICTION);
-                          double? restrictedLocationLat =
+                              bool? isLocationRestricted = PreferenceHelper
+                                  .getBool(
+                                  PreferenceHelper.LOCATION_RESTRICTION);
+                              double? restrictedLocationLat =
                               PreferenceHelper.getDouble(
                                   PreferenceHelper.LOCATION_RESTRICTION_LAT);
-                          double? restrictedLocationLong =
+                              double? restrictedLocationLong =
                               PreferenceHelper.getDouble(
                                   PreferenceHelper.LOCATION_RESTRICTION_LONG);
-                          int? restrictedLocationMeter =
+                              int? restrictedLocationMeter =
                               PreferenceHelper.getInt(
                                   PreferenceHelper.RESTRICTED_LOCATION_METER);
-                          Position position =
+                              Position position =
                               await Geolocator.getCurrentPosition(
                                   desiredAccuracy: LocationAccuracy.best);
 
-                          double? distance = Geolocator.distanceBetween(
-                              restrictedLocationLat ?? 0,
-                              restrictedLocationLong ?? 0,
-                              position.latitude,
-                              position.longitude);
-                          if (isLocationRestricted == true) {
-                            if (distance < (restrictedLocationMeter ?? 50)) {
-                              !attendanceProvider.isDayStart.value
-                                  ? callDayStartApiAndUpdateUI(
+                              double? distance = Geolocator.distanceBetween(
+                                  restrictedLocationLat ?? 0,
+                                  restrictedLocationLong ?? 0,
+                                  position.latitude,
+                                  position.longitude);
+                              if (isLocationRestricted == true) {
+                                if (distance <
+                                    (restrictedLocationMeter ?? 50)) {
+                                  !attendanceProvider.isDayStart.value
+                                      ? callDayStartApiAndUpdateUI(
                                       attendanceProvider)
-                                  : attendanceProvider.isWaiting.value == true
+                                      : attendanceProvider.isWaiting.value ==
+                                      true
                                       ? callWaitingEndApi(
-                                          dayEnd: true,
-                                          postMdl: attendanceProvider,
-                                          position: position)
+                                      dayEnd: true,
+                                      postMdl: attendanceProvider,
+                                      position: position)
                                       : callDayEndApiAndUpdateUI(
-                                          attendanceProvider);
-                            } else {
-                              AppUtils.showDialogBoxWithOneButton(
-                                  titleText: "Premises",
-                                  text: "You are not at Office Location",
-                                  context: context);
-                            }
-                          } else {
-                            !attendanceProvider.isDayStart.value
-                                ? callDayStartApiAndUpdateUI(attendanceProvider)
-                                : attendanceProvider.isWaiting.value == true
+                                      attendanceProvider);
+                                } else {
+                                  AppUtils.showDialogBoxWithOneButton(
+                                      titleText: "Premises",
+                                      text: "You are not at Office Location",
+                                      context: context);
+                                }
+                              } else {
+                                print(
+                                    "isLocationRestricted$isLocationRestricted");
+                                !attendanceProvider.isDayStart.value
+                                    ? callDayStartApiAndUpdateUI(
+                                    attendanceProvider)
+                                    : attendanceProvider.isWaiting.value == true
                                     ? callWaitingEndApi(
-                                        dayEnd: true,
-                                        postMdl: attendanceProvider,
-                                        position: position)
+                                    dayEnd: true,
+                                    postMdl: attendanceProvider,
+                                    position: position)
                                     : callDayEndApiAndUpdateUI(
-                                        attendanceProvider);
-                          }
-                        });
+                                    attendanceProvider);
+                              }
+                            });
                       } else {
                         bool? isLocationRestricted = PreferenceHelper.getBool(
                             PreferenceHelper.LOCATION_RESTRICTION);
                         double? restrictedLocationLat =
-                            PreferenceHelper.getDouble(
-                                PreferenceHelper.LOCATION_RESTRICTION_LAT);
+                        PreferenceHelper.getDouble(
+                            PreferenceHelper.LOCATION_RESTRICTION_LAT);
                         double? restrictedLocationLong =
-                            PreferenceHelper.getDouble(
-                                PreferenceHelper.LOCATION_RESTRICTION_LONG);
+                        PreferenceHelper.getDouble(
+                            PreferenceHelper.LOCATION_RESTRICTION_LONG);
                         int? restrictedLocationMeter = PreferenceHelper.getInt(
                             PreferenceHelper.RESTRICTED_LOCATION_METER);
                         Position position = await Geolocator.getCurrentPosition(
@@ -1081,12 +1119,12 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                             !attendanceProvider.isDayStart.value
                                 ? callDayStartApiAndUpdateUI(attendanceProvider)
                                 : attendanceProvider.isWaiting.value == true
-                                    ? callWaitingEndApi(
-                                        dayEnd: true,
-                                        postMdl: attendanceProvider,
-                                        position: position)
-                                    : callDayEndApiAndUpdateUI(
-                                        attendanceProvider);
+                                ? callWaitingEndApi(
+                                dayEnd: true,
+                                postMdl: attendanceProvider,
+                                position: position)
+                                : callDayEndApiAndUpdateUI(
+                                attendanceProvider);
                           } else {
                             AppUtils.showDialogBoxWithOneButton(
                                 titleText: "Premises",
@@ -1094,15 +1132,16 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                 context: context);
                           }
                         } else {
+                          print("isLocationRestricted$isLocationRestricted");
                           !attendanceProvider.isDayStart.value
                               ? callDayStartApiAndUpdateUI(attendanceProvider)
                               : attendanceProvider.isWaiting.value == true
-                                  ? callWaitingEndApi(
-                                      dayEnd: true,
-                                      postMdl: attendanceProvider,
-                                      position: position)
-                                  : callDayEndApiAndUpdateUI(
-                                      attendanceProvider);
+                              ? callWaitingEndApi(
+                              dayEnd: true,
+                              postMdl: attendanceProvider,
+                              position: position)
+                              : callDayEndApiAndUpdateUI(
+                              attendanceProvider);
                         }
                       }
                     });
@@ -1138,20 +1177,20 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   children: <Widget>[
                     attendanceProvider.isLoading
                         ? LoaderWidget(
-                            color: !attendanceProvider.isDayStart.value
-                                ? Colors.lightGreen
-                                : Colors.red)
+                        color: !attendanceProvider.isDayStart.value
+                            ? Colors.lightGreen
+                            : Colors.red)
                         : Positioned.fill(
-                            child: CircularProgressIndicator(
-                              value: controller?.value,
-                              strokeCap: StrokeCap.round,
-                              strokeWidth: 8,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  !attendanceProvider.isDayStart.value
-                                      ? Colors.lightGreen
-                                      : Colors.red),
-                            ),
-                          ),
+                      child: CircularProgressIndicator(
+                        value: controller?.value,
+                        strokeCap: StrokeCap.round,
+                        strokeWidth: 8,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            !attendanceProvider.isDayStart.value
+                                ? Colors.lightGreen
+                                : Colors.red),
+                      ),
+                    ),
                     Positioned.fill(
                       child: CircularProgressIndicator(
                         value: 1.0,
