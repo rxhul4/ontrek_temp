@@ -67,28 +67,34 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       Provider.of<AttendanceProvider>(context, listen: false);
       attendanceProvider.panelController.animatePanelToPosition(0.99);
       await attendanceProvider.apiCallCheckPendingEndDate().then((value) async {
-        if (value?.isValidationFailed == true) {
-          setState(() {
-            attendanceProvider.dateController.text = AppUtils.getDate(
-                date: value?.data?.sessionDateOnly ?? "", format: "dd-MM-yyyy");
-            attendanceProvider.dayStartTimeController.text =
-                value?.data?.startTime ?? "";
-          });
-          print("dateeeeeeeee${ attendanceProvider.dateController.text}");
-          if (value?.data?.alreadyRequested == false) {
-            await Navigator.push(context, CupertinoPageRoute(builder: (context) =>
-                PendingDayEndScreen(sessionId: value?.data?.sessionId,
-                    sessionStartDate: value?.data?.sessionDateOnly ?? ""),))
-                .then((value) async {
-              AppUtils.showDialogBoxWithOneButton(context: context,
-                  titleText: "Requested",
-                  text: "Your request has been submitted. Please wait for approval.");
-              await attendanceProvider.callGetLastActivity();
+
+        if(value?.isError == false && value?.isValidationFailed == false){
+          await attendanceProvider.callGetLastActivity();
+        }else{
+          if (value?.isValidationFailed == true) {
+            setState(() {
+              attendanceProvider.dateController.text = AppUtils.getDate(
+                  date: value?.data?.sessionDateOnly ?? "", format: "dd-MM-yyyy");
+              attendanceProvider.dayStartTimeController.text =
+                  value?.data?.startTime ?? "";
             });
-          } else {
-            await attendanceProvider.callGetLastActivity();
+            print("dateeeeeeeee${ attendanceProvider.dateController.text}");
+            if (value?.data?.alreadyRequested == false) {
+              await Navigator.push(context, CupertinoPageRoute(builder: (context) =>
+                  PendingDayEndScreen(sessionId: value?.data?.sessionId,
+                      sessionStartDate: value?.data?.sessionDateOnly ?? ""),))
+                  .then((value) async {
+                AppUtils.showDialogBoxWithOneButton(context: context,
+                    titleText: "Requested",
+                    text: "Your request has been submitted. Please wait for approval.");
+                await attendanceProvider.callGetLastActivity();
+              });
+            } else {
+              await attendanceProvider.callGetLastActivity();
+            }
           }
         }
+
       });
       attendanceProvider.isAllowCheckInCheckOut =
           PreferenceHelper.getBool(PreferenceHelper.AllowCheckInCheckOut);
