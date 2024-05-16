@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:app_settings/app_settings.dart';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
@@ -358,7 +359,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                             backgroundColor: AppConstant.transparentColor,
                             onPressed: isLoading
                                 ? () {}
-                                : () {
+                                : () async{
                                     checkValidation(attendanceProvider);
                                   },
                             topMargin: 10,
@@ -557,9 +558,43 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
     }
   }
 
-  getLocationAndRedirect(postMdl) {
-    return getCurrentLocation().then((value) async {
-      await callAddActivityApi(postMdl: postMdl, position: value);
-    });
+  getLocationAndRedirect(postMdl) async{
+    bool? isInternetAvailable = await AppUtils.checkInternetConnectivity();
+    bool? isGpsAvailable = await AppUtils.checkLocationServiceAvailability();
+    if(isInternetAvailable){
+      if(isGpsAvailable){
+        return getCurrentLocation().then((value) async {
+          await callAddActivityApi(postMdl: postMdl, position: value);
+        });
+      }else{
+        commonGpsDialog();
+      }
+    }else {
+      commonInternetDialog();
+    }
+
+
+  }
+
+  Future<dynamic> commonInternetDialog() {
+    return AppUtils.showDialogBoxWithOneButton(
+        titleText: "Internet off Alert",
+        context: context,
+        text: "Please Enable Mobile data or wifi");
+  }
+
+
+  Future<dynamic> commonGpsDialog() {
+    return AppUtils.showDialogBoxWithTwoButton(
+      titleText: "GPS off Alert",
+      context: context,
+      text: "Please Enable Your Gps Service",
+      onSuccessString: "Open Settings",
+      onCancelString: "Ok",
+      onSuccess: () {
+        AppSettings.openAppSettings();
+      },
+      onCancel: () {},
+    );
   }
 }

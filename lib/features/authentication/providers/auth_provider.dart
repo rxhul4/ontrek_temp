@@ -262,6 +262,7 @@ class AuthenticationProvider extends ChangeNotifier {
         PreferenceHelper.COUNTRY_CODE, loginModel?.data?.countryCode ?? 0);
     PreferenceHelper.setString(
         PreferenceHelper.PHONE_NO, loginModel?.data?.phoneNo ?? '');
+
     PreferenceHelper.setString(
         PreferenceHelper.EMAIL, loginModel?.data?.userEmail ?? '');
     PreferenceHelper.setString(
@@ -273,7 +274,7 @@ class AuthenticationProvider extends ChangeNotifier {
     PreferenceHelper.setString(
         PreferenceHelper.ROLE_ID, loginModel?.data?.roleId ?? '');
     PreferenceHelper.setString(
-        PreferenceHelper.REPORTING_MANAGER, loginModel?.data?.createdBy ?? '');
+        PreferenceHelper.REPORTING_MANAGER, loginModel?.data?.managerName ?? '');
     PreferenceHelper.setString(
         PreferenceHelper.PROFILE_PIC, loginModel?.data?.profilePic ?? '');
     PreferenceHelper.setBool(PreferenceHelper.ALLOW_FG_AUTH,
@@ -316,8 +317,8 @@ class AuthenticationProvider extends ChangeNotifier {
             0);
     PreferenceHelper.setInt(PreferenceHelper.WAITING_TIME_INTERVAL,
         loginModel?.data?.appUserConfigTrackingRequest?.idleMarkerTime ?? 0);
-    int? liveLocationInterval =
-        PreferenceHelper.getInt(PreferenceHelper.LIVE_LOCATION_INTERVAL);
+    PreferenceHelper.setString(
+        PreferenceHelper.REPORTING_MANAGER_PHONE_NO, loginModel?.data?.managerPhoneNo?? '');
 
     return true;
   }

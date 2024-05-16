@@ -40,7 +40,7 @@ class Data {
   String? phoneNo;
   String? userEmail;
   String? profilePic;
-  Null? token;
+  String? token;
   String? deviceModel;
   bool? isAdmin;
   String? orgId;
@@ -52,6 +52,8 @@ class Data {
   String? modifiedBy;
   String? modifiedOn;
   String? userType;
+  String? managerName;
+  String? managerPhoneNo;
   String? roleId;
   String? roleName;
   AppUserConfigAttendanceRequest? appUserConfigAttendanceRequest;
@@ -76,6 +78,8 @@ class Data {
         this.modifiedBy,
         this.modifiedOn,
         this.userType,
+        this.managerName,
+        this.managerPhoneNo,
         this.roleId,
         this.roleName,
         this.appUserConfigAttendanceRequest,
@@ -100,6 +104,8 @@ class Data {
     modifiedBy = json['modifiedBy'];
     modifiedOn = json['modifiedOn'];
     userType = json['userType'];
+    managerName = json['managerName'];
+    managerPhoneNo = json['managerPhoneNo'];
     roleId = json['roleId'];
     roleName = json['roleName'];
     appUserConfigAttendanceRequest =
@@ -133,6 +139,8 @@ class Data {
     data['modifiedBy'] = this.modifiedBy;
     data['modifiedOn'] = this.modifiedOn;
     data['userType'] = this.userType;
+    data['managerName'] = this.managerName;
+    data['managerPhoneNo'] = this.managerPhoneNo;
     data['roleId'] = this.roleId;
     data['roleName'] = this.roleName;
     if (this.appUserConfigAttendanceRequest != null) {
@@ -156,7 +164,7 @@ class AppUserConfigAttendanceRequest {
   double? locationRestrictionLong;
   int? locRestrictionMtrs;
   bool? allowAutoLogout;
-  Null? defaultAutoLogoutTime;
+  int? defaultAutoLogoutTime;
 
   AppUserConfigAttendanceRequest(
       {this.allowWebAccess,
@@ -200,7 +208,7 @@ class AppUserConfigTrackingRequest {
   bool? allowLiveTracking;
   int? liveTrackingInterval;
   bool? allowCheckoutReminder;
-  Null? chekoutReminderDistance;
+  int? chekoutReminderDistance;
   bool? allowIdleMarker;
   int? idleMarkerTime;
   bool? allowNotification;

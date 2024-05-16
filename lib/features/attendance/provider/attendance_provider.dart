@@ -176,18 +176,16 @@ class AttendanceProvider extends ChangeNotifier {
       createActivityModel = CreateActivityModel.fromJson(json.decode(response));
       print("response : ${response}");
     } catch (e) {
-      AppUtils.showDialogBoxWithOneButton(
-          text: AppConstant.errorText,
-          context: navigatorKey.currentState!.context);
-      print("inCatch ${createActivityModel?.message}");
-      print("inCatchE $e");
-      isInternetAvailable = await AppUtils.checkInternetConnectivity();
       if (isInternetAvailable == false) {
-        createActivityModel = CreateActivityModel(
-            message: "Internet is not available, please try again!");
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Internet Off Alert",
+            text: "Internet is not available. Please Enable Mobile data or wifi.",
+            context: navigatorKey.currentState!.context);
       } else {
-        createActivityModel =
-            CreateActivityModel(message: "Something went wrong!");
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Error",
+            text: "Something went wrong!",
+            context: navigatorKey.currentState!.context);
       }
     }
     loaderFnc(false);
@@ -310,13 +308,12 @@ class AttendanceProvider extends ChangeNotifier {
                 PreferenceHelper.getBool(PreferenceHelper.isWaiting);
         }
         if (isDayStart.value == true) {
-          bool? liveLocationTracking = PreferenceHelper.getBool(PreferenceHelper.LIVE_LOCATION_TRACKING);
-          if(liveLocationTracking  == true){
+          bool? liveLocationTracking =
+              PreferenceHelper.getBool(PreferenceHelper.LIVE_LOCATION_TRACKING);
+          if (liveLocationTracking == true) {
             await service.startService();
           }
-
         }
-
       } else {
         if (getLastActivityModel?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(
@@ -336,17 +333,22 @@ class AttendanceProvider extends ChangeNotifier {
           context: navigatorKey.currentState!.context,
           text: "Something went wrong, Please try again later!");
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
-      if (!isInternetAvailable) {
-        getLastActivityModel = GetLastActivityModel(
-            message: "Internet is not available, please try again!");
+      if (isInternetAvailable == false) {
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Internet Off Alert",
+            text: "Internet is not available. Please Enable Mobile data or wifi.",
+            context: navigatorKey.currentState!.context);
       } else {
-        getLastActivityModel =
-            GetLastActivityModel(message: "Something went wrong!");
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Error",
+            text: "Something went wrong!",
+            context: navigatorKey.currentState!.context);
       }
     }
     loaderFnc(false);
     return getLastActivityModel;
   }
+
   Future<GetLastPendingDayEnd?> apiCallCheckPendingEndDate() async {
     String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
 
@@ -357,34 +359,36 @@ class AttendanceProvider extends ChangeNotifier {
     try {
       String endPoint = ApiConstants.checkPendingEndDate;
       final response = await callPostMethod(endPoint, body);
-      getLastPendingDayEnd = GetLastPendingDayEnd.fromJson(json.decode(response));
+      getLastPendingDayEnd =
+          GetLastPendingDayEnd.fromJson(json.decode(response));
       print("response : ${response}");
     } catch (e) {
-      AppUtils.showDialogBoxWithOneButton(
-          text: AppConstant.errorText,
-          context: navigatorKey.currentState!.context);
       print("inCatch ${getLastPendingDayEnd?.message}");
       print("inCatchE $e");
       isInternetAvailable = await AppUtils.checkInternetConnectivity();
       if (isInternetAvailable == false) {
-        getLastPendingDayEnd = GetLastPendingDayEnd(
-            message: "Internet is not available, please try again!");
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Internet Off Alert",
+            text: "Internet is not available. Please Enable Mobile data or wifi.",
+            context: navigatorKey.currentState!.context);
       } else {
-        getLastPendingDayEnd =
-            GetLastPendingDayEnd(message: "Something went wrong!");
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Error",
+            text: "Something went wrong!",
+            context: navigatorKey.currentState!.context);
       }
     }
     loaderFnc(false);
     return getLastPendingDayEnd;
   }
 
-  Future<DayEndManualRequestModel?> apiCallDayEndManualRequest({String? sessionId,String? sessionEndDate}) async {
+  Future<DayEndManualRequestModel?> apiCallDayEndManualRequest(
+      {String? sessionId, String? sessionEndDate}) async {
     String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     String? orgId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
-    print("endDate${sessionEndDate}");
 
     loaderFnc(true);
-    Map<String, dynamic> body ={
+    Map<String, dynamic> body = {
       "orgId": orgId,
       "userId": userId,
       "sessionId": sessionId,
@@ -394,9 +398,10 @@ class AttendanceProvider extends ChangeNotifier {
     try {
       String endPoint = ApiConstants.dayEndManualRequest;
       final response = await callPostMethod(endPoint, body);
-      dayEndManualRequestModel = DayEndManualRequestModel.fromJson(json.decode(response));
+      dayEndManualRequestModel =
+          DayEndManualRequestModel.fromJson(json.decode(response));
       print("response : ${response}");
-      if(dayEndManualRequestModel?.data == true){
+      if (dayEndManualRequestModel?.data == true) {
         Navigator.pop(navigatorKey.currentState!.context);
       }
     } catch (e) {
@@ -407,31 +412,40 @@ class AttendanceProvider extends ChangeNotifier {
       print("inCatchE $e");
       isInternetAvailable = await AppUtils.checkInternetConnectivity();
       if (isInternetAvailable == false) {
-        dayEndManualRequestModel = DayEndManualRequestModel(
-            message: "Internet is not available, please try again!");
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Internet Off Alert",
+            text: "Internet is not available. Please Enable Mobile data or wifi.",
+            context: navigatorKey.currentState!.context);
       } else {
-        dayEndManualRequestModel =
-            DayEndManualRequestModel(message: "Something went wrong!");
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Error",
+            text: "Something went wrong!",
+            context: navigatorKey.currentState!.context);
       }
     }
     loaderFnc(false);
     return dayEndManualRequestModel;
   }
 
-  checkValidationOfRequestNote({
-    String? sessionId,String? sessionEndDate
-})async{
-    if(timeController.text.isEmpty){
-      AppUtils.showSnackBarWithColor(message: "Please select day end Time",context: navigatorKey.currentState!.context,giveColor: AppConstant.appPrimaryColor);
-    }else if(reasonController.text.isEmpty){
-      AppUtils.showSnackBarWithColor(message: "Please Enter reason",context: navigatorKey.currentState!.context,giveColor: AppConstant.appPrimaryColor);
-    }else{
-      await apiCallDayEndManualRequest(sessionId: sessionId,sessionEndDate: sessionEndDate);
+  checkValidationOfRequestNote(
+      {String? sessionId, String? sessionEndDate}) async {
+    if (timeController.text.isEmpty) {
+      AppUtils.showSnackBarWithColor(
+          message: "Please select day end Time",
+          context: navigatorKey.currentState!.context,
+          giveColor: AppConstant.appPrimaryColor);
+    } else if (reasonController.text.isEmpty) {
+      AppUtils.showSnackBarWithColor(
+          message: "Please Enter reason",
+          context: navigatorKey.currentState!.context,
+          giveColor: AppConstant.appPrimaryColor);
+    } else {
+      await apiCallDayEndManualRequest(
+          sessionId: sessionId, sessionEndDate: sessionEndDate);
     }
   }
 
-  clearController(){
-
+  clearController() {
     timeController.clear();
     reasonController.clear();
   }

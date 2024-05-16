@@ -22,7 +22,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? profileImage;
   String? orgName;
   String? manager;
-  String? phoneNumber;
+  String? managerPhoneNumber;
   FlutterBackgroundService service = FlutterBackgroundService();
 
   @override
@@ -33,7 +33,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     profileImage = PreferenceHelper.getString(PreferenceHelper.PROFILE_PIC);
     orgName = PreferenceHelper.getString(PreferenceHelper.ORG_NAME);
     manager = PreferenceHelper.getString(PreferenceHelper.REPORTING_MANAGER);
-    phoneNumber = PreferenceHelper.getString(PreferenceHelper.PHONE_NO);
+    managerPhoneNumber = PreferenceHelper.getString(PreferenceHelper.REPORTING_MANAGER_PHONE_NO);
   }
 
   List<String> profileOptionsList = [
@@ -140,12 +140,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       context: context,
                       titleText: "Call",
                       text:
-                      "Are you sure to call ${phoneNumber ?? ""}?",
+                      "Are you sure to call ${managerPhoneNumber ?? ""}?",
                       onSuccessString: "Call",
                       onCancelString: "Cancel",
                       onSuccess: () {
-                        AppUtils.launchToBrowser(
-                            Uri.parse("tel:${phoneNumber}"));
+                        if(managerPhoneNumber != null && managerPhoneNumber != ""){
+                          AppUtils.launchToBrowser(
+                              Uri.parse("tel:${managerPhoneNumber}"));
+                        }else{
+
+                        }
+
                       },
                       onCancel: () {},
                     );
@@ -249,7 +254,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       case 0:
         AppUtils.showDialogBoxWithOneButton(
           titleText: "Help",
-          text: "For Help contact to your reporting manager",
+          text: "Kindly send your queries on support@ontrek.io",
           context: context,
         );
         break;

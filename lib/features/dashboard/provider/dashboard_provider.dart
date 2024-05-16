@@ -1,13 +1,9 @@
 import 'dart:async';
-import 'dart:math';
-import 'dart:ui' as ui;
-import 'dart:typed_data';
+
 import 'dart:ui';
 
-import 'package:app_settings/app_settings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -22,7 +18,6 @@ import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
 import 'package:ontrek/main.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:http/http.dart' as http;
 import 'package:widget_to_marker/widget_to_marker.dart';
 
 class DashBoardProvider extends ChangeNotifier {
@@ -84,19 +79,19 @@ class DashBoardProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future checkPermission() async {
+  Future checkPermission(BuildContext context) async {
     final status = await Permission.location.status;
     final status2 = await Permission.locationAlways.status;
     if (status.isDenied) {
       await Permission.location.request();
     } else if (status.isPermanentlyDenied) {
-      AppSettings.openAppSettings(type: AppSettingsType.location);
+      AppUtils.showDialogBoxWithOneButton(titleText: "Location",text: "Please enable your location service.",context: context);
     } else {
       // Location permission is granted
       if(status2.isDenied){
         await Permission.locationAlways.request();
       }else if(status2.isPermanentlyDenied){
-        AppUtils.showDialogBoxWithOneButton(titleText: "Location",text: "Please enable your always on location service.");
+        AppUtils.showDialogBoxWithOneButton(titleText: "Location",text: "Please enable your always on location service.",context: context);
       }else{
         await getCurrentLocation();
 

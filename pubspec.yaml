@@ -54,7 +54,7 @@ dependencies:
   timeline_tile: ^2.0.0
   intl: ^0.18.1
   image_picker: ^1.0.7
-  battery_plus: ^5.0.3
+  battery_plus: ^3.0.2
   sliding_up_panel: ^2.0.0+1
   intl_phone_field: ^3.2.0
   pin_code_fields: ^8.0.1
@@ -63,6 +63,7 @@ dependencies:
   webview_flutter: ^4.7.0
   flutter_local_notifications: ^17.1.2
   interval_time_picker: ^2.0.0+5
+  battery_indicator: ^0.1.2
 
 
 dev_dependencies:

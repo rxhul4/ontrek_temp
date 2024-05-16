@@ -3,7 +3,7 @@ import 'package:ontrek/core/utils/App_utils.dart';
 
 class AppConstant {
 
-  static const String appVersionAndroid = "1.0.1" ;
+  static const String appVersionAndroid = "1.0.2" ;
   //tot tracking events
   static const String  dayStartEvent = "826c88aa-d18e-46f4-967b-4f973126765e" ;
   static const String  dayEndEvent = "a2864068-8305-472f-a3a9-16d9e1d0e2dd" ;
@@ -28,7 +28,7 @@ class AppConstant {
   static const String dateFormat= "yyyy-MM-dd'T'HH:mm:ss";
 
   //app colors constant
-  static Color appPrimaryColor = Color.fromRGBO(27, 78, 137, 1);
+  static Color appPrimaryColor = Color.fromRGBO(27, 27, 27, 1);
   static Color whiteColor = Colors.white;
   static Color blackColor = Colors.black;
   static Color greyColor = Colors.grey;

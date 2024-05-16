@@ -106,10 +106,7 @@ class SalemenTimeLineProvider extends ChangeNotifier {
         print("Event list: ${sessionEvents.length}");
       } else {
         if (getTimeLineModel?.isValidationFailed == true) {
-          AppUtils.showDialogBoxWithOneButton(
-              titleText: "Error",
-              context: navigatorKey.currentState!.context,
-              text: getTimeLineModel?.message ?? "");
+        
         }
         if (getTimeLineModel?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(

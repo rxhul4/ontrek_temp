@@ -1,3 +1,4 @@
+import 'package:battery_indicator/battery_indicator.dart';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -245,7 +246,9 @@ class AppUtils {
       Color? backgroundColor,
       Color? borderColor,
       Color? iconColor,
-      bool? isFromTimeLine}) {
+      bool? isFromTimeLine,
+      int? batteryLevel,
+      }) {
     return Container(
       alignment: Alignment.centerLeft,
       height: height * 0.09,
@@ -309,12 +312,31 @@ class AppUtils {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          AppUtils.commonTextWidget(
-                            text: title ?? "",
-                            fontWeight: FontWeight.w500,
-                            textColor: Colors.black,
-                            letterSpacing: 0.3,
-                            fontSize: 14,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              AppUtils.commonTextWidget(
+                                text: title ?? "",
+                                fontWeight: FontWeight.w500,
+                                textColor: Colors.black,
+                                letterSpacing: 0.3,
+                                fontSize: 14,
+                              ),
+                              // Padding(
+                              //   padding: const EdgeInsets.only(left: double.infinity),
+                              //   child: BatteryIndicator(
+                              //     colorful: true,
+                              //     batteryLevel: batteryLevel ?? 0,
+                              //     batteryFromPhone: false,
+                              //     style: BatteryIndicatorStyle.skeumorphism,
+                              //     percentNumSize: 6,
+                              //     size: 10,
+                              //     showPercentNum: true,
+                              //     showPercentSlide: true,
+                              //
+                              //   ),
+                              // )
+                            ],
                           ),
                           SizedBox(
                             width:width/2,
@@ -930,17 +952,25 @@ class AppUtils {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               AppUtils.commonSizedBox(height: 30, width: 30),
-              AppUtils.commonTextWidget(
-                text: titleText ?? "",
-                textColor: AppConstant.blackColor,
-                fontSize: 14,
-                textAlign: TextAlign.center,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.5,
+              Flexible(
+                flex: 5,
+                child: Container(
+                  child: AppUtils.commonTextWidget(
+                    text: titleText ?? "",
+                    textColor: AppConstant.blackColor,
+                    fontSize: 12,
+                    textAlign: TextAlign.center,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                  ),
+                ),
               ),
-              GestureDetector(onTap: () {
-                Navigator.pop(context);
-              },child: Icon(Icons.close,color: AppConstant.appPrimaryColor,size: 30,))
+              Flexible(
+                flex: 1,
+                child: GestureDetector(onTap: () {
+                  Navigator.pop(context);
+                },child: Icon(Icons.close,color: AppConstant.appPrimaryColor,size: 30,)),
+              )
             ],
           ),
           actions: [

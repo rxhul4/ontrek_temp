@@ -13,6 +13,7 @@ class PreferenceHelper {
   static const String USER_ID = "userId";
   static const String EMAIL = "email";
   static const String PHONE_NO = "phoneNo";
+  static const String REPORTING_MANAGER_PHONE_NO = "REPORTING_MANAGER_PHONE_NO";
   static const String PROFILE_PIC = "profilePic";
   static const String ROLE_NAME = "roleName";
   static const String ROLE_ID = "roleId";

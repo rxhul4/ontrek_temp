@@ -6,6 +6,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:ontrek/core/background_service_model/create_route_history_model.dart';
@@ -20,9 +21,27 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+const notificationChannelId = 'my_foreground';
+
+const notificationId = 888;
+
 class BackgroundService {
   Future<void> initializeService() async {
     final service = FlutterBackgroundService();
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      notificationChannelId, // id
+      'Background Service', // title
+      description: 'Activated', // description
+      importance: Importance.low,
+    );
+    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+        FlutterLocalNotificationsPlugin();
+
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+
     await service.configure(
       iosConfiguration: IosConfiguration(
         // auto start service
@@ -38,6 +57,11 @@ class BackgroundService {
         onStart: onStart,
         autoStart: false,
         isForegroundMode: true,
+        notificationChannelId: notificationChannelId,
+        // this must match with notification channel you created above.
+        initialNotificationTitle: 'Background Location',
+        initialNotificationContent: 'Initializing',
+        foregroundServiceNotificationId: notificationId,
       ),
     );
   }
@@ -60,6 +84,9 @@ Future<bool> onIosBackground(ServiceInstance service) async {
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
   service.on("update").listen((event) {
     if (event != null) {
       bool isWaiting = event["isWaiting"];
@@ -116,9 +143,19 @@ void onStart(ServiceInstance service) async {
 
         if (service is AndroidServiceInstance) {
           if (await service.isForegroundService()) {
-            service.setForegroundNotificationInfo(
-              title: "Background Location",
-              content: "Activated",
+            flutterLocalNotificationsPlugin.show(
+              notificationId,
+              'On Trek Background Service',
+              'Background location capturing initiated.',
+              const NotificationDetails(
+                android: AndroidNotificationDetails(
+                  notificationChannelId,
+
+                  'MY FOREGROUND SERVICE',
+                    icon: 'ic_notification_logo',
+                  ongoing: true,
+                ),
+              ),
             );
           }
         }
@@ -197,9 +234,9 @@ void onStart(ServiceInstance service) async {
                             .inMinutes >=
                         30) {
                       NotificationService().showNotification(
-                          title: "Waiting",
+                          title: "Excessive Waiting Alert!",
                           body:
-                              "Your waiting period has started Before 30 min.",
+                              "Hey there! It looks like you've been inactive for a while. Just a friendly reminder to keep moving to ensure your productivity.",
                           id: 0);
                       PreferenceHelper.setString(
                           PreferenceHelper.WAITING_START_TIME,

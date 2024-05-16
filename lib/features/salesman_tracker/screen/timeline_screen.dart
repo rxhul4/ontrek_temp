@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
+import 'package:battery_indicator/battery_indicator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -406,6 +407,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                     backgroundColor: AppConstant.whiteColor,
                     title: widget.name,
                     leadingImage: widget.imageUrl,
+                    batteryLevel: saleMenTimeLineProvider.getTimeLineModel?.data?.fieldUserLastActivity?.lastBatteryPercentage,
                     actionWidget: [
                       GestureDetector(
                           onTap: () {
@@ -428,8 +430,8 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                             color: AppConstant.appPrimaryColor,
                           ))
                     ],
-                    subTitle: saleMenTimeLineProvider.getTimeLineModel?.data
-                        ?.fieldUserLastActivity?.lastActivityPlace,
+                    subTitle:
+                        "${saleMenTimeLineProvider.getTimeLineModel?.data?.fieldUserLastActivity?.activityName} - ${AppUtils.getDate(date: "${saleMenTimeLineProvider.getTimeLineModel?.data?.fieldUserLastActivity?.lastTrackingActivityTime}", format: "dd MMM yyyy HH:MM a")}",
                   ),
                   saleMenTimeLineProvider.isFetching ||
                           saleMenTimeLineProvider
@@ -497,9 +499,6 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                                   onTap: () {
                                     setState(() {
                                       selectedIndex = 0;
-                                      panelController.animatePanelToSnapPoint(
-                                          duration:
-                                              Duration(milliseconds: 300));
                                     });
                                     polylines.clear();
                                     drawPolyLines();
@@ -507,24 +506,23 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                                   child: AnimatedContainer(
                                     duration: const Duration(milliseconds: 300),
                                     padding: const EdgeInsets.only(
-                                        left: 15, right: 15),
+                                        left: 10, right: 10),
                                     margin: const EdgeInsets.only(
                                         left: 10, right: 10, bottom: 5),
                                     decoration: AppUtils.commonBoxDecoration(
-                                      border: Border.all(
-                                          color: AppConstant.appPrimaryColor),
-                                      color: selectedIndex == 0
-                                          ? AppConstant.appPrimaryColor
-                                          : AppConstant.transparentColor,
-                                      borderRadius: const BorderRadius.all(
-                                          Radius.circular(6)),
+                                      border: Border(
+                                        bottom: BorderSide(
+                                            color: selectedIndex == 0
+                                                ? AppConstant.appPrimaryColor
+                                                : AppConstant.transparentColor),
+                                      ),
                                     ),
                                     child: Center(
                                       child: AppUtils.commonTextWidget(
                                         text: "All Sessions",
                                         textColor: selectedIndex == 0
-                                            ? AppConstant.whiteColor
-                                            : AppConstant.appPrimaryColor,
+                                            ? AppConstant.appPrimaryColor
+                                            : AppConstant.greyColor,
                                       ),
                                     ),
                                   ),
@@ -556,11 +554,6 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                                                             index]
                                                         .sessionNo ??
                                                     0;
-
-                                            panelController
-                                                .animatePanelToSnapPoint(
-                                                    duration: Duration(
-                                                        milliseconds: 300));
                                           });
                                           polylines.clear();
                                           drawPolyLines();
@@ -569,26 +562,25 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                                           duration:
                                               const Duration(milliseconds: 300),
                                           padding: const EdgeInsets.only(
-                                              left: 15, right: 15),
+                                              left: 10, right: 10),
                                           margin: const EdgeInsets.only(
                                               left: 10, right: 10, bottom: 5),
                                           decoration:
                                               AppUtils.commonBoxDecoration(
-                                            border: Border.all(
-                                                color: AppConstant
-                                                    .appPrimaryColor),
-                                            color: saleMenTimeLineProvider
-                                                        .getTimeLineModel
-                                                        ?.data
-                                                        ?.sessionTimeLine?[
-                                                            index]
-                                                        .sessionNo ==
-                                                    selectedIndex
-                                                ? AppConstant.appPrimaryColor
-                                                : AppConstant.transparentColor,
-                                            borderRadius:
-                                                const BorderRadius.all(
-                                                    Radius.circular(6)),
+                                            border: Border(
+                                              bottom: BorderSide(
+                                                  color: saleMenTimeLineProvider
+                                                              .getTimeLineModel
+                                                              ?.data
+                                                              ?.sessionTimeLine?[
+                                                                  index]
+                                                              .sessionNo ==
+                                                          selectedIndex
+                                                      ? AppConstant
+                                                          .appPrimaryColor
+                                                      : AppConstant
+                                                          .transparentColor),
+                                            ),
                                           ),
                                           child: Center(
                                             child: AppUtils.commonTextWidget(
@@ -601,8 +593,8 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                                                               index]
                                                           .sessionNo ==
                                                       selectedIndex
-                                                  ? AppConstant.whiteColor
-                                                  : AppConstant.appPrimaryColor,
+                                                  ? AppConstant.appPrimaryColor
+                                                  : AppConstant.greyColor,
                                             ),
                                           ),
                                         ),
@@ -737,13 +729,46 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              AppUtils.commonTextWidget(
-                                  text: sessionList?[index].eventName ?? "",
-                                  textColor: AppUtils.getStatusColor(
-                                    sessionList?[index].eventCode ?? "",
-                                  ),
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: 12),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  AppUtils.commonTextWidget(
+                                      text: sessionList?[index].eventName ?? "",
+                                      textColor: AppUtils.getStatusColor(
+                                        sessionList?[index].eventCode ?? "",
+                                      ),
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 12),
+                                 Row(
+                                   children: [
+                                     AppUtils.commonTextWidget(
+                                         text: "${sessionList?[index].batteryPercentage ?? 0}%",
+                                         textColor:  AppConstant.appPrimaryColor,
+                                         fontWeight: FontWeight.w500,
+                                         fontSize: 8),
+                                     AppUtils.commonSizedBox(width: 5),
+                                     Padding(
+                                       padding: const EdgeInsets.only(right: 15),
+                                       child: BatteryIndicator(
+
+                                         colorful: true,
+                                         batteryLevel:
+                                         sessionList?[index].batteryPercentage ??
+                                             0,
+                                         batteryFromPhone: false,
+                                         style: BatteryIndicatorStyle.skeumorphism,
+                                         percentNumSize: 6,
+                                         size: 6,
+                                         showPercentNum: false,
+                                         showPercentSlide: true,
+
+                                       ),
+                                     )
+                                   ],
+                                 )
+
+                                ],
+                              ),
                               AppUtils.commonTextWidget(
                                   text:
                                       sessionList?[index].eventActivityPlace ??
@@ -956,11 +981,11 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
     return AppUtils.commonContainer(
       width: 210,
       margin: AppUtils.edgeInsetsOnly(
-          top: isFromSheet == true ? 0 : 10, bottom: 10, right: 20, left: 20),
+          top: isFromSheet == true ? 0 : 10, bottom: 5, right: 20, left: 20),
       padding: AppUtils.edgeInsetsAll(allPadding: 8),
       decoration: AppUtils.commonBoxDecoration(
         borderRadius: isFromSheet == true
-            ? AppUtils.borderRadiousonly(bottomleft: 15, bottomright: 15)
+            ? AppUtils.borderRadiousonly(bottomleft: 8, bottomright: 8)
             : AppUtils.borderRadiusAll(raduis: 60),
         color: AppConstant.whiteColor,
         boxShadow: isFromSheet == true
@@ -1025,7 +1050,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
             child: AppUtils.commonTextWidget(
                 textColor: AppConstant.blackColor,
                 text: AppUtils.dateFormat(
-                    date: selectedDate, dateFormat: "dd-MM-yyyy"),
+                    date: selectedDate, dateFormat: "MMM dd,yyyy"),
                 fontSize: 14),
           ),
           AppUtils.commonInkWell(

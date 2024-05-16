@@ -66,7 +66,7 @@ class DashBoardState extends State<DashBoard> {
           Provider.of<DashBoardProvider>(context, listen: false);
       if (!mounted) {}
       dashBoardProvider.initialIndex();
-      dashBoardProvider.checkPermission();
+      dashBoardProvider.checkPermission(context);
       // setState(() {});
     });
   }
