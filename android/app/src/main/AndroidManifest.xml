@@ -50,6 +50,6 @@
             android:value="AIzaSyCPeUXiPyRGfXGspMNZufCb0LYORWNqCjI" />
         <meta-data
             android:name="isMonitoringTool"
-            android:value="child_monitoring" />
+            android:value="enterprise_management" />
     </application>
 </manifest>
