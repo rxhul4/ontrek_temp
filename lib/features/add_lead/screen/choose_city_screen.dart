@@ -40,7 +40,9 @@ class _ChooseCityScreenState extends State<ChooseCityScreen> {
         getCityByIdModel = value;
       });
       if (getCityByIdModel?.isError == false &&
-          getCityByIdModel?.isValidationFailed == false) {}else{
+          getCityByIdModel?.isValidationFailed == false) {
+
+      }else{
         if(getCityByIdModel?.isError == true){
           AppUtils.showDialogBoxWithOneButton(text: "Something went wrong!",context: context);
         }
@@ -57,7 +59,7 @@ class _ChooseCityScreenState extends State<ChooseCityScreen> {
     return AppScaffold(
       appBar: AppUtils.commonAppBar(
         context: context,
-        title: "State",
+        title: "City",
         isBack: true,
         isBorder: true,
       ),
@@ -81,7 +83,7 @@ class _ChooseCityScreenState extends State<ChooseCityScreen> {
                   (getCityByIdModel?.data?.length ?? 0 ) <= 0
                   ? Center(
                 child: AppUtils.commonNoDataFound(
-                  text: widget.stateId == null ? "Please Select State" : "No State Found",
+                  text: widget.stateId == null ? "Please Select City" : "No City Found",
                   onPressed: () {
                     addLeadProvider.apiCallGetAllCountry();
                   },
@@ -100,6 +102,8 @@ class _ChooseCityScreenState extends State<ChooseCityScreen> {
                         selectedCityName =
                             getCityByIdModel?.data?[index].cityName;
                       });
+                      print("selectedCityId${selectedCityId}");
+                      print("selectedCityName${selectedCityName}");
                       Navigator.pop(
                         context,
                         {

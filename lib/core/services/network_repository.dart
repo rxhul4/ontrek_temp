@@ -10,7 +10,7 @@ import 'package:http/http.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 AndroidDeviceInfo? myDeviceInfo;
 
-final userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
+String? userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
 
 
 Map<String, String> header = {

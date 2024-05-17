@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ontrek/core/common_widgets/app_scaffold.dart';
+import 'package:ontrek/core/common_widgets/common_selection_widget.dart';
 import 'package:ontrek/core/common_widgets/textfield_widget.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
@@ -83,20 +84,19 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
         selectedCountryId = getLeadByIdModel?.data?.countryId ?? "";
         selectedStateId = getLeadByIdModel?.data?.stateId ?? "";
         selectedCityId = getLeadByIdModel?.data?.cityId ?? "";
+        print("selectedCityId$selectedCityId");
         selectedLeadId = getLeadByIdModel?.data?.totLeadSourceId ?? "";
+        print("selectedLeadId$selectedLeadId");
         await callGetAllCountryApi();
         await callGetStateByCountryId();
         await callGetCityByStateId();
         await callLeadSourceApi();
-      } else {
-        if (getLeadByIdModel?.isError == true) {
-          AppUtils.showDialogBoxWithOneButton(
-            titleText: "Error",
-              text: "Something went wrong!", context: context);
+      }else{
+        if(getLeadByIdModel?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(text: "Something went wrong!",context: context);
         }
-        if (getLeadByIdModel?.isValidationFailed == true) {
-          AppUtils.showDialogBoxWithOneButton(
-              text: value?.message, context: context);
+        if(getLeadByIdModel?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(titleText: "",text: value?.message,context: context);
         }
       }
     });
@@ -111,23 +111,22 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
           getAllCountryModel?.isValidationFailed == false) {
         selectedCountryName = getAllCountryModel?.data
             ?.where((element) =>
-                element.countryId == getLeadByIdModel?.data?.countryId)
+        element.countryId == selectedCountryId)
             .first
             .countryName;
         selectedCountryId = getAllCountryModel?.data
             ?.where((element) =>
-                element.countryId == getLeadByIdModel?.data?.countryId)
+        element.countryId == selectedCountryId)
             .first
             .countryId;
-      } else {
-        if (getAllCountryModel?.isError == true) {
-          AppUtils.showDialogBoxWithOneButton(
-              titleText: "Error",
-              text: "Something went wrong!", context: context);
+        print("selectedCountryname${selectedCountryName}");
+        print("selectedCountryId${selectedCountryId}");
+      }else{
+        if(getAllCountryModel?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(titleText: "Error",text: "Something went wrong!",context: context);
         }
-        if (getAllCountryModel?.isValidationFailed == true) {
-          AppUtils.showDialogBoxWithOneButton(
-              text: getAllCountryModel?.message, context: context);
+        if(getAllCountryModel?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(titleText: "Information",text: getAllCountryModel?.message,context: context);
         }
       }
     });
@@ -144,21 +143,20 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
           getStateByIdModel?.isValidationFailed == false) {
         selectedStateName = getStateByIdModel?.data
             ?.firstWhere(
-                (element) => element.stateId == getLeadByIdModel?.data?.stateId)
+                (element) => element.stateId == selectedStateId)
             .stateName;
         selectedStateId = getStateByIdModel?.data
             ?.firstWhere(
-                (element) => element.stateId == getLeadByIdModel?.data?.stateId)
+                (element) => element.stateId == selectedStateId)
             .stateId;
-      } else {
-        if (getStateByIdModel?.isError == true) {
-          AppUtils.showDialogBoxWithOneButton(
-              titleText: "Error",
-              text: "Something went wrong!", context: context);
+        print("selectedStateyname${selectedStateName}");
+        print("selectedStateId${selectedStateId}");
+      }else{
+        if(getStateByIdModel?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(titleText: "Error",text: "Something went wrong!",context: context);
         }
-        if (getStateByIdModel?.isValidationFailed == true) {
-          AppUtils.showDialogBoxWithOneButton(
-              text: getStateByIdModel?.message, context: context);
+        if(getStateByIdModel?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(titleText: "Information",text: getStateByIdModel?.message,context: context);
         }
       }
     });
@@ -175,22 +173,20 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
           getCityByIdModel?.isValidationFailed == false) {
         selectedCityName = getCityByIdModel?.data
             ?.firstWhere(
-                (element) => element.cityId == getLeadByIdModel?.data?.cityId)
+                (element) => element.cityId == selectedCityId)
             .cityName;
         selectedCityId = getCityByIdModel?.data
             ?.firstWhere(
-                (element) => element.cityId == getLeadByIdModel?.data?.cityId)
+                (element) => element.cityId == selectedCityId)
             .cityId;
-      } else {
-        if (getCityByIdModel?.isError == true) {
-          AppUtils.showDialogBoxWithOneButton(
-              titleText: "Error",
-
-              text: "Something went wrong!", context: context);
+        print("selectedCityname${selectedCityName}");
+        print("selectedCityId${selectedCityId}");
+      }else{
+        if(getCityByIdModel?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(titleText: "Error",text: "Something went wrong!",context: context);
         }
-        if (getCityByIdModel?.isValidationFailed == true) {
-          AppUtils.showDialogBoxWithOneButton(
-              text: getCityByIdModel?.message, context: context);
+        if(getCityByIdModel?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(titleText: "Information",text: getCityByIdModel?.message,context: context);
         }
       }
     });
@@ -207,14 +203,23 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
           getTotByGroupTypeModel?.isValidationFailed == false) {
         selectedLeadName = getTotByGroupTypeModel?.data
             ?.where((element) =>
-                element.totId == getLeadByIdModel?.data?.totLeadSourceId)
+        element.totId == selectedLeadId)
             .first
             .totValue;
-        selectedCityId = getTotByGroupTypeModel?.data
+        selectedLeadId = getTotByGroupTypeModel?.data
             ?.where((element) =>
-                element.totId == getLeadByIdModel?.data?.totLeadSourceId)
+        element.totId == selectedLeadId)
             .first
             .totId;
+        print("selectedLeadName${selectedLeadName}");
+        print("selectedLeadId${selectedLeadId}");
+      }else{
+        if(getTotByGroupTypeModel?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(titleText: "Error",text: "Something went wrong!",context: context);
+        }
+        if(getTotByGroupTypeModel?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(titleText: "Information",text: getCityByIdModel?.message,context: context);
+        }
       }
     });
   }
@@ -232,225 +237,226 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
           context: context,
           title: widget.isEdit == true ? "Edit Lead" : "Add Lead",
         ),
-        body: widget.isEdit == true && addLeadProvider.isFetching
+        body: addLeadProvider.isFetching
             ? AppUtils.loaderWidget()
             : Stack(
-                children: [
-                  SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                          left: 10, right: 10, bottom: 20),
-                      child: Column(
-                        children: [
-                          AppUtils.commonSizedBox(height: 20),
-                          commonTextField(
-                            text: "Company Name",
-                            controller: companyNameController,
-                          ),
-                          AppUtils.commonSizedBox(height: 20),
-                          commonTextField(
-                            text: "Customer Name",
-                            controller: customerNameController,
-                          ),
-                          AppUtils.commonSizedBox(height: 20),
-                          commonTextField(
-                              text: "Customer Number",
-                              controller: phoneNumberController,
-                              textInputType: TextInputType.phone),
-                          AppUtils.commonSizedBox(height: 20),
-                          commonTextField(
-                            text: "Customer Email",
-                            controller: customerEmailController,
-                          ),
-                          AppUtils.commonSizedBox(height: 20),
-                          commonTextField(
-                              text: "Customer Address",
-                              controller: customerAddressController,
-                              maxLine: 3),
-                          AppUtils.commonSizedBox(height: 20),
-                          commonTextField(
-                            text: "Pin Code",
-                            controller: zipCodeController,
-                          ),
-                          AppUtils.commonSizedBox(height: 20),
-                          commonTextField(
-                            text: "Select Country",
-                            suffixIcon: Icon(Icons.arrow_drop_down_sharp,
-                                color: AppConstant.appPrimaryColor),
-                            textInputType: TextInputType.none,
-                            showCursor: false,
-                            controller: TextEditingController(
-                              text: selectedCountryName,
-                            ),
-                            onTap: () async {
-                              Navigator.push(
-                                context,
-                                CupertinoPageRoute(
-                                    builder: (context) =>
-                                        const ChooseCountryScreen()),
-                              ).then((value) {
-                                if (value != null) {
-                                  setState(() {
-                                    selectedCountryId = value['countryId'];
-                                    selectedCountryName = value['countryName'];
-                                    selectedStateName = "";
-                                    selectedStateId = "";
-                                    selectedCityId = "";
-                                    selectedCityName = "";
-                                  });
-                                }
-                              });
-                            },
-                          ),
-                          AppUtils.commonSizedBox(height: 20),
-                          commonTextField(
-                            text: "Select State",
-                            suffixIcon: Icon(Icons.arrow_drop_down_sharp,
-                                color: AppConstant.appPrimaryColor),
-                            textInputType: TextInputType.none,
-                            showCursor: false,
-                            controller: TextEditingController(
-                              text: selectedStateName,
-                            ),
-                            onTap: () async {
-                              Navigator.push(
-                                context,
-                                CupertinoPageRoute(
-                                    builder: (context) => ChooseStateScreen(
-                                          countryId: selectedCountryId,
-                                        )),
-                              ).then((value) {
-                                if (value != null) {
-                                  setState(() {
-                                    selectedStateId = value['stateId'];
-                                    selectedStateName = value['stateName'];
-                                    selectedCityId = "";
-                                    selectedCityName = "";
-                                  });
-                                }
-                              });
-                            },
-                          ),
-                          AppUtils.commonSizedBox(height: 20),
-                          commonTextField(
-                            text: "Select City",
-                            suffixIcon: Icon(Icons.arrow_drop_down_sharp,
-                                color: AppConstant.appPrimaryColor),
-                            textInputType: TextInputType.none,
-                            showCursor: false,
-                            controller: TextEditingController(
-                              text: selectedCityName,
-                            ),
-                            onTap: () async {
-                              Navigator.push(
-                                context,
-                                CupertinoPageRoute(
-                                    builder: (context) => ChooseCityScreen(
-                                          stateId: selectedStateId,
-                                        )),
-                              ).then((value) {
-                                if (value != null) {
-                                  setState(() {
-                                    selectedCityId = value['cityId'];
-                                    selectedCityName = value['cityName'];
-                                  });
-                                }
-                              });
-                            },
-                          ),
-                          AppUtils.commonSizedBox(height: 20),
-                          commonTextField(
-                            text: "Select LeadSource",
-                            suffixIcon: Icon(Icons.arrow_drop_down_sharp,
-                                color: AppConstant.appPrimaryColor),
-                            textInputType: TextInputType.none,
-                            showCursor: false,
-                            controller: TextEditingController(
-                              text: selectedLeadName,
-                            ),
-                            onTap: () async {
-                              Navigator.push(
-                                context,
-                                CupertinoPageRoute(
-                                    builder: (context) =>
-                                        const ChooseLeadSourceScreen()),
-                              ).then((value) {
-                                if (value != null) {
-                                  setState(() {
-                                    selectedLeadId = value["leadId"];
-                                    selectedLeadName = value["leadName"];
-                                  });
-                                }
-                              });
-                            },
-                          ),
-                          AppUtils.commonSizedBox(height: 20),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.pop(context);
-                                },
-                                child: AppUtils.commonContainer(
-                                    padding: const EdgeInsets.only(
-                                        left: 15,
-                                        right: 15,
-                                        bottom: 10,
-                                        top: 10),
-                                    decoration: AppUtils.commonBoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: const BorderRadius.all(
-                                          Radius.circular(5)),
-                                      border: Border.all(
-                                          color: AppConstant.greyColor
-                                              .withOpacity(0.4)),
-                                    ),
-                                    child: Center(
-                                        child: AppUtils.commonTextWidget(
-                                      text: "Cancel",
-                                      textColor: AppConstant.blackColor,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w300,
-                                    ))),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  checkValidation();
-                                },
-                                child: AppUtils.commonContainer(
-                                    padding: const EdgeInsets.only(
-                                        left: 15,
-                                        right: 15,
-                                        bottom: 10,
-                                        top: 10),
-                                    decoration: AppUtils.commonBoxDecoration(
-                                      color: AppConstant.appPrimaryColor,
-                                      borderRadius: const BorderRadius.all(
-                                          Radius.circular(5)),
-                                    ),
-                                    child: Center(
-                                        child: AppUtils.commonTextWidget(
-                                      text: widget.isEdit == true
-                                          ? "Update"
-                                          : "Create",
-                                      textColor: AppConstant.whiteColor,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w300,
-                                    ))),
-                              ),
-                            ],
-                          ),
-                          AppUtils.commonSizedBox(height: 5),
-                        ],
-                      ),
+          children: [
+            SingleChildScrollView(
+              child: Padding(
+                padding:
+                const EdgeInsets.only(left: 10, right: 10, bottom: 20),
+                child: Column(
+                  children: [
+                    AppUtils.commonSizedBox(height: 20),
+                    commonTextField(
+                      text: "Company Name",
+                      controller: companyNameController,
                     ),
-                  ),
-                  addLeadProvider.isLoading
-                      ? AppUtils.loaderWidget(color: Colors.blue)
-                      : AppUtils.commonSizedBox()
-                ],
+                    AppUtils.commonSizedBox(height: 20),
+                    commonTextField(
+                      text: "Customer Name",
+                      controller: customerNameController,
+                    ),
+                    AppUtils.commonSizedBox(height: 20),
+                    commonTextField(
+                        text: "Customer Number",
+                        controller: phoneNumberController,
+                        textInputType: TextInputType.phone),
+                    AppUtils.commonSizedBox(height: 20),
+                    commonTextField(
+                      text: "Customer Email",
+                      controller: customerEmailController,
+                    ),
+                    AppUtils.commonSizedBox(height: 20),
+                    commonTextField(
+                        text: "Customer Address",
+                        controller: customerAddressController,
+                        maxLine: 3),
+                    AppUtils.commonSizedBox(height: 20),
+                    commonTextField(
+                      text: "Pin Code",
+                      controller: zipCodeController,
+                    ),
+                    AppUtils.commonSizedBox(height: 20),
+                    commonTextField(
+                      text: "Select Country",
+                      suffixIcon: Icon(Icons.arrow_drop_down_sharp,
+                          color: AppConstant.appPrimaryColor),
+                      textInputType: TextInputType.none,
+                      showCursor: false,
+                      controller: TextEditingController(
+                        text: selectedCountryName,
+                      ),
+                      onTap: () async {
+                        Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                              builder: (context) =>
+                              const ChooseCountryScreen()),
+                        ).then((value) {
+                          print("value_$value");
+                          if (value != null) {
+                            setState(() {
+                              selectedCountryId = value['countryId'];
+                              selectedCountryName = value['countryName'];
+                              print("selectedCountry$selectedCountryName");
+                              print("selectedCountryId$selectedCountryId");
+                              selectedStateName = "";
+                              selectedStateId = "";
+                              selectedCityId = "";
+                              selectedCityName = "";
+                            });
+                          }
+                        });
+                      },
+                    ),
+                    AppUtils.commonSizedBox(height: 20),
+                    commonTextField(
+                      text: "Select State",
+                      suffixIcon: Icon(Icons.arrow_drop_down_sharp,
+                          color: AppConstant.appPrimaryColor),
+                      textInputType: TextInputType.none,
+                      showCursor: false,
+                      controller: TextEditingController(
+                        text: selectedStateName,
+                      ),
+                      onTap: () async {
+                        Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                              builder: (context) => ChooseStateScreen(
+                                countryId: selectedCountryId,
+                              )),
+                        ).then((value) {
+                          if (value != null) {
+                            setState(() {
+                              selectedStateId = value['stateId'];
+                              selectedStateName = value['stateName'];
+                              selectedCityId = "";
+                              selectedCityName = "";
+                              print("selectedCountry$selectedStateName");
+                              print("selectedCountryId$selectedStateId");
+                            });
+                          }
+                        });
+                      },
+                    ),
+                    AppUtils.commonSizedBox(height: 20),
+                    commonTextField(
+                      text: "Select City",
+                      suffixIcon: Icon(Icons.arrow_drop_down_sharp,
+                          color: AppConstant.appPrimaryColor),
+                      textInputType: TextInputType.none,
+                      showCursor: false,
+                      controller: TextEditingController(
+                        text: selectedCityName,
+                      ),
+                      onTap: () async {
+                        Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                              builder: (context) => ChooseCityScreen(
+                                stateId: selectedStateId,
+                              )),
+                        ).then((value) {
+                          if (value != null) {
+                            setState(() {
+                              selectedCityId = value['cityId'];
+                              selectedCityName = value['cityName'];
+                              print("selectedCountry$selectedCityId");
+                              print("selectedCountryId$selectedCityName");
+                            });
+                          }
+                        });
+                      },
+                    ),
+                    AppUtils.commonSizedBox(height: 20),
+                    commonTextField(
+                      text: "Select LeadSource",
+                      suffixIcon: Icon(Icons.arrow_drop_down_sharp,
+                          color: AppConstant.appPrimaryColor),
+                      textInputType: TextInputType.none,
+                      showCursor: false,
+                      controller: TextEditingController(
+                        text: selectedLeadName,
+                      ),
+                      onTap: () async {
+                        Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                              builder: (context) =>
+                              const ChooseLeadSourceScreen()),
+                        ).then((value) {
+                          if (value != null) {
+                            setState(() {
+                              selectedLeadId = value["leadId"];
+                              selectedLeadName = value["leadName"];
+                            });
+                            print("selectedLeadId$selectedLeadId");
+                            print("selectedLeadName$selectedLeadName");
+                          }
+                        });
+                      },
+                    ),
+                    AppUtils.commonSizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pop(context);
+                          },
+                          child: AppUtils.commonContainer(
+                              padding: const EdgeInsets.only(
+                                  left: 15, right: 15, bottom: 10, top: 10),
+                              decoration: AppUtils.commonBoxDecoration(
+                                color: Colors.white,
+                                borderRadius: const BorderRadius.all(
+                                    Radius.circular(5)),
+                                border: Border.all(
+                                    color: AppConstant.greyColor
+                                        .withOpacity(0.4)),
+                              ),
+                              child: Center(
+                                  child: AppUtils.commonTextWidget(
+                                    text: "Cancel",
+                                    textColor: AppConstant.blackColor,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w300,
+                                  ))),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            checkValidation();
+                          },
+                          child: AppUtils.commonContainer(
+                              padding: const EdgeInsets.only(
+                                  left: 15, right: 15, bottom: 10, top: 10),
+                              decoration: AppUtils.commonBoxDecoration(
+                                color: AppConstant.appPrimaryColor,
+                                borderRadius: const BorderRadius.all(
+                                    Radius.circular(5)),
+                              ),
+                              child: Center(
+                                  child: AppUtils.commonTextWidget(
+                                    text: widget.isEdit == true
+                                        ? "Update"
+                                        : "Create",
+                                    textColor: AppConstant.whiteColor,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w300,
+                                  ))),
+                        ),
+                      ],
+                    ),
+                    AppUtils.commonSizedBox(height: 5),
+                  ],
+                ),
               ),
+            ),
+            addLeadProvider.isLoading? AppUtils.loaderWidget() : AppUtils.commonSizedBox()
+          ],
+        ),
       ),
     );
   }
@@ -568,15 +574,11 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
       if (value?.isError == false && value?.isValidationFailed == false) {
         Navigator.pop(context);
       } else {
-        if (value?.isError == true) {
-          AppUtils.showDialogBoxWithOneButton(
-              titleText: "Error",
-
-              text: "Something went wrong!", context: context);
+        if(value?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(text: "Something went wrong!",context: context);
         }
-        if (value?.isValidationFailed == true) {
-          AppUtils.showDialogBoxWithOneButton(
-              text: value?.message, context: context);
+        if(value?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(text: value?.message,context: context);
         }
       }
     });
@@ -601,15 +603,11 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
       if (value?.isError == false && value?.isValidationFailed == false) {
         Navigator.pop(context);
       } else {
-        if (value?.isError == true) {
-          AppUtils.showDialogBoxWithOneButton(
-              titleText: "Error",
-
-              text: "Something went wrong!", context: context);
+        if(value?.isError == true){
+          AppUtils.showDialogBoxWithOneButton(text: "Something went wrong!",context: context);
         }
-        if (value?.isValidationFailed == true) {
-          AppUtils.showDialogBoxWithOneButton(
-              text: value?.message, context: context);
+        if(value?.isValidationFailed == true){
+          AppUtils.showDialogBoxWithOneButton(text: value?.message,context: context);
         }
       }
     });

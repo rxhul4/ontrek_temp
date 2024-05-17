@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ontrek/core/common_widgets/app_scaffold.dart';
@@ -11,8 +13,10 @@ import '../providers/auth_provider.dart';
 
 class OTPVerificationCode extends StatefulWidget {
   String? appUserId;
+  String? phoneNumber;
+  int? countryCode;
 
-  OTPVerificationCode({super.key, this.appUserId});
+  OTPVerificationCode({super.key, this.appUserId,this.phoneNumber,this.countryCode});
 
   @override
   State<OTPVerificationCode> createState() => _OTPVerificationCodeState();
@@ -21,6 +25,9 @@ class OTPVerificationCode extends StatefulWidget {
 class _OTPVerificationCodeState extends State<OTPVerificationCode> {
   late AuthenticationProvider authenticationProvider;
   TextEditingController otpController = TextEditingController();
+  int secondRemaining = 30;
+  bool enableResend = false;
+  Timer? timer;
 
 
   @override
@@ -30,7 +37,7 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
       authenticationProvider = Provider.of<AuthenticationProvider>(context,listen: false);
       otpController.clear();
       authenticationProvider.userUid = widget.appUserId;
-      authenticationProvider.startTimer();
+      startTimer();
     });
 
   }
@@ -38,8 +45,36 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
   @override
   void dispose() {
     // TODO: implement dispose
-    authenticationProvider.timer?.cancel();
+  timer?.cancel();
     super.dispose();
+  }
+  void startTimer() {
+    timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      setState(() {
+        if (secondRemaining != 0) {
+          secondRemaining--;
+
+        } else {
+          enableResend = true;
+          timer.cancel();
+        }
+      });
+
+    });
+  }
+  void resendCode() {
+    authenticationProvider.apiCallVerifyNumber(phoneNumber: widget.phoneNumber,countryCodeFromOtp: widget.countryCode,isFromOtpScreen: true);
+    secondRemaining = 30;
+    enableResend = false;
+    startTimer();
+    setState(() {});
+  }
+  String formatTime(int seconds) {
+    int minutes = seconds ~/ 60;
+    int remainingSeconds = seconds % 60;
+    String formattedMinutes = minutes.toString().padLeft(2, '0');
+    String formattedSeconds = remainingSeconds.toString().padLeft(2, '0');
+    return '$formattedMinutes:$formattedSeconds';
   }
 
   @override
@@ -114,7 +149,7 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
                       ),
                       otpView(context, otpController),
                       AppUtils.commonElevatedBtn(
-                        isLoading: authenticationProvider.isLoading,
+                        isLoading: authenticationProvider.isFetching,
                         topMargin: 20,
                         width: double.infinity,
                         height: 50,
@@ -126,7 +161,7 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
 
                         },
                       ),
-                      !authenticationProvider.enableResend
+                    !enableResend
                           ? AppUtils.commonContainer(
                               margin: const EdgeInsets.only(
                                 top: 110,
@@ -144,7 +179,7 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
                                     width: 3,
                                   ),
                                   AppUtils.commonTextWidget(
-                                    text: "00:${authenticationProvider.secondRemaining}",
+                                    text: secondRemaining < 10 ? '00:${secondRemaining.toString().padLeft(2, '0')}' : formatTime(secondRemaining),
                                     textColor: AppConstant.appPrimaryColor,
                                   ),
                                 ],
@@ -158,7 +193,7 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
                                   style: TextButton.styleFrom(
                                       padding: EdgeInsets.zero),
                                   onPressed: () {
-                                    authenticationProvider.resendCode();
+                                   resendCode();
                                   },
                                   child: AppUtils.commonTextWidget(
                                       text: "Resend Code",

@@ -86,7 +86,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: navigatorKey,
-      title: 'Project Base',
+      title: 'On Trek',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: AppConstant.btnColor),
 

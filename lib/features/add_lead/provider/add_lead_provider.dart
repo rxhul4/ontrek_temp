@@ -82,11 +82,16 @@ class AddLeadProvider extends ChangeNotifier{
       print('catch at Get addLead Provider $e');
       AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentContext,text: createLeadModel?.message ?? "");
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
-      if (!isInternetAvailable) {
-        createLeadModel = CreateLeadModel(
-            message: "Internet is not available, please try again!");
+      if (isInternetAvailable == false) {
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Internet Off Alert",
+            text: "Internet is not available. Please Enable Mobile data or wifi.",
+            context: navigatorKey.currentState!.context);
       } else {
-        createLeadModel = CreateLeadModel(message: "Something went wrong!");
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Error",
+            text: "Something went wrong!",
+            context: navigatorKey.currentState!.context);
       }
     }
     loaderFnc(false);
@@ -107,7 +112,7 @@ class AddLeadProvider extends ChangeNotifier{
     String? totLeadSourceId,
 
   }) async {
-    fetchingFnc(true);
+    loaderFnc(true);
     String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     Map<String,dynamic> body =
     {
@@ -133,14 +138,19 @@ class AddLeadProvider extends ChangeNotifier{
       print('catch at Get updateLead Provider $e');
       AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentContext,text: createLeadModel?.message ?? "",titleText: "Error");
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
-      if (!isInternetAvailable) {
-        createLeadModel = CreateLeadModel(
-            message: "Internet is not available, please try again!");
+      if (isInternetAvailable == false) {
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Internet Off Alert",
+            text: "Internet is not available. Please Enable Mobile data or wifi.",
+            context: navigatorKey.currentState!.context);
       } else {
-        createLeadModel = CreateLeadModel(message: "Something went wrong!");
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Error",
+            text: "Something went wrong!",
+            context: navigatorKey.currentState!.context);
       }
     }
-    fetchingFnc(false);
+    loaderFnc(false);
     return createLeadModel;
   }
 
@@ -159,11 +169,16 @@ class AddLeadProvider extends ChangeNotifier{
       print('catch at getStateByCountryId Provider $e');
       AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentContext,text: getLeadByIdModel?.message ?? "");
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
-      if (!isInternetAvailable) {
-        getLeadByIdModel = GetLeadByIdModel(
-            message: "Internet is not available, please try again!");
+      if (isInternetAvailable == false) {
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Internet Off Alert",
+            text: "Internet is not available. Please Enable Mobile data or wifi.",
+            context: navigatorKey.currentState!.context);
       } else {
-        getLeadByIdModel = GetLeadByIdModel(message: "Something went wrong!");
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Error",
+            text: "Something went wrong!",
+            context: navigatorKey.currentState!.context);
       }
     }
     fetchingFnc(false);
@@ -183,11 +198,16 @@ class AddLeadProvider extends ChangeNotifier{
       print('catch at Get addLead Provider $e');
       AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentContext,text: getAllCountryModel?.message ?? "");
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
-      if (!isInternetAvailable) {
-        getAllCountryModel = GetAllCountryModel(
-            message: "Internet is not available, please try again!");
+      if (isInternetAvailable == false) {
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Internet Off Alert",
+            text: "Internet is not available. Please Enable Mobile data or wifi.",
+            context: navigatorKey.currentState!.context);
       } else {
-        getAllCountryModel = GetAllCountryModel(message: "Something went wrong!");
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Error",
+            text: "Something went wrong!",
+            context: navigatorKey.currentState!.context);
       }
     }
     fetchingFnc(false);

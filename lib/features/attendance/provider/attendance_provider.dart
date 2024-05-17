@@ -15,6 +15,7 @@ import 'package:ontrek/features/attendance/model/add_activity_model.dart';
 import 'package:ontrek/features/attendance/model/dayend_manual_request_model.dart';
 import 'package:ontrek/features/attendance/model/get_check_panding_dayend.dart';
 import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
+import 'package:ontrek/features/dashboard/screens/dashboard_screen.dart';
 import 'package:ontrek/main.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
@@ -52,6 +53,14 @@ class AttendanceProvider extends ChangeNotifier {
   TextEditingController timeController = TextEditingController();
   TextEditingController reasonController = TextEditingController();
   TextEditingController dayStartTimeController = TextEditingController();
+  bool? isLocationRestricted;
+  double? restrictedLocationLat;
+  double? restrictedLocationLong;
+  int? restrictedLocationMeter;
+  String? userId;
+  String? orgName;
+  String? userName;
+  bool? isAllowFgAuth;
 
   loaderFnc(bool isLoading) {
     _isLoading = isLoading;
@@ -137,20 +146,19 @@ class AttendanceProvider extends ChangeNotifier {
   Future<CreateActivityModel?> apiCallCreateActivity({
     bool? isFromCheckOut = false,
     String? picturePath,
-    String? userId,
-    double? latitude,
-    double? longitude,
     String? totTrackingEventCode,
     String? activityDateTime,
-    int? batteryLevel,
     String? customerName,
     String? visitDiscussion,
+    Position? positionData,
     String? companyName,
     String? customerPhoneNumber,
     String? visitTypeCode,
   }) async {
     loaderFnc(true);
-
+    String? userid = PreferenceHelper.getString(PreferenceHelper.USER_ID);
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.best);
     Map<String, dynamic> checkOutDataBody = {
       "customerName": customerName,
       "picturePath": picturePath,
@@ -160,14 +168,14 @@ class AttendanceProvider extends ChangeNotifier {
       "totVisitTypeId": visitTypeCode,
     };
     Map<String, dynamic> body = {
-      "userId": userId ?? "",
-      "longitude": longitude,
-      "lattitude": latitude,
+      "userId": userid ?? "",
+      "longitude": isFromCheckOut == true ? positionData?.longitude ?? 0 : position.longitude,
+      "lattitude": isFromCheckOut == true ? positionData?.latitude ?? 0 : position.latitude,
       "totTrackingEventId": totTrackingEventCode,
       "activityDateTime": activityDateTime ??
           AppUtils.dateFormat(
               date: DateTime.now(), dateFormat: AppConstant.dateFormat),
-      "batteryLevel": batteryLevel,
+      "batteryLevel": battery,
       "visitNoteRequestForm": isFromCheckOut ?? false ? checkOutDataBody : null
     };
     try {
@@ -179,7 +187,8 @@ class AttendanceProvider extends ChangeNotifier {
       if (isInternetAvailable == false) {
         AppUtils.showDialogBoxWithOneButton(
             titleText: "Internet Off Alert",
-            text: "Internet is not available. Please Enable Mobile data or wifi.",
+            text:
+                "Internet is not available. Please Enable Mobile data or wifi.",
             context: navigatorKey.currentState!.context);
       } else {
         AppUtils.showDialogBoxWithOneButton(
@@ -336,7 +345,8 @@ class AttendanceProvider extends ChangeNotifier {
       if (isInternetAvailable == false) {
         AppUtils.showDialogBoxWithOneButton(
             titleText: "Internet Off Alert",
-            text: "Internet is not available. Please Enable Mobile data or wifi.",
+            text:
+                "Internet is not available. Please Enable Mobile data or wifi.",
             context: navigatorKey.currentState!.context);
       } else {
         AppUtils.showDialogBoxWithOneButton(
@@ -369,7 +379,8 @@ class AttendanceProvider extends ChangeNotifier {
       if (isInternetAvailable == false) {
         AppUtils.showDialogBoxWithOneButton(
             titleText: "Internet Off Alert",
-            text: "Internet is not available. Please Enable Mobile data or wifi.",
+            text:
+                "Internet is not available. Please Enable Mobile data or wifi.",
             context: navigatorKey.currentState!.context);
       } else {
         AppUtils.showDialogBoxWithOneButton(
@@ -402,7 +413,7 @@ class AttendanceProvider extends ChangeNotifier {
           DayEndManualRequestModel.fromJson(json.decode(response));
       print("response : ${response}");
       if (dayEndManualRequestModel?.data == true) {
-        Navigator.pop(navigatorKey.currentState!.context);
+        navigatePushReplacementFnc(DashBoard());
       }
     } catch (e) {
       AppUtils.showDialogBoxWithOneButton(
@@ -414,7 +425,8 @@ class AttendanceProvider extends ChangeNotifier {
       if (isInternetAvailable == false) {
         AppUtils.showDialogBoxWithOneButton(
             titleText: "Internet Off Alert",
-            text: "Internet is not available. Please Enable Mobile data or wifi.",
+            text:
+                "Internet is not available. Please Enable Mobile data or wifi.",
             context: navigatorKey.currentState!.context);
       } else {
         AppUtils.showDialogBoxWithOneButton(
@@ -448,5 +460,18 @@ class AttendanceProvider extends ChangeNotifier {
   clearController() {
     timeController.clear();
     reasonController.clear();
+  }
+
+
+
+  getAllConfiguration() {
+    userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
+    orgName = PreferenceHelper.getString(PreferenceHelper.ORG_NAME);
+    userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
+    isAllowFgAuth = PreferenceHelper.getBool(PreferenceHelper.ALLOW_FG_AUTH);
+    isLocationRestricted = PreferenceHelper.getBool(PreferenceHelper.LOCATION_RESTRICTION);
+    restrictedLocationLat = PreferenceHelper.getDouble(PreferenceHelper.LOCATION_RESTRICTION_LAT);
+    restrictedLocationLong = PreferenceHelper.getDouble(PreferenceHelper.LOCATION_RESTRICTION_LONG);
+    restrictedLocationMeter = PreferenceHelper.getInt(PreferenceHelper.RESTRICTED_LOCATION_METER);
   }
 }

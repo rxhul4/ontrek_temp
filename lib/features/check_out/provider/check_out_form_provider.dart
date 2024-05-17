@@ -6,6 +6,7 @@ import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/features/check_out/model/check_out_form_model.dart';
 import 'package:ontrek/features/check_out/model/get_visit_note_model.dart';
+import 'package:ontrek/main.dart';
 
 class CheckOutProvider extends ChangeNotifier {
   bool _isFetching = false;
@@ -50,12 +51,16 @@ class CheckOutProvider extends ChangeNotifier {
     } catch (e) {
       print('catch at getAllOrders ${e}');
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
-      if (!isInternetAvailable) {
-        getTotByGroupTypeModel = GetTotByGroupTypeModel(
-            message: "Internet is not available, please try again!");
+      if (isInternetAvailable == false) {
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Internet Off Alert",
+            text: "Internet is not available. Please Enable Mobile data or wifi.",
+            context: navigatorKey.currentState!.context);
       } else {
-        getTotByGroupTypeModel =
-            GetTotByGroupTypeModel(message: "Something went wrong!");
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Error",
+            text: "Something went wrong!",
+            context: navigatorKey.currentState!.context);
       }
     }
     fetchingFnc(false);

@@ -120,15 +120,9 @@ animatePanel(){
 
         if (getSalesMenListModel?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
-              titleText: "Error",
+              titleText: "Information",
               context: navigatorKey.currentState!.context,
               text: getSalesMenListModel?.message ?? "");
-        }
-        if (getSalesMenListModel?.isError == true) {
-          AppUtils.showDialogBoxWithOneButton(
-              titleText: "Error",
-              context: navigatorKey.currentState!.context,
-              text: "Something went wrong!");
         }
       }
     } catch (e) {

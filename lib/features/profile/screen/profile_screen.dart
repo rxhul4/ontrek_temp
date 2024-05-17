@@ -24,16 +24,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? manager;
   String? managerPhoneNumber;
   FlutterBackgroundService service = FlutterBackgroundService();
+  bool? isInternetAvailable;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    checkInternet();
     userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
     profileImage = PreferenceHelper.getString(PreferenceHelper.PROFILE_PIC);
     orgName = PreferenceHelper.getString(PreferenceHelper.ORG_NAME);
     manager = PreferenceHelper.getString(PreferenceHelper.REPORTING_MANAGER);
     managerPhoneNumber = PreferenceHelper.getString(PreferenceHelper.REPORTING_MANAGER_PHONE_NO);
+    if(isInternetAvailable == false){
+      AppUtils.commonInternetDialog();
+    }
+  }
+  checkInternet()async{
+    isInternetAvailable = await AppUtils.checkInternetConnectivity();
   }
 
   List<String> profileOptionsList = [
@@ -262,7 +270,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Navigator.push(context, CupertinoPageRoute(builder: (context) => CommonWebViewWidget(title: "FAQ",url:"https://ontrek.io/faq" ),));
         break;
       case 2:
-        Navigator.push(context, CupertinoPageRoute(builder: (context) => CommonWebViewWidget(title: "FAQ",url:"https://ontrek.io/terms-conditions" ),));
+        Navigator.push(context, CupertinoPageRoute(builder: (context) => CommonWebViewWidget(title: "Terms & Conditions",url:"https://ontrek.io/terms-conditions" ),));
         break;
       case 3:
         Navigator.push(context, CupertinoPageRoute(builder: (context) => CommonWebViewWidget(title: "Privacy Policy",url:"https://ontrek.io/privacy-policy" ),));

@@ -103,11 +103,16 @@ class LeadProvider extends ChangeNotifier {
     } catch (e) {
       print('catch at Get Task Provider ${e}');
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
-      if (!isInternetAvailable) {
-        getAllLeadModel = GetAllLeadModel(
-            message: "Internet is not available, please try again!");
+      if (isInternetAvailable == false) {
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Internet Off Alert",
+            text: "Internet is not available. Please Enable Mobile data or wifi.",
+            context: navigatorKey.currentState!.context);
       } else {
-        getAllLeadModel = GetAllLeadModel(message: "Something went wrong!");
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Error",
+            text: "Something went wrong!",
+            context: navigatorKey.currentState!.context);
       }
     }
     _isFetching = false;
@@ -130,11 +135,16 @@ class LeadProvider extends ChangeNotifier {
       print('catch at Get Task Provider ${e}');
       AppUtils.showDialogBoxWithOneButton(titleText: "Error",text: getLeadByIdModel?.message,context: navigatorKey.currentState!.context);
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
-      if (!isInternetAvailable) {
-        getLeadByIdModel = GetLeadByIdModel(
-            message: "Internet is not available, please try again!");
+      if (isInternetAvailable == false) {
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Internet Off Alert",
+            text: "Internet is not available. Please Enable Mobile data or wifi.",
+            context: navigatorKey.currentState!.context);
       } else {
-        getLeadByIdModel = GetLeadByIdModel(message: "Something went wrong!");
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Error",
+            text: "Something went wrong!",
+            context: navigatorKey.currentState!.context);
       }
     }
    fetchingFnc(false);

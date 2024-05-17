@@ -9,14 +9,19 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart';
 import 'package:ontrek/core/common_widgets/common_dialog_widget.dart';
+import 'package:ontrek/core/common_widgets/marker_widget.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
+import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/features/salesman_tracker/model/salesmen_tracking_detailes.dart';
 import 'package:ontrek/features/salesman_tracker/provider/salesmen_tracking_timeline_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 import 'dart:math' show cos, ln2, log, min, sqrt;
+import 'dart:ui' as ui;
+
+import 'package:widget_to_marker/widget_to_marker.dart';
 
 class TimeLineScreen extends StatefulWidget {
   int? index;
@@ -81,15 +86,20 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
       {String? eventId,
       required LatLng location,
       String? eventCode,
-      String? eventName}) {
+      String? eventName}) async {
+    Uint8List iconBytes = await getBytesFromAsset(
+      eventCode: eventCode,
+    );
+
     markers.clear();
     markers.add(Marker(
         markerId: MarkerId("$eventId"),
         position: location,
-        icon: getMarkerColor("$eventCode"),
+        icon: BitmapDescriptor.fromBytes(iconBytes),
         infoWindow: InfoWindow(title: "${eventName}")
         // Adjust icon as needed
         ));
+    setState(() {});
   }
 
   void addCurrentLocationMarker(LatLng location) async {
@@ -135,16 +145,45 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
           Provider.of<SalemenTimeLineProvider>(context, listen: false);
       if (!mounted) {}
       saleMenTimeLineProvider.sessionEvents.clear();
-      saleMenTimeLineProvider.allSessionLatLong.clear();
       await saleMenTimeLineProvider
           .apiCallGetTimeLine(
               userid: widget.userId, date: selectedDate.toString())
           .then((value) async {
         if (value?.isValidationFailed == false && value?.isError == false) {
           await drawPolyLines();
+        } else {
+          if (value?.isValidationFailed == true) {
+            markerOfLastLocation(value);
+          }
         }
       });
     });
+  }
+
+  markerOfLastLocation(GetTimeLineModel? value) async {
+    LatLng lastActivityLocation = LatLng(
+        value?.data?.fieldUserLastActivity?.lastActivityLat ?? 0,
+        value?.data?.fieldUserLastActivity?.lastActivityLong ?? 0);
+    print("location_Data$lastActivityLocation");
+    if (lastActivityLocation != null) {
+      await updateCameraPosition(lastActivityLocation);
+      await addCurrentLocationMarkerWithWidget(
+          location: lastActivityLocation,
+          imgUrl: widget.imageUrl,
+          markerId: value?.data?.fieldUserLastActivity?.trackingEventId);
+      markers.clear();
+      Future.delayed(
+        Duration(milliseconds: 300),
+        () async {
+          await addCurrentLocationMarkerWithWidget(
+              location: lastActivityLocation,
+              imgUrl: widget.imageUrl,
+              markerId: value?.data?.fieldUserLastActivity?.trackingEventId);
+          print("Location$markers");
+        },
+      );
+    }
+    setState(() {});
   }
 
   Future<void> drawPolyLines() async {
@@ -195,67 +234,76 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
             color: AppConstant.greyColor,
           ));
 
-          if (polylineCoordinates.isNotEmpty) {
-            var startLatLng = polylineCoordinates.first;
-            // Print startLatLng for debugging
-            markers.add(Marker(
-              markerId: MarkerId("StartMarker${session.sessionNo}"),
-              position: startLatLng,
-              icon: BitmapDescriptor.defaultMarker, // Adjust icon as needed
-            ));
-          }
-
-          if (polylineCoordinates.isNotEmpty) {
-            var endLatLng = polylineCoordinates.last;
-            markers.add(Marker(
-              markerId: MarkerId("EndMarker${session.sessionNo}"),
-              position: endLatLng,
-              icon: BitmapDescriptor.defaultMarker, // Adjust icon as needed
-            ));
-          }
+          // if (polylineCoordinates.isNotEmpty) {
+          //   var startLatLng = polylineCoordinates.first;
+          //   // Print startLatLng for debugging
+          //   markers.add(Marker(
+          //     markerId: MarkerId("StartMarker${session.sessionNo}"),
+          //     position: startLatLng,
+          //     icon: BitmapDescriptor.defaultMarker, // Adjust icon as needed
+          //   ));
+          // }
+          //
+          // if (polylineCoordinates.isNotEmpty) {
+          //   var endLatLng = polylineCoordinates.last;
+          //   markers.add(Marker(
+          //     markerId: MarkerId("EndMarker${session.sessionNo}"),
+          //     position: endLatLng,
+          //     icon: BitmapDescriptor.defaultMarker, // Adjust icon as needed
+          //   ));
+          // }
         }
       }
     }
-    if (selectedIndex != 0) {
-      if (polylineCoordinates.isNotEmpty) {
-        var startLatLng = polylineCoordinates.first;
-        markers.clear();
-        markers.add(Marker(
-          markerId: MarkerId("StartMarker"),
-          position: startLatLng,
-          icon: BitmapDescriptor.defaultMarker, // Adjust icon as needed
-        ));
-      }
-      if (polylineCoordinates.isNotEmpty) {
-        var endLatLng = polylineCoordinates.last;
-        markers.add(Marker(
-          markerId: MarkerId("EndMarker"),
-          position: endLatLng,
-          icon: BitmapDescriptor.defaultMarker, // Adjust icon as needed
-        ));
-      }
-    }
+    // if (selectedIndex != 0) {
+    //   if (polylineCoordinates.isNotEmpty) {
+    //     var startLatLng = polylineCoordinates.first;
+    //     markers.clear();
+    //     markers.add(Marker(
+    //       markerId: MarkerId("StartMarker"),
+    //       position: startLatLng,
+    //       icon: BitmapDescriptor.defaultMarker, // Adjust icon as needed
+    //     ));
+    //   }
+    //   if (polylineCoordinates.isNotEmpty) {
+    //     var endLatLng = polylineCoordinates.last;
+    //     markers.add(Marker(
+    //       markerId: MarkerId("EndMarker"),
+    //       position: endLatLng,
+    //       icon: BitmapDescriptor.defaultMarker, // Adjust icon as needed
+    //     ));
+    //   }
+    // }
 
     saleMenTimeLineProvider.sessionEvents.forEach((element) async {
       if (element.sessionNo == selectedIndex) {
+        Uint8List iconBytes = await getBytesFromAsset(
+          eventCode: element.eventCode,
+        );
         markers.add(Marker(
             markerId: MarkerId("${element.eventId}"),
             position: LatLng(element.eventLat ?? 0, element.eventLong ?? 0),
-            icon: getMarkerColor("${element.eventCode}"),
+            icon: BitmapDescriptor.fromBytes(iconBytes),
             infoWindow: InfoWindow(title: "${element.eventName}")
             // Adjust icon as needed
             ));
+        setState(() {});
       } else {
         if (selectedIndex == 0) {
+          Uint8List iconBytes = await getBytesFromAsset(
+            eventCode: element.eventCode,
+          );
           markers.add(Marker(
               markerId: MarkerId("${element.eventId}"),
               position: LatLng(element.eventLat ?? 0, element.eventLong ?? 0),
-              icon: getMarkerColor("${element.eventCode}"),
+              icon: BitmapDescriptor.fromBytes(iconBytes),
               infoWindow: InfoWindow(title: "${element.eventName}")
               // Adjust icon as needed
               ));
+          setState(() {});
         }
       }
+      setState(() {});
     });
 
     if (polylines.isNotEmpty) {
@@ -275,41 +323,74 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
     }
   }
 
-  final BitmapDescriptor dayStartColor =
-      BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
-  final BitmapDescriptor dayEndEventColor =
-      BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
-  final BitmapDescriptor checkInCheckOut =
-      BitmapDescriptor.defaultMarkerWithHue(212.0);
-  final BitmapDescriptor waitingColor =
-      BitmapDescriptor.defaultMarkerWithHue(30.0);
-  final BitmapDescriptor internetEventColor =
-      BitmapDescriptor.defaultMarkerWithHue(204.0);
-  final BitmapDescriptor gpsEventColor =
-      BitmapDescriptor.defaultMarkerWithHue(38.0);
+  Future<Uint8List> getBytesFromAsset({String? eventCode, int? width}) async {
+    String path = getIconPath(eventCode);
+    print("Dataaaaaaaaaaaaaaasdasdasdad$path");
+    ByteData data = await rootBundle.load(path);
+    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(),
+        targetWidth: width ?? 80);
+    ui.FrameInfo fi = await codec.getNextFrame();
+    return (await fi.image.toByteData(format: ui.ImageByteFormat.png))!
+        .buffer
+        .asUint8List();
+  }
 
-  BitmapDescriptor getMarkerColor(String eventCode) {
-    if (eventCode != null) {
-      switch (eventCode) {
-        case 'tracking_event_day_start':
-          return dayStartColor;
-        case 'tracking_event_check_in':
-        case 'tracking_event_check_out':
-          return checkInCheckOut; // #1B4E89
-        case 'tracking_event_waiting_start':
-        case 'tracking_event_waiting_end':
-          return waitingColor; // #d18950
-        case 'tracking_event_internet_on':
-        case 'tracking_event_internet_off':
-          return internetEventColor; // #268dc6
-        case 'tracking_event_gps_off':
-        case 'tracking_event_gps_on':
-          return gpsEventColor; // #f29900
-        default:
-          return dayEndEventColor;
-      }
-    } else {
-      return dayEndEventColor;
+  // Future<Uint8List> getMarker(String eventCode)  async {
+  //    Uint8List markerIcon;
+  //    if (eventCode != null) {
+  //      switch (eventCode) {
+  //        case 'tracking_event_day_start':
+  //          markerIcon = await getBytesFromAsset(path: loginIcon);
+  //          break;
+  //        case 'tracking_event_check_in':
+  //          markerIcon = await getBytesFromAsset(path: checkInIcon);
+  //          break;
+  //        case 'tracking_event_check_out':
+  //          markerIcon = await getBytesFromAsset(path: checkOutIcon);
+  //          break;
+  //        case 'tracking_event_waiting_start':
+  //        case 'tracking_event_waiting_end':
+  //          markerIcon = await getBytesFromAsset(path: waitingIcon);
+  //          break;
+  //        case 'tracking_event_internet_on':
+  //        case 'tracking_event_internet_off':
+  //          markerIcon = await getBytesFromAsset(path: checkInIcon);
+  //          break;
+  //        case 'tracking_event_gps_off':
+  //        case 'tracking_event_gps_on':
+  //          markerIcon = await getBytesFromAsset(path: gpsIcon);
+  //          break;
+  //
+  //        default:
+  //          markerIcon = await getBytesFromAsset(path: logoutIcon);
+  //          break;
+  //
+  //      }
+  //    } else {
+  //      markerIcon = await getBytesFromAsset(path: logoutIcon);
+  //    }
+  //    return markerIcon;
+  //  }
+
+  String getIconPath(String? eventCode) {
+    switch (eventCode) {
+      case 'tracking_event_day_start':
+        return loginIcon;
+      case 'tracking_event_check_in':
+        return checkInIcon;
+      case 'tracking_event_check_out':
+        return checkOutIcon;
+      case 'tracking_event_waiting_start':
+      case 'tracking_event_waiting_end':
+        return waitingIcon;
+      case 'tracking_event_internet_on':
+      case 'tracking_event_internet_off':
+        return checkInIcon;
+      case 'tracking_event_gps_off':
+      case 'tracking_event_gps_on':
+        return gpsIcon;
+      default:
+        return logoutIcon;
     }
   }
 
@@ -374,7 +455,6 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                   googleMapController.complete(controller);
                 },
                 markers: markers,
-                circles: circles,
                 polylines: Set<Polyline>.of(polylines),
                 initialCameraPosition: CameraPosition(
                   target: currentLocation,
@@ -407,7 +487,8 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                     backgroundColor: AppConstant.whiteColor,
                     title: widget.name,
                     leadingImage: widget.imageUrl,
-                    batteryLevel: saleMenTimeLineProvider.getTimeLineModel?.data?.fieldUserLastActivity?.lastBatteryPercentage,
+                    batteryLevel: saleMenTimeLineProvider.getTimeLineModel?.data
+                        ?.fieldUserLastActivity?.lastBatteryPercentage,
                     actionWidget: [
                       GestureDetector(
                           onTap: () {
@@ -430,8 +511,14 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                             color: AppConstant.appPrimaryColor,
                           ))
                     ],
-                    subTitle:
-                        "${saleMenTimeLineProvider.getTimeLineModel?.data?.fieldUserLastActivity?.activityName} - ${AppUtils.getDate(date: "${saleMenTimeLineProvider.getTimeLineModel?.data?.fieldUserLastActivity?.lastTrackingActivityTime}", format: "dd MMM yyyy HH:MM a")}",
+                    subTitle: saleMenTimeLineProvider.getTimeLineModel?.data
+                                    ?.fieldUserLastActivity?.activityName ==
+                                null ||
+                            saleMenTimeLineProvider.getTimeLineModel?.data
+                                    ?.fieldUserLastActivity?.activityName ==
+                                ""
+                        ? "No Activity Found"
+                        : "${saleMenTimeLineProvider.getTimeLineModel?.data?.fieldUserLastActivity?.activityName} - ${AppUtils.getDate(date: "${saleMenTimeLineProvider.getTimeLineModel?.data?.fieldUserLastActivity?.lastTrackingActivityTime}", format: "dd MMM yyyy HH:MM a")}",
                   ),
                   saleMenTimeLineProvider.isFetching ||
                           saleMenTimeLineProvider
@@ -450,7 +537,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                               totalCheckIn: saleMenTimeLineProvider
                                   .getTimeLineModel?.data?.totalCheckIn,
                               totalDuration: saleMenTimeLineProvider
-                                      .getTimeLineModel?.data?.totalDuration ??
+                                      .getTimeLineModel?.data?.allSessionTotalDurationText ??
                                   "",
                               totalKMTravel: saleMenTimeLineProvider
                                   .getTimeLineModel?.data?.totalKmTravel
@@ -465,7 +552,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                                       .getTimeLineModel?.data?.sessionTimeLine
                                       ?.firstWhere((element) =>
                                           element.sessionNo == selectedIndex)
-                                      .totalDuration ??
+                                      .sessionTotalDurationText ??
                                   "",
                               totalKMTravel: saleMenTimeLineProvider
                                   .getTimeLineModel?.data?.sessionTimeLine
@@ -500,6 +587,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                                     setState(() {
                                       selectedIndex = 0;
                                     });
+                                    markers.clear();
                                     polylines.clear();
                                     drawPolyLines();
                                   },
@@ -555,6 +643,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                                                         .sessionNo ??
                                                     0;
                                           });
+                                          markers.clear();
                                           polylines.clear();
                                           drawPolyLines();
                                         },
@@ -623,6 +712,49 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
         // snapPoint: 0.01,
       ),
     );
+  }
+
+  Future addCurrentLocationMarkerWithWidget(
+      {required LatLng location, String? imgUrl, String? markerId}) async {
+    try {
+      await markers.add(
+        Marker(
+          markerId: MarkerId(markerId ?? ""),
+          position: location,
+          infoWindow: InfoWindow(title: "User Last Location"),
+          icon: await CustomMarkerWidget(
+            imageUrl: imgUrl,
+          ).toBitmapDescriptor(
+            logicalSize: Size(150, 150),
+            imageSize: Size(300, 300),
+          ),
+        ),
+      );
+      Future.delayed(
+        Duration(milliseconds: 300),
+        () async {
+          markers.clear();
+          await markers.add(
+            Marker(
+              markerId: MarkerId(markerId ?? ""),
+              position: location,
+              infoWindow: InfoWindow(title: "User Last Location"),
+              icon: await CustomMarkerWidget(
+                imageUrl: imgUrl,
+              ).toBitmapDescriptor(
+                logicalSize: Size(150, 150),
+                imageSize: Size(300, 300),
+              ),
+            ),
+          );
+
+          setState(() {});
+        },
+      );
+    } catch (e) {
+      print("Error_in_marker$e");
+    }
+    setState(() {});
   }
 
   Widget sessionTimeLineWidget({
@@ -732,43 +864,44 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  AppUtils.commonTextWidget(
+                                  Flexible(
+                                    flex: 5,
+                                    child: AppUtils.commonTextWidget(
                                       text: sessionList?[index].eventName ?? "",
                                       textColor: AppUtils.getStatusColor(
                                         sessionList?[index].eventCode ?? "",
                                       ),
                                       fontWeight: FontWeight.w400,
-                                      fontSize: 12),
-                                 Row(
-                                   children: [
-                                     AppUtils.commonTextWidget(
-                                         text: "${sessionList?[index].batteryPercentage ?? 0}%",
-                                         textColor:  AppConstant.appPrimaryColor,
-                                         fontWeight: FontWeight.w500,
-                                         fontSize: 8),
-                                     AppUtils.commonSizedBox(width: 5),
-                                     Padding(
-                                       padding: const EdgeInsets.only(right: 15),
-                                       child: BatteryIndicator(
-
-                                         colorful: true,
-                                         batteryLevel:
-                                         sessionList?[index].batteryPercentage ??
-                                             0,
-                                         batteryFromPhone: false,
-                                         style: BatteryIndicatorStyle.skeumorphism,
-                                         percentNumSize: 6,
-                                         size: 6,
-                                         showPercentNum: false,
-                                         showPercentSlide: true,
-
-                                       ),
-                                     )
-                                   ],
-                                 )
-
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  Flexible(
+                                    flex: 2,
+                                    child: Row(
+                                      children: [
+                                        AppUtils.commonTextWidget(
+                                          text: "${sessionList?[index].batteryPercentage ?? 0}%",
+                                          textColor: AppConstant.appPrimaryColor,
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 8,
+                                        ),
+                                        SizedBox(width: 5),
+                                        BatteryIndicator(
+                                          colorful: true,
+                                          batteryLevel: sessionList?[index].batteryPercentage ?? 0,
+                                          batteryFromPhone: false,
+                                          style: BatteryIndicatorStyle.skeumorphism,
+                                          percentNumSize: 6,
+                                          size: 6,
+                                          showPercentNum: false,
+                                          showPercentSlide: true,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ],
                               ),
+
                               AppUtils.commonTextWidget(
                                   text:
                                       sessionList?[index].eventActivityPlace ??
@@ -794,8 +927,8 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                                       topMargin: 0,
                                       text: "Notes",
                                       height: 40,
-                                      textColor: AppConstant.whiteColor,
-                                      bgColor: AppConstant.appPrimaryColor,
+                                      textColor: AppConstant.appPrimaryColor,
+                                      bgColor: AppConstant.greyWithShade,
                                       fontSize: 12,
                                     )
                                   : AppUtils.commonSizedBox(),
@@ -854,7 +987,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
         children: [
           travelInfoRowWidget(
               iconData: Icons.timelapse,
-              textData: AppUtils.removeMilliseconds(totalDuration),
+              textData: totalDuration,
               typeOfText: "DURATION",
               iconColor: Colors.red),
           travelInfoRowWidget(
@@ -1023,6 +1156,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                     .then((value) {
                   if (value?.isError == false &&
                       value?.isValidationFailed == false) {
+                    markers.clear();
                     polylines.clear();
                     drawPolyLines();
                     panelController.animatePanelToSnapPoint(
@@ -1030,6 +1164,10 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                   } else {
                     markers.clear();
                     polylines.clear();
+                    if (value?.isValidationFailed == true) {
+                      print("Clear");
+                      markerOfLastLocation(value);
+                    }
                   }
                 });
               },
@@ -1065,6 +1203,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                   .then((value) {
                 if (value?.isError == false &&
                     value?.isValidationFailed == false) {
+                  markers.clear();
                   polylines.clear();
                   drawPolyLines();
                   panelController.animatePanelToSnapPoint(
@@ -1072,6 +1211,9 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                 } else {
                   markers.clear();
                   polylines.clear();
+                  if (value?.isValidationFailed == true) {
+                    markerOfLastLocation(value);
+                  }
                 }
               });
             },
@@ -1132,6 +1274,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
               date: selectedDate.toString(), userid: widget.userId)
           .then((value) {
         if (value?.isError == false && value?.isValidationFailed == false) {
+          markers.clear();
           polylines.clear();
           drawPolyLines();
           panelController.animatePanelToSnapPoint(
@@ -1139,6 +1282,9 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
         } else {
           markers.clear();
           polylines.clear();
+          if (value?.isValidationFailed == true) {
+            markerOfLastLocation(value);
+          }
         }
       });
     }

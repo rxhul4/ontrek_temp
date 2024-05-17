@@ -53,13 +53,9 @@ class TaskProvider extends ChangeNotifier{
       if(getAllTaskModel?.isError == false && getAllTaskModel?.isValidationFailed == false){
 
       }else{
-        if(getAllTaskModel?.isError == true){
-          AppUtils.showDialogBoxWithOneButton(
-              context: navigatorKey.currentState!.context,
-              text: "Something went wrong, Please try again later!");
-        }
         if( getAllTaskModel?.isValidationFailed == true){
           AppUtils.showDialogBoxWithOneButton(
+            titleText: "Information",
               context: navigatorKey.currentState!.context,
               text: getAllTaskModel?.message ?? "");
         }
@@ -68,11 +64,16 @@ class TaskProvider extends ChangeNotifier{
       print('catch at Get Task Provider $e');
       // AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentContext,text: getAllTaskModel?.message ?? "");
       isInternetAvailable = await AppUtils.checkInternetConnectivity();
-      if (isInternetAvailable  == false) {
-        getAllTaskModel = GetAllTaskModel(
-            message: "Internet is not available, please try again!");
+      if (isInternetAvailable == false) {
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Internet Off Alert",
+            text: "Internet is not available. Please Enable Mobile data or wifi.",
+            context: navigatorKey.currentState!.context);
       } else {
-        getAllTaskModel = GetAllTaskModel(message: "Something went wrong!");
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Error",
+            text: "Something went wrong!",
+            context: navigatorKey.currentState!.context);
       }
     }
     _isFetching = false;

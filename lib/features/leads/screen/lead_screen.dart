@@ -18,14 +18,15 @@ class LeadScreen extends StatefulWidget {
 
 class _LeadScreenState extends State<LeadScreen> {
   late LeadProvider leadProvider;
+  bool? isInternetAvailable;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async{
       final leadProvider = Provider.of<LeadProvider>(context, listen: false);
-
+      isInternetAvailable = await AppUtils.checkInternetConnectivity();
       callGetAllLeadApi(leadProvider);
     });
   }
@@ -94,9 +95,9 @@ class _LeadScreenState extends State<LeadScreen> {
                       child: AppUtils.loaderWidget(),
                     )
                   : leadProvider.getAllLeadModel?.data == null ||
-                          (leadProvider.getAllLeadModel?.data?.length ?? 0) <= 0
+                          (leadProvider.getAllLeadModel?.data?.length ?? 0) <= 0 || isInternetAvailable == false
                       ? AppUtils.commonNoDataFound(
-                          text: leadProvider.getAllLeadModel?.message ?? "",
+                          text: "No Leads Found",
                           onPressed: () {
                             if (!mounted) {}
                             callGetAllLeadApi(leadProvider);

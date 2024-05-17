@@ -140,7 +140,6 @@ void onStart(ServiceInstance service) async {
           service.stopSelf();
           timer.cancel(); // Stop the timer
         }
-
         if (service is AndroidServiceInstance) {
           if (await service.isForegroundService()) {
             flutterLocalNotificationsPlugin.show(
@@ -150,9 +149,8 @@ void onStart(ServiceInstance service) async {
               const NotificationDetails(
                 android: AndroidNotificationDetails(
                   notificationChannelId,
-
                   'MY FOREGROUND SERVICE',
-                    icon: 'ic_notification_logo',
+                    icon: 'app_icon',
                   ongoing: true,
                 ),
               ),
@@ -171,7 +169,7 @@ void onStart(ServiceInstance service) async {
           if (isInternetAvailable && isGPSEnabled) {
             PreferenceHelper.reload().then((value) async {
               Position position;
-              double distance = 51;
+              double distance = 81;
               ValueNotifier<bool?> isWaiting = ValueNotifier(false);
               position = await Geolocator.getCurrentPosition(
                   desiredAccuracy: LocationAccuracy.best);
@@ -188,10 +186,10 @@ void onStart(ServiceInstance service) async {
               if (checkIn == false || checkIn == null) {
                 await handleInternetAndGPSApi();
               }
-              if ((distance) > 50) {
+              print("distance${distance}");
+              print("waiting${isWaiting.value}");
+              if ((distance) > 80) {
                 if (isWaitingAllowed == true) {
-                  String? waitingStartTime = PreferenceHelper.getString(
-                      PreferenceHelper.WAITING_START_TIME);
                   if (isWaiting.value == true) {
                     await waitingEndApi(service: service);
                   }
@@ -200,48 +198,65 @@ void onStart(ServiceInstance service) async {
               } else {
                 bool? checkIn =
                     value?.getBool(PreferenceHelper.checkIn) ?? false;
+                print("waiting_Allowed${isWaitingAllowed}");
                 if (isWaitingAllowed == true) {
                   isWaiting.value =
                       PreferenceHelper.getBool(PreferenceHelper.isWaiting);
-
+                  print("waiting${isWaiting.value}");
                   String? waitingStartTime = PreferenceHelper.getString(
                       PreferenceHelper.WAITING_START_TIME);
+                  print("waitingStartTime${waitingStartTime}");
                   double? lastLat =
                       PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
                   double? lastLong =
                       PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
                   if (checkIn == false && isWaiting.value == false) {
+                    print("waiting${isWaiting.value}");
                     try {
                       int? idealMarkerTime = waitingIntervalTime != null ||
                               waitingIntervalTime != 0
                           ? waitingIntervalTime ?? 300
                           : 300;
+                      print("idealMarkerTime${idealMarkerTime}");
+                      print("idealMarkerTime1${DateTime.now()
+                          .difference(
+                          DateTime.parse(waitingStartTime ?? ""))
+                          .inSeconds}");
                       if (DateTime.now()
                               .difference(
                                   DateTime.parse(waitingStartTime ?? ""))
                               .inSeconds >
                           idealMarkerTime) {
+                        print("idealMarkerTime2${DateTime.now()
+                            .difference(
+                            DateTime.parse(waitingStartTime ?? ""))
+                            .inSeconds}");
                         await waitingStartApi(
                             service: service,
                             waitingStartTime: waitingStartTime,
                             lastLat: lastLat,
                             lastLong: lastLong);
-                      } else {}
+                      } else {
+
+                      }
                     } catch (e) {}
                   } else {
-                    if (DateTime.now()
-                            .difference(DateTime.parse(waitingStartTime ?? ""))
-                            .inMinutes >=
-                        30) {
-                      NotificationService().showNotification(
-                          title: "Excessive Waiting Alert!",
-                          body:
-                              "Hey there! It looks like you've been inactive for a while. Just a friendly reminder to keep moving to ensure your productivity.",
-                          id: 0);
-                      PreferenceHelper.setString(
-                          PreferenceHelper.WAITING_START_TIME,
-                          DateTime.now().toString());
+                    if(isWaiting.value == true && checkIn == false){
+                      if (DateTime.now()
+                          .difference(DateTime.parse(waitingStartTime ?? ""))
+                          .inMinutes >=
+                          30) {
+                        NotificationService().showNotification(
+                            title: "Excessive Waiting Alert!",
+                            body:
+                            "Hey there! It looks like you've been inactive for a while. Just a friendly reminder to keep moving to ensure your productivity.",
+                            id: 0);
+                        PreferenceHelper.setString(
+                            PreferenceHelper.WAITING_START_TIME,
+                            DateTime.now().toString());
+                      }
                     }
+
                   }
                 }
               }
@@ -343,7 +358,7 @@ handleGpsAndInternetOffData({String? serviceType}) async {
           PreferenceHelper.setDouble(
               PreferenceHelper.LAST_GPS_OFF_LONG, lastLong ?? 0);
           PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, true);
-          bool? gpsBooll = PreferenceHelper.getBool(PreferenceHelper.GPS_BOOL);
+          bool? gpsBool = PreferenceHelper.getBool(PreferenceHelper.GPS_BOOL);
         }
       }
     }

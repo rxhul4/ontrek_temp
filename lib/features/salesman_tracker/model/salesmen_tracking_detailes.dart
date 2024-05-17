@@ -38,9 +38,10 @@ class Data {
   String? fieldUserName;
   String? userPhoneNo;
   String? timeLineDate;
-  num? totalKmTravel;
+  double? totalKmTravel;
   int? totalCheckIn;
-  String? totalDuration;
+  String? allSessionTotalDuration;
+  String? allSessionTotalDurationText;
   FieldUserLastActivity? fieldUserLastActivity;
   FieldUserDeviceInfo? fieldUserDeviceInfo;
   List<SessionTimeLine>? sessionTimeLine;
@@ -52,7 +53,8 @@ class Data {
         this.timeLineDate,
         this.totalKmTravel,
         this.totalCheckIn,
-        this.totalDuration,
+        this.allSessionTotalDuration,
+        this.allSessionTotalDurationText,
         this.fieldUserLastActivity,
         this.fieldUserDeviceInfo,
         this.sessionTimeLine});
@@ -64,7 +66,8 @@ class Data {
     timeLineDate = json['timeLineDate'];
     totalKmTravel = json['totalKmTravel'];
     totalCheckIn = json['totalCheckIn'];
-    totalDuration = json['totalDuration'];
+    allSessionTotalDuration = json['allSessionTotalDuration'];
+    allSessionTotalDurationText = json['allSessionTotalDurationText'];
     fieldUserLastActivity = json['fieldUserLastActivity'] != null
         ? new FieldUserLastActivity.fromJson(json['fieldUserLastActivity'])
         : null;
@@ -87,7 +90,8 @@ class Data {
     data['timeLineDate'] = this.timeLineDate;
     data['totalKmTravel'] = this.totalKmTravel;
     data['totalCheckIn'] = this.totalCheckIn;
-    data['totalDuration'] = this.totalDuration;
+    data['allSessionTotalDuration'] = this.allSessionTotalDuration;
+    data['allSessionTotalDurationText'] = this.allSessionTotalDurationText;
     if (this.fieldUserLastActivity != null) {
       data['fieldUserLastActivity'] = this.fieldUserLastActivity!.toJson();
     }
@@ -112,6 +116,11 @@ class FieldUserLastActivity {
   double? lastActivityLong;
   String? lastActivityPlace;
   int? lastBatteryPercentage;
+  bool? isLastSessionEnded;
+  String? tlDate;
+  String? tlTime;
+  String? tlDateTime;
+  String? markerTitle;
 
   FieldUserLastActivity(
       {this.fieldUserId,
@@ -122,7 +131,12 @@ class FieldUserLastActivity {
         this.lastActivityLat,
         this.lastActivityLong,
         this.lastActivityPlace,
-        this.lastBatteryPercentage});
+        this.lastBatteryPercentage,
+        this.isLastSessionEnded,
+        this.tlDate,
+        this.tlTime,
+        this.tlDateTime,
+        this.markerTitle});
 
   FieldUserLastActivity.fromJson(Map<String, dynamic> json) {
     fieldUserId = json['fieldUserId'];
@@ -134,6 +148,11 @@ class FieldUserLastActivity {
     lastActivityLong = json['lastActivityLong'];
     lastActivityPlace = json['lastActivityPlace'];
     lastBatteryPercentage = json['lastBatteryPercentage'];
+    isLastSessionEnded = json['isLastSessionEnded'];
+    tlDate = json['tlDate'];
+    tlTime = json['tlTime'];
+    tlDateTime = json['tlDateTime'];
+    markerTitle = json['markerTitle'];
   }
 
   Map<String, dynamic> toJson() {
@@ -147,6 +166,11 @@ class FieldUserLastActivity {
     data['lastActivityLong'] = this.lastActivityLong;
     data['lastActivityPlace'] = this.lastActivityPlace;
     data['lastBatteryPercentage'] = this.lastBatteryPercentage;
+    data['isLastSessionEnded'] = this.isLastSessionEnded;
+    data['tlDate'] = this.tlDate;
+    data['tlTime'] = this.tlTime;
+    data['tlDateTime'] = this.tlDateTime;
+    data['markerTitle'] = this.markerTitle;
     return data;
   }
 }
@@ -182,9 +206,10 @@ class SessionTimeLine {
   int? sessionNo;
   String? sessionStartDateTime;
   String? sessionEndDateTime;
-  num? totalKmTravel;
+  double? totalKmTravel;
   int? totalCheckIn;
-  String? totalDuration;
+  String? sessionTotalDuration;
+  String? sessionTotalDurationText;
   List<SessionEvents>? sessionEvents;
   SessionRouteHistory? sessionRouteHistory;
 
@@ -195,7 +220,8 @@ class SessionTimeLine {
         this.sessionEndDateTime,
         this.totalKmTravel,
         this.totalCheckIn,
-        this.totalDuration,
+        this.sessionTotalDuration,
+        this.sessionTotalDurationText,
         this.sessionEvents,
         this.sessionRouteHistory});
 
@@ -206,7 +232,8 @@ class SessionTimeLine {
     sessionEndDateTime = json['sessionEndDateTime'];
     totalKmTravel = json['totalKmTravel'];
     totalCheckIn = json['totalCheckIn'];
-    totalDuration = json['totalDuration'];
+    sessionTotalDuration = json['sessionTotalDuration'];
+    sessionTotalDurationText = json['sessionTotalDurationText'];
     if (json['sessionEvents'] != null) {
       sessionEvents = <SessionEvents>[];
       json['sessionEvents'].forEach((v) {
@@ -226,7 +253,8 @@ class SessionTimeLine {
     data['sessionEndDateTime'] = this.sessionEndDateTime;
     data['totalKmTravel'] = this.totalKmTravel;
     data['totalCheckIn'] = this.totalCheckIn;
-    data['totalDuration'] = this.totalDuration;
+    data['sessionTotalDuration'] = this.sessionTotalDuration;
+    data['sessionTotalDurationText'] = this.sessionTotalDurationText;
     if (this.sessionEvents != null) {
       data['sessionEvents'] =
           this.sessionEvents!.map((v) => v.toJson()).toList();
@@ -247,9 +275,16 @@ class SessionEvents {
   double? eventLat;
   double? eventLong;
   String? eventActivityPlace;
+  bool? isEventCompleted;
+  String? tlDate;
+  String? tlTime;
+  String? tlDateTime;
+  String? markerTitle;
+  String? markerIcon;
   String? eventStartDate;
   String? eventEndDate;
   String? eventDuration;
+  String? eventDurationText;
   int? batteryPercentage;
   String? visitFormId;
 
@@ -262,9 +297,16 @@ class SessionEvents {
         this.eventLat,
         this.eventLong,
         this.eventActivityPlace,
+        this.isEventCompleted,
+        this.tlDate,
+        this.tlTime,
+        this.tlDateTime,
+        this.markerTitle,
+        this.markerIcon,
         this.eventStartDate,
         this.eventEndDate,
         this.eventDuration,
+        this.eventDurationText,
         this.batteryPercentage,
         this.visitFormId});
 
@@ -277,9 +319,16 @@ class SessionEvents {
     eventLat = json['eventLat'];
     eventLong = json['eventLong'];
     eventActivityPlace = json['eventActivityPlace'];
+    isEventCompleted = json['isEventCompleted'];
+    tlDate = json['tlDate'];
+    tlTime = json['tlTime'];
+    tlDateTime = json['tlDateTime'];
+    markerTitle = json['markerTitle'];
+    markerIcon = json['markerIcon'];
     eventStartDate = json['eventStartDate'];
     eventEndDate = json['eventEndDate'];
     eventDuration = json['eventDuration'];
+    eventDurationText = json['eventDurationText'];
     batteryPercentage = json['batteryPercentage'];
     visitFormId = json['visitFormId'];
   }
@@ -294,9 +343,16 @@ class SessionEvents {
     data['eventLat'] = this.eventLat;
     data['eventLong'] = this.eventLong;
     data['eventActivityPlace'] = this.eventActivityPlace;
+    data['isEventCompleted'] = this.isEventCompleted;
+    data['tlDate'] = this.tlDate;
+    data['tlTime'] = this.tlTime;
+    data['tlDateTime'] = this.tlDateTime;
+    data['markerTitle'] = this.markerTitle;
+    data['markerIcon'] = this.markerIcon;
     data['eventStartDate'] = this.eventStartDate;
     data['eventEndDate'] = this.eventEndDate;
     data['eventDuration'] = this.eventDuration;
+    data['eventDurationText'] = this.eventDurationText;
     data['batteryPercentage'] = this.batteryPercentage;
     data['visitFormId'] = this.visitFormId;
     return data;

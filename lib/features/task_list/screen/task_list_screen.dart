@@ -170,15 +170,7 @@ class _TaskListScreenState extends State<TaskListScreen>
               ),
             ],
           )
-        : taskProvider.isInternetAvailable == false
-            ? Column(
-                children: [
-                  AppUtils.commonSizedBox(height: height * 0.06),
-                  AppUtils.commonNoDataFound(
-                      text: "Internet is not available, please try again!"),
-                ],
-              )
-            : (taskProvider.getAllTaskModel?.data?.length ?? 0) <= 0 ||
+        : (taskProvider.getAllTaskModel?.data?.length ?? 0) <= 0 ||
                     taskProvider.getAllTaskModel?.data == null
                 ? Column(
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -232,15 +224,7 @@ class _TaskListScreenState extends State<TaskListScreen>
               ),
             ],
           )
-        : taskProvider.isInternetAvailable == false
-            ? Column(
-                children: [
-                  AppUtils.commonSizedBox(height: height * 0.06),
-                  AppUtils.commonNoDataFound(
-                      text: taskProvider.getAllTaskModel?.message ?? ""),
-                ],
-              )
-            : taskProvider.getAllTaskModel?.data?.length == null ||
+        : taskProvider.getAllTaskModel?.data?.length == null ||
                     (taskProvider.getAllTaskModel?.data?.length ?? 0) <= 0
                 ? Column(
                     children: [

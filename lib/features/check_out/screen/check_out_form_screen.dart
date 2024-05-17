@@ -59,6 +59,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
   String? selectedTotValue;
   String? selectedTotId;
   bool? isAllowFgAuth;
+  Position? position;
 
   checkBiometricAvailable() async {
     isBiometricAvailable = await _localAuthentication.canCheckBiometrics;
@@ -72,8 +73,10 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
     isAllowFgAuth = PreferenceHelper.getBool(PreferenceHelper.ALLOW_FG_AUTH);
     batteryPercentage();
     checkBiometricAvailable();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async{
+      position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
       checkOutProvider = Provider.of<CheckOutProvider>(context, listen: false);
+
       attendanceProvider =
           Provider.of<AttendanceProvider>(context, listen: false);
       callGetTotByType(checkOutProvider);
@@ -96,12 +99,14 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
       } else {
         if (getTotByGroupTypeModel?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(
-            titleText: "Error",
+              titleText: "Error",
               context: context,
               text: "Something went wrong, Please try again later!");
         }
         if (getTotByGroupTypeModel?.isValidationFailed == true) {
+
           AppUtils.showDialogBoxWithOneButton(
+            titleText: "Information",
               context: context, text: getTotByGroupTypeModel?.message ?? "");
         }
       }
@@ -110,17 +115,13 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
 
   callAddActivityApi({
     required AttendanceProvider postMdl,
-    Position? position,
   }) {
     postMdl
         .apiCallCreateActivity(
             picturePath: image64,
             isFromCheckOut: true,
-            userId: userUid,
             totTrackingEventCode: AppConstant.checkOutEvent,
-            latitude: position?.latitude,
-            longitude: position?.longitude,
-            batteryLevel: attendanceProvider.battery,
+            positionData: position,
             companyName: companyNameController.text,
             customerName: customerNameController.text,
             customerPhoneNumber: customerPhoneNumberController.text,
@@ -156,9 +157,12 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
   }
 
   checkOutFunction() async {
+    DateTime currentTime = DateTime.now();
+    DateTime newTime = currentTime.add(Duration(minutes: 1));
+    String newTimeString = newTime.toString();
     PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
     PreferenceHelper.setString(
-        PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
+        PreferenceHelper.WAITING_START_TIME, newTimeString);
     Navigator.pop(context);
   }
 
@@ -359,7 +363,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
                             backgroundColor: AppConstant.transparentColor,
                             onPressed: isLoading
                                 ? () {}
-                                : () async{
+                                : () async {
                                     checkValidation(attendanceProvider);
                                   },
                             topMargin: 10,
@@ -558,43 +562,18 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
     }
   }
 
-  getLocationAndRedirect(postMdl) async{
+  getLocationAndRedirect(postMdl) async {
     bool? isInternetAvailable = await AppUtils.checkInternetConnectivity();
     bool? isGpsAvailable = await AppUtils.checkLocationServiceAvailability();
-    if(isInternetAvailable){
-      if(isGpsAvailable){
-        return getCurrentLocation().then((value) async {
-          await callAddActivityApi(postMdl: postMdl, position: value);
-        });
-      }else{
-        commonGpsDialog();
+    if (isInternetAvailable) {
+      if (isGpsAvailable) {
+        await callAddActivityApi(postMdl: postMdl);
+
+      } else {
+        AppUtils.commonGpsDialog();
       }
-    }else {
-      commonInternetDialog();
+    } else {
+      AppUtils.commonInternetDialog();
     }
-
-
-  }
-
-  Future<dynamic> commonInternetDialog() {
-    return AppUtils.showDialogBoxWithOneButton(
-        titleText: "Internet off Alert",
-        context: context,
-        text: "Please Enable Mobile data or wifi");
-  }
-
-
-  Future<dynamic> commonGpsDialog() {
-    return AppUtils.showDialogBoxWithTwoButton(
-      titleText: "GPS off Alert",
-      context: context,
-      text: "Please Enable Your Gps Service",
-      onSuccessString: "Open Settings",
-      onCancelString: "Ok",
-      onSuccess: () {
-        AppSettings.openAppSettings();
-      },
-      onCancel: () {},
-    );
   }
 }

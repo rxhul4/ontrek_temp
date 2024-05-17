@@ -35,9 +35,6 @@ class AuthenticationProvider extends ChangeNotifier {
   int? countryCode;
   bool? isValid;
   bool isUsernameEmpty = true;
-  int secondRemaining = 30;
-  bool enableResend = false;
-  Timer? timer;
   String? userUid;
   TextEditingController mobileNumberController = TextEditingController();
   TextEditingController otpController = TextEditingController();
@@ -75,35 +72,19 @@ class AuthenticationProvider extends ChangeNotifier {
     ));
   }
 
-  void startTimer() {
-    timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      if (secondRemaining != 0) {
-        secondRemaining--;
-        notifyListeners();
-      } else {
-        enableResend = true;
-        timer.cancel();
-        notifyListeners();
-      }
-    });
-  }
 
-  void resendCode() {
-    secondRemaining = 30;
-    enableResend = false;
-    startTimer();
-    notifyListeners();
-  }
 
-  Future<LoginModel?> apiCallVerifyNumber() async {
-    loaderFnc(true);
+
+
+  Future<LoginModel?> apiCallVerifyNumber({bool? isFromOtpScreen,String? phoneNumber,int? countryCodeFromOtp}) async {
+     loaderFnc(true);
     Map<String, dynamic> body;
 
     if (Platform.isIOS) {
       var iosInfo = await deviceInfo.iosInfo;
       body = {
-        "countryCode": countryCode,
-        "phoneNumber": mobileNumberController.text,
+        "countryCode": isFromOtpScreen == true ? countryCodeFromOtp : countryCode,
+        "phoneNumber": isFromOtpScreen == true ? phoneNumber :mobileNumberController.text,
         "deviceInfo": {
           "deviceId": iosInfo.identifierForVendor,
           "deviceModel": iosInfo.model,
@@ -114,8 +95,8 @@ class AuthenticationProvider extends ChangeNotifier {
     } else {
       AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
       body = {
-        "countryCode": countryCode,
-        "phoneNumber": mobileNumberController.text,
+        "countryCode": isFromOtpScreen == true ? countryCodeFromOtp : countryCode,
+        "phoneNumber": isFromOtpScreen == true ? phoneNumber :mobileNumberController.text,
         "deviceInfo": {
           "deviceId": androidInfo.id,
           "deviceModel": androidInfo.model,
@@ -134,15 +115,22 @@ class AuthenticationProvider extends ChangeNotifier {
       print("response : ${response}");
       if (loginModel?.isError == false &&
           loginModel?.isValidationFailed == false) {
-        PreferenceHelper.setString(
-            PreferenceHelper.USER_NAME, loginModel?.data?.userName ?? "");
-        navigatePushReplacementFnc(OTPVerificationCode(
-          appUserId: loginModel?.data?.appUserId,
-        ));
+        if(isFromOtpScreen == true){
+
+        }else{
+          PreferenceHelper.setString(
+              PreferenceHelper.USER_NAME, loginModel?.data?.userName ?? "");
+          navigatePushReplacementFnc(OTPVerificationCode(
+            appUserId: loginModel?.data?.appUserId,
+            phoneNumber: mobileNumberController.text,
+            countryCode: countryCode,
+          ));
+        }
+
       } else {
         if (loginModel?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
-              titleText: "",
+              titleText: "Information",
               context: navigatorKey.currentState!.context,
               text: loginModel?.message ?? "");
         }
@@ -180,7 +168,7 @@ class AuthenticationProvider extends ChangeNotifier {
   }
 
   Future<LoginModel?> apiCallVerifyOtp({String? otpText}) async {
-    loaderFnc(true);
+    fetchingFnc(true);
     try {
       Map<String, dynamic> body;
       if (Platform.isIOS) {
@@ -223,7 +211,7 @@ class AuthenticationProvider extends ChangeNotifier {
       } else {
         if (loginModel?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
-              titleText: "",
+              titleText: "Information",
               context: navigatorKey.currentState!.context,
               text: loginModel?.message ?? "");
         }
@@ -248,7 +236,7 @@ class AuthenticationProvider extends ChangeNotifier {
         loginModel = LoginModel(message: "Something went wrong!");
       }
     }
-    loaderFnc(false);
+    fetchingFnc(false);
     return loginModel;
   }
 

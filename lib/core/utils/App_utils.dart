@@ -1,3 +1,4 @@
+import 'package:app_settings/app_settings.dart';
 import 'package:battery_indicator/battery_indicator.dart';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -50,11 +51,11 @@ class AppUtils {
       surfaceTintColor: AppConstant.transparentColor,
       backgroundColor: Colors.white,
       elevation: 0,
-      leading: isBack == true
+      leading: isBack == false
           ? AppUtils.commonSizedBox()
           : InkWell(
               onTap: () {
-                Navigator.pop(context!);
+                Navigator.pop(context);
               },
               child: Icon(
                 Icons.arrow_back_ios_new,
@@ -312,31 +313,16 @@ class AppUtils {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              AppUtils.commonTextWidget(
-                                text: title ?? "",
-                                fontWeight: FontWeight.w500,
-                                textColor: Colors.black,
-                                letterSpacing: 0.3,
-                                fontSize: 14,
-                              ),
-                              // Padding(
-                              //   padding: const EdgeInsets.only(left: double.infinity),
-                              //   child: BatteryIndicator(
-                              //     colorful: true,
-                              //     batteryLevel: batteryLevel ?? 0,
-                              //     batteryFromPhone: false,
-                              //     style: BatteryIndicatorStyle.skeumorphism,
-                              //     percentNumSize: 6,
-                              //     size: 10,
-                              //     showPercentNum: true,
-                              //     showPercentSlide: true,
-                              //
-                              //   ),
-                              // )
-                            ],
+                          SizedBox(
+                            width:width/2,
+                            child: AppUtils.commonTextWidget(
+                              text: title ?? "",
+                              fontWeight: FontWeight.w500,
+                              textColor: Colors.black,
+                              letterSpacing: 0.3,
+                              fontSize: 14,
+                              overflow: TextOverflow.ellipsis
+                            ),
                           ),
                           SizedBox(
                             width:width/2,
@@ -890,8 +876,42 @@ class AppUtils {
     );
   }
 
+  static Future<dynamic> commonInternetDialog() {
+    return AppUtils.showDialogBoxWithOneButton(
+        titleText: "Internet off Alert",
+        context: navigatorKey.currentState!.context,
+        text: "Please Enable Mobile data or wifi");
+  }
+
+  static Future<dynamic> commonGpsDialog() {
+    return AppUtils.showDialogBoxWithTwoButton(
+      titleText: "GPS off Alert",
+      context: navigatorKey.currentState!.context,
+      text: "Please Enable Your Gps Service",
+      onSuccessString: "Open Settings",
+      onCancelString: "Ok",
+      onSuccess: () {
+        AppSettings.openAppSettings();
+      },
+      onCancel: () {},
+    );
+  }
+  static Future<dynamic> commonAlwaysOnDialog() {
+    return AppUtils.showDialogBoxWithTwoButton(
+      titleText: "Always on Location",
+      context: navigatorKey.currentState!.context,
+      text: "Please Enable Always on Location",
+      onSuccessString: "Open Settings",
+      onCancelString: "Ok",
+      onSuccess: () {
+        AppSettings.openAppSettings();
+      },
+      onCancel: () {},
+    );
+  }
+
   static showDialogBoxWithOneButton(
-      {BuildContext? context, String? text, String? titleText}) {
+      {BuildContext? context, String? text, String? titleText,Function()? onTap,String? btnText}) {
     return showCupertinoDialog(
       context: context ?? navigatorKey.currentState!.context,
       builder: (context) {
@@ -908,13 +928,13 @@ class AppUtils {
           actions: [
             CupertinoDialogAction(
               child: AppUtils.commonTextWidget(
-                  text: "OK",
+                  text: btnText ?? "OK",
                   textColor: AppConstant.appPrimaryColor,
                   fontSize: 14,
                   textAlign: TextAlign.center,
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.5),
-              onPressed: () {
+              onPressed: onTap ?? () {
                 Navigator.of(context).pop();
               },
             ),

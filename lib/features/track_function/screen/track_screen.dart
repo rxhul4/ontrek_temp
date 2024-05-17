@@ -28,22 +28,28 @@ class _TrackScreenState extends State<TrackScreen>
   GetSalesMenListModel? getSalesMenListModel;
   TabController? tabController;
   int selectedIndex = 0;
+  bool? isInternetAvailable;
 
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+
+    WidgetsBinding.instance.addPostFrameCallback((_)async {
+      isInternetAvailable = await AppUtils.checkInternetConnectivity();
       final salesMenListProvider =
           Provider.of<SalesMenListProvider>(context, listen: false);
       salesMenListProvider.panelController
           .animatePanelToSnapPoint(duration: Duration(milliseconds: 0));
       salesMenListProvider.apiCallGetSalesManList().then((value) {
         if(value?.isValidationFailed == false && value?.isError == false){
-          if(widget.onUserFetch != null){
-            widget.onUserFetch!(salesMenListProvider.showUserInMap);
+          if(isInternetAvailable == true) {
+            if(widget.onUserFetch != null){
+              widget.onUserFetch!(salesMenListProvider.showUserInMap);
+            }
           }
+
         }
       });
 
@@ -242,17 +248,16 @@ class _TrackScreenState extends State<TrackScreen>
     String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     return Column(
       children: [
-
         (salesMenListProvider?.isFetching ?? false)
             ? Padding(
                 padding: EdgeInsets.only(top: 80),
                 child: AppUtils.loaderWidget(),
               )
-            : (getSalesMenListModelData?.length ?? 0) <= 0
+            :  (getSalesMenListModelData?.length ?? 0) <= 0 || isInternetAvailable == false
                 ?  Padding(
                     padding: EdgeInsets.only(top: 50),
                     child: AppUtils.commonNoDataFound(
-                      text: "No Salesman Found",
+                      text: "No Salesman Found!",
                       onPressed: () {
                         salesMenListProvider?.apiCallGetSalesManList();
                       },

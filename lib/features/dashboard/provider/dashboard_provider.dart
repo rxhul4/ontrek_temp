@@ -166,7 +166,7 @@ class DashBoardProvider extends ChangeNotifier {
               ),
         ),
       );
-      Future.delayed(Duration(milliseconds: 1000),() async{
+      Future.delayed(Duration(milliseconds: 300),() async{
         markers.clear();
         await markers.add(
           Marker(

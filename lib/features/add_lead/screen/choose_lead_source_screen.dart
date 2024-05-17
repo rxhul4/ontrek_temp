@@ -69,7 +69,7 @@ class _ChooseLeadSourceScreenState extends State<ChooseLeadSourceScreen> {
                   : getTotByGroupTypeModel?.data == null ||
                   getTotByGroupTypeModel!.data!.isEmpty
                   ? AppUtils.commonNoDataFound(
-                text: "No Country Found",
+                text: "No Source Found",
                 onPressed: () {
                   viewTaskProvider.apiCallGetTotByType(groupType: AppConstant.leadTypeCode);
                 },
@@ -86,6 +86,8 @@ class _ChooseLeadSourceScreenState extends State<ChooseLeadSourceScreen> {
                             getTotByGroupTypeModel?.data?[index].totId;
                         selectedLeadName = getTotByGroupTypeModel?.data?[index].totValue;
                       });
+                      print("selectedLeadId$selectedLeadId");
+                      print("selectedLeadName$selectedLeadName");
                       Navigator.pop(
                         context,
                         {

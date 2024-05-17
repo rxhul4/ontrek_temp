@@ -54,6 +54,8 @@ class Data {
   String? createdOn;
   String? modifiedBy;
   String? modifiedOn;
+  double? lattitude;
+  double? longitude;
 
   Data(
       {this.trackingId,
@@ -75,7 +77,10 @@ class Data {
         this.createdBy,
         this.createdOn,
         this.modifiedBy,
-        this.modifiedOn});
+        this.modifiedOn,
+        this.lattitude,
+        this.longitude
+      });
 
   Data.fromJson(Map<String, dynamic> json) {
     trackingId = json['trackingId'];
@@ -98,6 +103,8 @@ class Data {
     createdOn = json['createdOn'];
     modifiedBy = json['modifiedBy'];
     modifiedOn = json['modifiedOn'];
+    lattitude = json['lattitude'];
+    longitude = json['longitude'];
   }
 
   Map<String, dynamic> toJson() {
@@ -122,6 +129,8 @@ class Data {
     data['createdOn'] = this.createdOn;
     data['modifiedBy'] = this.modifiedBy;
     data['modifiedOn'] = this.modifiedOn;
+    data['lattitude'] = this.modifiedOn;
+    data['longitude'] = this.modifiedOn;
     return data;
   }
 }

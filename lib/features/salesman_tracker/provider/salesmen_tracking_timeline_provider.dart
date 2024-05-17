@@ -4,12 +4,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:ontrek/core/common_widgets/marker_widget.dart';
 import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
+import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/salesman_tracker/model/salesmen_tracking_detailes.dart';
 import 'package:ontrek/main.dart';
+import 'package:widget_to_marker/widget_to_marker.dart';
 
 class SalemenTimeLineProvider extends ChangeNotifier {
   bool _isFetching = false;
@@ -29,11 +32,12 @@ class SalemenTimeLineProvider extends ChangeNotifier {
 
   List<SessionEvents> sessionEvents = [];
   List<LatlongArray>? latLongArray;
-  List<List<LatlongArray>> allSessionLatLong = [];
   List<LatLng> coordinates = [];
   int totalCheckIn = 0;
   String totalDuration = "";
   num totalKmTravel = 0;
+  Set<Marker> markers = Set();
+  GoogleMapController? googleMapController;
 
   loaderFnc(bool isLoading) {
     _isLoading = isLoading;
@@ -57,19 +61,15 @@ class SalemenTimeLineProvider extends ChangeNotifier {
     ));
   }
 
-
-
-
   Future<GetTimeLineModel?> apiCallGetTimeLine(
-      {String? userid, String? date}) async {
+      {String? userid, String? date, String? imgUrl}) async {
     _isFetching = true;
     sessionEvents.clear();
-    allSessionLatLong.clear();
     notifyListeners();
     Map<String, dynamic> body = {
       "userId": userid,
       "eventDate":
-      AppUtils.getDate(date: date ?? "", format: AppConstant.dateFormat)
+          AppUtils.getDate(date: date ?? "", format: AppConstant.dateFormat)
     };
     try {
       String endPoint = ApiConstants.getSalesMenTimeLine;
@@ -100,14 +100,10 @@ class SalemenTimeLineProvider extends ChangeNotifier {
           });
         });
 
-
-        print("testttttttttttttt${getTimeLineModel?.data?.sessionTimeLine?.map((e) => e.sessionRouteHistory?.latlongArray).toList()}");
-        print("allllSessionData${allSessionLatLong.length}");
+        print(
+            "testttttttttttttt${getTimeLineModel?.data?.sessionTimeLine?.map((e) => e.sessionRouteHistory?.latlongArray).toList()}");
         print("Event list: ${sessionEvents.length}");
       } else {
-        if (getTimeLineModel?.isValidationFailed == true) {
-        
-        }
         if (getTimeLineModel?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(
               titleText: "Error",
@@ -118,15 +114,21 @@ class SalemenTimeLineProvider extends ChangeNotifier {
     } catch (e) {
       print('catch at GetTimeLineProvider ${e}');
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
-      if (!isInternetAvailable) {
-        getTimeLineModel = GetTimeLineModel(
-            message: "Internet is not available, please try again!");
+      if (isInternetAvailable == false) {
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Internet Off Alert",
+            text: "Internet is not available. Please Enable Mobile data or wifi.",
+            context: navigatorKey.currentState!.context);
       } else {
-        getTimeLineModel = GetTimeLineModel(message: "Something went wrong!");
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Error",
+            text: "Something went wrong!",
+            context: navigatorKey.currentState!.context);
       }
     }
     _isFetching = false;
     notifyListeners();
     return getTimeLineModel;
   }
+
 }
