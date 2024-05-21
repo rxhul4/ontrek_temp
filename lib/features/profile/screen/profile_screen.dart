@@ -292,7 +292,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             if (isRunning) {
               service.invoke("stopService");
             }
-            PreferenceHelper.clear();
+            setState(() {
+              PreferenceHelper.clear();
+            });
+
             Navigator.pushReplacement(
               context,
               CupertinoPageRoute(

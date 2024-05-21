@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
@@ -93,6 +94,13 @@ void onStart(ServiceInstance service) async {
       PreferenceHelper.setBool(PreferenceHelper.isWaiting, isWaiting);
     }
   });
+  service.on("background").listen((event) {
+    if(event != null){
+      String sessionId  =  event["sessionId"];
+      PreferenceHelper.setString(PreferenceHelper.SESSION_ID, sessionId);
+    }
+
+  });
   service.on("checkout_update").listen((event) {
     if (event != null) {
       String waitingStartTime = event["waitingStartTime"];
@@ -124,6 +132,10 @@ void onStart(ServiceInstance service) async {
         value?.getInt(PreferenceHelper.LIVE_LOCATION_INTERVAL);
     int? waitingTime = value?.getInt(PreferenceHelper.WAITING_TIME_INTERVAL);
     bool? isWaitingAllowed = value?.getBool(PreferenceHelper.ALLOW_WAITING);
+    String? userId = value?.getString(PreferenceHelper.USER_ID);
+    String? sessionId = value?.getString(PreferenceHelper.SESSION_ID);
+    print("userId1$userId");
+    print("sessionId$sessionId");
     if (waitingTime != null && waitingTime != 0) {
       waitingIntervalTime = (waitingTime * 60);
     }
@@ -136,7 +148,6 @@ void onStart(ServiceInstance service) async {
       (timer) async {
         var now = DateTime.now();
         if (now.hour == 23 && now.minute >= 50 && now.minute <= 59) {
-          PreferenceHelper.clear();
           service.stopSelf();
           timer.cancel(); // Stop the timer
         }
@@ -159,8 +170,7 @@ void onStart(ServiceInstance service) async {
         }
         try {
           final connectivityResult = await Connectivity().checkConnectivity();
-          var isInternetAvailable =
-              connectivityResult == ConnectivityResult.mobile ||
+          var isInternetAvailable = connectivityResult == ConnectivityResult.mobile ||
                   connectivityResult == ConnectivityResult.wifi;
           var isGPSEnabled =
               await Permission.locationAlways.serviceStatus.isEnabled &&
@@ -184,17 +194,17 @@ void onStart(ServiceInstance service) async {
                 isWaiting.value = value.getBool(PreferenceHelper.isWaiting);
               }
               if (checkIn == false || checkIn == null) {
-                await handleInternetAndGPSApi();
+                await handleInternetAndGPSApi(userId: userId,sessionId: sessionId);
               }
               print("distance${distance}");
               print("waiting${isWaiting.value}");
               if ((distance) > 80) {
                 if (isWaitingAllowed == true) {
                   if (isWaiting.value == true) {
-                    await waitingEndApi(service: service);
+                    await waitingEndApi(service: service,userId: userId,sessionId: sessionId);
                   }
                 }
-                await updateRouteHistory();
+                await updateRouteHistory(userId: userId,sessionId: sessionId);
               } else {
                 bool? checkIn =
                     value?.getBool(PreferenceHelper.checkIn) ?? false;
@@ -206,6 +216,8 @@ void onStart(ServiceInstance service) async {
                   String? waitingStartTime = PreferenceHelper.getString(
                       PreferenceHelper.WAITING_START_TIME);
                   print("waitingStartTime${waitingStartTime}");
+                  String? sessionId = PreferenceHelper.getString(PreferenceHelper.SESSION_ID);
+                  print("sessionId${sessionId}");
                   double? lastLat =
                       PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
                   double? lastLong =
@@ -235,9 +247,7 @@ void onStart(ServiceInstance service) async {
                             service: service,
                             waitingStartTime: waitingStartTime,
                             lastLat: lastLat,
-                            lastLong: lastLong);
-                      } else {
-
+                            lastLong: lastLong,userId: userId,sessionId: sessionId);
                       }
                     } catch (e) {}
                   } else {
@@ -263,6 +273,8 @@ void onStart(ServiceInstance service) async {
             });
           } else if (isGPSEnabled && !isInternetAvailable) {
             handleGpsAndInternetOffData(serviceType: "internet");
+            storeLocationDataWhenOffline();
+
             String? lastGpsTime =
                 PreferenceHelper.getString(PreferenceHelper.LAST_GPS_OFF_TIME);
             if (lastGpsTime != "" && lastGpsTime != null) {
@@ -306,6 +318,7 @@ void onStart(ServiceInstance service) async {
                           PreferenceHelper.INTERNET_BOOL, true);
                       bool internetBool = PreferenceHelper.getBool(
                           PreferenceHelper.INTERNET_BOOL);
+
                     }
                   } catch (e) {}
                 }
@@ -340,8 +353,11 @@ handleGpsAndInternetOffData({String? serviceType}) async {
             PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, true);
             bool internetBool =
                 PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
+            print("internetBool$internetBool");
           }
-        } catch (e) {}
+        } catch (e) {
+
+        }
       }
       if (serviceType == "gps") {
         double? lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
@@ -359,6 +375,7 @@ handleGpsAndInternetOffData({String? serviceType}) async {
               PreferenceHelper.LAST_GPS_OFF_LONG, lastLong ?? 0);
           PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, true);
           bool? gpsBool = PreferenceHelper.getBool(PreferenceHelper.GPS_BOOL);
+          print("gpsBool$gpsBool");
         }
       }
     }
@@ -367,16 +384,17 @@ handleGpsAndInternetOffData({String? serviceType}) async {
 
 CreateRouteHistoryModel? createRouteHistoryModel;
 
-Future<void> updateRouteHistory() async {
+Future<void> updateRouteHistory({String? userId,String? sessionId}) async {
+  print("userId$userId");
   try {
     PreferenceHelper.load().then((value) async {
-      String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
 
       Position? position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.best);
 
       Map<String, dynamic> body = {
         "userId": userId,
+        "sessionId": sessionId,
         "lattitude": position.latitude,
         "longitude": position.longitude,
         "modifiedOn": AppUtils.dateFormat(
@@ -400,23 +418,27 @@ Future<void> updateRouteHistory() async {
             PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
       }
     });
-  } catch (e) {}
+  } catch (e) {
+
+  }
 }
 
 Future<void> waitingStartApi(
     {required ServiceInstance service,
     String? waitingStartTime,
     double? lastLat,
-    double? lastLong}) async {
+    double? lastLong,String? userId,String? sessionId}) async {
   int batteryLevel = await AppUtils.getBatteryLevel();
 
   PreferenceHelper.load().then((value) async {
-    String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
+    print("userId1$userId");
+    print("sessionId$sessionId");
     Map<String, dynamic> body = {};
     body = {
       "userId": userId,
       "lattitude": lastLat,
       "longitude": lastLong,
+      "sessionId": sessionId,
       "totTrackingEventId": AppConstant.trackingWaitingStartEvent,
       "activityDateTime": AppUtils.getDate(
           date: waitingStartTime.toString(), format: AppConstant.dateFormat),
@@ -438,19 +460,19 @@ Future<void> waitingStartApi(
   });
 }
 
-Future<void> waitingEndApi({required ServiceInstance service}) async {
+Future<void> waitingEndApi({required ServiceInstance service,String? userId,String? sessionId}) async {
   Position? position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.best);
 
   int batteryLevel = await AppUtils.getBatteryLevel();
 
   PreferenceHelper.load().then((value) async {
-    String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     Map<String, dynamic> body = {};
     body = {
       "userId": userId,
       "lattitude": position.latitude,
       "longitude": position.longitude,
+      "sessionId": sessionId,
       "totTrackingEventId": AppConstant.trackingWaitingStopEvent,
       "activityDateTime": AppUtils.getDate(
           date: DateTime.now().toString(), format: AppConstant.dateFormat),
@@ -472,11 +494,9 @@ Future<void> waitingEndApi({required ServiceInstance service}) async {
   });
 }
 
-Future<void> handleInternetAndGPSApi() async {
+Future<void> handleInternetAndGPSApi({String? userId,String? sessionId}) async {
   PreferenceHelper.load().then((value) async {
-    String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     bool? gpsBool = PreferenceHelper.getBool(PreferenceHelper.GPS_BOOL);
-
     if (gpsBool) {
       String? lastGpsOffTime =
           PreferenceHelper.getString(PreferenceHelper.LAST_GPS_OFF_TIME);
@@ -487,25 +507,26 @@ Future<void> handleInternetAndGPSApi() async {
                 date: DateTime.now(), dateFormat: AppConstant.dateFormat));
       }
       await callInternetAndGpsActivityApi(
-          userId: userId, isGps: true, isGpsOn: false);
-      await Future.delayed(const Duration(milliseconds: 500));
+          userId: userId, isGps: true, isGpsOn: false,sessionId: sessionId);
+      // await Future.delayed(const Duration(milliseconds: 500));
       await callInternetAndGpsActivityApi(
-          userId: userId, isGps: true, isGpsOn: true);
+          userId: userId, isGps: true, isGpsOn: true,sessionId: sessionId);
     }
     bool? internetBool =
         PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
     if (internetBool) {
       await callInternetAndGpsActivityApi(
-          userId: userId, isInternet: true, isInternetOn: false);
-      Future.delayed(const Duration(milliseconds: 500));
+          userId: userId, isInternet: true, isInternetOn: false,sessionId: sessionId);
+      // Future.delayed(const Duration(milliseconds: 500));
       await callInternetAndGpsActivityApi(
-          userId: userId, isInternet: true, isInternetOn: true);
+          userId: userId, isInternet: true, isInternetOn: true,sessionId: sessionId);
     }
   });
 }
 
 callInternetAndGpsActivityApi({
   required String? userId,
+  String? sessionId,
   bool? isInternet,
   bool? isGps,
   bool? isInternetOn,
@@ -524,9 +545,16 @@ callInternetAndGpsActivityApi({
   Map<String, dynamic> body = {};
   CreateActivityModel? createActivityModel;
 
+  // Retrieve the existing offline data or initialize an empty list if none exists
+  List<String> offlineData = PreferenceHelper.getStringList('offline_data') ?? [];
+  List offlineDataMaps = offlineData.map((data) => jsonDecode(data)).toList();
+  print("offlineDataMaps$offlineDataMaps");
+
+
   if (isInternet == true) {
     body = {
       "userId": userId,
+      "sessionId" : sessionId,
       "lattitude": isInternetOn ?? false ? position.latitude : lastLat,
       "longitude": isInternetOn ?? false ? position.longitude : lastLong,
       "totTrackingEventId": isInternetOn ?? false
@@ -537,13 +565,15 @@ callInternetAndGpsActivityApi({
               date: DateTime.now().toString(), format: AppConstant.dateFormat)
           : AppUtils.getDate(
               date: lastInternetOffTime ?? "", format: AppConstant.dateFormat),
-      "batteryLevel": await AppUtils.getBatteryLevel()
+      "batteryLevel": await AppUtils.getBatteryLevel(),
+      "offlineMapData" : isInternetOn== true ? offlineDataMaps != null ?  offlineDataMaps : null : null
     };
   }
 
   if (isGps == true) {
     body = {
       "userId": userId,
+      "sessionId" : sessionId,
       "lattitude": isGpsOn == true ? position.latitude : lastLat,
       "longitude": isGpsOn == true ? position.longitude : lastLong,
       "totTrackingEventId":
@@ -564,22 +594,61 @@ callInternetAndGpsActivityApi({
     if (createActivityModel.isError == false &&
         createActivityModel.isValidationFailed == false) {
       if (isInternet == true) {
-        PreferenceHelper.remove(PreferenceHelper.UNIVERSAL_LAST_SAVED_TIME);
-        PreferenceHelper.setString(
-            PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
+        if(isInternetOn == true){
+          PreferenceHelper.remove("offline_data");
+        }
+        PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_OFF_TIME);
+        PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_ON_TIME);
+        PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
         PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, false);
       } else {
         PreferenceHelper.remove(PreferenceHelper.LAST_GPS_OFF_TIME);
         PreferenceHelper.remove(PreferenceHelper.LAST_GPS_ON_TIME);
-        PreferenceHelper.setString(
-            PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
+        PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
         PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, false);
       }
-    } else {}
+    }
   } catch (e) {}
+
+
 }
 
-Future<void> setWaitingState(bool isWaiting) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.setBool(PreferenceHelper.isWaiting, isWaiting);
+Future<void> storeLocationDataWhenOffline() async {
+  // Get the current position with the desired accuracy
+double distance  = 81;
+  double? lastLat =
+  PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+  double? lastLong =
+  PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
+
+  Position positionData = await Geolocator.getCurrentPosition(
+    desiredAccuracy: LocationAccuracy.best,
+  );
+
+  distance = Geolocator.distanceBetween(lastLat ?? 0, lastLong ?? 0,
+      positionData.latitude, positionData.longitude);
+  // if((distance) > 80){
+
+    List<String> offlineData = PreferenceHelper.getStringList('offline_data') ?? [];
+
+
+    Map<String, dynamic> dataPoint = {
+      'lattitude': positionData.latitude,
+      'longitude': positionData.longitude,
+      'offlineTime': AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat),
+    };
+
+    offlineData.add(jsonEncode(dataPoint));
+    PreferenceHelper.setStringList('offline_data', offlineData);
+    List offlineDataMaps = offlineData.map((data) => jsonDecode(data)).toList();
+    print("Offline data points:$offlineDataMaps");
+  // }else{
+  //   print("you are in under meter");
+  // }
+
+
 }
+
+
+
+

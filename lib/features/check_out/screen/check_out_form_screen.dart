@@ -26,10 +26,12 @@ import 'package:provider/provider.dart';
 
 class CheckOutFormScreen extends StatefulWidget {
   Function(Position)? onLocationFetch;
+  String? sessionId;
 
   CheckOutFormScreen({
     super.key,
     this.onLocationFetch,
+    this.sessionId,
   });
 
   @override
@@ -74,12 +76,12 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
     batteryPercentage();
     checkBiometricAvailable();
     WidgetsBinding.instance.addPostFrameCallback((_) async{
-      position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
-      checkOutProvider = Provider.of<CheckOutProvider>(context, listen: false);
 
-      attendanceProvider =
-          Provider.of<AttendanceProvider>(context, listen: false);
+      checkOutProvider = Provider.of<CheckOutProvider>(context, listen: false);
       callGetTotByType(checkOutProvider);
+
+      attendanceProvider = Provider.of<AttendanceProvider>(context, listen: false);
+
     });
   }
 
@@ -90,12 +92,13 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
   callGetTotByType(CheckOutProvider getMdl) {
     getMdl
         .apiCallGetTotByType(groupType: AppConstant.visitTypeCode)
-        .then((value) {
+        .then((value)async {
       getTotByGroupTypeModel = value;
       if (getTotByGroupTypeModel?.isValidationFailed == false &&
           getTotByGroupTypeModel?.isError == false) {
         selectedTotValue = getTotByGroupTypeModel?.data?.first.totValue;
         selectedTotId = getTotByGroupTypeModel?.data?.first.totId;
+        position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
       } else {
         if (getTotByGroupTypeModel?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(
@@ -119,6 +122,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
     postMdl
         .apiCallCreateActivity(
             picturePath: image64,
+            checkOutSessionId: widget.sessionId,
             isFromCheckOut: true,
             totTrackingEventCode: AppConstant.checkOutEvent,
             positionData: position,

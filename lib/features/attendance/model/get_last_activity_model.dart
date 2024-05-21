@@ -43,9 +43,10 @@ class Data {
   double? lastActivityLong;
   String? lastActivityPlace;
   int? lastBatteryPercentage;
-  bool? isLastSessionEnded;
-  String? pendingSessionDate;
-  String? pendingSessionId;
+  String? sessionId;
+  String? sessionStartDateTime;
+  bool? isSessionActive;
+  bool? alreadyRequested;
   String? tlDate;
   String? tlTime;
   String? tlDateTime;
@@ -61,9 +62,10 @@ class Data {
         this.lastActivityLong,
         this.lastActivityPlace,
         this.lastBatteryPercentage,
-        this.isLastSessionEnded,
-        this.pendingSessionDate,
-        this.pendingSessionId,
+        this.sessionId,
+        this.sessionStartDateTime,
+        this.isSessionActive,
+        this.alreadyRequested,
         this.tlDate,
         this.tlTime,
         this.tlDateTime,
@@ -79,9 +81,10 @@ class Data {
     lastActivityLong = json['lastActivityLong'];
     lastActivityPlace = json['lastActivityPlace'];
     lastBatteryPercentage = json['lastBatteryPercentage'];
-    isLastSessionEnded = json['isLastSessionEnded'];
-    pendingSessionDate = json['pendingSessionDate'];
-    pendingSessionId = json['pendingSessionId'];
+    sessionId = json['sessionId'];
+    sessionStartDateTime = json['sessionStartDateTime'];
+    isSessionActive = json['isSessionActive'];
+    alreadyRequested = json['alreadyRequested'];
     tlDate = json['tlDate'];
     tlTime = json['tlTime'];
     tlDateTime = json['tlDateTime'];
@@ -99,9 +102,10 @@ class Data {
     data['lastActivityLong'] = this.lastActivityLong;
     data['lastActivityPlace'] = this.lastActivityPlace;
     data['lastBatteryPercentage'] = this.lastBatteryPercentage;
-    data['isLastSessionEnded'] = this.isLastSessionEnded;
-    data['pendingSessionDate'] = this.pendingSessionDate;
-    data['pendingSessionId'] = this.pendingSessionId;
+    data['sessionId'] = this.sessionId;
+    data['sessionStartDateTime'] = this.sessionStartDateTime;
+    data['isSessionActive'] = this.isSessionActive;
+    data['alreadyRequested'] = this.alreadyRequested;
     data['tlDate'] = this.tlDate;
     data['tlTime'] = this.tlTime;
     data['tlDateTime'] = this.tlDateTime;

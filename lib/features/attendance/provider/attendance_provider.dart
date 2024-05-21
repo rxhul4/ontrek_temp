@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:ontrek/core/common_widgets/textfield_widget.dart';
 import 'package:ontrek/core/services/api_constants.dart';
@@ -15,6 +16,7 @@ import 'package:ontrek/features/attendance/model/add_activity_model.dart';
 import 'package:ontrek/features/attendance/model/dayend_manual_request_model.dart';
 import 'package:ontrek/features/attendance/model/get_check_panding_dayend.dart';
 import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
+import 'package:ontrek/features/attendance/screen/pending_dayend_screen.dart';
 import 'package:ontrek/features/dashboard/screens/dashboard_screen.dart';
 import 'package:ontrek/main.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
@@ -145,6 +147,7 @@ class AttendanceProvider extends ChangeNotifier {
 
   Future<CreateActivityModel?> apiCallCreateActivity({
     bool? isFromCheckOut = false,
+    String? checkOutSessionId,
     String? picturePath,
     String? totTrackingEventCode,
     String? activityDateTime,
@@ -156,6 +159,7 @@ class AttendanceProvider extends ChangeNotifier {
     String? visitTypeCode,
   }) async {
     loaderFnc(true);
+    print("sessionIdAtCreateActivity$sessionId");
     String? userid = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.best);
@@ -169,8 +173,17 @@ class AttendanceProvider extends ChangeNotifier {
     };
     Map<String, dynamic> body = {
       "userId": userid ?? "",
-      "longitude": isFromCheckOut == true ? positionData?.longitude ?? 0 : position.longitude,
-      "lattitude": isFromCheckOut == true ? positionData?.latitude ?? 0 : position.latitude,
+      "longitude": isFromCheckOut == true
+          ? positionData?.longitude ?? 0
+          : position.longitude,
+      "lattitude": isFromCheckOut == true
+          ? positionData?.latitude ?? 0
+          : position.latitude,
+      "sessionId": isFromCheckOut == true
+          ? checkOutSessionId
+          : isActiveSession == true
+              ? sessionId
+              : null,
       "totTrackingEventId": totTrackingEventCode,
       "activityDateTime": activityDateTime ??
           AppUtils.dateFormat(
@@ -201,6 +214,9 @@ class AttendanceProvider extends ChangeNotifier {
     return createActivityModel;
   }
 
+  bool? isActiveSession;
+  String? sessionId;
+
   Future<GetLastActivityModel?> callGetLastActivity() async {
     loaderFnc(true);
     String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
@@ -217,122 +233,61 @@ class AttendanceProvider extends ChangeNotifier {
       print("response_of_lastActivity: $response");
       if (getLastActivityModel?.isError == false &&
           getLastActivityModel?.isValidationFailed == false) {
+        isActiveSession = getLastActivityModel?.data?.isSessionActive;
+        print("isActiveSession${isActiveSession}");
         print("totEvent${getLastActivityModel?.data?.trackingEventId}");
         String? totEventCode = getLastActivityModel?.data?.trackingEventId;
-        switch (totEventCode) {
-          case AppConstant.dayStartEvent:
-            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-            isDayStart.value =
-                PreferenceHelper.getBool(PreferenceHelper.DayStart);
-            break;
-          case AppConstant.checkInEvent:
-            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-            PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
-            isDayStart.value =
-                PreferenceHelper.getBool(PreferenceHelper.DayStart);
-            isCheckIn.value =
-                PreferenceHelper.getBool(PreferenceHelper.checkIn);
-            break;
-          case AppConstant.checkOutEvent:
-            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-            isDayStart.value =
-                PreferenceHelper.getBool(PreferenceHelper.DayStart);
-            isCheckIn.value =
-                PreferenceHelper.getBool(PreferenceHelper.checkIn);
-            break;
-          case AppConstant.dayEndEvent:
-            PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
-            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-            isDayStart.value =
-                PreferenceHelper.getBool(PreferenceHelper.DayStart);
-            isCheckIn.value =
-                PreferenceHelper.getBool(PreferenceHelper.checkIn);
-            break;
-          case AppConstant.trackingWaitingStartEvent:
-            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-            PreferenceHelper.setBool(PreferenceHelper.isWaiting, true);
-            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-            isDayStart.value =
-                PreferenceHelper.getBool(PreferenceHelper.DayStart);
-            isCheckIn.value =
-                PreferenceHelper.getBool(PreferenceHelper.checkIn);
-            isWaiting.value =
-                PreferenceHelper.getBool(PreferenceHelper.isWaiting);
-            break;
-          case AppConstant.trackingWaitingStopEvent:
-            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-            PreferenceHelper.setBool(PreferenceHelper.isWaiting, false);
-            isDayStart.value =
-                PreferenceHelper.getBool(PreferenceHelper.DayStart);
-            isCheckIn.value =
-                PreferenceHelper.getBool(PreferenceHelper.checkIn);
-            isWaiting.value =
-                PreferenceHelper.getBool(PreferenceHelper.isWaiting);
-            break;
-          case AppConstant.internetOffEvent:
-            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-            isDayStart.value =
-                PreferenceHelper.getBool(PreferenceHelper.DayStart);
-            isCheckIn.value =
-                PreferenceHelper.getBool(PreferenceHelper.checkIn);
+        String? sessionStartDateStr = AppUtils.getDate(
+            date: getLastActivityModel?.data?.sessionStartDateTime ?? "",
+            format: "dd-MM-yyyy");
+        print("startDate$sessionStartDateStr");
 
-            break;
-          case AppConstant.internetOnEvent:
-            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-            isDayStart.value =
-                PreferenceHelper.getBool(PreferenceHelper.DayStart);
-            isCheckIn.value =
-                PreferenceHelper.getBool(PreferenceHelper.checkIn);
-            break;
-          case AppConstant.gpsOffEvent:
-            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-            isDayStart.value =
-                PreferenceHelper.getBool(PreferenceHelper.DayStart);
-            isCheckIn.value =
-                PreferenceHelper.getBool(PreferenceHelper.checkIn);
-            break;
-          case AppConstant.gpsOnEvent:
-            PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-            isDayStart.value =
-                PreferenceHelper.getBool(PreferenceHelper.DayStart);
-            isCheckIn.value =
-                PreferenceHelper.getBool(PreferenceHelper.checkIn);
-            break;
-          default:
-            print('Unknown eventCode');
-            PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
-            PreferenceHelper.setBool(PreferenceHelper.isWaiting, false);
-            PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-            isDayStart.value =
-                PreferenceHelper.getBool(PreferenceHelper.DayStart);
-            isCheckIn.value =
-                PreferenceHelper.getBool(PreferenceHelper.checkIn);
-            isWaiting.value =
-                PreferenceHelper.getBool(PreferenceHelper.isWaiting);
+        if (getLastActivityModel?.data == null) {
+          setDataAccordingToLastActivity("");
         }
-        if (isDayStart.value == true) {
-          bool? liveLocationTracking =
-              PreferenceHelper.getBool(PreferenceHelper.LIVE_LOCATION_TRACKING);
-          if (liveLocationTracking == true) {
-            await service.startService();
+        DateTime sessionStartDate =
+            DateFormat("dd-MM-yyyy").parse(sessionStartDateStr);
+        DateTime today = DateTime.now();
+        DateTime todayWithoutTime =
+            DateTime(today.year, today.month, today.day);
+        if (sessionStartDate.isBefore(todayWithoutTime)) {
+          if (getLastActivityModel?.data?.isSessionActive == true) {
+            if (getLastActivityModel?.data?.alreadyRequested == false) {
+              dateController.text = sessionStartDateStr;
+              dayStartTimeController.text = AppUtils.getDate(
+                  date: getLastActivityModel?.data?.sessionStartDateTime ?? "",
+                  format: "hh:mm a");
+              navigatePushFnc(PendingDayEndScreen(
+                sessionId: getLastActivityModel?.data?.sessionId,
+                sessionStartDate:
+                    getLastActivityModel?.data?.sessionStartDateTime ?? "",
+              ));
+            }
+          } else {
+            setDataAccordingToLastActivity("");
+          }
+        }
+        if (sessionStartDateStr == AppUtils.getDate(date: DateTime.now().toString(), format: "dd-MM-yyyy")) {
+          sessionId = getLastActivityModel?.data?.sessionId;
+          print("sessionId$sessionId");
+          setDataAccordingToLastActivity(totEventCode);
+          if (isDayStart.value == true) {
+            bool? liveLocationTracking = PreferenceHelper.getBool(
+                PreferenceHelper.LIVE_LOCATION_TRACKING);
+            if (liveLocationTracking == true) {
+              await service.startService();
+              service.invoke("background", {
+                "sessionId" :  sessionId
+              });
+            }
           }
         }
       } else {
         if (getLastActivityModel?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(
+              titleText: "Error",
               context: navigatorKey.currentState!.context,
               text: "Something went wrong, Please try again later!");
-        }
-        if (getLastActivityModel?.isValidationFailed == true) {
-          AppUtils.showDialogBoxWithOneButton(
-              context: navigatorKey.currentState!.context,
-              text: createActivityModel?.message ?? "");
         }
       }
     } catch (e) {
@@ -351,7 +306,7 @@ class AttendanceProvider extends ChangeNotifier {
       } else {
         AppUtils.showDialogBoxWithOneButton(
             titleText: "Error",
-            text: "Something went wrong!",
+            text: "Something went wrong, Please try again later!",
             context: navigatorKey.currentState!.context);
       }
     }
@@ -359,39 +314,7 @@ class AttendanceProvider extends ChangeNotifier {
     return getLastActivityModel;
   }
 
-  Future<GetLastPendingDayEnd?> apiCallCheckPendingEndDate() async {
-    String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
 
-    loaderFnc(true);
-    Map<String, dynamic> body = {
-      "userId": userId,
-    };
-    try {
-      String endPoint = ApiConstants.checkPendingEndDate;
-      final response = await callPostMethod(endPoint, body);
-      getLastPendingDayEnd =
-          GetLastPendingDayEnd.fromJson(json.decode(response));
-      print("response : ${response}");
-    } catch (e) {
-      print("inCatch ${getLastPendingDayEnd?.message}");
-      print("inCatchE $e");
-      isInternetAvailable = await AppUtils.checkInternetConnectivity();
-      if (isInternetAvailable == false) {
-        AppUtils.showDialogBoxWithOneButton(
-            titleText: "Internet Off Alert",
-            text:
-                "Internet is not available. Please Enable Mobile data or wifi.",
-            context: navigatorKey.currentState!.context);
-      } else {
-        AppUtils.showDialogBoxWithOneButton(
-            titleText: "Error",
-            text: "Something went wrong!",
-            context: navigatorKey.currentState!.context);
-      }
-    }
-    loaderFnc(false);
-    return getLastPendingDayEnd;
-  }
 
   Future<DayEndManualRequestModel?> apiCallDayEndManualRequest(
       {String? sessionId, String? sessionEndDate}) async {
@@ -462,16 +385,95 @@ class AttendanceProvider extends ChangeNotifier {
     reasonController.clear();
   }
 
+  setDataAccordingToLastActivity(String? totEventCode) {
+    switch (totEventCode) {
+      case AppConstant.dayStartEvent:
+        PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+        isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+        break;
+      case AppConstant.checkInEvent:
+        PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+        PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
+        isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+        isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+        break;
+      case AppConstant.checkOutEvent:
+        PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+        PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+        isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+        isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+        break;
+      case AppConstant.dayEndEvent:
+        PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
+        PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+        isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+        isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+        break;
+      case AppConstant.trackingWaitingStartEvent:
+        PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+        PreferenceHelper.setBool(PreferenceHelper.isWaiting, true);
+        PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+        isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+        isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+        isWaiting.value = PreferenceHelper.getBool(PreferenceHelper.isWaiting);
+        break;
+      case AppConstant.trackingWaitingStopEvent:
+        PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+        PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+        PreferenceHelper.setBool(PreferenceHelper.isWaiting, false);
+        isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+        isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+        isWaiting.value = PreferenceHelper.getBool(PreferenceHelper.isWaiting);
+        break;
+      case AppConstant.internetOffEvent:
+        PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+        PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+        isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+        isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
 
+        break;
+      case AppConstant.internetOnEvent:
+        PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+        PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+        isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+        isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+        break;
+      case AppConstant.gpsOffEvent:
+        PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+        PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+        isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+        isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+        break;
+      case AppConstant.gpsOnEvent:
+        PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
+        PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+        isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+        isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+        break;
+      default:
+        print('Unknown eventCode$totEventCode');
+        PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
+        PreferenceHelper.setBool(PreferenceHelper.isWaiting, false);
+        PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+        isDayStart.value = PreferenceHelper.getBool(PreferenceHelper.DayStart);
+        isCheckIn.value = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+        isWaiting.value = PreferenceHelper.getBool(PreferenceHelper.isWaiting);
+    }
+    notifyListeners();
+  }
 
   getAllConfiguration() {
     userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     orgName = PreferenceHelper.getString(PreferenceHelper.ORG_NAME);
     userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
     isAllowFgAuth = PreferenceHelper.getBool(PreferenceHelper.ALLOW_FG_AUTH);
-    isLocationRestricted = PreferenceHelper.getBool(PreferenceHelper.LOCATION_RESTRICTION);
-    restrictedLocationLat = PreferenceHelper.getDouble(PreferenceHelper.LOCATION_RESTRICTION_LAT);
-    restrictedLocationLong = PreferenceHelper.getDouble(PreferenceHelper.LOCATION_RESTRICTION_LONG);
-    restrictedLocationMeter = PreferenceHelper.getInt(PreferenceHelper.RESTRICTED_LOCATION_METER);
+    isLocationRestricted =
+        PreferenceHelper.getBool(PreferenceHelper.LOCATION_RESTRICTION);
+    restrictedLocationLat =
+        PreferenceHelper.getDouble(PreferenceHelper.LOCATION_RESTRICTION_LAT);
+    restrictedLocationLong =
+        PreferenceHelper.getDouble(PreferenceHelper.LOCATION_RESTRICTION_LONG);
+    restrictedLocationMeter =
+        PreferenceHelper.getInt(PreferenceHelper.RESTRICTED_LOCATION_METER);
   }
 }

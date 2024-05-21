@@ -58,45 +58,47 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     initAnimateController();
     if (!mounted) {}
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final attendanceProvider = Provider.of<AttendanceProvider>(context, listen: false);
+      final attendanceProvider =
+          Provider.of<AttendanceProvider>(context, listen: false);
       attendanceProvider.getAllConfiguration();
       attendanceProvider.panelController.animatePanelToPosition(0.99);
-      await attendanceProvider.apiCallCheckPendingEndDate().then((value) async {
-        if (value?.isError == false && value?.isValidationFailed == false) {
-          await attendanceProvider.callGetLastActivity();
-        } else {
-          if (value?.isValidationFailed == true) {
-            sessionId = value?.data?.sessionId;
-            sessionOnlyDate = value?.data?.sessionDateOnly;
-            setState(() {
-              attendanceProvider.dateController.text = AppUtils.getDate(
-                  date: value?.data?.sessionDateOnly ?? "",
-                  format: "dd-MM-yyyy");
-              attendanceProvider.dayStartTimeController.text =
-                  value?.data?.startTime ?? "";
-            });
-            print("dateeeeeeeee${attendanceProvider.dateController.text}");
-            if (value?.data?.alreadyRequested == false) {
-              await Navigator.push(
-                  context,
-                  CupertinoPageRoute(
-                    builder: (context) => PendingDayEndScreen(
-                        sessionId: sessionId,
-                        sessionStartDate: sessionOnlyDate),
-                  )).then((value) async {
-                AppUtils.showDialogBoxWithOneButton(
-                    context: context,
-                    titleText: "Requested",
-                    text:
-                        "Your request has been submitted. Please wait for approval.");
-                await attendanceProvider.callGetLastActivity();
-              });
-            } else {
-              await attendanceProvider.callGetLastActivity();
-            }
-          }
-        }
-      });
+      await attendanceProvider.callGetLastActivity();
+      // await attendanceProvider.apiCallCheckPendingEndDate().then((value) async {
+      //   if (value?.isError == false && value?.isValidationFailed == false) {
+      //     await attendanceProvider.callGetLastActivity();
+      //   } else {
+      //     if (value?.isValidationFailed == true) {
+      //       sessionId = value?.data?.sessionId;
+      //       sessionOnlyDate = value?.data?.sessionDateOnly;
+      //       setState(() {
+      //         attendanceProvider.dateController.text = AppUtils.getDate(
+      //             date: value?.data?.sessionDateOnly ?? "",
+      //             format: "dd-MM-yyyy");
+      //         attendanceProvider.dayStartTimeController.text =
+      //             value?.data?.startTime ?? "";
+      //       });
+      //       print("dateeeeeeeee${attendanceProvider.dateController.text}");
+      //       if (value?.data?.alreadyRequested == false) {
+      //         await Navigator.push(
+      //             context,
+      //             CupertinoPageRoute(
+      //               builder: (context) => PendingDayEndScreen(
+      //                   sessionId: sessionId,
+      //                   sessionStartDate: sessionOnlyDate),
+      //             )).then((value) async {
+      //           AppUtils.showDialogBoxWithOneButton(
+      //               context: context,
+      //               titleText: "Requested",
+      //               text:
+      //                   "Your request has been submitted. Please wait for approval.");
+      //           await attendanceProvider.callGetLastActivity();
+      //         });
+      //       } else {
+      //         await attendanceProvider.callGetLastActivity();
+      //       }
+      //     }
+      //   }
+      // });
       attendanceProvider.isAllowCheckInCheckOut =
           PreferenceHelper.getBool(PreferenceHelper.AllowCheckInCheckOut);
       attendanceProvider.checkBiometricAvailable();
@@ -111,7 +113,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     controller?.dispose();
     super.dispose();
   }
-
   initAnimateController() {
     controller =
         AnimationController(vsync: this, duration: const Duration(seconds: 1));
@@ -122,10 +123,10 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   }
 
   //call General api
-  Future<CreateActivityModel?> callCreateActivityApi(
-      {AttendanceProvider? attendanceProvider,
-      String? totTrackingEventCode,
-      }) async {
+  Future<CreateActivityModel?> callCreateActivityApi({
+    AttendanceProvider? attendanceProvider,
+    String? totTrackingEventCode,
+  }) async {
     try {
       CreateActivityModel? createActivityModel =
           await attendanceProvider?.apiCallCreateActivity(
@@ -139,84 +140,90 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     return createActivityModel;
   }
 
-  callDayStartApiAndUpdateUI(AttendanceProvider? attendanceProvider) async{
-    //getCurrent Location for UI and api
-
+  callDayStartApiAndUpdateUI(AttendanceProvider? attendanceProvider) async {
     try {
       var response = await callCreateActivityApi(
-            totTrackingEventCode: AppConstant.dayStartEvent,
-            attendanceProvider: attendanceProvider);
+          totTrackingEventCode: AppConstant.dayStartEvent,
+          attendanceProvider: attendanceProvider);
 
-        if (response?.isError == false &&
-            response?.isValidationFailed == false) {
-          if (response?.data != null) {
-            DateTime currentTime = DateTime.now();
-            DateTime newTime = currentTime.add(Duration(minutes: 1));
-            String newTimeString = newTime.toString();
-            PreferenceHelper.setDouble(
-                PreferenceHelper.LAST_LAT, response?.data?.lattitude ?? 0);
-            PreferenceHelper.setDouble(
-                PreferenceHelper.LAST_LONG, response?.data?.longitude ?? 0);
-            PreferenceHelper.setString(
-                PreferenceHelper.WAITING_START_TIME, newTimeString);
-            callLoginFunction(LatLng(response?.data?.lattitude ?? 0, response?.data?.longitude ?? 0));
-            double? lastLat =
-                PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-            double? lastLong =
-                PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-            String? waitingStartTime =
-                PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
-
-            FlutterBackgroundService().invoke("background", {
-              "lastLat": lastLat,
-              "lastLong": lastLong,
-              "waitingStartTime": waitingStartTime,
-            });
+      if (response?.isError == false && response?.isValidationFailed == false) {
+        if (response?.data != null) {
+          DateTime currentTime = DateTime.now();
+          DateTime newTime = currentTime.add(Duration(minutes: 1));
+          String newTimeString = newTime.toString();
+          await attendanceProvider?.callGetLastActivity();
+          PreferenceHelper.setDouble(
+              PreferenceHelper.LAST_LAT, response?.data?.lattitude ?? 0);
+          PreferenceHelper.setDouble(
+              PreferenceHelper.LAST_LONG, response?.data?.longitude ?? 0);
+          PreferenceHelper.setString(
+              PreferenceHelper.WAITING_START_TIME, newTimeString);
+          PreferenceHelper.setString(
+              PreferenceHelper.SESSION_ID, attendanceProvider?.sessionId ?? "");
+          callLoginFunction(LatLng(
+              response?.data?.lattitude ?? 0, response?.data?.longitude ?? 0));
+          double? lastLat =
+              PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+          double? lastLong =
+              PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+          String? waitingStartTime =
+              PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
+          String? sessionId =
+          PreferenceHelper.getString(PreferenceHelper.SESSION_ID);
+          print("sessionId${sessionId}");
+          print("sessionId${attendanceProvider?.sessionId}");
+          service.invoke("background", {
+            "lastLat": lastLat,
+            "lastLong": lastLong,
+            "waitingStartTime": waitingStartTime,
+            "sessionId" :  attendanceProvider?.sessionId
+          });
+        } else {
+          AppUtils.showDialogBoxWithOneButton(
+            titleText: "Error",
+              context: context,
+              text: "Something went wrong, Please try again later!");
+        }
+      } else {
+        if (response?.isError == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Error",
+              context: context,
+              text: "Something went wrong, Please try again later!");
+        }
+        if (response?.isValidationFailed == true) {
+          if (response?.errorCode == "App.DayEnd.Pending.Operation") {
+            AppUtils.showDialogBoxWithOneButton(
+                titleText: "Day end Pending",
+                context: context,
+                text: response?.message ?? "",
+                btnText: "Open Form",
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      CupertinoPageRoute(
+                        builder: (context) => PendingDayEndScreen(
+                            sessionId: sessionId,
+                            sessionStartDate: sessionOnlyDate),
+                      )).then(
+                    (value) async {
+                      AppUtils.showDialogBoxWithOneButton(
+                          context: context,
+                          titleText: "Requested",
+                          text:
+                              "Your request has been submitted. Please wait for approval.");
+                    },
+                  );
+                });
           } else {
             AppUtils.showDialogBoxWithOneButton(
-                context: context,
-                text: "Something went wrong, Please try again later!");
-          }
-        } else {
-          if (response?.isError == true) {
-            AppUtils.showDialogBoxWithOneButton(
-                context: context,
-                text: "Something went wrong, Please try again later!");
-          }
-          if (response?.isValidationFailed == true) {
-            if (response?.errorCode == "App.DayEnd.Pending.Operation") {
-              AppUtils.showDialogBoxWithOneButton(
-                  titleText: "Day end Pending",
-                  context: context,
-                  text: response?.message ?? "",
-                  btnText: "Open Form",
-                  onTap: () {
-                    Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                          builder: (context) => PendingDayEndScreen(
-                              sessionId: sessionId,
-                              sessionStartDate: sessionOnlyDate),
-                        )).then(
-                      (value) async {
-                        AppUtils.showDialogBoxWithOneButton(
-                            context: context,
-                            titleText: "Requested",
-                            text:
-                                "Your request has been submitted. Please wait for approval.");
-                      },
-                    );
-                  });
-            }else{
-              AppUtils.showDialogBoxWithOneButton(
-                  context: context,
-                  titleText: "Requested",
-                  text: response?.message ?? "",
-              );
-            }
+              context: context,
+              titleText: "Requested",
+              text: response?.message ?? "",
+            );
           }
         }
-
+      }
     } catch (e) {
       print("catch_at_dayStartApi");
       AppUtils.showDialogBoxWithOneButton(
@@ -226,38 +233,36 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     }
   }
 
-  callCheckInApiAndUpdateUI(AttendanceProvider? attendanceProvider) async{
+  callCheckInApiAndUpdateUI(AttendanceProvider? attendanceProvider) async {
     //getCurrent Location for UI and api
     try {
-
       var response = await callCreateActivityApi(
-            totTrackingEventCode: AppConstant.checkInEvent,
-            attendanceProvider: attendanceProvider);
+          totTrackingEventCode: AppConstant.checkInEvent,
+          attendanceProvider: attendanceProvider);
 
-        //check api success or not
-        if (response?.isError == false &&
-            response?.isValidationFailed == false) {
-          if ( response?.data != null) {
-            callCheckInFunction(LatLng(response?.data?.lattitude ?? 0, response?.data?.longitude ?? 0));
-          } else {
-            AppUtils.showDialogBoxWithOneButton(
-                titleText: "Error",
-                context: context,
-                text: "Something went wrong, Please try again later!");
-          }
+      //check api success or not
+      if (response?.isError == false && response?.isValidationFailed == false) {
+        if (response?.data != null) {
+          callCheckInFunction(LatLng(
+              response?.data?.lattitude ?? 0, response?.data?.longitude ?? 0));
         } else {
-          if (response?.isError == true) {
-            AppUtils.showDialogBoxWithOneButton(
-                titleText: "Error",
-                context: context,
-                text: "Something went wrong, Please try again later!");
-          }
-          if (response?.isValidationFailed == true) {
-            AppUtils.showDialogBoxWithOneButton(
-                titleText: "", context: context, text: response?.message ?? "");
-          }
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Error",
+              context: context,
+              text: "Something went wrong, Please try again later!");
         }
-
+      } else {
+        if (response?.isError == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Error",
+              context: context,
+              text: "Something went wrong, Please try again later!");
+        }
+        if (response?.isValidationFailed == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "", context: context, text: response?.message ?? "");
+        }
+      }
     } catch (e) {
       print("catch_at_checkInApi");
       AppUtils.showDialogBoxWithOneButton(
@@ -267,38 +272,37 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     }
   }
 
-  callDayEndApiAndUpdateUI(AttendanceProvider? attendanceProvider) async{
+  callDayEndApiAndUpdateUI(AttendanceProvider? attendanceProvider) async {
     //getCurrent Location for UI and api
     try {
+      var response = await callCreateActivityApi(
+          totTrackingEventCode: AppConstant.dayEndEvent,
+          attendanceProvider: attendanceProvider);
 
-        var response = await callCreateActivityApi(
-            totTrackingEventCode: AppConstant.dayEndEvent,
-            attendanceProvider: attendanceProvider);
-
-        //check api success or not
-        if (response?.isError == false &&
-            response?.isValidationFailed == false) {
-          if (response?.data != null) {
-            callDayEndFunction(LatLng(response?.data?.lattitude ?? 0, response?.data?.longitude ?? 0));
-          } else {
-            AppUtils.showDialogBoxWithOneButton(
-                titleText: "Error",
-                context: context,
-                text: "Something went wrong, Please try again later!");
-          }
+      //check api success or not
+      if (response?.isError == false && response?.isValidationFailed == false) {
+        PreferenceHelper.remove(PreferenceHelper.SESSION_ID);
+        if (response?.data != null) {
+          callDayEndFunction(LatLng(
+              response?.data?.lattitude ?? 0, response?.data?.longitude ?? 0));
         } else {
-          if (response?.isError == true) {
-            AppUtils.showDialogBoxWithOneButton(
-                titleText: "Error",
-                context: context,
-                text: "Something went wrong, Please try again later!");
-          }
-          if (response?.isValidationFailed == true) {
-            AppUtils.showDialogBoxWithOneButton(
-                titleText: "", context: context, text: response?.message ?? "");
-          }
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Error",
+              context: context,
+              text: "Something went wrong, Please try again later!");
         }
-
+      } else {
+        if (response?.isError == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Error",
+              context: context,
+              text: "Something went wrong, Please try again later!");
+        }
+        if (response?.isValidationFailed == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "", context: context, text: response?.message ?? "");
+        }
+      }
     } catch (e) {
       print("catch_at_checkInApi");
       AppUtils.showDialogBoxWithOneButton(
@@ -309,9 +313,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   }
 
   callWaitingEndApi(
-      {AttendanceProvider? postMdl,
-      bool? checkIn,
-      bool? dayEnd}) async {
+      {AttendanceProvider? postMdl, bool? checkIn, bool? dayEnd}) async {
     // then call Api
     try {
       var response = await callCreateActivityApi(
@@ -408,7 +410,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         Navigator.push(
             context,
             CupertinoPageRoute(
-              builder: (context) => CheckOutFormScreen(),
+              builder: (context) => CheckOutFormScreen(sessionId: attendanceProvider.sessionId),
             )).then((value1) {
           attendanceProvider.isCheckIn.value =
               PreferenceHelper.getBool(PreferenceHelper.checkIn);
@@ -447,8 +449,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
     attendanceProvider = Provider.of<AttendanceProvider>(context);
-    print("isDayStartValue${attendanceProvider.isDayStart.value}");
-    print("isCheckIn${attendanceProvider.isCheckIn.value}");
     return AppUtils.commonSlidePanel(
         maxHeight: height * 0.4,
         minHeight: height * 0.09,
@@ -537,38 +537,47 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           builder: (context, value, child) {
             return GestureDetector(
               onTapDown: (details) {
-                if(!attendanceProvider.isLoading){
+                if (!attendanceProvider.isLoading) {
                   setState(() {
                     isTapped = true;
                   });
-                }else{
+                } else {
                   setState(() {
                     isTapped = false;
                   });
                 }
 
                 controller?.forward().whenComplete(() async {
-                  bool? isAlwaysOnLocation = await Permission.locationAlways.isGranted;
-                  bool? isInternetAvailable = await AppUtils.checkInternetConnectivity();
-                  bool? isGpsAvailable = await AppUtils.checkLocationServiceAvailability();
+                  bool? isAlwaysOnLocation =
+                      await Permission.locationAlways.isGranted;
+                  bool? isInternetAvailable =
+                      await AppUtils.checkInternetConnectivity();
+                  bool? isGpsAvailable =
+                      await AppUtils.checkLocationServiceAvailability();
                   HapticFeedback.vibrate();
                   controller?.reset();
                   if (isInternetAvailable) {
                     if (isAlwaysOnLocation) {
                       if (isGpsAvailable) {
                         if (!attendanceProvider.isDayStart.value) {
-                          Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
-                          double? distance = Geolocator.distanceBetween(
-                              attendanceProvider.restrictedLocationLat ?? 0,
-                              attendanceProvider.restrictedLocationLong ?? 0,
-                              position.latitude,
-                              position.longitude);
+
                           if (attendanceProvider.isAllowFgAuth == true) {
                             attendanceProvider.doLocalVerification(
                               afterSuccessfulVerificationFnc: () async {
-                                if (attendanceProvider.isLocationRestricted == true) {
+                                if (attendanceProvider.isLocationRestricted ==
+                                    true) {
+                                  Position position =
+                                  await Geolocator.getCurrentPosition(
+                                      desiredAccuracy: LocationAccuracy.best);
+                                  double? distance = Geolocator.distanceBetween(
+                                      attendanceProvider.restrictedLocationLat ?? 0,
+                                      attendanceProvider.restrictedLocationLong ?? 0,
+                                      position.latitude,
+                                      position.longitude);
                                   if (distance <
-                                      (attendanceProvider.restrictedLocationMeter ?? 50)) {
+                                      (attendanceProvider
+                                              .restrictedLocationMeter ??
+                                          50)) {
                                     await callDayStartApiAndUpdateUI(postMdl);
                                   } else {
                                     AppUtils.showDialogBoxWithOneButton(
@@ -582,8 +591,19 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                               },
                             );
                           } else {
-                            if (attendanceProvider.isLocationRestricted == true) {
-                              if (distance < (attendanceProvider.restrictedLocationMeter ?? 50)) {
+                            if (attendanceProvider.isLocationRestricted ==
+                                true) {
+                              Position position =
+                              await Geolocator.getCurrentPosition(
+                                  desiredAccuracy: LocationAccuracy.best);
+                              double? distance = Geolocator.distanceBetween(
+                                  attendanceProvider.restrictedLocationLat ?? 0,
+                                  attendanceProvider.restrictedLocationLong ?? 0,
+                                  position.latitude,
+                                  position.longitude);
+                              if (distance <
+                                  (attendanceProvider.restrictedLocationMeter ??
+                                      50)) {
                                 await callDayStartApiAndUpdateUI(postMdl);
                               } else {
                                 AppUtils.showDialogBoxWithOneButton(
@@ -596,39 +616,39 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                             }
                           }
                         } else if (!attendanceProvider.isCheckIn.value) {
-                          PreferenceHelper.reload().then((value) async{
+                          PreferenceHelper.reload().then((value) async {
                             print(
                                 "value_new_isWaiting${value?.getBool(PreferenceHelper.isWaiting)}");
-                            attendanceProvider.isWaiting.value = value?.getBool(PreferenceHelper.isWaiting) ?? false;
+                            attendanceProvider.isWaiting.value =
+                                value?.getBool(PreferenceHelper.isWaiting) ??
+                                    false;
                             if (attendanceProvider.isAllowFgAuth == true) {
                               attendanceProvider.doLocalVerification(
                                 afterSuccessfulVerificationFnc: () async {
                                   print(
                                       "isWaiting_from_UI${attendanceProvider.isWaiting.value}");
                                   if (attendanceProvider.isWaiting.value ==
-                                        true) {
-                                      await callWaitingEndApi(
-                                          postMdl: postMdl,
-                                          checkIn: true,
-                                          dayEnd: false);
-                                    } else {
-                                      await callCheckInApiAndUpdateUI(postMdl);
-                                    }
-
+                                      true) {
+                                    await callWaitingEndApi(
+                                        postMdl: postMdl,
+                                        checkIn: true,
+                                        dayEnd: false);
+                                  } else {
+                                    await callCheckInApiAndUpdateUI(postMdl);
+                                  }
                                 },
                               );
                             } else {
-                              print("isWaiting_from_UI${attendanceProvider.isWaiting.value}");
-                              if (attendanceProvider.isWaiting.value ==
-                                    true) {
-                                  await callWaitingEndApi(
-                                      postMdl: postMdl,
-                                      checkIn: true,
-                                      dayEnd: false);
-                                } else {
-                                  await callCheckInApiAndUpdateUI(postMdl);
-                                }
-
+                              print(
+                                  "isWaiting_from_UI${attendanceProvider.isWaiting.value}");
+                              if (attendanceProvider.isWaiting.value == true) {
+                                await callWaitingEndApi(
+                                    postMdl: postMdl,
+                                    checkIn: true,
+                                    dayEnd: false);
+                              } else {
+                                await callCheckInApiAndUpdateUI(postMdl);
+                              }
                             }
                           });
                         } else {
@@ -759,11 +779,11 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       ],
       child: GestureDetector(
         onTapDown: (details) {
-          if(!attendanceProvider.isLoading){
+          if (!attendanceProvider.isLoading) {
             setState(() {
               isFromLogOutButton = true;
             });
-          }else{
+          } else {
             setState(() {
               isFromLogOutButton = false;
             });
@@ -780,43 +800,36 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 onSuccessString: "YES",
                 onCancelString: "NO",
                 onSuccess: () async {
-                  bool? isInternetAvailable = await AppUtils.checkInternetConnectivity();
-                  bool? isGpsAvailable = await AppUtils.checkLocationServiceAvailability();
+                  bool? isInternetAvailable =
+                      await AppUtils.checkInternetConnectivity();
+                  bool? isGpsAvailable =
+                      await AppUtils.checkLocationServiceAvailability();
                   if (isInternetAvailable) {
                     if (isGpsAvailable) {
-                      PreferenceHelper.reload().then((value)async {
-                        Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
-                        double? distance = Geolocator.distanceBetween(
-                            attendanceProvider.restrictedLocationLat ?? 0,
-                            attendanceProvider.restrictedLocationLong ?? 0,
-                            position.latitude,
-                            position.longitude);
+                      PreferenceHelper.reload().then((value) async {
+
                         if (kDebugMode) {
-                          print("value_new_isWaiting${value?.getBool(PreferenceHelper.isWaiting)}");
+                          print(
+                              "value_new_isWaiting${value?.getBool(PreferenceHelper.isWaiting)}");
                         }
-                        attendanceProvider.isWaiting.value = value?.getBool(PreferenceHelper.isWaiting) ?? false;
+                        attendanceProvider.isWaiting.value =
+                            value?.getBool(PreferenceHelper.isWaiting) ?? false;
                         if (attendanceProvider.isAllowFgAuth == true) {
                           attendanceProvider.doLocalVerification(
                             afterSuccessfulVerificationFnc: () async {
-                              if (attendanceProvider.isLocationRestricted == true) {
-                                  if (distance <
-                                      (attendanceProvider.restrictedLocationMeter ?? 50)) {
-                                    if (attendanceProvider.isWaiting.value ==
-                                        true) {
-                                      await callWaitingEndApi(
-                                          postMdl: postMdl,
-                                          dayEnd: true,
-                                          checkIn: false);
-                                    } else {
-                                      await callDayEndApiAndUpdateUI(postMdl);
-                                    }
-                                  } else {
-                                    AppUtils.showDialogBoxWithOneButton(
-                                        titleText: "Premises",
-                                        text: "You are not at Office Location",
-                                        context: context);
-                                  }
-                                } else {
+                              if (attendanceProvider.isLocationRestricted ==
+                                  true) {
+                                Position position = await Geolocator.getCurrentPosition(
+                                    desiredAccuracy: LocationAccuracy.best);
+                                double? distance = Geolocator.distanceBetween(
+                                    attendanceProvider.restrictedLocationLat ?? 0,
+                                    attendanceProvider.restrictedLocationLong ?? 0,
+                                    position.latitude,
+                                    position.longitude);
+                                if (distance <
+                                    (attendanceProvider
+                                            .restrictedLocationMeter ??
+                                        50)) {
                                   if (attendanceProvider.isWaiting.value ==
                                       true) {
                                     await callWaitingEndApi(
@@ -826,20 +839,13 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                   } else {
                                     await callDayEndApiAndUpdateUI(postMdl);
                                   }
+                                } else {
+                                  AppUtils.showDialogBoxWithOneButton(
+                                      titleText: "Premises",
+                                      text: "You are not at Office Location",
+                                      context: context);
                                 }
-                            },
-                          );
-                        } else {
-                          Position position =
-                                await Geolocator.getCurrentPosition(
-                                    desiredAccuracy: LocationAccuracy.best);
-                          double? distance = Geolocator.distanceBetween(
-                                attendanceProvider.restrictedLocationLat ?? 0,
-                                attendanceProvider.restrictedLocationLong ?? 0,
-                                position.latitude,
-                                position.longitude);
-                            if (attendanceProvider.isLocationRestricted == true) {
-                              if (distance < (attendanceProvider.restrictedLocationMeter ?? 50)) {
+                              } else {
                                 if (attendanceProvider.isWaiting.value ==
                                     true) {
                                   await callWaitingEndApi(
@@ -849,13 +855,23 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                 } else {
                                   await callDayEndApiAndUpdateUI(postMdl);
                                 }
-                              } else {
-                                AppUtils.showDialogBoxWithOneButton(
-                                    titleText: "Premises",
-                                    text: "You are not at Office Location",
-                                    context: context);
                               }
-                            } else {
+                            },
+                          );
+                        } else {
+
+                          if (attendanceProvider.isLocationRestricted == true) {
+                            Position position =
+                            await Geolocator.getCurrentPosition(
+                                desiredAccuracy: LocationAccuracy.best);
+                            double? distance = Geolocator.distanceBetween(
+                                attendanceProvider.restrictedLocationLat ?? 0,
+                                attendanceProvider.restrictedLocationLong ?? 0,
+                                position.latitude,
+                                position.longitude);
+                            if (distance <
+                                (attendanceProvider.restrictedLocationMeter ??
+                                    50)) {
                               if (attendanceProvider.isWaiting.value == true) {
                                 await callWaitingEndApi(
                                     postMdl: postMdl,
@@ -864,8 +880,22 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                               } else {
                                 await callDayEndApiAndUpdateUI(postMdl);
                               }
+                            } else {
+                              AppUtils.showDialogBoxWithOneButton(
+                                  titleText: "Premises",
+                                  text: "You are not at Office Location",
+                                  context: context);
                             }
-
+                          } else {
+                            if (attendanceProvider.isWaiting.value == true) {
+                              await callWaitingEndApi(
+                                  postMdl: postMdl,
+                                  dayEnd: true,
+                                  checkIn: false);
+                            } else {
+                              await callDayEndApiAndUpdateUI(postMdl);
+                            }
+                          }
                         }
                       });
                     } else {
@@ -974,11 +1004,11 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           ],
           child: GestureDetector(
             onTapDown: (details) {
-              if(!attendanceProvider.isLoading){
+              if (!attendanceProvider.isLoading) {
                 setState(() {
                   isFromLogOutButton = true;
                 });
-              }else{
+              } else {
                 isFromLogOutButton = false;
               }
 
@@ -1000,17 +1030,21 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                         if (attendanceProvider.isAllowFgAuth == true) {
                           attendanceProvider.doLocalVerification(
                               afterSuccessfulVerificationFnc: () async {
-                            Position position =
-                                await Geolocator.getCurrentPosition(
-                                    desiredAccuracy: LocationAccuracy.best);
 
-                            double? distance = Geolocator.distanceBetween(
-                                attendanceProvider.restrictedLocationLat ?? 0,
-                                attendanceProvider.restrictedLocationLong ?? 0,
-                                position.latitude,
-                                position.longitude);
-                            if (attendanceProvider.isLocationRestricted == true) {
-                              if (distance < (attendanceProvider.restrictedLocationMeter ?? 50)) {
+                            if (attendanceProvider.isLocationRestricted ==
+                                true) {
+                              Position position =
+                              await Geolocator.getCurrentPosition(
+                                  desiredAccuracy: LocationAccuracy.best);
+
+                              double? distance = Geolocator.distanceBetween(
+                                  attendanceProvider.restrictedLocationLat ?? 0,
+                                  attendanceProvider.restrictedLocationLong ?? 0,
+                                  position.latitude,
+                                  position.longitude);
+                              if (distance <
+                                  (attendanceProvider.restrictedLocationMeter ??
+                                      50)) {
                                 !attendanceProvider.isDayStart.value
                                     ? callDayStartApiAndUpdateUI(
                                         attendanceProvider)
@@ -1018,7 +1052,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                         ? callWaitingEndApi(
                                             dayEnd: true,
                                             postMdl: attendanceProvider,
-                                           )
+                                          )
                                         : callDayEndApiAndUpdateUI(
                                             attendanceProvider);
                               } else {
@@ -1037,23 +1071,26 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                       ? callWaitingEndApi(
                                           dayEnd: true,
                                           postMdl: attendanceProvider,
-                                          )
+                                        )
                                       : callDayEndApiAndUpdateUI(
                                           attendanceProvider);
                             }
                           });
                         } else {
-                          Position position =
-                              await Geolocator.getCurrentPosition(
-                                  desiredAccuracy: LocationAccuracy.low);
 
-                          double? distance = Geolocator.distanceBetween(
-                              attendanceProvider.restrictedLocationLat ?? 0,
-                              attendanceProvider.restrictedLocationLong ?? 0,
-                              position.latitude,
-                              position.longitude);
                           if (attendanceProvider.isLocationRestricted == true) {
-                            if (distance < (attendanceProvider.restrictedLocationMeter ?? 50)) {
+                            Position position =
+                            await Geolocator.getCurrentPosition(
+                                desiredAccuracy: LocationAccuracy.low);
+
+                            double? distance = Geolocator.distanceBetween(
+                                attendanceProvider.restrictedLocationLat ?? 0,
+                                attendanceProvider.restrictedLocationLong ?? 0,
+                                position.latitude,
+                                position.longitude);
+                            if (distance <
+                                (attendanceProvider.restrictedLocationMeter ??
+                                    50)) {
                               !attendanceProvider.isDayStart.value
                                   ? callDayStartApiAndUpdateUI(
                                       attendanceProvider)
@@ -1071,14 +1108,15 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                   context: context);
                             }
                           } else {
-                            print("isLocationRestricted${attendanceProvider.isLocationRestricted}");
+                            print(
+                                "isLocationRestricted${attendanceProvider.isLocationRestricted}");
                             !attendanceProvider.isDayStart.value
                                 ? callDayStartApiAndUpdateUI(attendanceProvider)
                                 : attendanceProvider.isWaiting.value == true
                                     ? callWaitingEndApi(
                                         dayEnd: true,
                                         postMdl: attendanceProvider,
-                                        )
+                                      )
                                     : callDayEndApiAndUpdateUI(
                                         attendanceProvider);
                           }

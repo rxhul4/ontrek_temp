@@ -21,6 +21,7 @@ class PendingDayEndScreen extends StatefulWidget {
 class _PendingDayEndScreenState extends State<PendingDayEndScreen> {
   late AttendanceProvider attendanceProvider;
   String dateFormatInto24Hour = "";
+  String? endDateTime;
 
   @override
   void initState() {
@@ -35,22 +36,23 @@ class _PendingDayEndScreenState extends State<PendingDayEndScreen> {
   @override
   Widget build(BuildContext context) {
     final attendanceProvider = Provider.of<AttendanceProvider>(context);
-    return WillPopScope(
-      onWillPop: () {
-        return AppUtils.showDialogBoxWithTwoButton(
-          titleText: "Submit",
-          onSuccessString: "Yes",
-          onCancelString: "No",
-          context: context,
-          text: "Are you sure you want ton submit this request.",
-          onSuccess: () {
-            Navigator.of(context).pop(true);
-          },
-          onCancel: () {
-            Navigator.of(context).pop(false);
-          },
-        );
-      },
+    return PopScope(
+      canPop: false,
+      // onPopInvoked: (didPop) {
+      //   return AppUtils.showDialogBoxWithTwoButton(
+      //     titleText: "Submit",
+      //     onSuccessString: "Yes",
+      //     onCancelString: "No",
+      //     context: context,
+      //     text: "Are you sure you want to submit this request.",
+      //     onSuccess: () {
+      //       Navigator.of(context).pop(true);
+      //     },
+      //     onCancel: () {
+      //       Navigator.of(context).pop(false);
+      //     },
+      //   );
+      // },
       child: GestureDetector(
         onTap: () {
           FocusScope.of(context).unfocus();
@@ -58,6 +60,7 @@ class _PendingDayEndScreenState extends State<PendingDayEndScreen> {
         child: AppScaffold(
           backgroundColor: AppConstant.whiteColor,
           appBar: AppBar(
+            automaticallyImplyLeading: false, // This removes the back button
             surfaceTintColor: AppConstant.transparentColor,
             backgroundColor: Colors.white,
             elevation: 0,
@@ -73,11 +76,11 @@ class _PendingDayEndScreenState extends State<PendingDayEndScreen> {
                     onTap: attendanceProvider.isLoading == true
                         ? () {}
                         : () {
-                            attendanceProvider.checkValidationOfRequestNote(
-                                sessionId: widget.sessionId,
-                                sessionEndDate:
-                                    "${widget.sessionStartDate! + "T" + dateFormatInto24Hour}");
-                          },
+                      attendanceProvider.checkValidationOfRequestNote(
+                          sessionId: widget.sessionId,
+                          sessionEndDate:
+                          endDateTime);
+                    },
                     child: AppUtils.commonTextWidget(
                         text: "Submit",
                         fontSize: 14,
@@ -107,7 +110,7 @@ class _PendingDayEndScreenState extends State<PendingDayEndScreen> {
                       Container(
                           child: AppUtils.commonTextWidget(
                               text:
-                                  "Note: Please complete the form below to request manual day-end processing for the previous working day, which is pending closure. Upon approval, you'll be able to proceed with today's operations.",
+                              "Note: Please complete the form below to request manual day-end processing for the previous working day, which is pending closure. Upon approval, you'll be able to proceed with today's operations.",
                               textColor: Colors.red,
                               fontSize: 10)),
                       AppUtils.commonSizedBox(height: 10),
@@ -227,11 +230,14 @@ class _PendingDayEndScreenState extends State<PendingDayEndScreen> {
 
       attendanceProvider.timeController.text = formattedTime12H;
       String formatedDate = AppUtils.getDate(
-        date: "${attendanceProvider.timeController.text.trim()}",
-        format: "yyyy-mm-dd",
+        date: "${widget.sessionStartDate}",
+        format: "yyyy-MM-dd",
       );
+      print("formatedDate$formatedDate");
       dateFormatInto24Hour = formattedTime24H;
-      print("EndDate${widget.sessionStartDate! + "T" + dateFormatInto24Hour}");
+      print("EndDate${formatedDate + "T" + dateFormatInto24Hour}");
+      endDateTime = formatedDate + "T" + dateFormatInto24Hour;
+      print("endDateTime$endDateTime");
       // You can also assign the 24-hour format to another controller if needed.
     }
   }

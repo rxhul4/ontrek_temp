@@ -7,6 +7,7 @@ class PreferenceHelper {
   static const String IS_LOGIN = "isLogin";
   static const String ORG_ID = "orgId";
   static const String ORG_NAME = "orgName";
+  static const String SESSION_ID = "SESSION_ID";
 
   static const String USER_NAME = "userName";
   static const String COUNTRY_CODE = "countryCode";
@@ -24,7 +25,6 @@ class PreferenceHelper {
   static const String LAST_LAT = "LAST_LAT";
   static const String LAST_LONG = "LAST_LONG";
   static const String WAITING_START_TIME = "WAITING_START_TIME";
-  static const String UNIVERSAL_LAST_SAVED_TIME = "UNIVERSAL_LAST_SAVED_TIME";
 
 
 
@@ -71,6 +71,14 @@ class PreferenceHelper {
 
   static void setString(String key, String value) {
     _prefs?.setString(key, value);
+    _memoryPrefs[key] = value;
+  }
+
+  static void setStringList(String key, List<String> value) {
+    // Set the value in the shared preferences
+    _prefs?.setStringList(key, value);
+
+    // Set the value in the memory preferences
     _memoryPrefs[key] = value;
   }
 
@@ -126,6 +134,23 @@ class PreferenceHelper {
     _memoryPrefs[key] = val;
     return val;
   }
+
+
+  static List<String>? getStringList(String key, {List<String>? def}) {
+    List<String>? val;
+    if (_memoryPrefs.containsKey(key)) {
+      val = _memoryPrefs[key] as List<String>?;
+    }
+    if (val == null) {
+      val = _prefs?.getStringList(key);
+    }
+    if (val == null) {
+      val = def;
+    }
+    _memoryPrefs[key] = val;
+    return val;
+  }
+
 
   static int? getInt(String key, {int? def}) {
     int? val;

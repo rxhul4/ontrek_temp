@@ -118,8 +118,6 @@ class AuthenticationProvider extends ChangeNotifier {
         if(isFromOtpScreen == true){
 
         }else{
-          PreferenceHelper.setString(
-              PreferenceHelper.USER_NAME, loginModel?.data?.userName ?? "");
           navigatePushReplacementFnc(OTPVerificationCode(
             appUserId: loginModel?.data?.appUserId,
             phoneNumber: mobileNumberController.text,
