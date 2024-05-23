@@ -12,6 +12,7 @@ class ApiConstants{
       static const String getSalesMenList = "$baseUrl/FieldUser/SalesmanList";
       static const String getSalesMenTimeLine = "$baseUrl/FieldUser/GetTimeline";
       static const String createActivity = "$baseUrl/FieldUser/CreateActivity";
+      static const String bulkActivity = "$baseUrl/FieldUser/BulkActivity";
       static const String getLastActivity = "$baseUrl/FieldUser/GetLastActivity";
       static const String createRouteHistory = "$baseUrl/FieldUser/CreateRoutHistory";
       static const String getLeadList = "$baseUrl/FieldUser/LeadList";

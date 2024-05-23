@@ -5,6 +5,7 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:ontrek/core/background_service_model/bulk_activity_model.dart';
 import 'package:ontrek/core/common_widgets/textfield_widget.dart';
 import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
@@ -243,6 +244,7 @@ class AttendanceProvider extends ChangeNotifier {
         print("startDate$sessionStartDateStr");
 
         if (getLastActivityModel?.data == null) {
+          print("data_is_null");
           setDataAccordingToLastActivity("");
         }
         DateTime sessionStartDate =
@@ -270,15 +272,20 @@ class AttendanceProvider extends ChangeNotifier {
         if (sessionStartDateStr == AppUtils.getDate(date: DateTime.now().toString(), format: "dd-MM-yyyy")) {
           sessionId = getLastActivityModel?.data?.sessionId;
           print("sessionId$sessionId");
+          PreferenceHelper.setString(PreferenceHelper.SESSION_ID, sessionId ?? "");
+          // service.invoke("background", {
+          //   "lastLat": 0,
+          //   "lastLong": 0,
+          //   "waitingStartTime": 0,
+          //   "sessionId" : sessionId
+          // });
           setDataAccordingToLastActivity(totEventCode);
           if (isDayStart.value == true) {
             bool? liveLocationTracking = PreferenceHelper.getBool(
                 PreferenceHelper.LIVE_LOCATION_TRACKING);
+
             if (liveLocationTracking == true) {
               await service.startService();
-              service.invoke("background", {
-                "sessionId" :  sessionId
-              });
             }
           }
         }
@@ -379,6 +386,139 @@ class AttendanceProvider extends ChangeNotifier {
           sessionId: sessionId, sessionEndDate: sessionEndDate);
     }
   }
+
+
+
+  BulkActivityModel? bulkActivityModel;
+  callBulkActivityApi({Function()? dayEndFnc}) async {
+    PreferenceHelper.reload().then((value)async {
+      if(value != null){
+        String? userName = value.getString(PreferenceHelper.USER_NAME);
+        String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
+
+        bool? internetBool = value.getBool(PreferenceHelper.INTERNET_BOOL);
+        bool? gpsBool = value.getBool(PreferenceHelper.GPS_BOOL);
+        String? lastInternetOffTime = value.getString(PreferenceHelper.LAST_INTERNET_OFF_TIME);
+        String? lastGpsOffTime = value.getString(PreferenceHelper.LAST_GPS_OFF_TIME);
+        double? lastLat = value.getDouble(PreferenceHelper.LAST_LAT);
+        double? lastLong = value.getDouble(PreferenceHelper.LAST_LONG);
+        Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
+        List<String> offlineData = value.getStringList('offline_data') ?? [];
+        List offlineDataMaps = offlineData.map((data) => jsonDecode(data)).toList();
+        print("offlineDataMaps$offlineDataMaps");
+        Map<String, dynamic> internetOffBody = {
+          "userId": userId,
+          "sessionId": sessionId,
+          "lattitude": lastLat,
+          "longitude": lastLong,
+          "totTrackingEventId": AppConstant.internetOffEvent,
+          "activityDateTime": AppUtils.getDate(
+              date: lastInternetOffTime ?? "", format: AppConstant.dateFormat),
+          "batteryLevel": await AppUtils.getBatteryLevel(),
+          "visitNoteRequestForm" : null,
+          "offlineMapData": null,
+          "timeZoneDiff": DateTime.now().timeZoneOffset.inMinutes.toString(),
+          "loggedInUser": userName ?? ""
+        };
+        Map<String, dynamic> internetOnBody = {
+          "userId": userId,
+          "sessionId": sessionId,
+          "lattitude": position.latitude,
+          "longitude": position.longitude,
+          "totTrackingEventId": AppConstant.internetOnEvent,
+          "activityDateTime": AppUtils.getDate(
+              date: DateTime.now().toString(), format: AppConstant.dateFormat),
+          "batteryLevel": await AppUtils.getBatteryLevel(),
+          "visitNoteRequestForm" : null,
+          "offlineMapData": offlineDataMaps,
+          "timeZoneDiff": DateTime.now().timeZoneOffset.inMinutes.toString(),
+          "loggedInUser": userName ?? ""
+        };
+
+        Map<String, dynamic> gpsOffBody = {
+          "userId": userId,
+          "sessionId": sessionId,
+          "lattitude": lastLat,
+          "longitude":  lastLong,
+          "totTrackingEventId": AppConstant.gpsOffEvent,
+          "activityDateTime": AppUtils.getDate(
+              date: lastGpsOffTime ?? "", format: AppConstant.dateFormat),
+          "batteryLevel": await AppUtils.getBatteryLevel(),
+          "visitNoteRequestForm" : null,
+          "offlineMapData": null,
+          "timeZoneDiff": DateTime.now().timeZoneOffset.inMinutes.toString(),
+          "loggedInUser": userName ?? ""
+        };
+        Map<String, dynamic> gpsOnBody = {
+          "userId": userId,
+          "sessionId": sessionId,
+          "lattitude": position.latitude,
+          "longitude": position.longitude,
+          "totTrackingEventId": AppConstant.gpsOnEvent,
+          "activityDateTime": AppUtils.getDate(
+              date: DateTime.now().toString(), format: AppConstant.dateFormat),
+          "batteryLevel": await AppUtils.getBatteryLevel(),
+          "visitNoteRequestForm" : null,
+          "offlineMapData": null,
+          "timeZoneDiff": DateTime.now().timeZoneOffset.inMinutes.toString(),
+          "loggedInUser": userName ?? ""
+        };
+
+        Map<String, dynamic> body = {};
+        print("InternetandGpsBool$internetBool----$gpsBool");
+        if (gpsBool == true && internetBool == true) {
+          body = {
+            "activityList": [internetOffBody, internetOnBody, gpsOffBody, gpsOnBody],
+          };
+        } else if (internetBool == true) {
+          body = {
+            "activityList": [internetOffBody, internetOnBody],
+          };
+        } else if (gpsBool == true) {
+          body = {
+            "activityList": [gpsOffBody, gpsOnBody],
+          };
+        }
+        print("InternetandGpsBool$internetBool----$gpsBool");
+
+        try {
+          String endPoint = ApiConstants.bulkActivity;
+          var response = await callPostMethod(endPoint, body);
+          bulkActivityModel = BulkActivityModel?.fromJson(json.decode(response));
+          if (bulkActivityModel?.isError == false && bulkActivityModel?.isValidationFailed == false) {
+            if(internetBool == true){
+              PreferenceHelper.remove("offline_data");
+              PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_OFF_TIME);
+              PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_ON_TIME);
+              PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
+              PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, false);
+            }
+            if(gpsBool == true){
+              PreferenceHelper.remove(PreferenceHelper.LAST_GPS_OFF_TIME);
+              PreferenceHelper.remove(PreferenceHelper.LAST_GPS_ON_TIME);
+              PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
+              PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, false);
+            }
+            dayEndFnc!();
+          }
+        } catch (e) {
+          print("catch_at_bulkApi_call$e");
+        }
+      }
+
+    });
+
+
+
+
+
+
+
+
+  }
+
+
+
 
   clearController() {
     timeController.clear();

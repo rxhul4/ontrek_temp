@@ -208,8 +208,11 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
         polylineId: PolylineId("PolyLine$selectedIndex"),
         visible: true,
         width: 4,
+        jointType: JointType.round,
+        startCap: Cap.roundCap,
+        endCap: Cap.roundCap,
         points: polylineCoordinates,
-        color: AppConstant.appPrimaryColor,
+        color: Colors.blue,
       ));
     } else {
       var sessionTimeLine =
@@ -230,50 +233,18 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
             polylineId: PolylineId("PolyLine${session.sessionNo}"),
             visible: true,
             width: 4,
+            geodesic: true,
+            jointType: JointType.round,
+            startCap: Cap.roundCap,
+            endCap: Cap.roundCap,
             points: polylineCoordinates,
-            color: AppConstant.greyColor,
+            color: Colors.blue,
+
           ));
 
-          // if (polylineCoordinates.isNotEmpty) {
-          //   var startLatLng = polylineCoordinates.first;
-          //   // Print startLatLng for debugging
-          //   markers.add(Marker(
-          //     markerId: MarkerId("StartMarker${session.sessionNo}"),
-          //     position: startLatLng,
-          //     icon: BitmapDescriptor.defaultMarker, // Adjust icon as needed
-          //   ));
-          // }
-          //
-          // if (polylineCoordinates.isNotEmpty) {
-          //   var endLatLng = polylineCoordinates.last;
-          //   markers.add(Marker(
-          //     markerId: MarkerId("EndMarker${session.sessionNo}"),
-          //     position: endLatLng,
-          //     icon: BitmapDescriptor.defaultMarker, // Adjust icon as needed
-          //   ));
-          // }
         }
       }
     }
-    // if (selectedIndex != 0) {
-    //   if (polylineCoordinates.isNotEmpty) {
-    //     var startLatLng = polylineCoordinates.first;
-    //     markers.clear();
-    //     markers.add(Marker(
-    //       markerId: MarkerId("StartMarker"),
-    //       position: startLatLng,
-    //       icon: BitmapDescriptor.defaultMarker, // Adjust icon as needed
-    //     ));
-    //   }
-    //   if (polylineCoordinates.isNotEmpty) {
-    //     var endLatLng = polylineCoordinates.last;
-    //     markers.add(Marker(
-    //       markerId: MarkerId("EndMarker"),
-    //       position: endLatLng,
-    //       icon: BitmapDescriptor.defaultMarker, // Adjust icon as needed
-    //     ));
-    //   }
-    // }
 
     saleMenTimeLineProvider.sessionEvents.forEach((element) async {
       if (element.sessionNo == selectedIndex) {
@@ -518,7 +489,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                                     ?.fieldUserLastActivity?.activityName ==
                                 ""
                         ? "No Activity Found"
-                        : "${saleMenTimeLineProvider.getTimeLineModel?.data?.fieldUserLastActivity?.activityName} - ${AppUtils.getDate(date: "${saleMenTimeLineProvider.getTimeLineModel?.data?.fieldUserLastActivity?.lastTrackingActivityTime}", format: "dd MMM yyyy HH:MM a")}",
+                        : "${saleMenTimeLineProvider.getTimeLineModel?.data?.fieldUserLastActivity?.activityName} - ${AppUtils.getDate(date: "${saleMenTimeLineProvider.getTimeLineModel?.data?.fieldUserLastActivity?.lastTrackingActivityTime}", format: "dd MMM yyyy hh:mm a")}",
                   ),
                   saleMenTimeLineProvider.isFetching ||
                           saleMenTimeLineProvider
@@ -537,7 +508,9 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                               totalCheckIn: saleMenTimeLineProvider
                                   .getTimeLineModel?.data?.totalCheckIn,
                               totalDuration: saleMenTimeLineProvider
-                                      .getTimeLineModel?.data?.allSessionTotalDurationText ??
+                                      .getTimeLineModel
+                                      ?.data
+                                      ?.allSessionTotalDurationText ??
                                   "",
                               totalKMTravel: saleMenTimeLineProvider
                                   .getTimeLineModel?.data?.totalKmTravel
@@ -862,7 +835,8 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Flexible(
                                     flex: 5,
@@ -880,17 +854,22 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                                     child: Row(
                                       children: [
                                         AppUtils.commonTextWidget(
-                                          text: "${sessionList?[index].batteryPercentage ?? 0}%",
-                                          textColor: AppConstant.appPrimaryColor,
+                                          text:
+                                              "${sessionList?[index].batteryPercentage ?? 0}%",
+                                          textColor:
+                                              AppConstant.appPrimaryColor,
                                           fontWeight: FontWeight.w500,
                                           fontSize: 8,
                                         ),
                                         SizedBox(width: 5),
                                         BatteryIndicator(
                                           colorful: true,
-                                          batteryLevel: sessionList?[index].batteryPercentage ?? 0,
+                                          batteryLevel: sessionList?[index]
+                                                  .batteryPercentage ??
+                                              0,
                                           batteryFromPhone: false,
-                                          style: BatteryIndicatorStyle.skeumorphism,
+                                          style: BatteryIndicatorStyle
+                                              .skeumorphism,
                                           percentNumSize: 6,
                                           size: 6,
                                           showPercentNum: false,
