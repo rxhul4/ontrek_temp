@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:ontrek/core/background_service_model/activity_model.dart';
+import 'package:ontrek/core/services/background_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PreferenceHelper {
@@ -82,9 +84,7 @@ class PreferenceHelper {
     _memoryPrefs[key] = value;
   }
 
-
-
-  static void remove(String? key) {
+    static void remove(String? key) {
     if (key != null) {
       _prefs?.remove(key);
       _memoryPrefs[key] = null;
@@ -103,6 +103,14 @@ class PreferenceHelper {
     JsonEncoder encoder = const JsonEncoder();
     _prefs?.setString(key, encoder.convert(value));
     _memoryPrefs[key] = encoder.convert(value);
+  }
+
+  static void setObjectList<T>(String key, List<T> value) {
+    JsonEncoder encoder = const JsonEncoder();
+    String encodedValue = encoder.convert(value);
+
+    _prefs?.setString(key, encodedValue);
+    _memoryPrefs[key] = encodedValue;
   }
 
   static void setInt(String key, int value) {
@@ -151,8 +159,7 @@ class PreferenceHelper {
     return val;
   }
 
-
-  static int? getInt(String key, {int? def}) {
+   static int? getInt(String key, {int? def}) {
     int? val;
     if (_memoryPrefs.containsKey(key)) {
       val = _memoryPrefs[key];
@@ -200,11 +207,53 @@ class PreferenceHelper {
   static dynamic getObject(String key) {
     String? val = getString(key, def: "");
 
-    if (val != null) {
-      JsonDecoder decoder = const JsonDecoder();
-      return decoder.convert(val);
+    if (val == "")
+    {
+      return null;
     }
-    return "";
+
+    if (val == null)
+    {
+      return null;
+    }
+
+    JsonDecoder decoder = const JsonDecoder();
+    return decoder.convert(val!);
+  }
+
+  static T? getObjectGeneric<T>(String key) {
+    String? val = getString(key, def: "");
+
+    if (val != null && val.isNotEmpty) {
+      JsonDecoder decoder = const JsonDecoder();
+      var decoded = decoder.convert(val);
+      if (decoded is T) {
+        return decoded;
+      }
+    }
+    return null;
+  }
+
+  static List<T>? getObjectGenericList<T>(String key) {
+    String? val = getString(key, def: "");
+
+    if (val != null && val.isNotEmpty) {
+      JsonDecoder decoder = const JsonDecoder();
+      var decoded = decoder.convert(val);
+
+      // Check if the decoded value is a List
+      if (decoded is List) {
+        // Attempt to cast each element in the list to type T
+        try {
+          return decoded.map<T>((item) => item as T).toList();
+        } catch (e) {
+          // If casting fails, return null or handle the error as needed
+          print('Error casting items in the list to type $T: $e');
+          return null;
+        }
+      }
+    }
+    return null;
   }
 
   static void clear() {

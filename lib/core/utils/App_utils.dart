@@ -557,6 +557,8 @@ class AppUtils {
   //   );
   // }
 
+
+
   static loaderWidget({Color? color, double? radius}) {
     return Center(
         child: CupertinoActivityIndicator(
@@ -791,6 +793,10 @@ class AppUtils {
       }
     }
     return parseDate;
+  }
+
+  static String getDateTimeNow(){
+    return AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat);
   }
 
   static String timeLineDate({required String date,}) {

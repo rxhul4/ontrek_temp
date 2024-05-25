@@ -3,7 +3,7 @@ class GetLastActivityModel {
   bool? isValidationFailed;
   String? errorCode;
   String? message;
-  Data? data;
+  LastActivityData? data;
 
   GetLastActivityModel(
       {this.isError,
@@ -17,7 +17,7 @@ class GetLastActivityModel {
     isValidationFailed = json['isValidationFailed'];
     errorCode = json['errorCode'];
     message = json['message'];
-    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? new LastActivityData.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -33,7 +33,7 @@ class GetLastActivityModel {
   }
 }
 
-class Data {
+class LastActivityData {
   String? fieldUserId;
   String? trackingEventId;
   String? activityName;
@@ -52,7 +52,7 @@ class Data {
   String? tlDateTime;
   String? markerTitle;
 
-  Data(
+  LastActivityData(
       {this.fieldUserId,
         this.trackingEventId,
         this.activityName,
@@ -71,7 +71,7 @@ class Data {
         this.tlDateTime,
         this.markerTitle});
 
-  Data.fromJson(Map<String, dynamic> json) {
+  LastActivityData.fromJson(Map<String, dynamic> json) {
     fieldUserId = json['fieldUserId'];
     trackingEventId = json['trackingEventId'];
     activityName = json['activityName'];

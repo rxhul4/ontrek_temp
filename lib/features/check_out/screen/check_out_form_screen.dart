@@ -136,12 +136,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
       if (createActivityModel?.isError == false &&
           createActivityModel?.isValidationFailed == false) {
         checkOutFunction();
-        // PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
-        service.invoke("checkout_update", {
-          "waitingStartTime": DateTime.now().toString(),
-          "lastLat": position?.latitude,
-          "lastLong": position?.longitude,
-        });
+        service.invoke("checkOut_event");
       } else {
         if (createActivityModel?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(

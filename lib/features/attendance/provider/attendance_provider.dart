@@ -17,6 +17,8 @@ import 'package:ontrek/features/attendance/model/add_activity_model.dart';
 import 'package:ontrek/features/attendance/model/dayend_manual_request_model.dart';
 import 'package:ontrek/features/attendance/model/get_check_panding_dayend.dart';
 import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
+import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
+import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
 import 'package:ontrek/features/attendance/screen/pending_dayend_screen.dart';
 import 'package:ontrek/features/dashboard/screens/dashboard_screen.dart';
 import 'package:ontrek/main.dart';
@@ -145,7 +147,6 @@ class AttendanceProvider extends ChangeNotifier {
     }
     return position;
   }
-
   Future<CreateActivityModel?> apiCallCreateActivity({
     bool? isFromCheckOut = false,
     String? checkOutSessionId,
@@ -172,25 +173,29 @@ class AttendanceProvider extends ChangeNotifier {
       "customerPhoneNo": customerPhoneNumber,
       "totVisitTypeId": visitTypeCode,
     };
+
     Map<String, dynamic> body = {
-      "userId": userid ?? "",
-      "longitude": isFromCheckOut == true
-          ? positionData?.longitude ?? 0
-          : position.longitude,
-      "lattitude": isFromCheckOut == true
-          ? positionData?.latitude ?? 0
-          : position.latitude,
-      "sessionId": isFromCheckOut == true
-          ? checkOutSessionId
-          : isActiveSession == true
-              ? sessionId
-              : null,
-      "totTrackingEventId": totTrackingEventCode,
-      "activityDateTime": activityDateTime ??
-          AppUtils.dateFormat(
-              date: DateTime.now(), dateFormat: AppConstant.dateFormat),
-      "batteryLevel": battery,
-      "visitNoteRequestForm": isFromCheckOut ?? false ? checkOutDataBody : null
+      "createActivity": {
+        "userId": userid ?? "",
+        "longitude": isFromCheckOut == true
+            ? positionData?.longitude ?? 0
+            : position.longitude,
+        "lattitude": isFromCheckOut == true
+            ? positionData?.latitude ?? 0
+            : position.latitude,
+        "sessionId": isFromCheckOut == true
+            ? checkOutSessionId
+            : isActiveSession == true
+                ? sessionId
+                : null,
+        "totTrackingEventId": totTrackingEventCode,
+        "activityDateTime": activityDateTime ??
+            AppUtils.dateFormat(
+                date: DateTime.now(), dateFormat: AppConstant.dateFormat),
+        "batteryLevel": battery,
+        "visitNoteRequestForm":
+            isFromCheckOut ?? false ? checkOutDataBody : null
+      }
     };
     try {
       String endPoint = ApiConstants.createActivity;
@@ -269,16 +274,14 @@ class AttendanceProvider extends ChangeNotifier {
             setDataAccordingToLastActivity("");
           }
         }
-        if (sessionStartDateStr == AppUtils.getDate(date: DateTime.now().toString(), format: "dd-MM-yyyy")) {
+        if (sessionStartDateStr ==
+            AppUtils.getDate(
+                date: DateTime.now().toString(), format: "dd-MM-yyyy")) {
           sessionId = getLastActivityModel?.data?.sessionId;
           print("sessionId$sessionId");
-          PreferenceHelper.setString(PreferenceHelper.SESSION_ID, sessionId ?? "");
-          // service.invoke("background", {
-          //   "lastLat": 0,
-          //   "lastLong": 0,
-          //   "waitingStartTime": 0,
-          //   "sessionId" : sessionId
-          // });
+          PreferenceHelper.setString(
+              PreferenceHelper.SESSION_ID, sessionId ?? "");
+
           setDataAccordingToLastActivity(totEventCode);
           if (isDayStart.value == true) {
             bool? liveLocationTracking = PreferenceHelper.getBool(
@@ -286,6 +289,9 @@ class AttendanceProvider extends ChangeNotifier {
 
             if (liveLocationTracking == true) {
               await service.startService();
+              print("dtaaadasd${getLastActivityModel?.data?.toJson()}");
+
+              service.invoke("appLoad", getLastActivityModel?.data?.toJson());
             }
           }
         }
@@ -300,9 +306,6 @@ class AttendanceProvider extends ChangeNotifier {
     } catch (e) {
       print("inCatch ${getLastActivityModel?.message}");
       print("inCatchE $e");
-      AppUtils.showDialogBoxWithOneButton(
-          context: navigatorKey.currentState!.context,
-          text: "Something went wrong, Please try again later!");
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
       if (isInternetAvailable == false) {
         AppUtils.showDialogBoxWithOneButton(
@@ -320,8 +323,6 @@ class AttendanceProvider extends ChangeNotifier {
     loaderFnc(false);
     return getLastActivityModel;
   }
-
-
 
   Future<DayEndManualRequestModel?> apiCallDayEndManualRequest(
       {String? sessionId, String? sessionEndDate}) async {
@@ -387,24 +388,27 @@ class AttendanceProvider extends ChangeNotifier {
     }
   }
 
-
-
   BulkActivityModel? bulkActivityModel;
+
   callBulkActivityApi({Function()? dayEndFnc}) async {
-    PreferenceHelper.reload().then((value)async {
-      if(value != null){
+    PreferenceHelper.reload().then((value) async {
+      if (value != null) {
         String? userName = value.getString(PreferenceHelper.USER_NAME);
         String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
 
         bool? internetBool = value.getBool(PreferenceHelper.INTERNET_BOOL);
         bool? gpsBool = value.getBool(PreferenceHelper.GPS_BOOL);
-        String? lastInternetOffTime = value.getString(PreferenceHelper.LAST_INTERNET_OFF_TIME);
-        String? lastGpsOffTime = value.getString(PreferenceHelper.LAST_GPS_OFF_TIME);
+        String? lastInternetOffTime =
+            value.getString(PreferenceHelper.LAST_INTERNET_OFF_TIME);
+        String? lastGpsOffTime =
+            value.getString(PreferenceHelper.LAST_GPS_OFF_TIME);
         double? lastLat = value.getDouble(PreferenceHelper.LAST_LAT);
         double? lastLong = value.getDouble(PreferenceHelper.LAST_LONG);
-        Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
+        Position position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.medium);
         List<String> offlineData = value.getStringList('offline_data') ?? [];
-        List offlineDataMaps = offlineData.map((data) => jsonDecode(data)).toList();
+        List offlineDataMaps =
+            offlineData.map((data) => jsonDecode(data)).toList();
         print("offlineDataMaps$offlineDataMaps");
         Map<String, dynamic> internetOffBody = {
           "userId": userId,
@@ -415,7 +419,7 @@ class AttendanceProvider extends ChangeNotifier {
           "activityDateTime": AppUtils.getDate(
               date: lastInternetOffTime ?? "", format: AppConstant.dateFormat),
           "batteryLevel": await AppUtils.getBatteryLevel(),
-          "visitNoteRequestForm" : null,
+          "visitNoteRequestForm": null,
           "offlineMapData": null,
           "timeZoneDiff": DateTime.now().timeZoneOffset.inMinutes.toString(),
           "loggedInUser": userName ?? ""
@@ -429,7 +433,7 @@ class AttendanceProvider extends ChangeNotifier {
           "activityDateTime": AppUtils.getDate(
               date: DateTime.now().toString(), format: AppConstant.dateFormat),
           "batteryLevel": await AppUtils.getBatteryLevel(),
-          "visitNoteRequestForm" : null,
+          "visitNoteRequestForm": null,
           "offlineMapData": offlineDataMaps,
           "timeZoneDiff": DateTime.now().timeZoneOffset.inMinutes.toString(),
           "loggedInUser": userName ?? ""
@@ -439,12 +443,12 @@ class AttendanceProvider extends ChangeNotifier {
           "userId": userId,
           "sessionId": sessionId,
           "lattitude": lastLat,
-          "longitude":  lastLong,
+          "longitude": lastLong,
           "totTrackingEventId": AppConstant.gpsOffEvent,
           "activityDateTime": AppUtils.getDate(
               date: lastGpsOffTime ?? "", format: AppConstant.dateFormat),
           "batteryLevel": await AppUtils.getBatteryLevel(),
-          "visitNoteRequestForm" : null,
+          "visitNoteRequestForm": null,
           "offlineMapData": null,
           "timeZoneDiff": DateTime.now().timeZoneOffset.inMinutes.toString(),
           "loggedInUser": userName ?? ""
@@ -458,7 +462,7 @@ class AttendanceProvider extends ChangeNotifier {
           "activityDateTime": AppUtils.getDate(
               date: DateTime.now().toString(), format: AppConstant.dateFormat),
           "batteryLevel": await AppUtils.getBatteryLevel(),
-          "visitNoteRequestForm" : null,
+          "visitNoteRequestForm": null,
           "offlineMapData": null,
           "timeZoneDiff": DateTime.now().timeZoneOffset.inMinutes.toString(),
           "loggedInUser": userName ?? ""
@@ -468,7 +472,12 @@ class AttendanceProvider extends ChangeNotifier {
         print("InternetandGpsBool$internetBool----$gpsBool");
         if (gpsBool == true && internetBool == true) {
           body = {
-            "activityList": [internetOffBody, internetOnBody, gpsOffBody, gpsOnBody],
+            "activityList": [
+              internetOffBody,
+              internetOnBody,
+              gpsOffBody,
+              gpsOnBody
+            ],
           };
         } else if (internetBool == true) {
           body = {
@@ -484,19 +493,23 @@ class AttendanceProvider extends ChangeNotifier {
         try {
           String endPoint = ApiConstants.bulkActivity;
           var response = await callPostMethod(endPoint, body);
-          bulkActivityModel = BulkActivityModel?.fromJson(json.decode(response));
-          if (bulkActivityModel?.isError == false && bulkActivityModel?.isValidationFailed == false) {
-            if(internetBool == true){
+          bulkActivityModel =
+              BulkActivityModel?.fromJson(json.decode(response));
+          if (bulkActivityModel?.isError == false &&
+              bulkActivityModel?.isValidationFailed == false) {
+            if (internetBool == true) {
               PreferenceHelper.remove("offline_data");
               PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_OFF_TIME);
               PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_ON_TIME);
-              PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
+              PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME,
+                  DateTime.now().toString());
               PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, false);
             }
-            if(gpsBool == true){
+            if (gpsBool == true) {
               PreferenceHelper.remove(PreferenceHelper.LAST_GPS_OFF_TIME);
               PreferenceHelper.remove(PreferenceHelper.LAST_GPS_ON_TIME);
-              PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
+              PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME,
+                  DateTime.now().toString());
               PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, false);
             }
             dayEndFnc!();
@@ -505,20 +518,8 @@ class AttendanceProvider extends ChangeNotifier {
           print("catch_at_bulkApi_call$e");
         }
       }
-
     });
-
-
-
-
-
-
-
-
   }
-
-
-
 
   clearController() {
     timeController.clear();

@@ -147,13 +147,15 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   callDayStartApiAndUpdateUI(AttendanceProvider? attendanceProvider) async {
     try {
+
+
       var response = await callCreateActivityApi(
           totTrackingEventCode: AppConstant.dayStartEvent,
           attendanceProvider: attendanceProvider);
 
       if (response?.isError == false && response?.isValidationFailed == false) {
-        if (response?.data != null) {
-          DateTime currentTime = DateTime.now();
+        service.invoke("dayStart");
+        DateTime currentTime = DateTime.now();
           DateTime newTime = currentTime.add(Duration(minutes: 1));
           String newTimeString = newTime.toString();
           await attendanceProvider?.callGetLastActivity();
@@ -183,12 +185,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
             "waitingStartTime": waitingStartTime,
             "sessionId": attendanceProvider?.sessionId
           });
-        } else {
-          AppUtils.showDialogBoxWithOneButton(
-              titleText: "Error",
-              context: context,
-              text: "Something went wrong, Please try again later!");
-        }
       } else {
         if (response?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(
@@ -241,21 +237,22 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   callCheckInApiAndUpdateUI(AttendanceProvider? attendanceProvider) async {
     //getCurrent Location for UI and api
     try {
+
+      service.invoke("checkIn_beforeEvent");
+
       var response = await callCreateActivityApi(
           totTrackingEventCode: AppConstant.checkInEvent,
           attendanceProvider: attendanceProvider);
 
       //check api success or not
       if (response?.isError == false && response?.isValidationFailed == false) {
-        if (response?.data != null) {
-          callCheckInFunction(LatLng(
-              response?.data?.lattitude ?? 0, response?.data?.longitude ?? 0));
-        } else {
-          AppUtils.showDialogBoxWithOneButton(
-              titleText: "Error",
-              context: context,
-              text: "Something went wrong, Please try again later!");
-        }
+        service.invoke("checkIn_afterEvent");
+        // if (response?.data != null) {
+        PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
+        attendanceProvider?.isCheckIn.value =
+            PreferenceHelper.getBool(PreferenceHelper.checkIn);
+          // callCheckInFunction(LatLng(
+          //     response?.data?.lattitude ?? 0, response?.data?.longitude ?? 0));
       } else {
         if (response?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(
@@ -407,22 +404,34 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   callDayEndApiAndUpdateUI(AttendanceProvider? attendanceProvider) async {
     //getCurrent Location for UI and api
     try {
+
+      service.invoke("dayEnd_beforeEvent");
       var response = await callCreateActivityApi(
           totTrackingEventCode: AppConstant.dayEndEvent,
           attendanceProvider: attendanceProvider);
 
       //check api success or not
       if (response?.isError == false && response?.isValidationFailed == false) {
+        service.invoke("dayEnd_afterEvent");
         PreferenceHelper.remove(PreferenceHelper.SESSION_ID);
-        if (response?.data != null) {
-          callDayEndFunction(LatLng(
-              response?.data?.lattitude ?? 0, response?.data?.longitude ?? 0));
-        } else {
-          AppUtils.showDialogBoxWithOneButton(
-              titleText: "Error",
-              context: context,
-              text: "Something went wrong, Please try again later!");
-        }
+        service.invoke("stopService");
+        PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+        PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
+        attendanceProvider?.isDayStart.value =
+            PreferenceHelper.getBool(PreferenceHelper.DayStart);
+        attendanceProvider?.isCheckIn.value =
+            PreferenceHelper.getBool(PreferenceHelper.checkIn);
+        attendanceProvider?.isDayEnd.value = false;
+
+        // if (response?.data != null) {
+        //   callDayEndFunction(LatLng(
+        //       response?.data?.lattitude ?? 0, response?.data?.longitude ?? 0));
+        // } else {
+        //   AppUtils.showDialogBoxWithOneButton(
+        //       titleText: "Error",
+        //       context: context,
+        //       text: "Something went wrong, Please try again later!");
+        // }
       } else {
         if (response?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(
