@@ -45,6 +45,7 @@ class DashBoardProvider extends ChangeNotifier {
   GetLastActivityModel? getLastActivityModel;
   FlutterBackgroundService service = FlutterBackgroundService();
   List<Map<String, dynamic>> showUserInMap = [];
+  bool isMapLoaded = false;
 
   loaderFnc(bool isLoading) {
     _isLoading = isLoading;
@@ -85,20 +86,25 @@ class DashBoardProvider extends ChangeNotifier {
     if (status.isDenied) {
       await Permission.location.request();
     } else if (status.isPermanentlyDenied) {
-      AppUtils.showDialogBoxWithOneButton(titleText: "Location",text: "Please enable your location service.",context: context);
+      AppUtils.showDialogBoxWithOneButton(
+          titleText: "Location",
+          text: "Please enable your location service.",
+          context: context);
     } else {
       // Location permission is granted
-      if(status2.isDenied){
+      if (status2.isDenied) {
         await Permission.locationAlways.request();
-      }else if(status2.isPermanentlyDenied){
-        AppUtils.showDialogBoxWithOneButton(titleText: "Location",text: "Please enable your always on location service.",context: context);
-      }else{
+      } else if (status2.isPermanentlyDenied) {
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Location",
+            text: "Please enable your always on location service.",
+            context: context);
+      } else {
         await getCurrentLocation();
-
       }
-
     }
   }
+
 
   Future<void> getCurrentLocation() async {
     try {
@@ -111,9 +117,12 @@ class DashBoardProvider extends ChangeNotifier {
         await updateCameraPosition(currentLocation ?? LatLng(0, 0));
         await addCurrentLocationMarker(currentLocation ?? LatLng(0, 0));
         markers.clear();
-        Future.delayed(Duration(milliseconds: 300),() async{
-          await addCurrentLocationMarker(currentLocation ?? LatLng(0, 0));
-        },);
+        Future.delayed(
+          Duration(milliseconds: 200),
+          () async {
+            await addCurrentLocationMarker(currentLocation ?? LatLng(0, 0));
+          },
+        );
       }
       notifyListeners();
     } catch (e) {
@@ -148,8 +157,6 @@ class DashBoardProvider extends ChangeNotifier {
     }
   }
 
-
-
   Future addCurrentLocationMarker(LatLng location) async {
     try {
       String? imgUrl = PreferenceHelper.getString(PreferenceHelper.PROFILE_PIC);
@@ -161,29 +168,32 @@ class DashBoardProvider extends ChangeNotifier {
           icon: await CustomMarkerWidget(
             imageUrl: imgUrl,
           ).toBitmapDescriptor(
-              logicalSize: Size(150, 150),
-              imageSize: Size(300, 300),
-              ),
-        ),
-      );
-      Future.delayed(Duration(milliseconds: 300),() async{
-        markers.clear();
-        await markers.add(
-          Marker(
-            markerId: MarkerId("currentLocation"),
-            position: location,
-            infoWindow: InfoWindow(title: "Current Location"),
-            icon: await CustomMarkerWidget(
-            imageUrl: imgUrl,
-          ).toBitmapDescriptor(
             logicalSize: Size(150, 150),
             imageSize: Size(300, 300),
           ),
         ),
-        );
-        notifyListeners();
-        print("ceckkkkkkkkkk");
-      },);
+      );
+      Future.delayed(
+        Duration(milliseconds: 100),
+        () async {
+          markers.clear();
+          await markers.add(
+            Marker(
+              markerId: MarkerId("currentLocation"),
+              position: location,
+              infoWindow: InfoWindow(title: "Current Location"),
+              icon: await CustomMarkerWidget(
+                imageUrl: imgUrl,
+              ).toBitmapDescriptor(
+                logicalSize: Size(150, 150),
+                imageSize: Size(300, 300),
+              ),
+            ),
+          );
+          notifyListeners();
+          print("ceckkkkkkkkkk");
+        },
+      );
     } catch (e) {
       print("Error_in_marker$e");
     }
@@ -214,7 +224,6 @@ class DashBoardProvider extends ChangeNotifier {
       print("userId=======$userId");
       userLatLng.add(LatLng(userLat ?? 0, userLong ?? 0));
 
-
       try {
         await markers.add(
           Marker(
@@ -229,7 +238,6 @@ class DashBoardProvider extends ChangeNotifier {
                   ).toBitmapDescriptor(
                     logicalSize: Size(150, 150),
                     imageSize: Size(300, 300),
-                    waitToRender: Duration(milliseconds: 300),
                   )
                 : BitmapDescriptor.defaultMarker,
           ),
@@ -275,15 +283,11 @@ class DashBoardProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-
-
   Future<void> updateCameraLocation(
     LatLng source,
     LatLng destination,
   ) async {
     if (googleMapController == null) return;
-
-
 
     LatLngBounds bounds;
 
@@ -303,10 +307,8 @@ class DashBoardProvider extends ChangeNotifier {
     }
     CameraUpdate cameraUpdate = CameraUpdate.newLatLngBounds(bounds, 70);
 
-
     return checkCameraLocation(cameraUpdate, googleMapController!);
   }
-
 
   Future<void> boundsFromLatLngList(List<LatLng> list) {
     double? x0, x1, y0, y1;
@@ -321,11 +323,11 @@ class DashBoardProvider extends ChangeNotifier {
         if (latLng.longitude < y0!) y0 = latLng.longitude;
       }
     }
-    LatLngBounds bounds = LatLngBounds(northeast: LatLng(x1!, y1!), southwest: LatLng(x0!, y0!));
+    LatLngBounds bounds =
+        LatLngBounds(northeast: LatLng(x1!, y1!), southwest: LatLng(x0!, y0!));
     CameraUpdate cameraUpdate = CameraUpdate.newLatLngBounds(bounds, 70);
 
     return checkCameraLocation(cameraUpdate, googleMapController!);
-
   }
 
   Future<void> checkCameraLocation(

@@ -1,13 +1,11 @@
 import 'dart:async';
 import 'dart:ui';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:ontrek/core/common_widgets/custom_upgrader_message.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
-
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
@@ -30,6 +28,7 @@ class DashBoard extends StatefulWidget {
 
 class DashBoardState extends State<DashBoard> {
   List<Map<String, dynamic>> showUserInMap = [];
+  bool? isMapLoaded = false;
 
   List<String> lableString = [
     "Attendance",
@@ -71,6 +70,16 @@ class DashBoardState extends State<DashBoard> {
     });
   }
 
+  void _onMapCreated(GoogleMapController controller) {
+    setState(() {
+      googleMapController = controller;
+      isMapLoaded = true;
+    });
+    final dashBoardProvider =
+    Provider.of<DashBoardProvider>(context, listen: false);
+    dashBoardProvider.googleMapController = controller;
+  }
+
   @override
   Widget build(BuildContext context) {
     dashBoardProvider = Provider.of<DashBoardProvider>(context);
@@ -83,39 +92,18 @@ class DashBoardState extends State<DashBoard> {
             Positioned.fill(
               child: GoogleMap(
                   zoomControlsEnabled: false,
+
                   padding: AppUtils.edgeInsetsOnly(
                       bottom: MediaQuery.of(context).size.height * 0.3),
                   mapType: MapType.normal,
-                  onMapCreated: (GoogleMapController controller) {
-                    dashBoardProvider.googleMapController = controller;
-                  },
+                  onMapCreated: _onMapCreated,
                   markers: dashBoardProvider.markers,
                   initialCameraPosition:
-                      CameraPosition(target: LatLng(0, 0), zoom: 14)),
+                      CameraPosition(target: LatLng(20.5937, 78.9629), zoom: 0,)),
             ),
-            [
-              AttendanceScreen(onLocationFetch: (value) {
-                if (!mounted) {}
-                dashBoardProvider.getLocationFromSheet(
-                    getCurrentLocation: value);
-              }),
-              TrackScreen(onUserFetch: (value) async {
-                if (value != null) {
-                  dashBoardProvider.showUserInMap = value;
-                }
-                await dashBoardProvider.addUsersMarker();
-                dashBoardProvider.markers.clear();
-                Future.delayed(
-                  Duration(milliseconds: 300),
-                  () async {
-                    await dashBoardProvider.addUsersMarker();
-                  },
-                );
-              }),
-              TaskListScreen(),
-              LeadScreen(),
-              ProfileScreen(),
-            ][dashBoardProvider.selectedIndex],
+            if(isMapLoaded == true)
+              getScreenForIndex(dashBoardProvider.selectedIndex),
+
           ],
         ),
       ),
@@ -142,8 +130,6 @@ class DashBoardState extends State<DashBoard> {
                     dashBoardProvider.selectIndex(index);
                     if (dashBoardProvider.selectedIndex == 0) {
                       dashBoardProvider.getCurrentLocation();
-                    } else {
-
                     }
 
 
@@ -186,5 +172,36 @@ class DashBoardState extends State<DashBoard> {
         ),
       ),
     );
+  }
+
+  Widget getScreenForIndex(int index) {
+    switch (index) {
+      case 0:
+        return AttendanceScreen(onLocationFetch: (value) {
+          if (mounted) {
+            dashBoardProvider.getLocationFromSheet(getCurrentLocation: value);
+          }
+        });
+      case 1:
+        return TrackScreen(onUserFetch: (value) async {
+          if (value != null) {
+            dashBoardProvider.showUserInMap = value;
+            await dashBoardProvider.addUsersMarker();
+            // setState(() {
+              dashBoardProvider.markers.clear();
+            // });
+            await Future.delayed(const Duration(milliseconds: 100));
+            await dashBoardProvider.addUsersMarker();
+          }
+        });
+      case 2:
+        return TaskListScreen();
+      case 3:
+        return LeadScreen();
+      case 4:
+        return ProfileScreen();
+      default:
+        return Container();
+    }
   }
 }

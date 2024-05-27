@@ -47,6 +47,9 @@ class LastActivityData {
   String? sessionStartDateTime;
   bool? isSessionActive;
   bool? alreadyRequested;
+  double? lastLocationLat;
+  double? lastLocationLong;
+  String? lastLocationTime;
   String? tlDate;
   String? tlTime;
   String? tlDateTime;
@@ -66,6 +69,9 @@ class LastActivityData {
         this.sessionStartDateTime,
         this.isSessionActive,
         this.alreadyRequested,
+        this.lastLocationLat,
+        this.lastLocationLong,
+        this.lastLocationTime,
         this.tlDate,
         this.tlTime,
         this.tlDateTime,
@@ -85,6 +91,9 @@ class LastActivityData {
     sessionStartDateTime = json['sessionStartDateTime'];
     isSessionActive = json['isSessionActive'];
     alreadyRequested = json['alreadyRequested'];
+    lastLocationLat = json['lastLocationLat'];
+    lastLocationLong = json['lastLocationLong'];
+    lastLocationTime = json['lastLocationTime'];
     tlDate = json['tlDate'];
     tlTime = json['tlTime'];
     tlDateTime = json['tlDateTime'];
@@ -106,6 +115,9 @@ class LastActivityData {
     data['sessionStartDateTime'] = this.sessionStartDateTime;
     data['isSessionActive'] = this.isSessionActive;
     data['alreadyRequested'] = this.alreadyRequested;
+    data['lastLocationLat'] = this.lastLocationLat;
+    data['lastLocationLong'] = this.lastLocationLong;
+    data['lastLocationTime'] = this.lastLocationTime;
     data['tlDate'] = this.tlDate;
     data['tlTime'] = this.tlTime;
     data['tlDateTime'] = this.tlDateTime;

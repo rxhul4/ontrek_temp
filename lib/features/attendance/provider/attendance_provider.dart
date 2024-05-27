@@ -66,6 +66,7 @@ class AttendanceProvider extends ChangeNotifier {
   String? orgName;
   String? userName;
   bool? isAllowFgAuth;
+  Position? position;
 
   loaderFnc(bool isLoading) {
     _isLoading = isLoading;
@@ -133,12 +134,10 @@ class AttendanceProvider extends ChangeNotifier {
   Future<Position?> getCurrentLocation() async {
     bool isLocationServiceAvailable =
         await AppUtils.checkLocationServiceAvailability();
-    Position? position;
-
     if (isLocationServiceAvailable) {
       try {
         position = await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.medium);
+            desiredAccuracy: LocationAccuracy.low);
       } catch (e) {
         AppUtils.showDialogBoxWithOneButton(
             context: navigatorKey.currentContext,
@@ -163,7 +162,7 @@ class AttendanceProvider extends ChangeNotifier {
     loaderFnc(true);
     print("sessionIdAtCreateActivity$sessionId");
     String? userid = PreferenceHelper.getString(PreferenceHelper.USER_ID);
-    Position position = await Geolocator.getCurrentPosition(
+    position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.best);
     Map<String, dynamic> checkOutDataBody = {
       "customerName": customerName,
@@ -179,10 +178,10 @@ class AttendanceProvider extends ChangeNotifier {
         "userId": userid ?? "",
         "longitude": isFromCheckOut == true
             ? positionData?.longitude ?? 0
-            : position.longitude,
+            : position?.longitude,
         "lattitude": isFromCheckOut == true
             ? positionData?.latitude ?? 0
-            : position.latitude,
+            : position?.latitude,
         "sessionId": isFromCheckOut == true
             ? checkOutSessionId
             : isActiveSession == true
@@ -202,6 +201,7 @@ class AttendanceProvider extends ChangeNotifier {
       final response = await callPostMethod(endPoint, body);
       createActivityModel = CreateActivityModel.fromJson(json.decode(response));
       print("response : ${response}");
+
     } catch (e) {
       if (isInternetAvailable == false) {
         AppUtils.showDialogBoxWithOneButton(
@@ -386,139 +386,6 @@ class AttendanceProvider extends ChangeNotifier {
       await apiCallDayEndManualRequest(
           sessionId: sessionId, sessionEndDate: sessionEndDate);
     }
-  }
-
-  BulkActivityModel? bulkActivityModel;
-
-  callBulkActivityApi({Function()? dayEndFnc}) async {
-    PreferenceHelper.reload().then((value) async {
-      if (value != null) {
-        String? userName = value.getString(PreferenceHelper.USER_NAME);
-        String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
-
-        bool? internetBool = value.getBool(PreferenceHelper.INTERNET_BOOL);
-        bool? gpsBool = value.getBool(PreferenceHelper.GPS_BOOL);
-        String? lastInternetOffTime =
-            value.getString(PreferenceHelper.LAST_INTERNET_OFF_TIME);
-        String? lastGpsOffTime =
-            value.getString(PreferenceHelper.LAST_GPS_OFF_TIME);
-        double? lastLat = value.getDouble(PreferenceHelper.LAST_LAT);
-        double? lastLong = value.getDouble(PreferenceHelper.LAST_LONG);
-        Position position = await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.medium);
-        List<String> offlineData = value.getStringList('offline_data') ?? [];
-        List offlineDataMaps =
-            offlineData.map((data) => jsonDecode(data)).toList();
-        print("offlineDataMaps$offlineDataMaps");
-        Map<String, dynamic> internetOffBody = {
-          "userId": userId,
-          "sessionId": sessionId,
-          "lattitude": lastLat,
-          "longitude": lastLong,
-          "totTrackingEventId": AppConstant.internetOffEvent,
-          "activityDateTime": AppUtils.getDate(
-              date: lastInternetOffTime ?? "", format: AppConstant.dateFormat),
-          "batteryLevel": await AppUtils.getBatteryLevel(),
-          "visitNoteRequestForm": null,
-          "offlineMapData": null,
-          "timeZoneDiff": DateTime.now().timeZoneOffset.inMinutes.toString(),
-          "loggedInUser": userName ?? ""
-        };
-        Map<String, dynamic> internetOnBody = {
-          "userId": userId,
-          "sessionId": sessionId,
-          "lattitude": position.latitude,
-          "longitude": position.longitude,
-          "totTrackingEventId": AppConstant.internetOnEvent,
-          "activityDateTime": AppUtils.getDate(
-              date: DateTime.now().toString(), format: AppConstant.dateFormat),
-          "batteryLevel": await AppUtils.getBatteryLevel(),
-          "visitNoteRequestForm": null,
-          "offlineMapData": offlineDataMaps,
-          "timeZoneDiff": DateTime.now().timeZoneOffset.inMinutes.toString(),
-          "loggedInUser": userName ?? ""
-        };
-
-        Map<String, dynamic> gpsOffBody = {
-          "userId": userId,
-          "sessionId": sessionId,
-          "lattitude": lastLat,
-          "longitude": lastLong,
-          "totTrackingEventId": AppConstant.gpsOffEvent,
-          "activityDateTime": AppUtils.getDate(
-              date: lastGpsOffTime ?? "", format: AppConstant.dateFormat),
-          "batteryLevel": await AppUtils.getBatteryLevel(),
-          "visitNoteRequestForm": null,
-          "offlineMapData": null,
-          "timeZoneDiff": DateTime.now().timeZoneOffset.inMinutes.toString(),
-          "loggedInUser": userName ?? ""
-        };
-        Map<String, dynamic> gpsOnBody = {
-          "userId": userId,
-          "sessionId": sessionId,
-          "lattitude": position.latitude,
-          "longitude": position.longitude,
-          "totTrackingEventId": AppConstant.gpsOnEvent,
-          "activityDateTime": AppUtils.getDate(
-              date: DateTime.now().toString(), format: AppConstant.dateFormat),
-          "batteryLevel": await AppUtils.getBatteryLevel(),
-          "visitNoteRequestForm": null,
-          "offlineMapData": null,
-          "timeZoneDiff": DateTime.now().timeZoneOffset.inMinutes.toString(),
-          "loggedInUser": userName ?? ""
-        };
-
-        Map<String, dynamic> body = {};
-        print("InternetandGpsBool$internetBool----$gpsBool");
-        if (gpsBool == true && internetBool == true) {
-          body = {
-            "activityList": [
-              internetOffBody,
-              internetOnBody,
-              gpsOffBody,
-              gpsOnBody
-            ],
-          };
-        } else if (internetBool == true) {
-          body = {
-            "activityList": [internetOffBody, internetOnBody],
-          };
-        } else if (gpsBool == true) {
-          body = {
-            "activityList": [gpsOffBody, gpsOnBody],
-          };
-        }
-        print("InternetandGpsBool$internetBool----$gpsBool");
-
-        try {
-          String endPoint = ApiConstants.bulkActivity;
-          var response = await callPostMethod(endPoint, body);
-          bulkActivityModel =
-              BulkActivityModel?.fromJson(json.decode(response));
-          if (bulkActivityModel?.isError == false &&
-              bulkActivityModel?.isValidationFailed == false) {
-            if (internetBool == true) {
-              PreferenceHelper.remove("offline_data");
-              PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_OFF_TIME);
-              PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_ON_TIME);
-              PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME,
-                  DateTime.now().toString());
-              PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, false);
-            }
-            if (gpsBool == true) {
-              PreferenceHelper.remove(PreferenceHelper.LAST_GPS_OFF_TIME);
-              PreferenceHelper.remove(PreferenceHelper.LAST_GPS_ON_TIME);
-              PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME,
-                  DateTime.now().toString());
-              PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, false);
-            }
-            dayEndFnc!();
-          }
-        } catch (e) {
-          print("catch_at_bulkApi_call$e");
-        }
-      }
-    });
   }
 
   clearController() {

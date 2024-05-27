@@ -136,7 +136,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
       if (createActivityModel?.isError == false &&
           createActivityModel?.isValidationFailed == false) {
         checkOutFunction();
-        service.invoke("checkOut_event");
+
       } else {
         if (createActivityModel?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(
@@ -156,12 +156,8 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
   }
 
   checkOutFunction() async {
-    DateTime currentTime = DateTime.now();
-    DateTime newTime = currentTime.add(Duration(minutes: 1));
-    String newTimeString = newTime.toString();
+    service.invoke("checkOut_event");
     PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-    PreferenceHelper.setString(
-        PreferenceHelper.WAITING_START_TIME, newTimeString);
     Navigator.pop(context);
   }
 

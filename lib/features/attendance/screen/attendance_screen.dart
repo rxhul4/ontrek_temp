@@ -147,44 +147,15 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   callDayStartApiAndUpdateUI(AttendanceProvider? attendanceProvider) async {
     try {
-
-
       var response = await callCreateActivityApi(
           totTrackingEventCode: AppConstant.dayStartEvent,
           attendanceProvider: attendanceProvider);
 
       if (response?.isError == false && response?.isValidationFailed == false) {
         service.invoke("dayStart");
-        DateTime currentTime = DateTime.now();
-          DateTime newTime = currentTime.add(Duration(minutes: 1));
-          String newTimeString = newTime.toString();
-          await attendanceProvider?.callGetLastActivity();
-          PreferenceHelper.setDouble(
-              PreferenceHelper.LAST_LAT, response?.data?.lattitude ?? 0);
-          PreferenceHelper.setDouble(
-              PreferenceHelper.LAST_LONG, response?.data?.longitude ?? 0);
-          PreferenceHelper.setString(
-              PreferenceHelper.WAITING_START_TIME, newTimeString);
-          PreferenceHelper.setString(
-              PreferenceHelper.SESSION_ID, attendanceProvider?.sessionId ?? "");
-          callLoginFunction(LatLng(
-              response?.data?.lattitude ?? 0, response?.data?.longitude ?? 0));
-          double? lastLat =
-              PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-          double? lastLong =
-              PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-          String? waitingStartTime =
-              PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
-          String? sessionId =
-              PreferenceHelper.getString(PreferenceHelper.SESSION_ID);
-          print("sessionId${sessionId}");
-          print("sessionId${attendanceProvider?.sessionId}");
-          service.invoke("background", {
-            "lastLat": lastLat,
-            "lastLong": lastLong,
-            "waitingStartTime": waitingStartTime,
-            "sessionId": attendanceProvider?.sessionId
-          });
+        await attendanceProvider?.callGetLastActivity();
+        callLoginFunction(LatLng(attendanceProvider?.position?.latitude ?? 0,
+            attendanceProvider?.position?.longitude ?? 0));
       } else {
         if (response?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(
@@ -237,7 +208,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   callCheckInApiAndUpdateUI(AttendanceProvider? attendanceProvider) async {
     //getCurrent Location for UI and api
     try {
-
       service.invoke("checkIn_beforeEvent");
 
       var response = await callCreateActivityApi(
@@ -251,8 +221,8 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
         attendanceProvider?.isCheckIn.value =
             PreferenceHelper.getBool(PreferenceHelper.checkIn);
-          // callCheckInFunction(LatLng(
-          //     response?.data?.lattitude ?? 0, response?.data?.longitude ?? 0));
+        callCheckInFunction(LatLng(attendanceProvider?.position?.latitude ?? 0,
+            attendanceProvider?.position?.longitude ?? 0));
       } else {
         if (response?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(
@@ -274,137 +244,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     }
   }
 
-
-
-  BulkActivityModel? bulkActivityModel;
-  callBulkActivityApi({String? userId, String? sessionId}) async {
-    PreferenceHelper.reload().then((value)async {
-      if(value != null){
-        String? userName = value.getString(PreferenceHelper.USER_NAME);
-        bool? internetBool = value.getBool(PreferenceHelper.INTERNET_BOOL);
-        bool? gpsBool = value.getBool(PreferenceHelper.GPS_BOOL);
-        String? lastInternetOffTime = value.getString(PreferenceHelper.LAST_INTERNET_OFF_TIME);
-        String? lastGpsOffTime = value.getString(PreferenceHelper.LAST_GPS_OFF_TIME);
-        double? lastLat = value.getDouble(PreferenceHelper.LAST_LAT);
-        double? lastLong = value.getDouble(PreferenceHelper.LAST_LONG);
-        Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
-        List<String> offlineData = value.getStringList('offline_data') ?? [];
-        List offlineDataMaps = offlineData.map((data) => jsonDecode(data)).toList();
-        print("offlineDataMaps$offlineDataMaps");
-        Map<String, dynamic> internetOffBody = {
-          "userId": userId,
-          "sessionId": sessionId,
-          "lattitude": lastLat,
-          "longitude": lastLong,
-          "totTrackingEventId": AppConstant.internetOffEvent,
-          "activityDateTime": AppUtils.getDate(
-              date: lastInternetOffTime ?? "", format: AppConstant.dateFormat),
-          "batteryLevel": await AppUtils.getBatteryLevel(),
-          "visitNoteRequestForm" : null,
-          "offlineMapData": null,
-          "timeZoneDiff": DateTime.now().timeZoneOffset.inMinutes.toString(),
-          "loggedInUser": userName ?? ""
-        };
-        Map<String, dynamic> internetOnBody = {
-          "userId": userId,
-          "sessionId": sessionId,
-          "lattitude": position.latitude,
-          "longitude": position.longitude,
-          "totTrackingEventId": AppConstant.internetOnEvent,
-          "activityDateTime": AppUtils.getDate(
-              date: DateTime.now().toString(), format: AppConstant.dateFormat),
-          "batteryLevel": await AppUtils.getBatteryLevel(),
-          "visitNoteRequestForm" : null,
-          "offlineMapData": offlineDataMaps,
-          "timeZoneDiff": DateTime.now().timeZoneOffset.inMinutes.toString(),
-          "loggedInUser": userName ?? ""
-        };
-
-        Map<String, dynamic> gpsOffBody = {
-          "userId": userId,
-          "sessionId": sessionId,
-          "lattitude": lastLat,
-          "longitude":  lastLong,
-          "totTrackingEventId": AppConstant.gpsOffEvent,
-          "activityDateTime": AppUtils.getDate(
-              date: lastGpsOffTime ?? "", format: AppConstant.dateFormat),
-          "batteryLevel": await AppUtils.getBatteryLevel(),
-          "visitNoteRequestForm" : null,
-          "offlineMapData": null,
-          "timeZoneDiff": DateTime.now().timeZoneOffset.inMinutes.toString(),
-          "loggedInUser": userName ?? ""
-        };
-        Map<String, dynamic> gpsOnBody = {
-          "userId": userId,
-          "sessionId": sessionId,
-          "lattitude": position.latitude,
-          "longitude": position.longitude,
-          "totTrackingEventId": AppConstant.gpsOnEvent,
-          "activityDateTime": AppUtils.getDate(
-              date: DateTime.now().toString(), format: AppConstant.dateFormat),
-          "batteryLevel": await AppUtils.getBatteryLevel(),
-          "visitNoteRequestForm" : null,
-          "offlineMapData": null,
-          "timeZoneDiff": DateTime.now().timeZoneOffset.inMinutes.toString(),
-          "loggedInUser": userName ?? ""
-        };
-
-        Map<String, dynamic> body = {};
-        print("InternetandGpsBool$internetBool----$gpsBool");
-        if (gpsBool == true && internetBool == true) {
-          body = {
-            "activityList": [internetOffBody, internetOnBody, gpsOffBody, gpsOnBody],
-          };
-        } else if (internetBool == true) {
-          body = {
-            "activityList": [internetOffBody, internetOnBody],
-          };
-        } else if (gpsBool == true) {
-          body = {
-            "activityList": [gpsOffBody, gpsOnBody],
-          };
-        }
-        print("InternetandGpsBool$internetBool----$gpsBool");
-
-        try {
-          String endPoint = ApiConstants.bulkActivity;
-          var response = await callPostMethod(endPoint, body);
-          bulkActivityModel = BulkActivityModel?.fromJson(json.decode(response));
-          if (bulkActivityModel?.isError == false && bulkActivityModel?.isValidationFailed == false) {
-            if(internetBool == true){
-              PreferenceHelper.remove("offline_data");
-              PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_OFF_TIME);
-              PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_ON_TIME);
-              PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
-              PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, false);
-            }
-            if(gpsBool == true){
-              PreferenceHelper.remove(PreferenceHelper.LAST_GPS_OFF_TIME);
-              PreferenceHelper.remove(PreferenceHelper.LAST_GPS_ON_TIME);
-              PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, DateTime.now().toString());
-              PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, false);
-            }
-          }
-        } catch (e) {
-          print("catch_at_bulkApi_call$e");
-        }
-      }
-
-    });
-
-
-
-
-
-
-
-
-  }
-
   callDayEndApiAndUpdateUI(AttendanceProvider? attendanceProvider) async {
     //getCurrent Location for UI and api
     try {
-
       service.invoke("dayEnd_beforeEvent");
       var response = await callCreateActivityApi(
           totTrackingEventCode: AppConstant.dayEndEvent,
@@ -412,26 +254,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
       //check api success or not
       if (response?.isError == false && response?.isValidationFailed == false) {
-        service.invoke("dayEnd_afterEvent");
-        PreferenceHelper.remove(PreferenceHelper.SESSION_ID);
         service.invoke("stopService");
-        PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-        PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
-        attendanceProvider?.isDayStart.value =
-            PreferenceHelper.getBool(PreferenceHelper.DayStart);
-        attendanceProvider?.isCheckIn.value =
-            PreferenceHelper.getBool(PreferenceHelper.checkIn);
-        attendanceProvider?.isDayEnd.value = false;
-
-        // if (response?.data != null) {
-        //   callDayEndFunction(LatLng(
-        //       response?.data?.lattitude ?? 0, response?.data?.longitude ?? 0));
-        // } else {
-        //   AppUtils.showDialogBoxWithOneButton(
-        //       titleText: "Error",
-        //       context: context,
-        //       text: "Something went wrong, Please try again later!");
-        // }
+        callDayEndFunction(LatLng(attendanceProvider?.position?.latitude ?? 0,
+            attendanceProvider?.position?.longitude ?? 0));
       } else {
         if (response?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(
@@ -441,7 +266,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         }
         if (response?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
-              titleText: "", context: context, text: response?.message ?? "");
+              titleText: "Information",
+              context: context,
+              text: response?.message ?? "");
         }
       }
     } catch (e) {
@@ -450,59 +277,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           titleText: "Error",
           context: context,
           text: "Something went wrong, Please try again later!");
-    }
-  }
-
-  callWaitingEndApi(
-      {AttendanceProvider? postMdl, bool? checkIn, bool? dayEnd}) async {
-    // then call Api
-    try {
-      var response = await callCreateActivityApi(
-          totTrackingEventCode: AppConstant.trackingWaitingStopEvent,
-          attendanceProvider: postMdl);
-
-      //check api success or not
-      if (response?.isError == false && response?.isValidationFailed == false) {
-        PreferenceHelper.setBool(PreferenceHelper.isWaiting, false);
-        attendanceProvider.isWaiting.value =
-            PreferenceHelper.getBool(PreferenceHelper.isWaiting);
-        service.invoke("update", {"isWaiting": false});
-        if (checkIn == true) {
-          await callCheckInApiAndUpdateUI(postMdl);
-        }
-
-        if (dayEnd == true) {
-          PreferenceHelper.reload().then((value) {
-            if(value != null){
-              bool? internetBool = value.getBool(PreferenceHelper.INTERNET_BOOL);
-              bool? gpsBool = value.getBool(PreferenceHelper.GPS_BOOL);
-
-              if(internetBool == true || gpsBool == true){
-                attendanceProvider.callBulkActivityApi(dayEndFnc: () async{
-                  await callDayEndApiAndUpdateUI(postMdl);
-                },);
-              }else{
-                callDayEndApiAndUpdateUI(postMdl);
-              }
-            }
-          });
-
-
-        }
-      } else {
-        if (response?.isError == true) {
-          AppUtils.showDialogBoxWithOneButton(
-              titleText: "Error",
-              context: context,
-              text: "Something went wrong, Please try again later!");
-        }
-        if (response?.isValidationFailed == true) {
-          AppUtils.showDialogBoxWithOneButton(
-              titleText: "", context: context, text: response?.message ?? "");
-        }
-      }
-    } catch (e) {
-      print("catch_at_waitingEndApi");
     }
   }
 
@@ -789,28 +563,13 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                 afterSuccessfulVerificationFnc: () async {
                                   print(
                                       "isWaiting_from_UI${attendanceProvider.isWaiting.value}");
-                                  if (attendanceProvider.isWaiting.value ==
-                                      true) {
-                                    await callWaitingEndApi(
-                                        postMdl: postMdl,
-                                        checkIn: true,
-                                        dayEnd: false);
-                                  } else {
-                                    await callCheckInApiAndUpdateUI(postMdl);
-                                  }
+                                  await callCheckInApiAndUpdateUI(postMdl);
                                 },
                               );
                             } else {
                               print(
                                   "isWaiting_from_UI${attendanceProvider.isWaiting.value}");
-                              if (attendanceProvider.isWaiting.value == true) {
-                                await callWaitingEndApi(
-                                    postMdl: postMdl,
-                                    checkIn: true,
-                                    dayEnd: false);
-                              } else {
-                                await callCheckInApiAndUpdateUI(postMdl);
-                              }
+                              await callCheckInApiAndUpdateUI(postMdl);
                             }
                           });
                         } else {
@@ -994,28 +753,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                     (attendanceProvider
                                             .restrictedLocationMeter ??
                                         50)) {
-                                  if (attendanceProvider.isWaiting.value ==
-                                      true) {
-                                    await callWaitingEndApi(
-                                        postMdl: postMdl,
-                                        dayEnd: true,
-                                        checkIn: false);
-                                  } else {
-                                    PreferenceHelper.reload().then((value) {
-                                      if(value != null){
-                                        bool? internetBool = value.getBool(PreferenceHelper.INTERNET_BOOL);
-                                        bool? gpsBool = value.getBool(PreferenceHelper.GPS_BOOL);
-
-                                        if(internetBool == true || gpsBool == true){
-                                          attendanceProvider.callBulkActivityApi(dayEndFnc: () async{
-                                            await callDayEndApiAndUpdateUI(postMdl);
-                                          },);
-                                        }else{
-                                          callDayEndApiAndUpdateUI(postMdl);
-                                        }
-                                      }
-                                    });
-                                  }
+                                  callDayEndApiAndUpdateUI(postMdl);
                                 } else {
                                   AppUtils.showDialogBoxWithOneButton(
                                       titleText: "Premises",
@@ -1023,28 +761,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                       context: context);
                                 }
                               } else {
-                                if (attendanceProvider.isWaiting.value ==
-                                    true) {
-                                  await callWaitingEndApi(
-                                      postMdl: postMdl,
-                                      dayEnd: true,
-                                      checkIn: false);
-                                } else {
-                                  PreferenceHelper.reload().then((value) {
-                                    if(value != null){
-                                      bool? internetBool = value.getBool(PreferenceHelper.INTERNET_BOOL);
-                                      bool? gpsBool = value.getBool(PreferenceHelper.GPS_BOOL);
-
-                                      if(internetBool == true || gpsBool == true){
-                                        attendanceProvider.callBulkActivityApi(dayEndFnc: () async{
-                                          await callDayEndApiAndUpdateUI(postMdl);
-                                        },);
-                                      }else{
-                                        callDayEndApiAndUpdateUI(postMdl);
-                                      }
-                                    }
-                                  });
-                                }
+                                callDayEndApiAndUpdateUI(postMdl);
                               }
                             },
                           );
@@ -1061,27 +778,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                             if (distance <
                                 (attendanceProvider.restrictedLocationMeter ??
                                     50)) {
-                              if (attendanceProvider.isWaiting.value == true) {
-                                await callWaitingEndApi(
-                                    postMdl: postMdl,
-                                    dayEnd: true,
-                                    checkIn: false);
-                              } else {
-                                PreferenceHelper.reload().then((value) {
-                                  if(value != null){
-                                    bool? internetBool = value.getBool(PreferenceHelper.INTERNET_BOOL);
-                                    bool? gpsBool = value.getBool(PreferenceHelper.GPS_BOOL);
-
-                                    if(internetBool == true || gpsBool == true){
-                                      attendanceProvider.callBulkActivityApi(dayEndFnc: () async{
-                                        await callDayEndApiAndUpdateUI(postMdl);
-                                      },);
-                                    }else{
-                                      callDayEndApiAndUpdateUI(postMdl);
-                                    }
-                                  }
-                                });
-                              }
+                              callDayEndApiAndUpdateUI(postMdl);
                             } else {
                               AppUtils.showDialogBoxWithOneButton(
                                   titleText: "Premises",
@@ -1089,27 +786,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                   context: context);
                             }
                           } else {
-                            if (attendanceProvider.isWaiting.value == true) {
-                              await callWaitingEndApi(
-                                  postMdl: postMdl,
-                                  dayEnd: true,
-                                  checkIn: false);
-                            } else {
-                              PreferenceHelper.reload().then((value) {
-                                if(value != null){
-                                  bool? internetBool = value.getBool(PreferenceHelper.INTERNET_BOOL);
-                                  bool? gpsBool = value.getBool(PreferenceHelper.GPS_BOOL);
-
-                                  if(internetBool == true || gpsBool == true){
-                                    attendanceProvider.callBulkActivityApi(dayEndFnc: () async{
-                                      await callDayEndApiAndUpdateUI(postMdl);
-                                    },);
-                                  }else{
-                                    callDayEndApiAndUpdateUI(postMdl);
-                                  }
-                                }
-                              });
-                            }
+                            callDayEndApiAndUpdateUI(postMdl);
                           }
                         }
                       });
@@ -1264,28 +941,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                   callDayStartApiAndUpdateUI(
                                       attendanceProvider);
                                 } else {
-                                  if (attendanceProvider.isWaiting.value ==
-                                      true) {
-                                    callWaitingEndApi(
-                                      dayEnd: true,
-                                      postMdl: attendanceProvider,
-                                    );
-                                  } else {
-                                    PreferenceHelper.reload().then((value) {
-                                      if(value != null){
-                                        bool? internetBool = value.getBool(PreferenceHelper.INTERNET_BOOL);
-                                        bool? gpsBool = value.getBool(PreferenceHelper.GPS_BOOL);
-
-                                        if(internetBool == true || gpsBool == true){
-                                          attendanceProvider.callBulkActivityApi(dayEndFnc: () async{
-                                            await callDayEndApiAndUpdateUI(attendanceProvider);
-                                          },);
-                                        }else{
-                                          callDayEndApiAndUpdateUI(attendanceProvider);
-                                        }
-                                      }
-                                    });
-                                  }
+                                  callDayEndApiAndUpdateUI(attendanceProvider);
                                 }
                               } else {
                                 AppUtils.showDialogBoxWithOneButton(
@@ -1298,27 +954,8 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                   "isLocationRestricted${attendanceProvider.isLocationRestricted}");
                               if (!attendanceProvider.isDayStart.value) {
                                 callDayStartApiAndUpdateUI(attendanceProvider);
-                              } else if (attendanceProvider.isWaiting.value ==
-                                  true) {
-                                callWaitingEndApi(
-                                  dayEnd: true,
-                                  postMdl: attendanceProvider,
-                                );
                               } else {
-                                PreferenceHelper.reload().then((value) {
-                                  if(value != null){
-                                    bool? internetBool = value.getBool(PreferenceHelper.INTERNET_BOOL);
-                                    bool? gpsBool = value.getBool(PreferenceHelper.GPS_BOOL);
-
-                                    if(internetBool == true || gpsBool == true){
-                                      attendanceProvider.callBulkActivityApi(dayEndFnc: () async{
-                                        await callDayEndApiAndUpdateUI(attendanceProvider);
-                                      },);
-                                    }else{
-                                      callDayEndApiAndUpdateUI(attendanceProvider);
-                                    }
-                                  }
-                                });
+                                callDayEndApiAndUpdateUI(attendanceProvider);
                               }
                             }
                           });
@@ -1338,27 +975,8 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                     50)) {
                               if (!attendanceProvider.isDayStart.value) {
                                 callDayStartApiAndUpdateUI(attendanceProvider);
-                              } else if (attendanceProvider.isWaiting.value ==
-                                  true) {
-                                callWaitingEndApi(
-                                  dayEnd: true,
-                                  postMdl: attendanceProvider,
-                                );
                               } else {
-                                PreferenceHelper.reload().then((value) {
-                                  if(value != null){
-                                    bool? internetBool = value.getBool(PreferenceHelper.INTERNET_BOOL);
-                                    bool? gpsBool = value.getBool(PreferenceHelper.GPS_BOOL);
-
-                                    if(internetBool == true || gpsBool == true){
-                                      attendanceProvider.callBulkActivityApi(dayEndFnc: () async{
-                                        await callDayEndApiAndUpdateUI(attendanceProvider);
-                                      },);
-                                    }else{
-                                      callDayEndApiAndUpdateUI(attendanceProvider);
-                                    }
-                                  }
-                                });
+                                callDayEndApiAndUpdateUI(attendanceProvider);
                               }
                             } else {
                               AppUtils.showDialogBoxWithOneButton(
@@ -1371,27 +989,8 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                                 "isLocationRestricted${attendanceProvider.isLocationRestricted}");
                             if (!attendanceProvider.isDayStart.value) {
                               callDayStartApiAndUpdateUI(attendanceProvider);
-                            } else if (attendanceProvider.isWaiting.value ==
-                                true) {
-                              callWaitingEndApi(
-                                dayEnd: true,
-                                postMdl: attendanceProvider,
-                              );
                             } else {
-                              PreferenceHelper.reload().then((value) {
-                                if(value != null){
-                                  bool? internetBool = value.getBool(PreferenceHelper.INTERNET_BOOL);
-                                  bool? gpsBool = value.getBool(PreferenceHelper.GPS_BOOL);
-
-                                  if(internetBool == true || gpsBool == true){
-                                    attendanceProvider.callBulkActivityApi(dayEndFnc: () async{
-                                      await callDayEndApiAndUpdateUI(attendanceProvider);
-                                    },);
-                                  }else{
-                                    callDayEndApiAndUpdateUI(attendanceProvider);
-                                  }
-                                }
-                              });
+                              callDayEndApiAndUpdateUI(attendanceProvider);
                             }
                           }
                         }
