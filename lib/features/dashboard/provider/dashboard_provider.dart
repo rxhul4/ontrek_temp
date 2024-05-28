@@ -118,7 +118,7 @@ class DashBoardProvider extends ChangeNotifier {
         await addCurrentLocationMarker(currentLocation ?? LatLng(0, 0));
         markers.clear();
         Future.delayed(
-          Duration(milliseconds: 200),
+          Duration(milliseconds: 100),
           () async {
             await addCurrentLocationMarker(currentLocation ?? LatLng(0, 0));
           },
@@ -205,11 +205,6 @@ class DashBoardProvider extends ChangeNotifier {
   double? userLat;
   double? userLong;
   String? userProfilePic;
-
-  double? sourceLat;
-  double? sourceLong;
-  double? destinationLat;
-  double? destinationLong;
   List<LatLng> userLatLng = [];
 
   Future addUsersMarker() async {
@@ -221,9 +216,7 @@ class DashBoardProvider extends ChangeNotifier {
       userProfilePic = element["userProfilePic"];
       userLat = element["userLastLat"];
       userLong = element["userLastLong"];
-      print("userId=======$userId");
       userLatLng.add(LatLng(userLat ?? 0, userLong ?? 0));
-
       try {
         await markers.add(
           Marker(
@@ -242,72 +235,14 @@ class DashBoardProvider extends ChangeNotifier {
                 : BitmapDescriptor.defaultMarker,
           ),
         );
-        // Future.delayed(Duration(milliseconds: 500),() async{
-        //   await markers.add(
-        //     Marker(
-        //       markerId: MarkerId("$userId"),
-        //       position: LatLng(userLat ?? 0, userLong ?? 0),
-        //       infoWindow: InfoWindow(
-        //         title: userName ?? "",
-        //       ),
-        //       icon: (userProfilePic != null)
-        //           ? await CustomMarkerWidget(
-        //         imageUrl: userProfilePic,
-        //       ).toBitmapDescriptor(
-        //         logicalSize: Size(150, 150),
-        //         imageSize: Size(300, 300),
-        //         waitToRender: Duration(milliseconds: 300),
-        //       )
-        //           : BitmapDescriptor.defaultMarker,
-        //     ),
-        //   );
-        //   notifyListeners();
-        //   print("ceckkkkkkkkkk2");
-        // },);
-
         print("marker$markers");
       } catch (e) {
         print("Error_in_marker$e");
       }
     }
 
-    sourceLat = showUserInMap.first["userLastLat"];
-    sourceLong = showUserInMap.first["userLastLong"];
-    destinationLat = showUserInMap.last["userLastLat"];
-    destinationLong = showUserInMap.last["userLastLong"];
-    print("source${LatLng(sourceLat ?? 0, sourceLong ?? 0)}");
-    print("destination${LatLng(destinationLat ?? 0, destinationLong ?? 0)}");
     boundsFromLatLngList(userLatLng);
-    // updateCameraLocation(LatLng(sourceLat ?? 0, sourceLong ?? 0),
-    //     LatLng(destinationLat ?? 0, destinationLong ?? 0));
     notifyListeners();
-  }
-
-  Future<void> updateCameraLocation(
-    LatLng source,
-    LatLng destination,
-  ) async {
-    if (googleMapController == null) return;
-
-    LatLngBounds bounds;
-
-    if (source.latitude > destination.latitude &&
-        source.longitude > destination.longitude) {
-      bounds = LatLngBounds(southwest: destination, northeast: source);
-    } else if (source.longitude > destination.longitude) {
-      bounds = LatLngBounds(
-          southwest: LatLng(source.latitude, destination.longitude),
-          northeast: LatLng(destination.latitude, source.longitude));
-    } else if (source.latitude > destination.latitude) {
-      bounds = LatLngBounds(
-          southwest: LatLng(destination.latitude, source.longitude),
-          northeast: LatLng(source.latitude, destination.longitude));
-    } else {
-      bounds = LatLngBounds(southwest: source, northeast: destination);
-    }
-    CameraUpdate cameraUpdate = CameraUpdate.newLatLngBounds(bounds, 70);
-
-    return checkCameraLocation(cameraUpdate, googleMapController!);
   }
 
   Future<void> boundsFromLatLngList(List<LatLng> list) {
@@ -325,7 +260,7 @@ class DashBoardProvider extends ChangeNotifier {
     }
     LatLngBounds bounds =
         LatLngBounds(northeast: LatLng(x1!, y1!), southwest: LatLng(x0!, y0!));
-    CameraUpdate cameraUpdate = CameraUpdate.newLatLngBounds(bounds, 70);
+    CameraUpdate cameraUpdate = CameraUpdate.newLatLngBounds(bounds, 100);
 
     return checkCameraLocation(cameraUpdate, googleMapController!);
   }

@@ -3,11 +3,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:ontrek/core/common_widgets/common_webview_widget.dart';
+import 'package:ontrek/core/common_widgets/custom_upgrader_message.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/features/authentication/screens/login_with_phone_number.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
+import 'package:upgrader/upgrader.dart';
 
 class ProfileScreen extends StatefulWidget {
   ProfileScreen({super.key});
@@ -45,8 +47,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   List<String> profileOptionsList = [
-    // "Reimbursement",
-    // "Settings",
     "Help",
     "FAQ",
     "Terms & Conditions",
@@ -55,8 +55,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     "Sign Out",
   ];
   List<IconData> profileOptionsListIcons = [
-    // Icons.monetization_on,
-    // Icons.settings,
     Icons.chat,
     Icons.help_outline_outlined,
     Icons.verified,
@@ -68,171 +66,175 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
-    return AppUtils.commonSlidePanel(
-      controller: panelController,
-      maxHeight: height,
-      minHeight: height,
-      isDraggable: false,
-      panelSnapping: false,
-      panelBuilder: (p0) {
-        return Column(
-          children: [
-            AppUtils.commonContainer(
-              height: MediaQuery.of(context).size.height / 3,
-              width: double.infinity,
-              color: AppConstant.whiteColor.withOpacity(0.3),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Stack(
-                    alignment: Alignment.topRight,
-                    children: [
-                      AppUtils.commonContainer(
-                        height: 80,
-                        width: 80,
-                        decoration: AppUtils.commonBoxDecoration(
-                            shape: BoxShape.circle,
-                            border:
-                                Border.all(color: AppConstant.appPrimaryColor)),
-                        child: ClipOval(
-                          child: AppUtils.commonCacheNetworkImage(
-                            imgUrl: profileImage
-                              ),
-                        ),
-                      ),
-
-
-                    ],
-                  ),
-                  AppUtils.commonSizedBox(height: 10),
-                  AppUtils.commonTextWidget(
-                      text: userName ?? "",
-                      textColor: AppConstant.blackColor,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 18),
-                  AppUtils.commonTextWidget(
-                      text: orgName ?? "",
-                      textColor: AppConstant.blackColor.withOpacity(0.6),
-                      fontSize: 12),
-                ],
-              ),
-            ),
-            AppUtils.commonContainer(
-              decoration: AppUtils.commonBoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: AppConstant.greyColor, width: 0),
-                ),
-              ),
-              child: ListTile(
-                contentPadding: const EdgeInsets.only(left: 10, right: 10),
-                leading: SizedBox(
-                  height: 50,
-                  width: 50,
-                  child: ClipOval(
-                    child: AppUtils.commonAssetImageWidget(
-                      path: profileImage,
-                    ),
-                  ),
-                ),
-                title: AppUtils.commonTextWidget(
-                    text: manager ?? "",
-                    textColor: AppConstant.blackColor,
-                    fontWeight: FontWeight.w500),
-                subtitle: AppUtils.commonTextWidget(
-                    text: 'Reporting Manager',
-                    textColor: AppConstant.blackColor.withOpacity(0.6),
-                    fontSize: 12),
-                trailing: IconButton(
-                  onPressed: () {
-                    AppUtils.showDialogBoxWithTwoButton(
-                      context: context,
-                      titleText: "Call",
-                      text:
-                      "Are you sure to call ${managerPhoneNumber ?? ""}?",
-                      onSuccessString: "Call",
-                      onCancelString: "Cancel",
-                      onSuccess: () {
-                        if(managerPhoneNumber != null && managerPhoneNumber != ""){
-                          AppUtils.launchToBrowser(
-                              Uri.parse("tel:${managerPhoneNumber}"));
-                        }else{
-
-                        }
-
-                      },
-                      onCancel: () {},
-                    );
-                  },
-                  icon: Icon(Icons.call, color: Colors.blue.shade800),
-                ),
-              ),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                physics: BouncingScrollPhysics(),
-                controller: p0,
+    return UpgradeAlert(
+      showReleaseNotes: false,
+      upgrader: Upgrader(messages: CustomUpgraderMessage()),
+      child: AppUtils.commonSlidePanel(
+        controller: panelController,
+        maxHeight: height,
+        minHeight: height,
+        isDraggable: false,
+        panelSnapping: false,
+        panelBuilder: (p0) {
+          return Column(
+            children: [
+              AppUtils.commonContainer(
+                height: MediaQuery.of(context).size.height / 3,
+                width: double.infinity,
+                color: AppConstant.whiteColor.withOpacity(0.3),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    ListView.builder(
-                      // padding: const EdgeInsets.only(bottom: 30),
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: profileOptionsList.length,
-                      itemBuilder: (context, index) {
-                        return GestureDetector(
-                          onTap: () {
-                            executeOperation(index, context);
-                          },
-                          child: Row(
-                            children: [
-                              Expanded(
-                                  child: Icon(
-                                profileOptionsListIcons[index],
-                              )),
-                              Expanded(flex: 7,
-                                child: AppUtils.commonContainer(
-                                  padding: const EdgeInsets.only(
-                                    top: 5,
-                                    bottom: 5,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      top: index == 0
-                                          ? BorderSide(
-                                              width: 0.5,
-                                              color: Colors.grey.shade400)
-                                          : BorderSide.none,
-                                      bottom: BorderSide(
-                                        width: 0.5,
-                                        color: Colors.grey.shade400,
-                                      ),
-                                    ),
-                                  ),
-                                  child: CupertinoListTile(
-                                    leadingToTitle: 0,
-                                    leadingSize: 0,
-                                    padding: EdgeInsets.zero,
-                                    title: AppUtils.commonTextWidget(
-                                      text: profileOptionsList[index],
-                                      textColor: AppConstant.blackColor
-                                          .withOpacity(0.7),
-                                    ),
-                                  ),
+                    Stack(
+                      alignment: Alignment.topRight,
+                      children: [
+                        AppUtils.commonContainer(
+                          height: 80,
+                          width: 80,
+                          decoration: AppUtils.commonBoxDecoration(
+                              shape: BoxShape.circle,
+                              border:
+                                  Border.all(color: AppConstant.appPrimaryColor)),
+                          child: ClipOval(
+                            child: AppUtils.commonCacheNetworkImage(
+                              imgUrl: profileImage
                                 ),
-                              ),
-                            ],
                           ),
-                        );
-                      },
+                        ),
+
+
+                      ],
                     ),
+                    AppUtils.commonSizedBox(height: 10),
+                    AppUtils.commonTextWidget(
+                        text: userName ?? "",
+                        textColor: AppConstant.blackColor,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 18),
+                    AppUtils.commonTextWidget(
+                        text: orgName ?? "",
+                        textColor: AppConstant.blackColor.withOpacity(0.6),
+                        fontSize: 12),
                   ],
                 ),
               ),
-            ),
-          ],
-        );
-      },
+              AppUtils.commonContainer(
+                decoration: AppUtils.commonBoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: AppConstant.greyColor, width: 0),
+                  ),
+                ),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.only(left: 10, right: 10),
+                  leading: SizedBox(
+                    height: 50,
+                    width: 50,
+                    child: ClipOval(
+                      child: AppUtils.commonAssetImageWidget(
+                        path: profileImage,
+                      ),
+                    ),
+                  ),
+                  title: AppUtils.commonTextWidget(
+                      text: manager ?? "",
+                      textColor: AppConstant.blackColor,
+                      fontWeight: FontWeight.w500),
+                  subtitle: AppUtils.commonTextWidget(
+                      text: 'Reporting Manager',
+                      textColor: AppConstant.blackColor.withOpacity(0.6),
+                      fontSize: 12),
+                  trailing: IconButton(
+                    onPressed: () {
+                      AppUtils.showDialogBoxWithTwoButton(
+                        context: context,
+                        titleText: "Call",
+                        text:
+                        "Are you sure to call ${managerPhoneNumber ?? ""}?",
+                        onSuccessString: "Call",
+                        onCancelString: "Cancel",
+                        onSuccess: () {
+                          if(managerPhoneNumber != null && managerPhoneNumber != ""){
+                            AppUtils.launchToBrowser(
+                                Uri.parse("tel:${managerPhoneNumber}"));
+                          }else{
+
+                          }
+
+                        },
+                        onCancel: () {},
+                      );
+                    },
+                    icon: Icon(Icons.call, color: Colors.blue.shade800),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: BouncingScrollPhysics(),
+                  controller: p0,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ListView.builder(
+                        // padding: const EdgeInsets.only(bottom: 30),
+                        physics: const NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: profileOptionsList.length,
+                        itemBuilder: (context, index) {
+                          return GestureDetector(
+                            onTap: () {
+                              executeOperation(index, context);
+                            },
+                            child: Row(
+                              children: [
+                                Expanded(
+                                    child: Icon(
+                                  profileOptionsListIcons[index],
+                                )),
+                                Expanded(flex: 7,
+                                  child: AppUtils.commonContainer(
+                                    padding: const EdgeInsets.only(
+                                      top: 5,
+                                      bottom: 5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        top: index == 0
+                                            ? BorderSide(
+                                                width: 0.5,
+                                                color: Colors.grey.shade400)
+                                            : BorderSide.none,
+                                        bottom: BorderSide(
+                                          width: 0.5,
+                                          color: Colors.grey.shade400,
+                                        ),
+                                      ),
+                                    ),
+                                    child: CupertinoListTile(
+                                      leadingToTitle: 0,
+                                      leadingSize: 0,
+                                      padding: EdgeInsets.zero,
+                                      title: AppUtils.commonTextWidget(
+                                        text: profileOptionsList[index],
+                                        textColor: AppConstant.blackColor
+                                            .withOpacity(0.7),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 

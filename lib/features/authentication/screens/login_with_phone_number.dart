@@ -70,6 +70,7 @@ AuthenticationProvider? authenticationProvider;
           body: UpgradeAlert(
             showReleaseNotes: false,
             upgrader: Upgrader(
+              debugLogging: true,
                 messages: CustomUpgraderMessage()
             ),
             child: LayoutBuilder(builder: (context, constraints) {

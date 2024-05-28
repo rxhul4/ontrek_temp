@@ -1,26 +1,26 @@
 class Activity {
   int pkId;
   String sessionId;
-  String eventCode;
+  String? eventCode;
   double latitude;
   double longitude;
   String activityDate;
   int? parentId;
   bool isSync;
-  bool isEventCompleted;
+  bool? isEventCompleted;
   bool? waitingStart;
 
   Activity({
     required this.pkId,
     required this.sessionId,
-    required this.eventCode,
+    this.eventCode,
     required this.latitude,
     required this.longitude,
     required this.activityDate,
     this.parentId,
     this.waitingStart,
     required this.isSync,
-    required this.isEventCompleted,
+    this.isEventCompleted,
   });
 
   // Factory constructor to create an Activity object from a JSON map

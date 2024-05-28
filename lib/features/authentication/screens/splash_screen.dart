@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:ontrek/core/common_widgets/custom_upgrader_message.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
@@ -11,6 +12,7 @@ import 'package:ontrek/features/dashboard/screens/dashboard_screen.dart';
 import 'package:ontrek/features/permissions/always_on_location_permission_screen.dart';
 import 'package:ontrek/features/permissions/location_permission_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:upgrader/upgrader.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -37,7 +39,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Timer(const Duration(milliseconds: 3000), () {
       if(status.isGranted){
         if(statusOfAlwaysOnLocation.isGranted){
-          if(isLogIn == true){
+          if(isLogIn ?? false){
             Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => const DashBoard(),));
           }else{
             Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => const LoginScreen(),));

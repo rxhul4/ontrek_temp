@@ -16,6 +16,7 @@ import 'package:ontrek/features/leads/screen/lead_screen.dart';
 import 'package:ontrek/features/profile/screen/profile_screen.dart';
 import 'package:ontrek/features/task_list/screen/task_list_screen.dart';
 import 'package:ontrek/features/track_function/screen/track_screen.dart';
+import 'package:ontrek/main.dart';
 import 'package:provider/provider.dart';
 import 'package:upgrader/upgrader.dart';
 
@@ -53,20 +54,13 @@ class DashBoardState extends State<DashBoard> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      bool? isLogin = PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN);
-      if (isLogin == false) {
-        Navigator.pushReplacement(
-            context,
-            CupertinoPageRoute(
-              builder: (context) => LoginScreen(),
-            ));
-      }
+
       final dashBoardProvider =
           Provider.of<DashBoardProvider>(context, listen: false);
       if (!mounted) {}
       dashBoardProvider.initialIndex();
       dashBoardProvider.checkPermission(context);
-      // setState(() {});
+      setState(() {});
     });
   }
 
@@ -76,7 +70,7 @@ class DashBoardState extends State<DashBoard> {
       isMapLoaded = true;
     });
     final dashBoardProvider =
-    Provider.of<DashBoardProvider>(context, listen: false);
+        Provider.of<DashBoardProvider>(context, listen: false);
     dashBoardProvider.googleMapController = controller;
   }
 
@@ -92,18 +86,18 @@ class DashBoardState extends State<DashBoard> {
             Positioned.fill(
               child: GoogleMap(
                   zoomControlsEnabled: false,
-
                   padding: AppUtils.edgeInsetsOnly(
                       bottom: MediaQuery.of(context).size.height * 0.3),
                   mapType: MapType.normal,
                   onMapCreated: _onMapCreated,
                   markers: dashBoardProvider.markers,
-                  initialCameraPosition:
-                      CameraPosition(target: LatLng(20.5937, 78.9629), zoom: 0,)),
+                  initialCameraPosition: CameraPosition(
+                    target: LatLng(20.5937, 78.9629),
+                    zoom: 0,
+                  )),
             ),
-            if(isMapLoaded == true)
+            if (isMapLoaded == true)
               getScreenForIndex(dashBoardProvider.selectedIndex),
-
           ],
         ),
       ),
@@ -131,8 +125,6 @@ class DashBoardState extends State<DashBoard> {
                     if (dashBoardProvider.selectedIndex == 0) {
                       dashBoardProvider.getCurrentLocation();
                     }
-
-
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
@@ -187,9 +179,7 @@ class DashBoardState extends State<DashBoard> {
           if (value != null) {
             dashBoardProvider.showUserInMap = value;
             await dashBoardProvider.addUsersMarker();
-            // setState(() {
-              dashBoardProvider.markers.clear();
-            // });
+            dashBoardProvider.markers.clear();
             await Future.delayed(const Duration(milliseconds: 100));
             await dashBoardProvider.addUsersMarker();
           }

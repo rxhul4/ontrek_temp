@@ -14,6 +14,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:interval_time_picker/interval_time_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:ontrek/core/background_service_model/bulk_activity_model.dart';
+import 'package:ontrek/core/common_widgets/custom_upgrader_message.dart';
 import 'package:ontrek/core/common_widgets/loader_widget.dart';
 import 'package:ontrek/core/common_widgets/textfield_widget.dart';
 import 'package:ontrek/core/services/api_constants.dart';
@@ -30,6 +31,8 @@ import 'package:ontrek/features/check_out/screen/check_out_form_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
+
+import 'package:upgrader/upgrader.dart';
 
 class AttendanceScreen extends StatefulWidget {
   double? height;
@@ -67,42 +70,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       attendanceProvider.getAllConfiguration();
       attendanceProvider.panelController.animatePanelToPosition(0.99);
       await attendanceProvider.callGetLastActivity();
-      // await attendanceProvider.apiCallCheckPendingEndDate().then((value) async {
-      //   if (value?.isError == false && value?.isValidationFailed == false) {
-      //     await attendanceProvider.callGetLastActivity();
-      //   } else {
-      //     if (value?.isValidationFailed == true) {
-      //       sessionId = value?.data?.sessionId;
-      //       sessionOnlyDate = value?.data?.sessionDateOnly;
-      //       setState(() {
-      //         attendanceProvider.dateController.text = AppUtils.getDate(
-      //             date: value?.data?.sessionDateOnly ?? "",
-      //             format: "dd-MM-yyyy");
-      //         attendanceProvider.dayStartTimeController.text =
-      //             value?.data?.startTime ?? "";
-      //       });
-      //       print("dateeeeeeeee${attendanceProvider.dateController.text}");
-      //       if (value?.data?.alreadyRequested == false) {
-      //         await Navigator.push(
-      //             context,
-      //             CupertinoPageRoute(
-      //               builder: (context) => PendingDayEndScreen(
-      //                   sessionId: sessionId,
-      //                   sessionStartDate: sessionOnlyDate),
-      //             )).then((value) async {
-      //           AppUtils.showDialogBoxWithOneButton(
-      //               context: context,
-      //               titleText: "Requested",
-      //               text:
-      //                   "Your request has been submitted. Please wait for approval.");
-      //           await attendanceProvider.callGetLastActivity();
-      //         });
-      //       } else {
-      //         await attendanceProvider.callGetLastActivity();
-      //       }
-      //     }
-      //   }
-      // });
       attendanceProvider.isAllowCheckInCheckOut =
           PreferenceHelper.getBool(PreferenceHelper.AllowCheckInCheckOut);
       attendanceProvider.checkBiometricAvailable();
@@ -232,7 +199,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         }
         if (response?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
-              titleText: "", context: context, text: response?.message ?? "");
+              titleText: "Information", context: context, text: response?.message ?? "");
         }
       }
     } catch (e) {
