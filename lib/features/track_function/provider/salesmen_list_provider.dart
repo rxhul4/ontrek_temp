@@ -105,7 +105,7 @@ animatePanel(){
             "userLastLong": saleMenList?.lastActivityDto?.lastActivityLong,
           };
           print("data_OF_MAP$data");
-          if(data != null){
+          if(data["userLastLat"] != null && data["userLastLong"]  != null){
             showUserInMap.add(data);
           }
 
