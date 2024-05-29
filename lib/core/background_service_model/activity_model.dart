@@ -4,7 +4,7 @@ class Activity {
   String? eventCode;
   double latitude;
   double longitude;
-  String activityDate;
+  String? activityDate;
   int? parentId;
   bool isSync;
   bool? isEventCompleted;
@@ -16,7 +16,7 @@ class Activity {
     this.eventCode,
     required this.latitude,
     required this.longitude,
-    required this.activityDate,
+     this.activityDate,
     this.parentId,
     this.waitingStart,
     required this.isSync,
