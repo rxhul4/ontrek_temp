@@ -9,6 +9,7 @@ import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
+import 'package:ontrek/features/attendance/provider/attendance_provider.dart';
 import 'package:ontrek/features/attendance/screen/attendance_screen.dart';
 import 'package:ontrek/features/authentication/screens/login_with_phone_number.dart';
 import 'package:ontrek/features/dashboard/provider/dashboard_provider.dart';
@@ -53,10 +54,11 @@ class DashBoardState extends State<DashBoard> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-
-      final dashBoardProvider =
-          Provider.of<DashBoardProvider>(context, listen: false);
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async{
+      final dashBoardProvider = Provider.of<DashBoardProvider>(context, listen: false);
+      final attendanceProvider = Provider.of<AttendanceProvider>(context, listen: false);
+      attendanceProvider.getAllConfiguration();
+      await attendanceProvider.callGetLastActivity();
       if (!mounted) {}
       dashBoardProvider.initialIndex();
       dashBoardProvider.checkPermission(context);
@@ -178,10 +180,10 @@ class DashBoardState extends State<DashBoard> {
         return TrackScreen(onUserFetch: (value) async {
           if (value != null) {
             dashBoardProvider.showUserInMap = value;
-            await dashBoardProvider.addUsersMarker();
-            dashBoardProvider.markers.clear();
-            await Future.delayed(const Duration(milliseconds: 100));
-            await dashBoardProvider.addUsersMarker();
+              await dashBoardProvider.addUsersMarker();
+              dashBoardProvider.markers.clear();
+              await Future.delayed(const Duration(milliseconds: 100));
+              await dashBoardProvider.addUsersMarker();
           }
         });
       case 2:

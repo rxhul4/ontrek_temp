@@ -69,11 +69,13 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           Provider.of<AttendanceProvider>(context, listen: false);
       attendanceProvider.getAllConfiguration();
       attendanceProvider.panelController.animatePanelToPosition(0.99);
-      await attendanceProvider.callGetLastActivity();
-      attendanceProvider.isAllowCheckInCheckOut =
-          PreferenceHelper.getBool(PreferenceHelper.AllowCheckInCheckOut);
-      attendanceProvider.checkBiometricAvailable();
-      attendanceProvider.batteryPercentage();
+        // await attendanceProvider.callGetLastActivity();
+        attendanceProvider.isAllowCheckInCheckOut =
+            PreferenceHelper.getBool(PreferenceHelper.AllowCheckInCheckOut);
+        attendanceProvider.checkBiometricAvailable();
+        attendanceProvider.batteryPercentage();
+
+
     });
     super.initState();
   }
@@ -165,10 +167,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       }
     } catch (e) {
       print("catch_at_dayStartApi");
-      AppUtils.showDialogBoxWithOneButton(
-          titleText: "Error",
-          context: context,
-          text: "Something went wrong, Please try again later!");
     }
   }
 
@@ -204,10 +202,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       }
     } catch (e) {
       print("catch_at_checkInApi");
-      AppUtils.showDialogBoxWithOneButton(
-          titleText: "Error",
-          context: context,
-          text: "Something went wrong, Please try again later!");
     }
   }
 
@@ -240,10 +234,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       }
     } catch (e) {
       print("catch_at_checkInApi");
-      AppUtils.showDialogBoxWithOneButton(
-          titleText: "Error",
-          context: context,
-          text: "Something went wrong, Please try again later!");
     }
   }
 

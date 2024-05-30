@@ -120,7 +120,6 @@ animatePanel(){
         print("show_user_in_map${showUserInMap}");
         print("List${getSalesMenListModel?.data?.first.userName}");
       } else {
-
         if (getSalesMenListModel?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
               titleText: "Information",

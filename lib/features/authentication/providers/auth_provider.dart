@@ -118,7 +118,7 @@ class AuthenticationProvider extends ChangeNotifier {
         if(isFromOtpScreen == true){
 
         }else{
-          navigatePushReplacementFnc(OTPVerificationCode(
+          navigatePushFnc(OTPVerificationCode(
             appUserId: loginModel?.data?.appUserId,
             phoneNumber: mobileNumberController.text,
             countryCode: countryCode,
@@ -248,7 +248,6 @@ class AuthenticationProvider extends ChangeNotifier {
         PreferenceHelper.COUNTRY_CODE, loginModel?.data?.countryCode ?? 0);
     PreferenceHelper.setString(
         PreferenceHelper.PHONE_NO, loginModel?.data?.phoneNo ?? '');
-
     PreferenceHelper.setString(
         PreferenceHelper.EMAIL, loginModel?.data?.userEmail ?? '');
     PreferenceHelper.setString(

@@ -41,10 +41,13 @@ bool isGpsAvailable=true;
 
 DateTime? waitingStartTime = null;
 bool? isWaiting = false;
+bool stopService = false;
 
 bool? isGpsOff = false;
 bool isGpsOffSendToServer = false;
 bool isGpsOnSendToServer = false;
+DateTime? checkInTime =null;
+
 
 bool isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
 bool isInRadius=false;
@@ -143,7 +146,16 @@ void onStart(ServiceInstance service) async {
             // waitingStartTime = DateTime.now().add(Duration(minutes: 2));
           }
 
-            dynamic result = PreferenceHelper.getObject("last_activity");
+         List<Activity> listOfAllActivity = geAllActivitiesFromPrefOffLine();
+         if(isInternetAvailable)
+         {
+           if(listOfAllActivity !=null && listOfAllActivity.length > 0)
+           {
+             await syncData(listOfAllActivity);
+           }
+         }
+
+           dynamic result = PreferenceHelper.getObject("last_activity");
 
             if (result != null)
             {
@@ -171,27 +183,26 @@ void onStart(ServiceInstance service) async {
 
           if(isCheckIn==false)
           {
-            ManageInternetOperations();
-            ManageGpsOperations();
+            ManageInternetOperations(listOfAllActivity);
+            ManageGpsOperations(listOfAllActivity);
+
             if(isWaitingAllowed == true){
-              ManageWaitingOperation();
+              ManageWaitingOperation(listOfAllActivity);
             }
 
           }else{
-            PreferenceHelper.setStringList("offline_gps_activities", []);
-            PreferenceHelper.setStringList("offline_internet_activities", []);
+            PreferenceHelper.setStringList("offline_activities", []);
           }
 
 
-          if(isInternetAvailable)
-          {
-            await syncInternetData();
-            await syncGpsData();
-            if(isWaitingAllowed == true){
-              await syncWaitingData();
-            }
 
-          }
+          if(stopService && isInternetAvailable)
+           {
+             await syncData(listOfAllActivity);
+             PreferenceHelper.setStringList("offline_data", []);
+             PreferenceHelper.setStringList("offline_activities", []);
+             service.stopSelf();
+           }
 
         } catch (e) {
           print(e);
@@ -214,12 +225,13 @@ ManageRouteHistory() async
   }
 }
 
-ManageGpsOperations()
+ManageGpsOperations(List<Activity> listOfAllActivity)
 {
   //send gps off data server
-    List<Activity> listOfflineData = geAllGpsActivitiesFromPrefOffLine();
+  //   List<Activity> listOfflineData = geAllGpsActivitiesFromPrefOffLine();
+
     var activity = Activity(
-        pkId: listOfflineData.length + 1,
+        pkId: listOfAllActivity.length + 1,
         sessionId: lastActivityData?.sessionId ?? "",
         latitude: currentLatitude ?? 0,
         longitude: currentLongitude ?? 0,
@@ -231,28 +243,28 @@ ManageGpsOperations()
 
       if(isGpsAvailable == true)
       {
-        var gpsOffData = listOfflineData.where((element) => element.eventCode == AppConstant.gpsOffEvent && element.isEventCompleted == false).firstOrNull;
-        var gpsOnData = listOfflineData.where((element) => element.eventCode == AppConstant.gpsOnEvent && element.parentId == gpsOffData?.pkId).firstOrNull;
+        var gpsOffData = listOfAllActivity.where((element) => element.eventCode == AppConstant.gpsOffEvent && element.isEventCompleted == false).firstOrNull;
+        var gpsOnData = listOfAllActivity.where((element) => element.eventCode == AppConstant.gpsOnEvent && element.parentId == gpsOffData?.pkId).firstOrNull;
 
         if(gpsOnData == null && gpsOffData != null)
         {
           // update parent gps off event
-          gpsOffData?.isEventCompleted = true;
+          gpsOffData.isEventCompleted = true;
 
           //add gps on event
-          activity.parentId = gpsOffData?.pkId;
+          activity.parentId = gpsOffData.pkId;
           activity.eventCode = AppConstant.gpsOnEvent;
           activity.isEventCompleted= true;
           activity.isSync = false;
 
-          listOfflineData.add(activity);
-          setGpsActivityListToPref(listOfflineData);
+          listOfAllActivity.add(activity);
+          setAllActivityListToPref(listOfAllActivity);
         }
       }
 
       if(isGpsAvailable == false)
       {
-        var gpsOffData = listOfflineData.where((element) => element.eventCode == AppConstant.gpsOffEvent && element.isEventCompleted == false ).firstOrNull;
+        var gpsOffData = listOfAllActivity.where((element) => element.eventCode == AppConstant.gpsOffEvent && element.isEventCompleted == false ).firstOrNull;
         if(gpsOffData == null)
         {
           //add gps on event
@@ -260,20 +272,20 @@ ManageGpsOperations()
            activity.isEventCompleted= false;
            activity.parentId = null;
            activity.isSync = false;
-           listOfflineData.add(activity);
-           setGpsActivityListToPref(listOfflineData);
+           listOfAllActivity.add(activity);
+           setAllActivityListToPref(listOfAllActivity);
          }
       }
 
 
 }
 
-ManageInternetOperations()
+ManageInternetOperations( List<Activity> listOfAllActivity)
 {
   //send gps off data server
-  List<Activity> listOfflineData = geAllInternetActivitiesFromPrefOffLine();
+
   var activity = Activity(
-      pkId: listOfflineData.length + 1,
+      pkId: listOfAllActivity.length + 1,
       sessionId: lastActivityData?.sessionId ?? "",
       latitude: currentLatitude ?? 0,
       longitude: currentLongitude ?? 0,
@@ -285,56 +297,49 @@ ManageInternetOperations()
 
   if(isInternetAvailable == true)
   {
-    var internetOffData = listOfflineData.where((element) => element.eventCode == AppConstant.internetOffEvent && element.isEventCompleted == false).firstOrNull;
-    var internetOnData = listOfflineData.where((element) => element.eventCode == AppConstant.internetOnEvent && element.parentId == internetOffData?.pkId).firstOrNull;
+    var internetOffData = listOfAllActivity.where((element) => element.eventCode == AppConstant.internetOffEvent && element.isEventCompleted == false).firstOrNull;
+    var internetOnData = listOfAllActivity.where((element) => element.eventCode == AppConstant.internetOnEvent && element.parentId == internetOffData?.pkId).firstOrNull;
 
     if(internetOnData == null && internetOffData != null)
     {
-      // update parent gps off event
+      // update internet off event
       internetOffData.isEventCompleted = true;
 
-      //add gps on event
+      //add internet on event
       activity.parentId = internetOffData.pkId;
       activity.eventCode = AppConstant.internetOnEvent;
       activity.isEventCompleted= true;
       activity.isSync = false;
 
-      listOfflineData.add(activity);
-      setInternetActivityListToPref(listOfflineData);
+      listOfAllActivity.add(activity);
+      setAllActivityListToPref(listOfAllActivity);
     }
   }
 
   if(isInternetAvailable == false)
   {
-    var internetOffData = listOfflineData.where((element) => element.eventCode == AppConstant.internetOffEvent && element.isEventCompleted == false ).firstOrNull;
+    var internetOffData = listOfAllActivity.where((element) => element.eventCode == AppConstant.internetOffEvent && element.isEventCompleted == false ).firstOrNull;
     if(internetOffData == null)
     {
-      //add gps on event
+      //add internet off event
       activity.eventCode = AppConstant.internetOffEvent;
       activity.isEventCompleted= false;
       activity.parentId = null;
       activity.isSync = false;
-      listOfflineData.add(activity);
-      setInternetActivityListToPref(listOfflineData);
+      listOfAllActivity.add(activity);
+      setAllActivityListToPref(listOfAllActivity);
     }
   }
-
-
 }
 
-
-ManageWaitingOperation()
+ManageWaitingOperation( List<Activity> listOfAllActivity)
 {
-
-
   //send waiting start data local storage
-  List<Activity> listOfflineData = geAllWaitingActivitiesFromPrefOffLine();
-
-  var waitingStartData = listOfflineData.where((element) => element.eventCode == AppConstant.trackingWaitingStartEvent && element.isEventCompleted == false ).firstOrNull;
-  var waitingStopData = listOfflineData.where((element) => element.eventCode == AppConstant.trackingWaitingStopEvent && element.parentId == waitingStartData?.pkId).firstOrNull;
+  var waitingStartData = listOfAllActivity.where((element) => element.eventCode == AppConstant.trackingWaitingStartEvent && element.isEventCompleted == false ).firstOrNull;
+  var waitingStopData = listOfAllActivity.where((element) => element.eventCode == AppConstant.trackingWaitingStopEvent && element.parentId == waitingStartData?.pkId).firstOrNull;
 
   var activity = Activity(
-      pkId: listOfflineData.length + 1,
+      pkId: listOfAllActivity.length + 1,
       sessionId: lastActivityData?.sessionId ?? "",
       latitude: currentLatitude ?? 0,
       longitude: currentLongitude ?? 0,
@@ -355,8 +360,8 @@ ManageWaitingOperation()
           activity.parentId = null;
           activity.isSync = false;
           activity.activityDate = AppUtils.getDate(date: waitingStartTime.toString(), format: AppConstant.dateFormat);
-          listOfflineData.add(activity);
-          setWaitingActivityListToPref(listOfflineData);
+          listOfAllActivity.add(activity);
+          setAllActivityListToPref(listOfAllActivity);
         }
       }
 
@@ -387,47 +392,13 @@ ManageWaitingOperation()
           activity.isSync = false;
           activity.activityDate = AppUtils.getDateTimeNow();
 
-          listOfflineData.add(activity);
-          setWaitingActivityListToPref(listOfflineData);
+          listOfAllActivity.add(activity);
+          setAllActivityListToPref(listOfAllActivity);
           waitingStartTime = DateTime.now().add(Duration(minutes: 2));
         }
       }
     }
   }
-}
-
-
-waitingEndOnCheckIn()async{
-  List<Activity> listOfflineData = geAllWaitingActivitiesFromPrefOffLine();
-
-  var waitingStartData = listOfflineData.where((element) => element.eventCode == AppConstant.trackingWaitingStartEvent && element.isEventCompleted == false ).firstOrNull;
-  var waitingStopData = listOfflineData.where((element) => element.eventCode == AppConstant.trackingWaitingStopEvent && element.parentId == waitingStartData?.pkId).firstOrNull;
-
-  if (waitingStartData != null && waitingStopData == null) {
-    waitingStartData.isEventCompleted = true;
-    var activity = Activity(
-
-        pkId: listOfflineData.length + 1,
-        sessionId: lastActivityData?.sessionId ?? "",
-        latitude: currentLatitude ?? 0,
-        longitude: currentLongitude ?? 0,
-        isSync: false,
-        isEventCompleted: true,
-        parentId : waitingStartData.pkId,
-        eventCode : AppConstant.trackingWaitingStopEvent,
-       activityDate : AppUtils.getDate(date: DateTime.now().subtract(Duration(seconds: 30)).toString(), format: AppConstant.dateFormat)
-    );
-
-
-    listOfflineData.add(activity);
-    setWaitingActivityListToPref(listOfflineData);
-    waitingStartTime = DateTime.now().add(Duration(minutes: 2));
-  }
-
-  if(isInternetAvailable){
-    await syncWaitingData();
-  }
-
 }
 
 registerEventsToListener(ServiceInstance service) {
@@ -442,14 +413,7 @@ registerEventsToListener(ServiceInstance service) {
       });
 
       service.on('stopService').listen((event)async {
-        await syncGpsData();
-        await  syncInternetData();
-        await syncWaitingData();
-        PreferenceHelper.setStringList("offline_data", []);
-        PreferenceHelper.setStringList("offline_gps_activities", []);
-        PreferenceHelper.setStringList("offline_internet_activities", []);
-        PreferenceHelper.setStringList("offline_Waiting_activities", []);
-        service.stopSelf();
+        stopService = true;
       });
 
       service.on("appLoad").listen((event) {
@@ -464,7 +428,7 @@ registerEventsToListener(ServiceInstance service) {
       });
 
       service.on("checkIn_beforeEvent").listen((event) async{
-        await waitingEndOnCheckIn();
+        checkInTime = DateTime.now();
       });
 
       service.on("checkIn_afterEvent").listen((event) {
@@ -488,7 +452,6 @@ registerEventsToListener(ServiceInstance service) {
     print("registerEventsToListener");
   }
 }
-
 
 BulkActivityRequestModel? bulkActivityRequestModel;
 OfflineRouteModel? offlineRouteModel;
@@ -523,14 +486,100 @@ Future<void> createRouteHistory() async {
   }
 }
 
-syncGpsData() async {
+syncData(List<Activity> listOfAllActivity) async {
 
  try
   {
+   var listOfflineData =  listOfAllActivity.where((element) => element.isSync == false).toList();
 
-    List<Activity> listOfflineData = geAllGpsActivitiesFromPrefOffLine();
+  if(isCheckIn || stopService)
+  {
 
-    listOfflineData =  listOfflineData.where((element) => element.isSync == false).toList();
+    var activity = Activity(
+        pkId: listOfAllActivity.length + 1,
+        sessionId: lastActivityData?.sessionId ?? "",
+        latitude: currentLatitude ?? (prevLatitude ?? 0),
+        longitude: currentLongitude ?? (prevLongitude ?? 0),
+        isSync: false,
+        isEventCompleted: false
+    );
+
+
+    var waitingStartData = listOfAllActivity.where((element) => element.eventCode == AppConstant.trackingWaitingStartEvent && element.isEventCompleted==false && element.isSync==false).firstOrNull;
+
+    if(waitingStartData !=null)
+    {
+      var waitingStopData = listOfAllActivity.where((element) => element.eventCode == AppConstant.trackingWaitingStopEvent && element.isEventCompleted==false && element.isSync==false).firstOrNull;
+
+      if(waitingStopData == null)
+        {
+
+          waitingStartData.isEventCompleted = true;
+
+          activity.parentId = waitingStartData.pkId;
+          activity.eventCode = AppConstant.trackingWaitingStopEvent;
+          activity.isEventCompleted = true;
+          activity.isSync = false;
+          activity.activityDate = AppUtils.getDate(date: checkInTime?.subtract(Duration(seconds: 5)).toString() ?? "", format: AppConstant.dateFormat);
+
+          listOfAllActivity.add(activity);
+          setAllActivityListToPref(listOfAllActivity);
+
+        }
+    }
+
+
+    var gpsOffData = listOfAllActivity.where((element) => element.eventCode == AppConstant.gpsOffEvent && element.isEventCompleted==false && element.isSync==false).firstOrNull;
+    if(gpsOffData !=  null){
+      var gpsOnData = listOfAllActivity.where((element) => element.eventCode == AppConstant.gpsOnEvent && element.isEventCompleted==false && element.isSync==false).firstOrNull;
+      if(gpsOnData == null){
+
+        gpsOffData.isEventCompleted = true;
+
+        activity.parentId = gpsOffData.pkId;
+        activity.eventCode = AppConstant.gpsOnEvent;
+        activity.isEventCompleted = true;
+        activity.isSync = false;
+        activity.activityDate = AppUtils.getDate(date: checkInTime?.subtract(Duration(seconds: 10)).toString() ?? "", format: AppConstant.dateFormat);
+
+        listOfAllActivity.add(activity);
+        setAllActivityListToPref(listOfAllActivity);
+
+      }
+    }
+
+
+    var internetOffData = listOfAllActivity.where((element) => element.eventCode == AppConstant.internetOffEvent && element.isEventCompleted==false && element.isSync==false).firstOrNull;
+    if(internetOffData != null){
+      var internetOnData = listOfAllActivity.where((element) => element.eventCode == AppConstant.internetOnEvent && element.isEventCompleted==false&& element.isSync==false).firstOrNull;
+
+      if(internetOnData == null){
+        internetOffData.isEventCompleted = true;
+
+        activity.parentId = internetOffData.pkId;
+        activity.eventCode = AppConstant.internetOnEvent;
+        activity.isEventCompleted = true;
+        activity.isSync = false;
+        activity.activityDate = AppUtils.getDate(date: checkInTime?.subtract(Duration(seconds: 15)).toString() ?? "", format: AppConstant.dateFormat);
+
+        listOfAllActivity.add(activity);
+        setAllActivityListToPref(listOfAllActivity);
+      }
+    }
+  }
+
+
+
+    List<String>? offlineData = PreferenceHelper.getStringList('offline_data');
+    List<OfflineMapData> offlineDataMaps = offlineData
+        ?.map((data) => jsonDecode(data))
+        .map((json) => OfflineMapData(
+        lattitude: json['latitude'],
+        longitude: json['longitude'],
+        offlineTime: json['offlineTime']))
+        .toList() ??
+        [];
+
 
     if (listOfflineData == null || listOfflineData.length < 1)
     {
@@ -556,7 +605,7 @@ syncGpsData() async {
               batteryLevel: batteryLevel,
               sessionId: lastActivityData?.sessionId,
               visitNoteRequestForm: null,
-              offlineMapData: null
+              offlineMapData: activity.eventCode == AppConstant.internetOnEvent ? offlineDataMaps : null
             );
 
             createActivityLists.add(createActivityList);
@@ -579,14 +628,14 @@ syncGpsData() async {
                   var recordToSync =  listOfflineData.where((x) => x.pkId == element.localPkId).firstOrNull;
                   recordToSync?.isSync = true;
                 });
-                List<String> gpsActivityList = listOfflineData.map((activity) => jsonEncode(activity.toJson())).toList();
+                List<String> allActivityList = listOfflineData.map((activity) => jsonEncode(activity.toJson())).toList();
 
-                PreferenceHelper.setStringList("offline_gps_activities", gpsActivityList);
+                PreferenceHelper.setStringList("offline_activities", allActivityList);
 
-                print("GPS Data cleared");
+                print("all Activity Data cleared");
               }
             } catch (e) {
-              print("Error during gps bulk activity request: $e");
+              print("Error during all bulk activity request: $e");
             }
           }
         }
@@ -594,224 +643,24 @@ syncGpsData() async {
 
     }
   } catch (e) {
-    print("syncDataGps$e");
+    print("syncData$e");
   }
 }
 
-syncInternetData() async {
-
+geAllActivitiesFromPrefOffLine() {
   try
   {
-
-    List<Activity> listOfflineData = geAllInternetActivitiesFromPrefOffLine();
-
-    listOfflineData =  listOfflineData.where((element) => element.isSync == false).toList();
-
-    List<String>? offlineData = PreferenceHelper.getStringList('offline_data');
-    List<OfflineMapData> offlineDataMaps = offlineData
-        ?.map((data) => jsonDecode(data))
-        .map((json) => OfflineMapData(
-        lattitude: json['latitude'],
-        longitude: json['longitude'],
-        offlineTime: json['offlineTime']))
-        .toList() ??
-        [];
-
-    if (listOfflineData == null || listOfflineData.length < 1)
-    {
-      return;
-    }
-    else
-    {
-
-      List<CreateActivityList> createActivityLists = [];
-
-      for (var activity in listOfflineData)
-      {
-        int batteryLevel = await AppUtils.getBatteryLevel();
-
-        var createActivityList = CreateActivityList(
-            pkId: activity.pkId,
-            parentId: activity.parentId,
-            userId: lastActivityData?.fieldUserId,
-            longitude: activity.longitude,
-            lattitude: activity.latitude,
-            totTrackingEventId: activity.eventCode,
-            activityDateTime: activity.activityDate,
-            batteryLevel: batteryLevel,
-            sessionId: lastActivityData?.sessionId,
-            visitNoteRequestForm: null,
-            offlineMapData: activity.eventCode == AppConstant.internetOnEvent ? offlineDataMaps : []
-        );
-
-        createActivityLists.add(createActivityList);
-      }
-
-      bulkActivityRequestModel = BulkActivityRequestModel(createActivityList: createActivityLists);
-
-      if (createActivityLists.isNotEmpty)
-      {
-        Map<String, dynamic>? body = bulkActivityRequestModel?.toJson();
-        if (body != null) {
-          String endPoint = ApiConstants.bulkActivity;
-          try {
-            final response = await callPostMethod(endPoint, body);
-            bulkActivityResponseModel = BulkActivityResponseModel.fromJson(json.decode(response));
-
-            if (bulkActivityResponseModel?.isError == false) {
-
-              bulkActivityResponseModel?.data?.forEach((element) {
-                var recordToSync =  listOfflineData.where((x) => x.pkId == element.localPkId).firstOrNull;
-                recordToSync?.isSync = true;
-              });
-              List<String> internetActivity = listOfflineData.map((activity) => jsonEncode(activity.toJson())).toList();
-
-              PreferenceHelper.setStringList("offline_internet_activities", internetActivity);
-              PreferenceHelper.setStringList("offline_data", []);
-              print("Internet Data cleared");
-            }
-          } catch (e) {
-            print("Error during gps bulk activity request: $e");
-          }
-        }
-      }
-
-
-    }
-  } catch (e) {
-    print("syncDataInternet$e");
-  }
-}
-
-syncWaitingData() async {
-  try
-  {
-
-    List<Activity> listOfflineData = geAllWaitingActivitiesFromPrefOffLine();
-
-    listOfflineData =  listOfflineData.where((element) => element.isSync == false).toList();
-
-    if (listOfflineData == null || listOfflineData.length < 1)
-    {
-      return;
-    }
-    else
-    {
-
-      List<CreateActivityList> createActivityLists = [];
-
-      for (var activity in listOfflineData)
-      {
-        int batteryLevel = await AppUtils.getBatteryLevel();
-
-        var createActivityList = CreateActivityList(
-            pkId: activity.pkId,
-            parentId: activity.parentId,
-            userId: lastActivityData?.fieldUserId,
-            longitude: activity.longitude,
-            lattitude: activity.latitude,
-            totTrackingEventId: activity.eventCode,
-            activityDateTime: activity.activityDate,
-            batteryLevel: batteryLevel,
-            sessionId: lastActivityData?.sessionId,
-            visitNoteRequestForm: null,
-            offlineMapData: null
-        );
-
-        createActivityLists.add(createActivityList);
-      }
-
-      bulkActivityRequestModel = BulkActivityRequestModel(createActivityList: createActivityLists);
-
-      if (createActivityLists.isNotEmpty)
-      {
-        Map<String, dynamic>? body = bulkActivityRequestModel?.toJson();
-        if (body != null) {
-          String endPoint = ApiConstants.bulkActivity;
-          try {
-            final response = await callPostMethod(endPoint, body);
-            bulkActivityResponseModel = BulkActivityResponseModel.fromJson(json.decode(response));
-
-            if (bulkActivityResponseModel?.isError == false) {
-
-              bulkActivityResponseModel?.data?.forEach((element) {
-                var recordToSync =  listOfflineData.where((x) => x.pkId == element.localPkId).firstOrNull;
-                recordToSync?.isSync = true;
-              });
-              List<String> waitingActivityList = listOfflineData.map((activity) => jsonEncode(activity.toJson())).toList();
-
-              PreferenceHelper.setStringList("offline_Waiting_activities", waitingActivityList);
-              //PreferenceHelper.setStringList("offline_data", []);
-              print("Waiting Data cleared");
-            }
-          } catch (e) {
-            print("Error during gps bulk activity request: $e");
-          }
-        }
-      }
-    }
-  } catch (e) {
-    print("syncDataGps$e");
-  }
-}
-
-geAllGpsActivitiesFromPrefOffLine() {
-  try
-  {
-
-    var offLineActivitiesStr = PreferenceHelper.getStringList("offline_gps_activities") ?? [];
+    var offLineActivitiesStr = PreferenceHelper.getStringList("offline_activities") ?? [];
 
     List<Activity> offLinActivities = offLineActivitiesStr.map((data) {
       Map<String, dynamic> jsonData = jsonDecode(data);
       return Activity.fromJson(jsonData);
     }).toList();
-
-    return offLinActivities.where((element) =>  (element.eventCode == AppConstant.gpsOnEvent || element.eventCode == AppConstant.gpsOffEvent)).toList();
-
+    return offLinActivities;
   }
   catch (e)
   {
-    print("geAllGpsActivitiesFromPrefOffLine");
-  }
-}
-
-geAllInternetActivitiesFromPrefOffLine() {
-  try
-  {
-
-    var offLineActivitiesStr = PreferenceHelper.getStringList("offline_internet_activities") ?? [];
-
-    List<Activity> offLinActivities = offLineActivitiesStr.map((data) {
-      Map<String, dynamic> jsonData = jsonDecode(data);
-      return Activity.fromJson(jsonData);
-    }).toList();
-
-    return offLinActivities.where((element) =>  (element.eventCode == AppConstant.internetOnEvent || element.eventCode == AppConstant.internetOffEvent)).toList();
-
-  }
-  catch (e)
-  {
-    print("geAllInternetActivitiesFromPrefOffLine");
-  }
-}
-
-geAllWaitingActivitiesFromPrefOffLine() {
-  try
-  {
-
-    var offLineActivitiesStr = PreferenceHelper.getStringList("offline_Waiting_activities") ?? [];
-
-    List<Activity> offLinActivities = offLineActivitiesStr.map((data) {
-      Map<String, dynamic> jsonData = jsonDecode(data);
-      return Activity.fromJson(jsonData);
-    }).toList();
-
-    return offLinActivities.where((element) =>  (element.eventCode == AppConstant.trackingWaitingStartEvent || element.eventCode == AppConstant.trackingWaitingStopEvent)).toList();
-
-  }
-  catch (e)
-  {
-    print("geAllWaitingActivitiesFromPrefOffLine");
+    print("error : geAllGpsActivitiesFromPrefOffLine");
   }
 }
 
@@ -959,36 +808,14 @@ void setLastActivityData(dynamic lastActivity) {
 }
 
 
-void setGpsActivityListToPref(List<Activity> lstActivities) {
+void setAllActivityListToPref(List<Activity> lstActivities) {
   try {
     List<String> activitiesJsonList =
     lstActivities.map((activity) => jsonEncode(activity.toJson())).toList();
 
-    PreferenceHelper.setStringList('offline_gps_activities', activitiesJsonList);
+    PreferenceHelper.setStringList('offline_activities', activitiesJsonList);
   } catch (e) {
     print("setGpsActivityListToPref error: $e");
-  }
-}
-
-void setInternetActivityListToPref(List<Activity> lstActivities) {
-  try {
-    List<String> activitiesJsonList =
-    lstActivities.map((activity) => jsonEncode(activity.toJson())).toList();
-
-    PreferenceHelper.setStringList('offline_internet_activities', activitiesJsonList);
-  } catch (e) {
-    print("setGpsActivityListToPref error: $e");
-  }
-}
-
-void setWaitingActivityListToPref(List<Activity> lstActivities) {
-  try {
-    List<String> activitiesJsonList =
-    lstActivities.map((activity) => jsonEncode(activity.toJson())).toList();
-
-    PreferenceHelper.setStringList('offline_Waiting_activities', activitiesJsonList);
-  } catch (e) {
-    print("setWaitingActivityListToPref error: $e");
   }
 }
 
