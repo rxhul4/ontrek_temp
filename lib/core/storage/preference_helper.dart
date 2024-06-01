@@ -128,20 +128,6 @@ class PreferenceHelper {
     _memoryPrefs[key] = value;
   }
 
-  static String? getString(String key, {String? def}) {
-    String? val;
-    if (_memoryPrefs.containsKey(key)) {
-      val = _memoryPrefs[key];
-    }
-    if (val == null) {
-      val = _prefs?.getString(key);
-    }
-    if (val == null) {
-      val = def;
-    }
-    _memoryPrefs[key] = val;
-    return val;
-  }
 
 
   static List<String>? getStringList(String key, {List<String>? def}) {
@@ -181,6 +167,21 @@ class PreferenceHelper {
     }
     if (val == null) {
       val = _prefs?.getDouble(key);
+    }
+    if (val == null) {
+      val = def;
+    }
+    _memoryPrefs[key] = val;
+    return val;
+  }
+
+  static String? getString(String key, {String? def}) {
+    String? val;
+    if (_memoryPrefs.containsKey(key)) {
+      val = _memoryPrefs[key];
+    }
+    if (val == null) {
+      val = _prefs?.getString(key);
     }
     if (val == null) {
       val = def;

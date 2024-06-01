@@ -43,7 +43,7 @@ dependencies:
   permission_handler: ^11.0.1
   cached_network_image: ^3.3.0
   flutter_background_service: ^5.0.5
-  connectivity_plus: ^5.0.1
+  internet_connection_checker: ^1.0.0+1
   provider: ^6.1.1
   url_launcher: ^6.2.3
   disable_battery_optimization: ^1.1.1

@@ -191,7 +191,11 @@ class _TrackScreenState extends State<TrackScreen>
   }
 
   refresh(SalesMenListProvider salesMenListProvider) async {
-    salesMenListProvider.apiCallGetSalesManList();
+    isInternetAvailable = await AppUtils.checkInternetConnectivity();
+    if(isInternetAvailable == true){
+      salesMenListProvider.apiCallGetSalesManList();
+    }
+
   }
 
   Widget searchWidget(SalesMenListProvider salesMenListProvider) {
@@ -241,24 +245,24 @@ class _TrackScreenState extends State<TrackScreen>
       {List<Data>? getSalesMenListModelData,
       bool? isAll,
       double? height,
-      SalesMenListProvider? salesMenListProvider,
+      required SalesMenListProvider salesMenListProvider,
       controller}) {
     String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
+    print("dataaaaaaaaaaaa");
     return Column(
       children: [
-        (salesMenListProvider?.isFetching ?? false)
+        (salesMenListProvider.isFetching)
             ? Padding(
                 padding: EdgeInsets.only(top: 80),
                 child: AppUtils.loaderWidget(),
               )
-            : (getSalesMenListModelData?.length ?? 0) <= 0 ||
-                    isInternetAvailable == false
+            : (getSalesMenListModelData?.length ?? 0) <= 0 || isInternetAvailable == false
                 ? Padding(
                     padding: EdgeInsets.only(top: 50),
                     child: AppUtils.commonNoDataFound(
                       text: "No Salesman Found!",
                       onPressed: () {
-                        salesMenListProvider?.apiCallGetSalesManList();
+                        refresh(salesMenListProvider);
                       },
                     ),
                   )
@@ -272,6 +276,7 @@ class _TrackScreenState extends State<TrackScreen>
                         const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 4, childAspectRatio: 4 / 4.5),
                     itemBuilder: (BuildContext context, int index) {
+                      print("is_inGridView");
                       return AppUtils.commonInkWell(
                         onTap: () {
                           Navigator.push(

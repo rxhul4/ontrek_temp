@@ -35,7 +35,7 @@ class AuthenticationProvider extends ChangeNotifier {
   int? countryCode;
   bool? isValid;
   bool isUsernameEmpty = true;
-  String? userUid;
+  String? userid;
   TextEditingController mobileNumberController = TextEditingController();
   TextEditingController otpController = TextEditingController();
   DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
@@ -60,23 +60,23 @@ class AuthenticationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void navigatePushReplacementFnc(Widget screen) {
-    navigatorKey.currentState!.pushReplacement(CupertinoPageRoute(
-      builder: (context) => screen,
-    ));
-  }
-
-  void navigatePushFnc(Widget screen) {
-    navigatorKey.currentState!.push(CupertinoPageRoute(
-      builder: (context) => screen,
-    ));
-  }
-
-
+  // void navigatePushReplacementFnc(Widget screen) {
+  //   navigatorKey.currentState!.pushReplacement(CupertinoPageRoute(
+  //     builder: (context) => screen,
+  //   ));
+  // }
+  //
+  // // void navigatePushFnc(Widget screen) {
+  // //   navigatorKey.currentState!.push(CupertinoPageRoute(
+  // //     builder: (context) => screen,
+  // //   ));
+  // // }
 
 
 
-  Future<LoginModel?> apiCallVerifyNumber({bool? isFromOtpScreen,String? phoneNumber,int? countryCodeFromOtp}) async {
+
+
+  Future<LoginModel?> apiCallVerifyNumber({bool? isFromOtpScreen,String? phoneNumber,int? countryCodeFromOtp,required Function() navigatorFnc}) async {
      loaderFnc(true);
     Map<String, dynamic> body;
 
@@ -115,14 +115,18 @@ class AuthenticationProvider extends ChangeNotifier {
       print("response : ${response}");
       if (loginModel?.isError == false &&
           loginModel?.isValidationFailed == false) {
+        userid = loginModel?.data?.appUserId;
+
         if(isFromOtpScreen == true){
 
         }else{
-          navigatePushFnc(OTPVerificationCode(
-            appUserId: loginModel?.data?.appUserId,
-            phoneNumber: mobileNumberController.text,
-            countryCode: countryCode,
-          ));
+
+          navigatorFnc();
+          // navigatePushFnc(OTPVerificationCode(
+          //   appUserId: loginModel?.data?.appUserId,
+          //   phoneNumber: mobileNumberController.text,
+          //   countryCode: countryCode,
+          // ));
         }
 
       } else {
@@ -154,25 +158,25 @@ class AuthenticationProvider extends ChangeNotifier {
     return loginModel;
   }
 
-  checkValidationAndCallLoginApi() {
+  checkValidationAndCallLoginApi({required Function() navigatorFnc}) {
     if (mobileNumberController.text.isEmpty) {
       AppUtils.showSnackBarWithColor(
           message: "Please Enter Phone Number", giveColor: Colors.red);
     } else {
       if (isValid ?? false) {
-        apiCallVerifyNumber();
+        apiCallVerifyNumber(navigatorFnc: navigatorFnc);
       }
     }
   }
 
-  Future<LoginModel?> apiCallVerifyOtp({String? otpText}) async {
+  Future<LoginModel?> apiCallVerifyOtp({String? otpText,required Function() navigatorFnc}) async {
     fetchingFnc(true);
     try {
       Map<String, dynamic> body;
       if (Platform.isIOS) {
         var iosInfo = await deviceInfo.iosInfo;
         body = {
-          "userId": userUid,
+          "userId": userid,
           "otp": otpText,
           "deviceInfo": {
             "deviceId": iosInfo.identifierForVendor,
@@ -184,7 +188,7 @@ class AuthenticationProvider extends ChangeNotifier {
       } else {
         AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
         body = {
-          "userId": userUid,
+          "userId": userid,
           "otp": otpText,
           "deviceInfo": {
             "deviceId": androidInfo.id,
@@ -204,7 +208,7 @@ class AuthenticationProvider extends ChangeNotifier {
       if (loginModel?.isError == false &&
           loginModel?.isValidationFailed == false) {
         saveDataToPref().then((value) {
-          navigatePushReplacementFnc(const DashBoard());
+          navigatorFnc();
         });
       } else {
         if (loginModel?.isValidationFailed == true) {
@@ -309,7 +313,7 @@ class AuthenticationProvider extends ChangeNotifier {
   }
 
   checkValidationAndCallVerifyOtpApi(
-      {required TextEditingController controller}) {
+      {required TextEditingController controller,required Function() navigatorFnc}) {
     if (controller.text.isEmpty) {
       AppUtils.showSnackBarWithColor(
           message: "Please Enter One Time Password!", giveColor: Colors.red);
@@ -317,7 +321,7 @@ class AuthenticationProvider extends ChangeNotifier {
       AppUtils.showSnackBarWithColor(
           message: "Please Enter 4 digit code!", giveColor: Colors.red);
     } else {
-      apiCallVerifyOtp(otpText: controller.text);
+      apiCallVerifyOtp(otpText: controller.text,navigatorFnc: navigatorFnc);
     }
   }
 }

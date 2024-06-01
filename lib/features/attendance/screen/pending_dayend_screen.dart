@@ -38,21 +38,6 @@ class _PendingDayEndScreenState extends State<PendingDayEndScreen> {
     final attendanceProvider = Provider.of<AttendanceProvider>(context);
     return PopScope(
       canPop: false,
-      // onPopInvoked: (didPop) {
-      //   return AppUtils.showDialogBoxWithTwoButton(
-      //     titleText: "Submit",
-      //     onSuccessString: "Yes",
-      //     onCancelString: "No",
-      //     context: context,
-      //     text: "Are you sure you want to submit this request.",
-      //     onSuccess: () {
-      //       Navigator.of(context).pop(true);
-      //     },
-      //     onCancel: () {
-      //       Navigator.of(context).pop(false);
-      //     },
-      //   );
-      // },
       child: GestureDetector(
         onTap: () {
           FocusScope.of(context).unfocus();
@@ -140,7 +125,7 @@ class _PendingDayEndScreenState extends State<PendingDayEndScreen> {
                       commonTextField(
                           text: "Reason",
                           controller: attendanceProvider.reasonController,
-                          maxLine: 3),
+                          maxLine: 3,),
                       AppUtils.commonSizedBox(height: 20),
                     ],
                   ),
@@ -164,7 +149,7 @@ class _PendingDayEndScreenState extends State<PendingDayEndScreen> {
     bool? showCursor,
     TextInputType? textInputType,
     Widget? suffixIcon,
-    bool? readOnly,
+    bool? readOnly
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,6 +168,7 @@ class _PendingDayEndScreenState extends State<PendingDayEndScreen> {
           controller: controller,
           hintText: text ?? "",
           maxLines: maxLine ?? 1,
+          maxLength: 200,
           cursorColor: AppConstant.appPrimaryColor.withOpacity(0.9),
           allBorderRadius: 3,
           fillColor: AppConstant.whiteColor,
@@ -204,6 +190,7 @@ class _PendingDayEndScreenState extends State<PendingDayEndScreen> {
       context: context,
       initialTime: selectedTime ?? _time,
       visibleStep: _visibleStep,
+
       builder: (BuildContext context, Widget? child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),

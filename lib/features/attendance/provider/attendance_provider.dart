@@ -290,7 +290,7 @@ class AttendanceProvider extends ChangeNotifier {
             if (liveLocationTracking == true) {
               await service.startService();
               print("dtaaadasd${getLastActivityModel?.data?.toJson()}");
-
+              PreferenceHelper.setObject<LastActivityData>("last_activity", getLastActivityModel?.data?.toJson());
               service.invoke("appLoad", getLastActivityModel?.data?.toJson());
             }
           }

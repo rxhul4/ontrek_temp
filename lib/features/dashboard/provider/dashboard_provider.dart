@@ -288,9 +288,7 @@ class DashBoardProvider extends ChangeNotifier {
     print("currentLocation$currentLocation");
     if (currentLocation != null) {
      await updateCameraPosition(currentLocation ?? LatLng(0, 0));
-
-      addCurrentLocationMarker(currentLocation ?? LatLng(0, 0));
-
+     addCurrentLocationMarker(currentLocation ?? LatLng(0, 0));
     }
     // notifyListeners();
   }

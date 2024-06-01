@@ -2,16 +2,17 @@ import 'package:app_settings/app_settings.dart';
 import 'package:battery_indicator/battery_indicator.dart';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:intl/intl.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/main.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -580,20 +581,33 @@ class AppUtils {
     );
   }
 
-  static Future<bool> checkInternetConnectivity() async {
-    bool isInternetAvailable = false;
 
-    final connectivityResult = await Connectivity().checkConnectivity();
-    isInternetAvailable = connectivityResult == ConnectivityResult.mobile ||
-        connectivityResult == ConnectivityResult.wifi;
 
-    return isInternetAvailable;
+
+  static  Future<bool> checkInternetConnectivity() async {
+    try {
+      bool isIntAvailable = false;
+      isIntAvailable =await InternetConnectionChecker().hasConnection;
+      return isIntAvailable;
+    } catch (e) {
+      print("isInternetOn: $e");
+      return false; // Return false in case of an error
+    }
   }
 
+
   static Future<bool> checkLocationServiceAvailability() async {
-    bool isLocationServiceAvailable = false;
-    isLocationServiceAvailable = await Geolocator.isLocationServiceEnabled();
-    return isLocationServiceAvailable;
+    try {
+      final locationAlwaysStatus = await Permission.locationAlways.serviceStatus;
+      final locationStatus = await Permission.location.serviceStatus;
+
+      bool isGPSEnabled = locationAlwaysStatus.isEnabled && locationStatus.isEnabled;
+
+      return isGPSEnabled;
+    } catch (e) {
+      print("isGpsOn: $e");
+      return false; // Return false in case of an error
+    }
   }
 
   static dateFormat({

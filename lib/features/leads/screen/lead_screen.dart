@@ -104,8 +104,8 @@ class _LeadScreenState extends State<LeadScreen> {
                         ? AppUtils.commonNoDataFound(
                             text: "No Leads Found",
                             onPressed: () {
-                              if (!mounted) {}
-                              callGetAllLeadApi(leadProvider);
+                              // if (!mounted) {}
+                              refresh(leadProvider);
                             },
                           )
                         : ListView.builder(
@@ -316,6 +316,16 @@ class _LeadScreenState extends State<LeadScreen> {
       ),
     );
   }
+
+
+  refresh(LeadProvider leadProvider) async {
+    isInternetAvailable = await AppUtils.checkInternetConnectivity();
+    if(isInternetAvailable == true){
+      leadProvider.apiCallGetAllLead();
+    }
+
+  }
+
 
   Widget commonIconWidget(
       {Function()? onTap, IconData? iconData, Color? iconColor, double? size}) {

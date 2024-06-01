@@ -6,6 +6,7 @@ import 'package:ontrek/core/common_widgets/app_scaffold.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
+import 'package:ontrek/features/dashboard/screens/dashboard_screen.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:provider/provider.dart';
 
@@ -36,7 +37,7 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       authenticationProvider = Provider.of<AuthenticationProvider>(context,listen: false);
       otpController.clear();
-      authenticationProvider.userUid = widget.appUserId;
+      authenticationProvider.userid = widget.appUserId;
       startTimer();
     });
 
@@ -63,7 +64,9 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
     });
   }
   void resendCode() {
-    authenticationProvider.apiCallVerifyNumber(phoneNumber: widget.phoneNumber,countryCodeFromOtp: widget.countryCode,isFromOtpScreen: true);
+    authenticationProvider.apiCallVerifyNumber(phoneNumber: widget.phoneNumber,countryCodeFromOtp: widget.countryCode,isFromOtpScreen: true,navigatorFnc: () {
+
+    },);
     secondRemaining = 30;
     enableResend = false;
     startTimer();
@@ -157,9 +160,20 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
                         bgColor: AppConstant.appPrimaryColor.withOpacity(0.9),
                         borderRadiusAll: 8,
                         onPressed: () {
-                          authenticationProvider.checkValidationAndCallVerifyOtpApi(controller: otpController);
-
+                          authenticationProvider.checkValidationAndCallVerifyOtpApi(
+                            controller: otpController,
+                            navigatorFnc: () {
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                CupertinoPageRoute(
+                                  builder: (context) => DashBoard(),
+                                ),
+                                    (Route<dynamic> route) => false,
+                              );
+                            },
+                          );
                         },
+
                       ),
                     !enableResend
                           ? AppUtils.commonContainer(

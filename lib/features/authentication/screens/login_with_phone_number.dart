@@ -9,6 +9,7 @@ import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 
 import 'package:ontrek/features/authentication/providers/auth_provider.dart';
+import 'package:ontrek/features/authentication/screens/otp_verification%20screen.dart';
 import 'package:provider/provider.dart';
 import 'package:upgrader/upgrader.dart';
 
@@ -213,7 +214,9 @@ AuthenticationProvider? authenticationProvider;
                               // print(
                               //     "onPressed-----${authenticationProvider.mobileNumberController.text}");
                               // print("onPressed-----${authenticationProvider.countryCode}");
-                              authenticationProvider.checkValidationAndCallLoginApi();
+                              authenticationProvider.checkValidationAndCallLoginApi(navigatorFnc: () {
+                                Navigator.push(context, CupertinoPageRoute(builder: (context) => OTPVerificationCode(appUserId: authenticationProvider.userid,countryCode: authenticationProvider.countryCode,phoneNumber: authenticationProvider.mobileNumberController.text),));
+                              },);
                             },
                           ),
                           Row(

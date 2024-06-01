@@ -65,17 +65,12 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     initAnimateController();
     if (!mounted) {}
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final attendanceProvider =
-          Provider.of<AttendanceProvider>(context, listen: false);
+      final attendanceProvider = Provider.of<AttendanceProvider>(context, listen: false);
       attendanceProvider.getAllConfiguration();
-      attendanceProvider.panelController.animatePanelToPosition(0.99);
-        // await attendanceProvider.callGetLastActivity();
-        attendanceProvider.isAllowCheckInCheckOut =
-            PreferenceHelper.getBool(PreferenceHelper.AllowCheckInCheckOut);
-        attendanceProvider.checkBiometricAvailable();
-        attendanceProvider.batteryPercentage();
-
-
+      attendanceProvider.panelController.animatePanelToPosition(0.99,duration: Duration(milliseconds: 500));
+      attendanceProvider.isAllowCheckInCheckOut = PreferenceHelper.getBool(PreferenceHelper.AllowCheckInCheckOut);
+      attendanceProvider.checkBiometricAvailable();
+      attendanceProvider.batteryPercentage();
     });
     super.initState();
   }
@@ -121,7 +116,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           attendanceProvider: attendanceProvider);
 
       if (response?.isError == false && response?.isValidationFailed == false) {
-        service.invoke("dayStart");
+
         await attendanceProvider?.callGetLastActivity();
         callLoginFunction(LatLng(attendanceProvider?.position?.latitude ?? 0,
             attendanceProvider?.position?.longitude ?? 0));
@@ -209,6 +204,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     //getCurrent Location for UI and api
     try {
       service.invoke("dayEnd_beforeEvent");
+      // Future.delayed(Duration(seconds: 5));
       var response = await callCreateActivityApi(
           totTrackingEventCode: AppConstant.dayEndEvent,
           attendanceProvider: attendanceProvider);
@@ -268,6 +264,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       bool? isAllowBackgroundLocation =
           PreferenceHelper.getBool(PreferenceHelper.LIVE_LOCATION_TRACKING);
       if (isAllowBackgroundLocation == true) {
+        service.invoke("dayStart");
         service.startService();
       }
 
@@ -438,8 +435,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 controller?.forward().whenComplete(() async {
                   bool? isAlwaysOnLocation =
                       await Permission.locationAlways.isGranted;
-                  bool? isInternetAvailable =
-                      await AppUtils.checkInternetConnectivity();
+                  bool? isInternetAvailable = await AppUtils.checkInternetConnectivity();
                   bool? isGpsAvailable =
                       await AppUtils.checkLocationServiceAvailability();
                   HapticFeedback.vibrate();
