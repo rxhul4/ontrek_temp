@@ -64,7 +64,7 @@ class _TaskListScreenState extends State<TaskListScreen>
       child: AppUtils.commonSlidePanel(
         panelSnapping: true,
         maxHeight: height,
-        minHeight: height * 0.09,
+        minHeight: height * 0.083,
         controller: taskProvider.panelController,
         isDraggable: true,
         snapPoint: 0.35,

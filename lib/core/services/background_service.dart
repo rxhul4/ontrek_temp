@@ -155,7 +155,7 @@ void onStart(ServiceInstance service) async {
                 prevLong: prevLongitude,
                 currentLat: currentLatitude,
                 currentLong: currentLongitude,
-                radiusMtr: 80);
+                radiusMtr: 0);
 
             ManageRouteHistory();
             ManageInternetOperations(listOfAllActivity ?? []);
@@ -390,7 +390,7 @@ ManageWaitingOperation(List<Activity> listOfAllActivity) async {
           prevLong: waitingStartData.longitude,
           currentLat: currentLatitude,
           currentLong: currentLongitude,
-          radiusMtr: 80);
+          radiusMtr: 0);
 
       // Below code is for testing waiting end event in debug mode do not remove
       // var waitingTestStartTime = DateTime.parse(waitingStartData.activityDate!);
@@ -882,6 +882,25 @@ setBgNotificationIcon(ServiceInstance service) async {
         );
       }
     }
+    if (service is IOSServiceInstance) {
+      flutterLocalNotificationsPlugin.show(
+        notificationId,
+        'On Trek Background Service',
+        'Background location capturing initiated.',
+        NotificationDetails(
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+            badgeNumber: 1,
+            subtitle: 'Background location capturing initiated.',
+            sound: 'default'
+
+          ),
+        ),
+      );
+    }
+
   } catch (e) {
     print("setBgNotificationIcon");
   }
