@@ -155,7 +155,7 @@ void onStart(ServiceInstance service) async {
                 prevLong: prevLongitude,
                 currentLat: currentLatitude,
                 currentLong: currentLongitude,
-                radiusMtr: 0);
+                radiusMtr: 80);
 
             ManageRouteHistory();
             ManageInternetOperations(listOfAllActivity ?? []);
@@ -390,7 +390,7 @@ ManageWaitingOperation(List<Activity> listOfAllActivity) async {
           prevLong: waitingStartData.longitude,
           currentLat: currentLatitude,
           currentLong: currentLongitude,
-          radiusMtr: 0);
+          radiusMtr: 80);
 
       // Below code is for testing waiting end event in debug mode do not remove
       // var waitingTestStartTime = DateTime.parse(waitingStartData.activityDate!);
@@ -445,11 +445,13 @@ registerEventsToListener(ServiceInstance service) {
             PreferenceHelper.remove(PreferenceHelper.LAST_LONG);
 
             PreferenceHelper.setStringList("offline_activities", []);
+            PreferenceHelper.setStringList("offline_route_data", []);
             service.stopSelf();
           } else {
             PreferenceHelper.remove(PreferenceHelper.WAITING_START_TIME);
             PreferenceHelper.remove(PreferenceHelper.LAST_LAT);
             PreferenceHelper.remove(PreferenceHelper.LAST_LONG);
+            PreferenceHelper.setStringList("offline_route_data", []);
             service.stopSelf();
           }
         }
