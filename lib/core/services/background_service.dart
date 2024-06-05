@@ -72,10 +72,8 @@ class BackgroundService {
       iosConfiguration: IosConfiguration(
         // auto start service
         autoStart: false,
-
         // this will be executed when app is in foreground in separated isolate
         onForeground: onStart,
-
         // you have to enable background fetch capability on xcode project
         onBackground: onIosBackground,
       ),
@@ -99,11 +97,9 @@ Future<bool> onIosBackground(ServiceInstance service) async {
   WidgetsFlutterBinding.ensureInitialized();
   DartPluginRegistrant.ensureInitialized();
 
-  SharedPreferences preferences = await SharedPreferences.getInstance();
-  await preferences.reload();
-  final log = preferences.getStringList('log') ?? <String>[];
-  log.add(DateTime.now().toIso8601String());
-  await preferences.setStringList('log', log);
+  // final log = preferences.getStringList('log') ?? <String>[];
+  // log.add(DateTime.now().toIso8601String());
+  // await preferences.setStringList('log', log);
 
   return true;
 }
@@ -164,6 +160,7 @@ void onStart(ServiceInstance service) async {
             ManageInternetOperations(listOfAllActivity ?? []);
             ManageGpsOperations(listOfAllActivity ?? []);
 
+            print("isCehckin$isCheckIn");
             if (isCheckIn == false) {
               if (isWaitingAllowed == true) {
                 await ManageWaitingOperation(listOfAllActivity ?? []);
@@ -488,6 +485,7 @@ registerEventsToListener(ServiceInstance service) {
 
       service.on("checkIn_afterEvent").listen((event) {
         PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
+        PreferenceHelper.reload();
         isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
         PreferenceHelper.setString(
             PreferenceHelper.WAITING_START_TIME,
@@ -499,6 +497,7 @@ registerEventsToListener(ServiceInstance service) {
       service.on('checkOut_event').listen((event) {
         PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
         isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+        print("isCheckIn$isCheckIn");
         PreferenceHelper.setString(
             PreferenceHelper.WAITING_START_TIME,
             AppUtils.getDate(
