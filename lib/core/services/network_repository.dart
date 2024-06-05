@@ -109,10 +109,12 @@ Future getResponse(Response response) async {
     String error1 = message.replaceAll(RegExp(r'[^\w\s]+'), '');
     return "{\"status\":\"false\",\"message\":\"$error1\"}";
     } else if(statusCode == 426){
+    final parsedJson = jsonDecode(response.body.toString());
+    final message = parsedJson['message'].toString();
     AppUtils.showDialogBoxWithOneButton(
         context: navigatorKey.currentState!.context,
-        titleText: "Update",
-        text: AppConstant.updateText,
+        titleText: "App Update",
+        text: message,
         btnColor: Colors.red,
         btnText: "Update now",
         onTap: () {
