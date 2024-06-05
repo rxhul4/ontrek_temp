@@ -23,6 +23,7 @@ class AppConstant {
 
   // error Message
   static const String  errorText = "Something went wrong!" ;
+  static const String  updateText = "Please kindly update your app" ;
   // date format
   static const String dateFormat= "yyyy-MM-dd'T'HH:mm:ss";
 
