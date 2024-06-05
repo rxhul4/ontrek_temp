@@ -921,7 +921,7 @@ class AppUtils {
   }
 
   static showDialogBoxWithOneButton(
-      {BuildContext? context, String? text, String? titleText,Function()? onTap,String? btnText}) {
+      {BuildContext? context, String? text, String? titleText,Function()? onTap,String? btnText,Color? btnColor}) {
     return showCupertinoDialog(
       context: context ?? navigatorKey.currentState!.context,
       builder: (context) {
@@ -939,7 +939,7 @@ class AppUtils {
             CupertinoDialogAction(
               child: AppUtils.commonTextWidget(
                   text: btnText ?? "OK",
-                  textColor: AppConstant.appPrimaryColor,
+                  textColor:  btnColor ?? AppConstant.appPrimaryColor,
                   fontSize: 14,
                   textAlign: TextAlign.center,
                   fontWeight: FontWeight.w500,

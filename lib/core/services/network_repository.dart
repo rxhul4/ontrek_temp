@@ -1,57 +1,75 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 
 import 'package:ontrek/core/storage/preference_helper.dart';
+import 'package:ontrek/core/utils/App_utils.dart';
+import 'package:ontrek/core/utils/app_constant.dart';
+import 'package:ontrek/main.dart';
 AndroidDeviceInfo? myDeviceInfo;
 
 String? userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
 
 
-Map<String, String> header = {
+
+Map<String, String> iosHeader = {
   'Content-Type': 'application/json',
   'Accept': 'application/json',
   'current-User' : userName ?? "",
-  'time-zone' : DateTime.now().timeZoneOffset.inMinutes.toString()
-};
+  'time-zone' : DateTime.now().timeZoneOffset.inMinutes.toString(),
+  'app-version' : AppConstant.appVersionAndroid,
+  'app-os': "Ios"
 
+};
+Map<String, String> androidHeader = {
+'Content-Type': 'application/json',
+'Accept': 'application/json',
+'current-User' : userName ?? "",
+'time-zone' : DateTime.now().timeZoneOffset.inMinutes.toString(),
+  'app-version' : AppConstant.appVersionAndroid,
+  'app-os': "android"
+};
 
 Future callPostMethod(String url, Map<String, dynamic> params) async {
   if (kDebugMode) {
     print("baseUrl--$url");
     print("params--${jsonEncode(params)}");
-    print("header----${header}");
+    print("header----${Platform.isIOS ? iosHeader : androidHeader}");
   }
+
   return await http
       .post(
     Uri.parse(url),
     body: utf8.encode(json.encode(params)),
-    headers:  header,
+    headers: Platform.isIOS ? iosHeader : androidHeader,
   )
       .then((http.Response response) {
     return getResponse(response);
   });
 }
 
-Future callGetMethod(String url) async {
-  if (kDebugMode) {
-    print("baseUrl--$url");
-  }
-  var requestUrl = url;
-  return await http
-      .get(
-    Uri.parse(requestUrl),
-    headers: header,
-  )
-      .then((http.Response response) {
-    return getResponse(response);
-  });
-}
+// Future callGetMethod(String url) async {
+//   if (kDebugMode) {
+//     print("baseUrl--$url");
+//   }
+//   var requestUrl = url;
+//   return await http
+//       .get(
+//     Uri.parse(requestUrl),
+//     headers: header,
+//   )
+//       .then((http.Response response) {
+//     return getResponse(response);
+//   });
+// }
 
 void printWrapped(String text) {
   final pattern = RegExp('.{1,800}'); // 800 is the size of each chunk
@@ -90,7 +108,18 @@ Future getResponse(Response response) async {
     printWrapped("---sa-Add${message.replaceAll(RegExp(r'[^\w\s]+'), '')}");
     String error1 = message.replaceAll(RegExp(r'[^\w\s]+'), '');
     return "{\"status\":\"false\",\"message\":\"$error1\"}";
-  } else if (statusCode < 200 || statusCode > 404) {
+    } else if(statusCode == 426){
+    AppUtils.showDialogBoxWithOneButton(
+        context: navigatorKey.currentState!.context,
+        titleText: "Update",
+        text: AppConstant.updateText,
+        btnColor: Colors.red,
+        btnText: "Update now",
+        onTap: () {
+          AppUtils.launchToBrowser(Uri.parse("https://play.google.com/store/apps/details?id=com.ontrek"));
+        },
+    );
+  }else if (statusCode < 200 || statusCode > 404) {
     String error = response.headers['message'].toString();
     printWrapped("response--$error");
     return "{\"status\":\"0\",\"message\":\"$error\"}";
