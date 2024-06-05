@@ -515,7 +515,6 @@ registerEventsToListener(ServiceInstance service) {
       });
     }
     if(service is IOSServiceInstance){
-
       service.on('stopService').listen((event) async {
         if (isInternetAvailable) {
           if (listOfAllActivity != null &&
