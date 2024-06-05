@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_background_service_ios/flutter_background_service_ios.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
@@ -437,6 +438,84 @@ registerEventsToListener(ServiceInstance service) {
       service.on('setAsBackground').listen((event) {
         service.setAsBackgroundService();
       });
+
+      service.on('stopService').listen((event) async {
+        if (isInternetAvailable) {
+          if (listOfAllActivity != null &&
+              (listOfAllActivity?.length ?? 0) > 0) {
+            PreferenceHelper.remove(PreferenceHelper.WAITING_START_TIME);
+            PreferenceHelper.remove(PreferenceHelper.LAST_LAT);
+            PreferenceHelper.remove(PreferenceHelper.LAST_LONG);
+
+            PreferenceHelper.setStringList("offline_activities", []);
+            service.stopSelf();
+          } else {
+            PreferenceHelper.remove(PreferenceHelper.WAITING_START_TIME);
+            PreferenceHelper.remove(PreferenceHelper.LAST_LAT);
+            PreferenceHelper.remove(PreferenceHelper.LAST_LONG);
+            service.stopSelf();
+          }
+        }
+      });
+
+      service.on('dayStart').listen((event) async {
+        Position position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.low);
+        PreferenceHelper.setString(
+            PreferenceHelper.WAITING_START_TIME,
+            AppUtils.getDate(
+                date: DateTime.now().toString(),
+                format: AppConstant.dateFormat));
+        waitingStartTime =
+            PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
+        PreferenceHelper.setDouble(
+            PreferenceHelper.LAST_LAT, currentLatitude ?? position.latitude);
+        lastWaitingLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+        PreferenceHelper.setDouble(
+            PreferenceHelper.LAST_LONG, currentLongitude ?? position.longitude);
+        lastWaitingLong =
+            PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
+      });
+
+      service.on("checkIn_beforeEvent").listen((event) async {
+        List<Activity> listOfAllActivity = geAllActivitiesFromPrefOffLine();
+
+        manualWaitingEndEvent(listOfAllActivity);
+
+        manualInternetOnEvent(listOfAllActivity);
+
+        manualGpsOnEvent(listOfAllActivity);
+      });
+
+      service.on("checkIn_afterEvent").listen((event) {
+        PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
+        isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+        PreferenceHelper.setString(
+            PreferenceHelper.WAITING_START_TIME,
+            AppUtils.getDate(
+                date: DateTime.now().toString(),
+                format: AppConstant.dateFormat));
+      });
+
+      service.on('checkOut_event').listen((event) {
+        PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
+        isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+        PreferenceHelper.setString(
+            PreferenceHelper.WAITING_START_TIME,
+            AppUtils.getDate(
+                date: DateTime.now().toString(),
+                format: AppConstant.dateFormat));
+        PreferenceHelper.setDouble(
+            PreferenceHelper.LAST_LAT, currentLatitude ?? 0);
+        PreferenceHelper.setDouble(
+            PreferenceHelper.LAST_LONG, currentLongitude ?? 0);
+      });
+
+      service.on("dayEnd_beforeEvent").listen((event) async {
+        // await syncData(listOfAllActivity!);
+      });
+    }
+    if(service is IOSServiceInstance){
 
       service.on('stopService').listen((event) async {
         if (isInternetAvailable) {
