@@ -17,15 +17,12 @@ import 'package:ontrek/main.dart';
 AndroidDeviceInfo? myDeviceInfo;
 
 String? userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
-
-
-
 Map<String, String> iosHeader = {
   'Content-Type': 'application/json',
   'Accept': 'application/json',
   'current-User' : userName ?? "",
   'time-zone' : DateTime.now().timeZoneOffset.inMinutes.toString(),
-  'app-version' : AppConstant.appVersionAndroid,
+  'app-version' : AppConstant.appVersionIos,
   'app-os': "Ios"
 
 };
@@ -118,7 +115,13 @@ Future getResponse(Response response) async {
         btnColor: Colors.red,
         btnText: "Update now",
         onTap: () {
-          AppUtils.launchToBrowser(Uri.parse("https://play.google.com/store/apps/details?id=com.ontrek"));
+          if(Platform.isAndroid){
+            AppUtils.launchToBrowser(Uri.parse(AppConstant.androidAppLink));
+          }
+          if(Platform.isIOS){
+            AppUtils.launchToBrowser(Uri.parse(AppConstant.iosAppLink));
+          }
+
         },
     );
   }else if (statusCode < 200 || statusCode > 404) {

@@ -237,23 +237,22 @@ class AppUtils {
     );
   }
 
-  static Widget buildHeader(
-      {height,
-      width,
-      List<Widget>? actionWidget,
-      String? title,
-      String? subTitle,
-      Color? loaderColor,
-      String? leadingImage,
-      Color? backgroundColor,
-      Color? borderColor,
-      Color? iconColor,
-      bool? isFromTimeLine,
-      int? batteryLevel,
-      }) {
+  static Widget buildHeader({
+    required double height,
+    required double width,
+    List<Widget>? actionWidget,
+    String? title,
+    String? subTitle,
+    Color? loaderColor,
+    String? leadingImage,
+    Color? backgroundColor,
+    Color? borderColor,
+    Color? iconColor,
+    bool? isFromTimeLine,
+    int? batteryLevel,
+  }) {
     return Container(
-      alignment: Alignment.centerLeft,
-      height: height * 0.09,
+      // height: height * 0.09,
       width: width,
       decoration: BoxDecoration(
         border: Border(
@@ -265,90 +264,81 @@ class AppUtils {
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
         color: Colors.white,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        margin: EdgeInsets.only(right: 5),
-                        height: 50,
-                        width: 50,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: backgroundColor ?? Colors.grey.withOpacity(0.5),
-                          border: Border.all(
-                            color: borderColor ?? Colors.grey.withOpacity(0.7),
-                            width: 2,
-                          ),
-                        ),
-                        child: Center(
-                          child: isFromTimeLine == true
-                              ? AppUtils.commonCacheNetworkImage(
-                            imgUrl: leadingImage,
-                            height: 50,
-                            width: 50,
-                            size: 20,
-                            errorIcon: Icons.person,
-                          )
-                              : AppUtils.commonAssetImageWidget(
-                            path: leadingImage ?? "",
-                            boxFit: BoxFit.cover,
-                            iconColor:
-                            iconColor ?? AppConstant.appPrimaryColor,
-                            height: 25,
-                            width: 25,
-                          ),
-                        ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(
-                            width:width/2,
-                            child: AppUtils.commonTextWidget(
-                              text: title ?? "",
-                              fontWeight: FontWeight.w500,
-                              textColor: Colors.black,
-                              letterSpacing: 0.3,
-                              fontSize: 14,
-                              overflow: TextOverflow.ellipsis
-                            ),
-                          ),
-                          SizedBox(
-                            width:width/2,
-                            child: AppUtils.commonTextWidget(
-                              text: subTitle ?? "",
-                              fontWeight: FontWeight.w400,
-                              textColor: Colors.grey.withOpacity(0.7),
-                              letterSpacing: 0.0,
-                              fontSize: 12,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center, // Align vertically
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center, // Align vertically
+              children: [
+                Container(
+                  margin: EdgeInsets.only(right: 10),
+                  height: 50,
+                  width: 50,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: backgroundColor ?? Colors.grey.withOpacity(0.5),
+                    border: Border.all(
+                      color: borderColor ?? Colors.grey.withOpacity(0.7),
+                      width: 2,
+                    ),
                   ),
-                  Row(children: actionWidget ?? []),
-                ],
+                  child: Center(
+                    child: isFromTimeLine == true
+                        ? AppUtils.commonCacheNetworkImage(
+                      imgUrl: leadingImage,
+                      height: 50,
+                      width: 50,
+                      size: 20,
+                      errorIcon: Icons.person,
+                    )
+                        : AppUtils.commonAssetImageWidget(
+                      path: leadingImage ?? "",
+                      boxFit: BoxFit.cover,
+                      iconColor:
+                      iconColor ?? AppConstant.appPrimaryColor,
+                      height: 25,
+                      width: 25,
+                    ),
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title ?? "",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                        color: Colors.black,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      subTitle ?? "",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 12,
+                        color: Colors.grey.withOpacity(0.7),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.center, // Align vertically
+                children: actionWidget ?? [],
               ),
             ),
-          ),
-          // LinearProgressIndicator(color: loaderColor ?? Colors.blue )
-        ],
+          ],
+        ),
       ),
-
     );
   }
 

@@ -104,7 +104,7 @@ class DashBoardState extends State<DashBoard> {
         ),
       ),
       bottomNavigationBar: AppUtils.commonContainer(
-        height: 60,
+        height: 80,
         decoration: AppUtils.commonBoxDecoration(
           color: AppConstant.whiteColor,
           border: Border.all(
@@ -113,7 +113,7 @@ class DashBoardState extends State<DashBoard> {
           ),
         ),
         child: AppUtils.commonContainer(
-          padding: EdgeInsets.only(left: 10, right: 10),
+          padding: EdgeInsets.only(left: 10, right: 10,bottom: 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
