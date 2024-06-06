@@ -376,7 +376,7 @@ ManageWaitingOperation(List<Activity> listOfAllActivity) async {
     } else {
       PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
       PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT, currentLatitude ?? (prevLatitude  ?? 0));
-      PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, currentLatitude ?? (prevLatitude  ?? 0));
+      PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, currentLongitude ?? (prevLongitude  ?? 0));
       // waitingStartTime = DateTime.now();
     }
 
@@ -409,7 +409,7 @@ ManageWaitingOperation(List<Activity> listOfAllActivity) async {
           setAllActivityListToPref(listOfAllActivity);
           PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
           PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT,  currentLatitude ?? (prevLatitude  ?? 0));
-          PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, currentLatitude ?? (prevLatitude  ?? 0));
+          PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, currentLongitude ?? (prevLongitude  ?? 0));
         }
       }
     }
@@ -483,7 +483,7 @@ registerEventsToListener(ServiceInstance service) {
         print("isCheckIn$isCheckIn");
         PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
         PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT,  currentLatitude ?? (prevLatitude  ?? 0));
-        PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG,  currentLatitude ?? (prevLatitude  ?? 0));
+        PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG,  currentLongitude ?? (prevLongitude  ?? 0));
       });
 
       service.on("dayEnd_beforeEvent").listen((event) async {
@@ -547,7 +547,7 @@ registerEventsToListener(ServiceInstance service) {
         print("isCheckIn$isCheckIn");
         PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
         PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT,  currentLatitude ?? (prevLatitude  ?? 0));
-        PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG,  currentLatitude ?? (prevLatitude  ?? 0));
+        PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG,  currentLongitude ?? (prevLongitude  ?? 0));
       });
 
       service.on("dayEnd_beforeEvent").listen((event) async {

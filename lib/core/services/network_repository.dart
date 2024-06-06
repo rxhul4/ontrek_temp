@@ -54,7 +54,7 @@ Future callPostMethod(String url, Map<String, dynamic> params) async {
       if (kDebugMode) {
         print("baseUrl--$url");
         print("params--${jsonEncode(params)}");
-        print("header----${Platform.isIOS ? iosHeader : androidHeader}");
+        print("header----${androidHeader}");
       }
 
       return await http
@@ -71,14 +71,14 @@ Future callPostMethod(String url, Map<String, dynamic> params) async {
     if (kDebugMode) {
       print("baseUrl--$url");
       print("params--${jsonEncode(params)}");
-      print("header----${Platform.isIOS ? iosHeader : androidHeader}");
+      print("header----${iosHeader}");
     }
 
     return await http
         .post(
       Uri.parse(url),
       body: utf8.encode(json.encode(params)),
-      headers:  iosHeader,
+      headers: iosHeader,
     )
         .then((http.Response response) {
       return getResponse(response);
