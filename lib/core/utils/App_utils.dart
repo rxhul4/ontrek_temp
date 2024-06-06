@@ -923,6 +923,7 @@ class AppUtils {
   static showDialogBoxWithOneButton(
       {BuildContext? context, String? text, String? titleText,Function()? onTap,String? btnText,Color? btnColor}) {
     return showCupertinoDialog(
+      barrierDismissible: true,
       context: context ?? navigatorKey.currentState!.context,
       builder: (context) {
         return CupertinoAlertDialog(
@@ -1004,26 +1005,25 @@ class AppUtils {
               )
             ],
           ),
-          actions: [
-            CupertinoDialogAction(
-              child: AppUtils.commonTextWidget(
-                text: "I Accept",
-                textColor: AppConstant.appPrimaryColor,
-                fontSize: 14,
-                textAlign: TextAlign.center,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.5,
-              ),
-              onPressed: () {
-                onTap;
-                Navigator.pop(context);
-              },
-            ),
-          ],
+          // actions: [
+          //   CupertinoDialogAction(
+          //     child: AppUtils.commonTextWidget(
+          //       text: "I Accept",
+          //       textColor: AppConstant.appPrimaryColor,
+          //       fontSize: 14,
+          //       textAlign: TextAlign.center,
+          //       fontWeight: FontWeight.w500,
+          //       letterSpacing: 0.5,
+          //     ),
+          //     onPressed: () {
+          //       onTap;
+          //       },
+          //   ),
+          // ],
           content: Wrap(
             children: [
               Padding(
-                padding: const EdgeInsets.only(top: 10),
+                padding: const EdgeInsets.only(top: 20),
                 child: AppUtils.commonTextWidget(
                   text: text ?? "",
                   textColor: AppConstant.blackColor,
@@ -1034,7 +1034,7 @@ class AppUtils {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.only(top: 10),
+                padding: const EdgeInsets.only(top: 10,bottom: 10),
                 child: AppUtils.commonTextWidget(
                   text: text3 ?? "",
                   textColor: AppConstant.blackColor,

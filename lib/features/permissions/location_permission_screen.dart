@@ -32,14 +32,6 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
     isLogIn = PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN);
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       scrollController = ScrollController();
-      AppUtils.showDialogBoxForPrivacyPolicy(
-        onTap: () {
-          askLocationPermission();
-        },
-          titleText: "Location Access Policy (Enable While App in Use)",
-          context: context,
-          text3: "Application will collect user lattitude and longitude and will send to server for business purpose. User location will be provided to respective organization user associated with for business purposes.",
-          text: "Location data is collected during active sessions for business purposes, even when the application is in the background. Location will not be collected for the user if there is no active session.");
     });
 
 
@@ -50,8 +42,29 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen> {
     return SafeArea(
       child: AppScaffold(
         backgroundColor: AppConstant.whiteColor,
+       appBar: AppBar(
+         surfaceTintColor: AppConstant.transparentColor,
+         backgroundColor: Colors.white,
+         elevation: 0,
+         centerTitle: true,
+         actions: [
+           GestureDetector(
+             onTap: () {
+               AppUtils.showDialogBoxForPrivacyPolicy(
+                   titleText: "Location Access Policy (Enable While App in Use)",
+                   context: context,
+                   text3: "Application will collect user lattitude and longitude and will send to server for business purpose. User location will be provided to respective organization user associated with for business purposes.",
+                   text: "Location data is collected during active sessions for business purposes, even when the application is in the background. Location will not be collected for the user if there is no active session.");
+             },
+             child: Padding(
+               padding: const EdgeInsets.only(right: 20,top: 10),
+               child: Icon(Icons.security,color: AppConstant.blackColor,),
+             ),
+           )
+         ],
+       ),
         body: Padding(
-          padding: const EdgeInsets.all(50),
+          padding: const EdgeInsets.all(30),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.spaceAround,

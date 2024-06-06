@@ -115,6 +115,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         text: orgName ?? "",
                         textColor: AppConstant.blackColor.withOpacity(0.6),
                         fontSize: 12),
+                    AppUtils.commonSizedBox(height: 10),
+                    AppUtils.commonTextWidget(
+                        text: "App Version : ${AppConstant.appVersionAndroid}",
+                        textColor: AppConstant.blackColor.withOpacity(0.6),
+                        fontSize: 10),
                   ],
                 ),
               ),
@@ -173,7 +178,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   physics: BouncingScrollPhysics(),
                   controller: p0,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    // mainAxisAlignment: ,
                     children: [
                       ListView.builder(
                         // padding: const EdgeInsets.only(bottom: 30),
@@ -227,6 +233,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           );
                         },
                       ),
+                      // Align(
+                      //   alignment: Alignment.center,
+                      //   child: CupertinoListTile(
+                      //     leadingToTitle: 0,
+                      //     leadingSize: 0,
+                      //     padding: EdgeInsets.zero,
+                      //     title: AppUtils.commonTextWidget(
+                      //       text: "App Version : ${AppConstant.appVersionAndroid}",
+                      //       textColor: AppConstant.blackColor
+                      //           .withOpacity(0.7),
+                      //     ),
+                      //   ),
+                      // ),
+
                     ],
                   ),
                 ),

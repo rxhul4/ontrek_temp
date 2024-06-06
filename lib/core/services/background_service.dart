@@ -146,8 +146,7 @@ void onStart(ServiceInstance service) async {
               //sync Route Data
               await syncRouteHistory();
 
-              if (listOfAllActivity != null &&
-                  (listOfAllActivity?.length ?? 0) > 0) {
+              if (listOfAllActivity != null && (listOfAllActivity?.length ?? 0) > 0) {
                 // Sync Event Data
                 await syncData(listOfAllActivity ?? []);
               }
@@ -593,6 +592,7 @@ manualWaitingEndEvent(List<Activity> listOfAllActivity) {
 
       listOfAllActivity.add(activity);
       setAllActivityListToPref(listOfAllActivity);
+      PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME,AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
     }
   }
 }
@@ -721,31 +721,38 @@ syncRouteHistory() async {
 syncData(List<Activity> listOfAllActivity) async {
   try {
     var listOfflineData = listOfAllActivity.where((element) => element.isSync == false).toList();
-    var internetOff = listOfAllActivity
-        .where((element) =>
-            element.eventCode == AppConstant.internetOffEvent &&
-            element.isSync == false)
-        .firstOrNull;
-    var internetOn = listOfAllActivity
-        .where((element) =>
-            element.eventCode == AppConstant.internetOnEvent &&
-            element.isSync == false &&
-            element.parentId == internetOff?.pkId)
-        .firstOrNull;
 
-    if (internetOn != null && internetOff != null) {
-      bool? isGreaterThanFiveMinutes = isDifferenceLessFiveMinutes(
-          internetOff.activityDate ?? "", internetOn.activityDate ?? "");
-      if (isGreaterThanFiveMinutes) {
-        listOfflineData.remove(internetOff);
-        listOfflineData.remove(internetOn);
-        setAllActivityListToPref(listOfflineData);
-      }
-    }
 
-    if (listOfflineData == null || listOfflineData.length < 1) {
+    if (listOfflineData == null || listOfflineData.length < 1)
+    {
       return;
     } else {
+
+      var internetOff = listOfAllActivity
+          .where((element) =>
+      element.eventCode == AppConstant.internetOffEvent &&
+          element.isSync == false)
+          .firstOrNull;
+      var internetOn = listOfAllActivity
+          .where((element) =>
+      element.eventCode == AppConstant.internetOnEvent &&
+          element.isSync == false &&
+          element.parentId == internetOff?.pkId)
+          .firstOrNull;
+
+      if (internetOn != null && internetOff != null) {
+        bool? isDifferenceLessTwoMinutes = isDifferenceLessFiveMinutes(
+            internetOff.activityDate ?? "", internetOn.activityDate ?? "");
+        if (isDifferenceLessTwoMinutes) {
+          internetOff.isSync = true;
+          internetOff.isEventCompleted=true;
+          internetOn.isSync=true;
+          internetOn.isEventCompleted=true;
+          setAllActivityListToPref(listOfflineData);
+          listOfflineData = listOfAllActivity.where((element) => element.isSync == false).toList();
+        }
+      }
+
       List<CreateActivityList> createActivityLists = [];
 
       for (var activity in listOfflineData) {
@@ -789,18 +796,21 @@ syncData(List<Activity> listOfAllActivity) async {
                 BulkActivityResponseModel.fromJson(json.decode(response));
 
             if (bulkActivityResponseModel?.isError == false) {
+
               bulkActivityResponseModel?.data?.forEach((element) {
-                var recordToSync = listOfflineData
+
+                var recordToSync = listOfAllActivity
                     .where((x) => x.pkId == element.localPkId)
                     .firstOrNull;
                 recordToSync?.isSync = true;
               });
-              List<String> allActivityList = listOfflineData
+
+              List<String> allActivityList = listOfAllActivity
                   .map((activity) => jsonEncode(activity.toJson()))
                   .toList();
 
-              PreferenceHelper.setStringList(
-                  "offline_activities", allActivityList);
+              PreferenceHelper.setStringList("offline_activities", allActivityList);
+              listOfAllActivity = geAllActivitiesFromPrefOffLine();
               print("all Activity Data cleared");
             }
           } catch (e) {

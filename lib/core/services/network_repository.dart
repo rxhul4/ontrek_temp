@@ -37,12 +37,12 @@ Map<String, String> androidHeader = {
 };
 
 Future callPostMethod(String url, Map<String, dynamic> params) async {
-  if (Platform.isIOS) {
+  if (Platform.isAndroid) {
     bool developerMode = await FlutterJailbreakDetection.developerMode;
     if (developerMode) {
       AppUtils.showDialogBoxWithOneButton(
         context: navigatorKey.currentState!.context,
-        text: "Please disable your developer Option",
+        text: "Please disable Developer Options to run the smoothly.",
         titleText: "Developer Option",
         btnColor: Colors.red,
         btnText: "Open Settings",
@@ -61,7 +61,7 @@ Future callPostMethod(String url, Map<String, dynamic> params) async {
           .post(
         Uri.parse(url),
         body: utf8.encode(json.encode(params)),
-        headers: iosHeader,
+        headers: androidHeader,
       )
           .then((http.Response response) {
         return getResponse(response);
@@ -78,7 +78,7 @@ Future callPostMethod(String url, Map<String, dynamic> params) async {
         .post(
       Uri.parse(url),
       body: utf8.encode(json.encode(params)),
-      headers:  androidHeader,
+      headers:  iosHeader,
     )
         .then((http.Response response) {
       return getResponse(response);
