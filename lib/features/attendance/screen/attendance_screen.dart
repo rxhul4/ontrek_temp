@@ -170,8 +170,8 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   callCheckInApiAndUpdateUI(AttendanceProvider? attendanceProvider) async {
     //getCurrent Location for UI and api
     try {
-      service.invoke("checkIn_beforeEvent");
 
+      service.invoke("checkIn_beforeEvent");
       var response = await callCreateActivityApi(
           totTrackingEventCode: AppConstant.checkInEvent,
           attendanceProvider: attendanceProvider);
