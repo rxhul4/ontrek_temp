@@ -2,11 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-
+import 'package:app_settings/app_settings.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_jailbreak_detection/flutter_jailbreak_detection.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 
@@ -14,43 +15,75 @@ import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/main.dart';
+
 AndroidDeviceInfo? myDeviceInfo;
 
 String? userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
 Map<String, String> iosHeader = {
   'Content-Type': 'application/json',
   'Accept': 'application/json',
-  'current-User' : userName ?? "",
-  'time-zone' : DateTime.now().timeZoneOffset.inMinutes.toString(),
-  'app-version' : AppConstant.appVersionIos,
+  'current-User': userName ?? "",
+  'time-zone': DateTime.now().timeZoneOffset.inMinutes.toString(),
+  'app-version': AppConstant.appVersionIos,
   'app-os': "Ios"
-
 };
 Map<String, String> androidHeader = {
-'Content-Type': 'application/json',
-'Accept': 'application/json',
-'current-User' : userName ?? "",
-'time-zone' : DateTime.now().timeZoneOffset.inMinutes.toString(),
-  'app-version' : AppConstant.appVersionAndroid,
+  'Content-Type': 'application/json',
+  'Accept': 'application/json',
+  'current-User': userName ?? "",
+  'time-zone': DateTime.now().timeZoneOffset.inMinutes.toString(),
+  'app-version': AppConstant.appVersionAndroid,
   'app-os': "android"
 };
 
 Future callPostMethod(String url, Map<String, dynamic> params) async {
-  if (kDebugMode) {
-    print("baseUrl--$url");
-    print("params--${jsonEncode(params)}");
-    print("header----${Platform.isIOS ? iosHeader : androidHeader}");
-  }
+  if (Platform.isIOS) {
+    bool developerMode = await FlutterJailbreakDetection.developerMode;
+    if (developerMode) {
+      AppUtils.showDialogBoxWithOneButton(
+        context: navigatorKey.currentState!.context,
+        text: "Please disable your developer Option",
+        titleText: "Developer Option",
+        btnColor: Colors.red,
+        btnText: "Open Settings",
+        onTap: () {
+          AppSettings.openAppSettings(type: AppSettingsType.developer);
+        },
+      );
+    } else {
+      if (kDebugMode) {
+        print("baseUrl--$url");
+        print("params--${jsonEncode(params)}");
+        print("header----${Platform.isIOS ? iosHeader : androidHeader}");
+      }
 
-  return await http
-      .post(
-    Uri.parse(url),
-    body: utf8.encode(json.encode(params)),
-    headers: Platform.isIOS ? iosHeader : androidHeader,
-  )
-      .then((http.Response response) {
-    return getResponse(response);
-  });
+      return await http
+          .post(
+        Uri.parse(url),
+        body: utf8.encode(json.encode(params)),
+        headers: iosHeader,
+      )
+          .then((http.Response response) {
+        return getResponse(response);
+      });
+    }
+  } else {
+    if (kDebugMode) {
+      print("baseUrl--$url");
+      print("params--${jsonEncode(params)}");
+      print("header----${Platform.isIOS ? iosHeader : androidHeader}");
+    }
+
+    return await http
+        .post(
+      Uri.parse(url),
+      body: utf8.encode(json.encode(params)),
+      headers:  androidHeader,
+    )
+        .then((http.Response response) {
+      return getResponse(response);
+    });
+  }
 }
 
 // Future callGetMethod(String url) async {
@@ -105,26 +138,25 @@ Future getResponse(Response response) async {
     printWrapped("---sa-Add${message.replaceAll(RegExp(r'[^\w\s]+'), '')}");
     String error1 = message.replaceAll(RegExp(r'[^\w\s]+'), '');
     return "{\"status\":\"false\",\"message\":\"$error1\"}";
-    } else if(statusCode == 426){
+  } else if (statusCode == 426) {
     final parsedJson = jsonDecode(response.body.toString());
     final message = parsedJson['message'].toString();
     AppUtils.showDialogBoxWithOneButton(
-        context: navigatorKey.currentState!.context,
-        titleText: "App Update",
-        text: message,
-        btnColor: Colors.red,
-        btnText: "Update now",
-        onTap: () {
-          if(Platform.isAndroid){
-            AppUtils.launchToBrowser(Uri.parse(AppConstant.androidAppLink));
-          }
-          if(Platform.isIOS){
-            AppUtils.launchToBrowser(Uri.parse(AppConstant.iosAppLink));
-          }
-
-        },
+      context: navigatorKey.currentState!.context,
+      titleText: "App Update",
+      text: message,
+      btnColor: Colors.red,
+      btnText: "Update now",
+      onTap: () {
+        if (Platform.isAndroid) {
+          AppUtils.launchToBrowser(Uri.parse(AppConstant.androidAppLink));
+        }
+        if (Platform.isIOS) {
+          AppUtils.launchToBrowser(Uri.parse(AppConstant.iosAppLink));
+        }
+      },
     );
-  }else if (statusCode < 200 || statusCode > 404) {
+  } else if (statusCode < 200 || statusCode > 404) {
     String error = response.headers['message'].toString();
     printWrapped("response--$error");
     return "{\"status\":\"0\",\"message\":\"$error\"}";

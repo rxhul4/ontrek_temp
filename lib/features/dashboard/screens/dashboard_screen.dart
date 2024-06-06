@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_jailbreak_detection/flutter_jailbreak_detection.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:ontrek/core/common_widgets/custom_upgrader_message.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
