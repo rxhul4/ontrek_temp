@@ -265,7 +265,7 @@ class AppUtils {
         color: Colors.white,
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center, // Align vertically
@@ -970,6 +970,7 @@ class AppUtils {
     String? titleText,
     String? text2,
     String? text3,
+    Function()? onTap
   }) {
     return showDialog(
 
@@ -1014,7 +1015,8 @@ class AppUtils {
                 letterSpacing: 0.5,
               ),
               onPressed: () {
-                Navigator.of(context).pop();
+                onTap;
+                Navigator.pop(context);
               },
             ),
           ],

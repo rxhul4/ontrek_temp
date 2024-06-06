@@ -28,7 +28,7 @@ class AppConstant {
   static const String  errorText = "Something went wrong!" ;
   static const String  updateText = "Please kindly update your app" ;
   // date format
-  static const String dateFormat= "yyyy-MM-dd'T'HH:mm:ss";
+  static const String dateFormat= "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
   //app colors constant
   static Color appPrimaryColor = Color.fromRGBO(27, 27, 27, 1);

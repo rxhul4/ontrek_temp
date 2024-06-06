@@ -10,6 +10,7 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:intl/intl.dart';
 import 'package:ontrek/core/background_service_model/activity_model.dart';
 import 'package:ontrek/core/background_service_model/bulk_activity_request_moodel.dart';
 import 'package:ontrek/core/background_service_model/bulk_activity_response_model.dart';
@@ -127,9 +128,12 @@ void onStart(ServiceInstance service) async {
           isInternetAvailable = await checkInternetConnectivity();
           isGpsAvailable = await isGpsOn();
 
-          waitingStartTime = PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
-          lastWaitingLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-          lastWaitingLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
+          waitingStartTime =
+              PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
+          lastWaitingLat =
+              PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+          lastWaitingLong =
+              PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
           // Stop service between 11:50 to 12:00 Midnight
           await stopServiceAtNight(service, timer);
           //Set notification icon
@@ -516,7 +520,7 @@ registerEventsToListener(ServiceInstance service) {
         // await syncData(listOfAllActivity!);
       });
     }
-    if(service is IOSServiceInstance){
+    if (service is IOSServiceInstance) {
       service.on('stopService').listen((event) async {
         if (isInternetAvailable) {
           if (listOfAllActivity != null &&
@@ -758,8 +762,28 @@ syncRouteHistory() async {
 
 syncData(List<Activity> listOfAllActivity) async {
   try {
-    var listOfflineData =
-        listOfAllActivity.where((element) => element.isSync == false).toList();
+    var listOfflineData = listOfAllActivity.where((element) => element.isSync == false).toList();
+    var internetOff = listOfAllActivity
+        .where((element) =>
+            element.eventCode == AppConstant.internetOffEvent &&
+            element.isSync == false)
+        .firstOrNull;
+    var internetOn = listOfAllActivity
+        .where((element) =>
+            element.eventCode == AppConstant.internetOnEvent &&
+            element.isSync == false &&
+            element.parentId == internetOff?.pkId)
+        .firstOrNull;
+
+    if (internetOn != null && internetOff != null) {
+      bool? isGreaterThanFiveMinutes = isDifferenceLessFiveMinutes(
+          internetOff.activityDate ?? "", internetOn.activityDate ?? "");
+      if (isGreaterThanFiveMinutes) {
+        listOfflineData.remove(internetOff);
+        listOfflineData.remove(internetOn);
+        setAllActivityListToPref(listOfflineData);
+      }
+    }
 
     if (listOfflineData == null || listOfflineData.length < 1) {
       return;
@@ -783,7 +807,15 @@ syncData(List<Activity> listOfAllActivity) async {
           // offlineMapData: activity.eventCode == AppConstant.internetOnEvent ? offlineDataMaps : null
         );
 
-        createActivityLists.add(createActivityList);
+        if(createActivityList.totTrackingEventId == AppConstant.internetOffEvent)
+         {
+           if(internetOn != null && internetOn.isSync == false){
+             createActivityLists.add(createActivityList);
+           }
+         }else
+          {
+            createActivityLists.add(createActivityList);
+          }
       }
 
       bulkActivityRequestModel =
@@ -891,18 +923,15 @@ setBgNotificationIcon(ServiceInstance service) async {
         'Background location capturing initiated.',
         NotificationDetails(
           iOS: DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-            badgeNumber: 1,
-            subtitle: 'Background location capturing initiated.',
-            sound: 'default'
-
-          ),
+              presentAlert: true,
+              presentBadge: true,
+              presentSound: true,
+              badgeNumber: 1,
+              subtitle: 'Background location capturing initiated.',
+              sound: 'default'),
         ),
       );
     }
-
   } catch (e) {
     print("setBgNotificationIcon");
   }
@@ -983,7 +1012,7 @@ setLastActivityData(/*LastActivityData? lastActivity*/) async {
         prevLatitude = currentLatitude;
         prevLongitude = currentLongitude;
         Position position1 = await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.bestForNavigation);
+            desiredAccuracy: LocationAccuracy.high);
         currentLatitude = position1.latitude;
         currentLongitude = position1.longitude;
         lastActivityData?.lastLocationLat =
@@ -1006,5 +1035,22 @@ void setAllActivityListToPref(List<Activity> lstActivities) {
     PreferenceHelper.setStringList('offline_activities', activitiesJsonList);
   } catch (e) {
     print("setGpsActivityListToPref error: $e");
+  }
+}
+
+bool isDifferenceLessFiveMinutes(String time1, String time2) {
+  // Define the format
+  final format = DateFormat(AppConstant.dateFormat);
+
+  // Parse the time strings
+  DateTime dateTime1 = format.parse(time1);
+  DateTime dateTime2 = format.parse(time2);
+
+  // Calculate the difference
+  Duration difference = dateTime1.difference(dateTime2).abs();
+  if (difference.inMinutes < 2) {
+    return true;
+  } else {
+    return false;
   }
 }
