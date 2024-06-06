@@ -4,13 +4,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:ontrek/core/common_widgets/custom_upgrader_message.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
+import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
 import 'package:ontrek/features/attendance/provider/attendance_provider.dart';
 import 'package:ontrek/features/attendance/screen/attendance_screen.dart';
+import 'package:ontrek/features/attendance/screen/pending_dayend_screen.dart';
 import 'package:ontrek/features/authentication/screens/login_with_phone_number.dart';
 import 'package:ontrek/features/dashboard/provider/dashboard_provider.dart';
 import 'package:ontrek/features/leads/screen/lead_screen.dart';
@@ -54,11 +57,26 @@ class DashBoardState extends State<DashBoard> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async{
-      final dashBoardProvider = Provider.of<DashBoardProvider>(context, listen: false);
-      final attendanceProvider = Provider.of<AttendanceProvider>(context, listen: false);
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      final dashBoardProvider =
+          Provider.of<DashBoardProvider>(context, listen: false);
+      final attendanceProvider =
+          Provider.of<AttendanceProvider>(context, listen: false);
       attendanceProvider.getAllConfiguration();
-      await attendanceProvider.callGetLastActivity();
+      bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
+      if (isInternetAvailable) {
+        await attendanceProvider.callGetLastActivity();
+      } else {
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Internet Off Alert",
+            text:
+            "Internet is not available. Please Enable Mobile data or wifi.",
+            context: context);
+        var lastActivity =
+        PreferenceHelper.getObject("last_activity");
+        LastActivityData lastActivityData = LastActivityData.fromJson(lastActivity);
+        attendanceProvider.offlineBtnChangeFnc(lastActivityData);
+      }
       if (!mounted) {}
       dashBoardProvider.initialIndex();
       dashBoardProvider.checkPermission(context);
@@ -113,7 +131,7 @@ class DashBoardState extends State<DashBoard> {
           ),
         ),
         child: AppUtils.commonContainer(
-          padding: EdgeInsets.only(left: 10, right: 10,bottom: 0),
+          padding: EdgeInsets.only(left: 10, right: 10, bottom: 0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -180,10 +198,10 @@ class DashBoardState extends State<DashBoard> {
         return TrackScreen(onUserFetch: (value) async {
           if (value != null) {
             dashBoardProvider.showUserInMap = value;
-              await dashBoardProvider.addUsersMarker();
-              dashBoardProvider.markers.clear();
-              await Future.delayed(const Duration(milliseconds: 100));
-              await dashBoardProvider.addUsersMarker();
+            await dashBoardProvider.addUsersMarker();
+            dashBoardProvider.markers.clear();
+            await Future.delayed(const Duration(milliseconds: 100));
+            await dashBoardProvider.addUsersMarker();
           }
         });
       case 2:

@@ -118,7 +118,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
 
   callAddActivityApi({
     required AttendanceProvider postMdl,
-  }) {
+  }) async{
     postMdl
         .apiCallCreateActivity(
             picturePath: image64,
@@ -131,11 +131,12 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
             customerPhoneNumber: customerPhoneNumberController.text,
             visitDiscussion: visitDiscussionNameController.text,
             visitTypeCode: selectedTotId)
-        .then((value) {
+        .then((value) async {
       createActivityModel = value;
       if (createActivityModel?.isError == false &&
           createActivityModel?.isValidationFailed == false) {
         checkOutFunction();
+        await attendanceProvider.callGetLastActivity(isDayEnd: true);
 
       } else {
         if (createActivityModel?.isError == true) {

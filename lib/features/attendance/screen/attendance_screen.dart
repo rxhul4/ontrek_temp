@@ -114,9 +114,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   callDayStartApiAndUpdateUI(AttendanceProvider? attendanceProvider) async {
     try {
-
-
-
       var response = await callCreateActivityApi(
           totTrackingEventCode: AppConstant.dayStartEvent,
           attendanceProvider: attendanceProvider);
@@ -183,6 +180,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       if (response?.isError == false && response?.isValidationFailed == false) {
         service.invoke("checkIn_afterEvent");
         // if (response?.data != null) {
+        await attendanceProvider?.callGetLastActivity();
         PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
         attendanceProvider?.isCheckIn.value =
             PreferenceHelper.getBool(PreferenceHelper.checkIn);
@@ -218,9 +216,12 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
       //check api success or not
       if (response?.isError == false && response?.isValidationFailed == false) {
-        service.invoke("stopService");
+
+
         callDayEndFunction(LatLng(attendanceProvider?.position?.latitude ?? 0,
             attendanceProvider?.position?.longitude ?? 0));
+        service.invoke("stopService");
+        await attendanceProvider?.callGetLastActivity(isDayEnd: true);
       } else {
         if (response?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(
