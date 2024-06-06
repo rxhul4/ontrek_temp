@@ -65,10 +65,13 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     initAnimateController();
     if (!mounted) {}
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final attendanceProvider = Provider.of<AttendanceProvider>(context, listen: false);
+      final attendanceProvider =
+          Provider.of<AttendanceProvider>(context, listen: false);
       attendanceProvider.getAllConfiguration();
-      attendanceProvider.panelController.animatePanelToPosition(0.99,duration: Duration(milliseconds: 500));
-      attendanceProvider.isAllowCheckInCheckOut = PreferenceHelper.getBool(PreferenceHelper.AllowCheckInCheckOut);
+      attendanceProvider.panelController
+          .animatePanelToPosition(0.99, duration: Duration(milliseconds: 500));
+      attendanceProvider.isAllowCheckInCheckOut =
+          PreferenceHelper.getBool(PreferenceHelper.AllowCheckInCheckOut);
       attendanceProvider.checkBiometricAvailable();
       attendanceProvider.batteryPercentage();
     });
@@ -116,7 +119,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           attendanceProvider: attendanceProvider);
 
       if (response?.isError == false && response?.isValidationFailed == false) {
-
         await attendanceProvider?.callGetLastActivity();
         callLoginFunction(LatLng(attendanceProvider?.position?.latitude ?? 0,
             attendanceProvider?.position?.longitude ?? 0));
@@ -192,7 +194,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         }
         if (response?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
-              titleText: "Information", context: context, text: response?.message ?? "");
+              titleText: "Information",
+              context: context,
+              text: response?.message ?? "");
         }
       }
     } catch (e) {
@@ -339,153 +343,159 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         minHeight: height * 0.083,
         controller: attendanceProvider.panelController,
         isDraggable: true,
-        panelBuilder: (p0)
-    {
-      return Column(
-        children: [
-          AppUtils.buildHeader(
-              height: height,
-              width: width,
-              title: attendanceProvider.userName,
-              subTitle: attendanceProvider.orgName,
-              leadingImage: profileImage,
-              borderColor: Colors.red,
-              iconColor: AppConstant.appPrimaryColor,
-              backgroundColor: Colors.white),
-          Container(
-            padding: EdgeInsets.only(top: height * 0.2 / 2.5),
-            alignment: Alignment.center,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                ValueListenableBuilder(
-                  valueListenable: attendanceProvider.isDayEnd,
-                  builder: (context, value, child) {
-                    return Center(
-                      child:
-                      attendanceProvider.isAllowCheckInCheckOut == false
-                          ? dayStartDayEndBtn(
-                          attendanceProvider, height, width)
-                          : !attendanceProvider.isDayEnd.value
-                          ? buttonWidget(
-                          attendanceProvider, height, width)
-                          : logOut(attendanceProvider, height, width),
-                    );
-                  },
+        panelBuilder: (p0) {
+          return Column(
+            children: [
+              AppUtils.buildHeader(
+                  height: height,
+                  width: width,
+                  title: attendanceProvider.userName,
+                  subTitle: attendanceProvider.orgName,
+                  leadingImage: profileImage,
+                  borderColor: Colors.red,
+                  iconColor: AppConstant.appPrimaryColor,
+                  backgroundColor: Colors.white),
+              Expanded(
+                child: Center(
+                  child: Container(
+                    // padding: EdgeInsets.only(top: height * 0.2 / 2.5),
+                    alignment: Alignment.center,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        ValueListenableBuilder(
+                          valueListenable: attendanceProvider.isDayEnd,
+                          builder: (context, value, child) {
+                            return Center(
+                              child: attendanceProvider
+                                          .isAllowCheckInCheckOut ==
+                                      false
+                                  ? dayStartDayEndBtn(
+                                      attendanceProvider, height, width)
+                                  : !attendanceProvider.isDayEnd.value
+                                      ? buttonWidget(
+                                          attendanceProvider, height, width)
+                                      : logOut(
+                                          attendanceProvider, height, width),
+                            );
+                          },
+                        ),
+                        // buttonWidget(height,width,postMdl),
+                        SizedBox(
+                          height: 15,
+                        ),
+                        attendanceProvider.isAllowCheckInCheckOut == false
+                            ? AppUtils.commonTextWidget(
+                                text: "Press & Hold",
+                                fontSize: 14,
+                                letterSpacing: 0.2,
+                                fontWeight: FontWeight.w600,
+                                textColor: AppConstant.blackColor,
+                              )
+                            : !attendanceProvider.isDayStart.value ||
+                                    attendanceProvider.isCheckIn.value
+                                ? AppUtils.commonTextWidget(
+                                    text: "Press & Hold",
+                                    fontSize: 14,
+                                    letterSpacing: 0.2,
+                                    fontWeight: FontWeight.w600,
+                                    textColor: AppConstant.blackColor,
+                                  )
+                                : GestureDetector(
+                                    onTap: attendanceProvider.toggleButtons,
+                                    child: AppUtils.commonTextWidget(
+                                      text: !attendanceProvider.isDayEnd.value
+                                          ? "Show End"
+                                          : "Show CheckIn",
+                                      fontSize: 14,
+                                      letterSpacing: 0.2,
+                                      fontWeight: FontWeight.w600,
+                                      textColor:
+                                          !attendanceProvider.isDayEnd.value
+                                              ? Colors.red
+                                              : AppConstant.appPrimaryColor,
+                                    )),
+                      ],
+                    ),
+                  ),
                 ),
-                // buttonWidget(height,width,postMdl),
-                SizedBox(
-                  height: 15,
-                ),
-                attendanceProvider.isAllowCheckInCheckOut == false
-                    ? AppUtils.commonTextWidget(
-                  text: "Press & Hold",
-                  fontSize: 14,
-                  letterSpacing: 0.2,
-                  fontWeight: FontWeight.w600,
-                  textColor: AppConstant.blackColor,
-                )
-                    : !attendanceProvider.isDayStart.value ||
-                    attendanceProvider.isCheckIn.value
-                    ? AppUtils.commonTextWidget(
-                  text: "Press & Hold",
-                  fontSize: 14,
-                  letterSpacing: 0.2,
-                  fontWeight: FontWeight.w600,
-                  textColor: AppConstant.blackColor,
-                )
-                    : GestureDetector(
-                    onTap: attendanceProvider.toggleButtons,
-                    child: AppUtils.commonTextWidget(
-                      text: !attendanceProvider.isDayEnd.value
-                          ? "Show End"
-                          : "Show CheckIn",
-                      fontSize: 14,
-                      letterSpacing: 0.2,
-                      fontWeight: FontWeight.w600,
-                      textColor: !attendanceProvider.isDayEnd.value
-                          ? Colors.red
-                          : AppConstant.appPrimaryColor,
-                    )),
-              ],
-            ),
-          ),
-        ],
-      );
-    });
-        // panel: Stack(
-        //   children: [
-        //     Container(
-        //       padding: EdgeInsets.only(top: height * 0.2 / 2),
-        //       alignment: Alignment.center,
-        //       child: Column(
-        //         mainAxisAlignment: MainAxisAlignment.center,
-        //         crossAxisAlignment: CrossAxisAlignment.center,
-        //         children: [
-        //           ValueListenableBuilder(
-        //             valueListenable: attendanceProvider.isDayEnd,
-        //             builder: (context, value, child) {
-        //               return Center(
-        //                 child:
-        //                     attendanceProvider.isAllowCheckInCheckOut == false
-        //                         ? dayStartDayEndBtn(
-        //                             attendanceProvider, height, width)
-        //                         : !attendanceProvider.isDayEnd.value
-        //                             ? buttonWidget(
-        //                                 attendanceProvider, height, width)
-        //                             : logOut(attendanceProvider, height, width),
-        //               );
-        //             },
-        //           ),
-        //           // buttonWidget(height,width,postMdl),
-        //           SizedBox(
-        //             height: 15,
-        //           ),
-        //           attendanceProvider.isAllowCheckInCheckOut == false
-        //               ? AppUtils.commonTextWidget(
-        //                   text: "Press & Hold",
-        //                   fontSize: 14,
-        //                   letterSpacing: 0.2,
-        //                   fontWeight: FontWeight.w600,
-        //                   textColor: AppConstant.blackColor,
-        //                 )
-        //               : !attendanceProvider.isDayStart.value ||
-        //                       attendanceProvider.isCheckIn.value
-        //                   ? AppUtils.commonTextWidget(
-        //                       text: "Press & Hold",
-        //                       fontSize: 14,
-        //                       letterSpacing: 0.2,
-        //                       fontWeight: FontWeight.w600,
-        //                       textColor: AppConstant.blackColor,
-        //                     )
-        //                   : GestureDetector(
-        //                       onTap: attendanceProvider.toggleButtons,
-        //                       child: AppUtils.commonTextWidget(
-        //                         text: !attendanceProvider.isDayEnd.value
-        //                             ? "Show End"
-        //                             : "Show CheckIn",
-        //                         fontSize: 14,
-        //                         letterSpacing: 0.2,
-        //                         fontWeight: FontWeight.w600,
-        //                         textColor: !attendanceProvider.isDayEnd.value
-        //                             ? Colors.red
-        //                             : AppConstant.appPrimaryColor,
-        //                       )),
-        //         ],
-        //       ),
-        //     ),
-        //     AppUtils.buildHeader(
-        //         height: height,
-        //         width: width,
-        //         title: attendanceProvider.userName,
-        //         subTitle: attendanceProvider.orgName,
-        //         leadingImage: profileImage,
-        //         borderColor: Colors.red,
-        //         iconColor: AppConstant.appPrimaryColor,
-        //         backgroundColor: Colors.white),
-        //   ],
-        // ));
+              )
+            ],
+          );
+        });
+    // panel: Stack(
+    //   children: [
+    //     Container(
+    //       padding: EdgeInsets.only(top: height * 0.2 / 2),
+    //       alignment: Alignment.center,
+    //       child: Column(
+    //         mainAxisAlignment: MainAxisAlignment.center,
+    //         crossAxisAlignment: CrossAxisAlignment.center,
+    //         children: [
+    //           ValueListenableBuilder(
+    //             valueListenable: attendanceProvider.isDayEnd,
+    //             builder: (context, value, child) {
+    //               return Center(
+    //                 child:
+    //                     attendanceProvider.isAllowCheckInCheckOut == false
+    //                         ? dayStartDayEndBtn(
+    //                             attendanceProvider, height, width)
+    //                         : !attendanceProvider.isDayEnd.value
+    //                             ? buttonWidget(
+    //                                 attendanceProvider, height, width)
+    //                             : logOut(attendanceProvider, height, width),
+    //               );
+    //             },
+    //           ),
+    //           // buttonWidget(height,width,postMdl),
+    //           SizedBox(
+    //             height: 15,
+    //           ),
+    //           attendanceProvider.isAllowCheckInCheckOut == false
+    //               ? AppUtils.commonTextWidget(
+    //                   text: "Press & Hold",
+    //                   fontSize: 14,
+    //                   letterSpacing: 0.2,
+    //                   fontWeight: FontWeight.w600,
+    //                   textColor: AppConstant.blackColor,
+    //                 )
+    //               : !attendanceProvider.isDayStart.value ||
+    //                       attendanceProvider.isCheckIn.value
+    //                   ? AppUtils.commonTextWidget(
+    //                       text: "Press & Hold",
+    //                       fontSize: 14,
+    //                       letterSpacing: 0.2,
+    //                       fontWeight: FontWeight.w600,
+    //                       textColor: AppConstant.blackColor,
+    //                     )
+    //                   : GestureDetector(
+    //                       onTap: attendanceProvider.toggleButtons,
+    //                       child: AppUtils.commonTextWidget(
+    //                         text: !attendanceProvider.isDayEnd.value
+    //                             ? "Show End"
+    //                             : "Show CheckIn",
+    //                         fontSize: 14,
+    //                         letterSpacing: 0.2,
+    //                         fontWeight: FontWeight.w600,
+    //                         textColor: !attendanceProvider.isDayEnd.value
+    //                             ? Colors.red
+    //                             : AppConstant.appPrimaryColor,
+    //                       )),
+    //         ],
+    //       ),
+    //     ),
+    //     AppUtils.buildHeader(
+    //         height: height,
+    //         width: width,
+    //         title: attendanceProvider.userName,
+    //         subTitle: attendanceProvider.orgName,
+    //         leadingImage: profileImage,
+    //         borderColor: Colors.red,
+    //         iconColor: AppConstant.appPrimaryColor,
+    //         backgroundColor: Colors.white),
+    //   ],
+    // ));
   }
 
   Widget buttonWidget(AttendanceProvider postMdl, height, width) {
@@ -510,7 +520,8 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                 controller?.forward().whenComplete(() async {
                   bool? isAlwaysOnLocation =
                       await Permission.locationAlways.isGranted;
-                  bool? isInternetAvailable = await AppUtils.checkInternetConnectivity();
+                  bool? isInternetAvailable =
+                      await AppUtils.checkInternetConnectivity();
                   bool? isGpsAvailable =
                       await AppUtils.checkLocationServiceAvailability();
                   HapticFeedback.vibrate();
