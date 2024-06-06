@@ -128,12 +128,11 @@ void onStart(ServiceInstance service) async {
           isInternetAvailable = await checkInternetConnectivity();
           isGpsAvailable = await isGpsOn();
 
-          waitingStartTime =
-              PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
-          lastWaitingLat =
-              PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-          lastWaitingLong =
-              PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
+          await PreferenceHelper.reload();
+          waitingStartTime = PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
+          lastWaitingLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+          lastWaitingLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
+
           // Stop service between 11:50 to 12:00 Midnight
           await stopServiceAtNight(service, timer);
           //Set notification icon
@@ -346,7 +345,7 @@ ManageWaitingOperation(List<Activity> listOfAllActivity) async {
       // double? lastWaitingLat = 0;
       // double? lastWaitingLong = 0;
 
-      // // waitingStartTime = PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
+      // waitingStartTime = PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
       print("waitingStartTime$waitingStartTime");
       // lastWaitingLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
       // lastWaitingLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
@@ -376,14 +375,9 @@ ManageWaitingOperation(List<Activity> listOfAllActivity) async {
         }
       }
     } else {
-      PreferenceHelper.setString(
-          PreferenceHelper.WAITING_START_TIME,
-          AppUtils.getDate(
-              date: DateTime.now().toString(), format: AppConstant.dateFormat));
-      PreferenceHelper.setDouble(
-          PreferenceHelper.LAST_LAT, currentLatitude ?? 0);
-      PreferenceHelper.setDouble(
-          PreferenceHelper.LAST_LONG, currentLongitude ?? 0);
+      PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
+      PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT, currentLatitude ?? (prevLatitude  ?? 0));
+      PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, currentLatitude ?? (prevLatitude  ?? 0));
       // waitingStartTime = DateTime.now();
     }
 
@@ -414,15 +408,9 @@ ManageWaitingOperation(List<Activity> listOfAllActivity) async {
 
           listOfAllActivity.add(activity);
           setAllActivityListToPref(listOfAllActivity);
-          PreferenceHelper.setString(
-              PreferenceHelper.WAITING_START_TIME,
-              AppUtils.getDate(
-                  date: DateTime.now().toString(),
-                  format: AppConstant.dateFormat));
-          PreferenceHelper.setDouble(
-              PreferenceHelper.LAST_LAT, currentLatitude ?? 0);
-          PreferenceHelper.setDouble(
-              PreferenceHelper.LAST_LONG, currentLongitude ?? 0);
+          PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
+          PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT,  currentLatitude ?? (prevLatitude  ?? 0));
+          PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, currentLatitude ?? (prevLatitude  ?? 0));
         }
       }
     }
@@ -465,19 +453,12 @@ registerEventsToListener(ServiceInstance service) {
         Position position = await Geolocator.getCurrentPosition(
             desiredAccuracy: LocationAccuracy.low);
         PreferenceHelper.setString(
-            PreferenceHelper.WAITING_START_TIME,
-            AppUtils.getDate(
-                date: DateTime.now().toString(),
-                format: AppConstant.dateFormat));
-        waitingStartTime =
-            PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
-        PreferenceHelper.setDouble(
-            PreferenceHelper.LAST_LAT, currentLatitude ?? position.latitude);
-        lastWaitingLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-        PreferenceHelper.setDouble(
-            PreferenceHelper.LAST_LONG, currentLongitude ?? position.longitude);
-        lastWaitingLong =
-            PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
+            PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
+        // waitingStartTime = PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
+        PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT, currentLatitude ?? position.latitude);
+        // lastWaitingLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+        PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, currentLongitude ?? position.longitude);
+        // lastWaitingLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
       });
 
       service.on("checkIn_beforeEvent").listen((event) async {
@@ -494,26 +475,16 @@ registerEventsToListener(ServiceInstance service) {
         PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
         PreferenceHelper.reload();
         isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
-        PreferenceHelper.setString(
-            PreferenceHelper.WAITING_START_TIME,
-            AppUtils.getDate(
-                date: DateTime.now().toString(),
-                format: AppConstant.dateFormat));
+        // PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
       });
 
       service.on('checkOut_event').listen((event) {
         PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
         isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
         print("isCheckIn$isCheckIn");
-        PreferenceHelper.setString(
-            PreferenceHelper.WAITING_START_TIME,
-            AppUtils.getDate(
-                date: DateTime.now().toString(),
-                format: AppConstant.dateFormat));
-        PreferenceHelper.setDouble(
-            PreferenceHelper.LAST_LAT, currentLatitude ?? 0);
-        PreferenceHelper.setDouble(
-            PreferenceHelper.LAST_LONG, currentLongitude ?? 0);
+        PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
+        PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT,  currentLatitude ?? (prevLatitude  ?? 0));
+        PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG,  currentLatitude ?? (prevLatitude  ?? 0));
       });
 
       service.on("dayEnd_beforeEvent").listen((event) async {
@@ -530,11 +501,13 @@ registerEventsToListener(ServiceInstance service) {
             PreferenceHelper.remove(PreferenceHelper.LAST_LONG);
 
             PreferenceHelper.setStringList("offline_activities", []);
+            PreferenceHelper.setStringList("offline_route_data", []);
             service.stopSelf();
           } else {
             PreferenceHelper.remove(PreferenceHelper.WAITING_START_TIME);
             PreferenceHelper.remove(PreferenceHelper.LAST_LAT);
             PreferenceHelper.remove(PreferenceHelper.LAST_LONG);
+            PreferenceHelper.setStringList("offline_route_data", []);
             service.stopSelf();
           }
         }
@@ -544,19 +517,12 @@ registerEventsToListener(ServiceInstance service) {
         Position position = await Geolocator.getCurrentPosition(
             desiredAccuracy: LocationAccuracy.low);
         PreferenceHelper.setString(
-            PreferenceHelper.WAITING_START_TIME,
-            AppUtils.getDate(
-                date: DateTime.now().toString(),
-                format: AppConstant.dateFormat));
-        waitingStartTime =
-            PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
-        PreferenceHelper.setDouble(
-            PreferenceHelper.LAST_LAT, currentLatitude ?? position.latitude);
-        lastWaitingLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-        PreferenceHelper.setDouble(
-            PreferenceHelper.LAST_LONG, currentLongitude ?? position.longitude);
-        lastWaitingLong =
-            PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
+            PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
+        // waitingStartTime = PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
+        PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT, currentLatitude ?? position.latitude);
+        // lastWaitingLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+        PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, currentLongitude ?? position.longitude);
+        // lastWaitingLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
       });
 
       service.on("checkIn_beforeEvent").listen((event) async {
@@ -571,26 +537,18 @@ registerEventsToListener(ServiceInstance service) {
 
       service.on("checkIn_afterEvent").listen((event) {
         PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
+        PreferenceHelper.reload();
         isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
-        PreferenceHelper.setString(
-            PreferenceHelper.WAITING_START_TIME,
-            AppUtils.getDate(
-                date: DateTime.now().toString(),
-                format: AppConstant.dateFormat));
+        // PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
       });
 
       service.on('checkOut_event').listen((event) {
         PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
         isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
-        PreferenceHelper.setString(
-            PreferenceHelper.WAITING_START_TIME,
-            AppUtils.getDate(
-                date: DateTime.now().toString(),
-                format: AppConstant.dateFormat));
-        PreferenceHelper.setDouble(
-            PreferenceHelper.LAST_LAT, currentLatitude ?? 0);
-        PreferenceHelper.setDouble(
-            PreferenceHelper.LAST_LONG, currentLongitude ?? 0);
+        print("isCheckIn$isCheckIn");
+        PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
+        PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT,  currentLatitude ?? (prevLatitude  ?? 0));
+        PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG,  currentLatitude ?? (prevLatitude  ?? 0));
       });
 
       service.on("dayEnd_beforeEvent").listen((event) async {
