@@ -340,7 +340,7 @@ ManageWaitingOperation(List<Activity> listOfAllActivity) async {
   if (isGpsAvailable == true) {
     //Waiting Start Event
     if (isInRadius) {
-      await PreferenceHelper.reload();
+      // await PreferenceHelper.reload();
 
       // String? waitingStartTime = "";
       // double? lastWaitingLat = 0;
