@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:interval_time_picker/interval_time_picker.dart';
+import 'package:interval_time_picker/models/visible_step.dart';
 import 'package:intl/intl.dart';
 import 'package:ontrek/core/common_widgets/app_scaffold.dart';
 import 'package:ontrek/core/common_widgets/textfield_widget.dart';

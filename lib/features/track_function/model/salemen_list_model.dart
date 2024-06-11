@@ -145,6 +145,13 @@ class LastActivityDto {
   double? lastActivityLong;
   String? lastActivityPlace;
   int? lastBatteryPercentage;
+  String? sessionId;
+  String? sessionStartDateTime;
+  bool? isSessionActive;
+  bool? alreadyRequested;
+  double? lastLocationLat;
+  double? lastLocationLong;
+  String? lastLocationTime;
   String? tlDate;
   String? tlTime;
   String? tlDateTime;
@@ -160,6 +167,13 @@ class LastActivityDto {
         this.lastActivityLong,
         this.lastActivityPlace,
         this.lastBatteryPercentage,
+        this.sessionId,
+        this.sessionStartDateTime,
+        this.isSessionActive,
+        this.alreadyRequested,
+        this.lastLocationLat,
+        this.lastLocationLong,
+        this.lastLocationTime,
         this.tlDate,
         this.tlTime,
         this.tlDateTime,
@@ -175,6 +189,13 @@ class LastActivityDto {
     lastActivityLong = json['lastActivityLong'];
     lastActivityPlace = json['lastActivityPlace'];
     lastBatteryPercentage = json['lastBatteryPercentage'];
+    sessionId = json['sessionId'];
+    sessionStartDateTime = json['sessionStartDateTime'];
+    isSessionActive = json['isSessionActive'];
+    alreadyRequested = json['alreadyRequested'];
+    lastLocationLat = json['lastLocationLat'];
+    lastLocationLong = json['lastLocationLong'];
+    lastLocationTime = json['lastLocationTime'];
     tlDate = json['tlDate'];
     tlTime = json['tlTime'];
     tlDateTime = json['tlDateTime'];
@@ -192,6 +213,13 @@ class LastActivityDto {
     data['lastActivityLong'] = this.lastActivityLong;
     data['lastActivityPlace'] = this.lastActivityPlace;
     data['lastBatteryPercentage'] = this.lastBatteryPercentage;
+    data['sessionId'] = this.sessionId;
+    data['sessionStartDateTime'] = this.sessionStartDateTime;
+    data['isSessionActive'] = this.isSessionActive;
+    data['alreadyRequested'] = this.alreadyRequested;
+    data['lastLocationLat'] = this.lastLocationLat;
+    data['lastLocationLong'] = this.lastLocationLong;
+    data['lastLocationTime'] = this.lastLocationTime;
     data['tlDate'] = this.tlDate;
     data['tlTime'] = this.tlTime;
     data['tlDateTime'] = this.tlDateTime;
