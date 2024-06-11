@@ -86,6 +86,23 @@ Future callPostMethod(String url, Map<String, dynamic> params) async {
   }
 }
 
+//   if (kDebugMode) {
+//     print("baseUrl--$url");
+//     print("params--${jsonEncode(params)}");
+//     print("header----${iosHeader}");
+//   }
+//
+//   return await http
+//       .post(
+//     Uri.parse(url),
+//     body: utf8.encode(json.encode(params)),
+//     headers: androidHeader,
+//   )
+//       .then((http.Response response) {
+//     return getResponse(response);
+//   });
+// }
+
 // Future callGetMethod(String url) async {
 //   if (kDebugMode) {
 //     print("baseUrl--$url");

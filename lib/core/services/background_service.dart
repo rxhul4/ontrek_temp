@@ -19,6 +19,7 @@ import 'package:ontrek/core/background_service_model/offline_route_model.dart';
 import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/local_notification.dart';
 import 'package:ontrek/core/services/network_repository.dart';
+import 'package:ontrek/core/storage/db_service.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
@@ -178,10 +179,13 @@ void onStart(ServiceInstance service) async {
   });
 }
 
-ManageRouteHistory() {
+ManageRouteHistory() async {
   if (isGpsAvailable && !isInRadius) {
-    List<String>? offlineData =
-        PreferenceHelper.getStringList('offline_route_data');
+
+    final DatabaseService databaseService = DatabaseService();
+
+    // List<String>? offlineData =
+    //     PreferenceHelper.getStringList('offline_route_data');
 
     OfflineRouteModel dataPoint = OfflineRouteModel(
       latitude: currentLatitude ?? 0,
@@ -191,10 +195,7 @@ ManageRouteHistory() {
     );
 
     if (dataPoint.latitude != 0.0 && dataPoint.longitude != 0.0) {
-      offlineData?.add(jsonEncode(dataPoint.toJson()));
-      if (offlineData != null || offlineData != []) {
-        PreferenceHelper.setStringList('offline_route_data', offlineData ?? []);
-      }
+      await databaseService.insertRoute(dataPoint);
     }
   }
 }
@@ -428,6 +429,7 @@ registerEventsToListener(ServiceInstance service) {
       });
 
       service.on('stopService').listen((event) async {
+        final DatabaseService databaseService = DatabaseService();
         if (isInternetAvailable) {
           if (listOfAllActivity != null &&
               (listOfAllActivity?.length ?? 0) > 0) {
@@ -435,14 +437,17 @@ registerEventsToListener(ServiceInstance service) {
             PreferenceHelper.remove(PreferenceHelper.LAST_LAT);
             PreferenceHelper.remove(PreferenceHelper.LAST_LONG);
 
+            await databaseService.deleteAllRoutes();
+
             PreferenceHelper.setStringList("offline_activities", []);
-            PreferenceHelper.setStringList("offline_route_data", []);
+            // PreferenceHelper.setStringList("offline_route_data", []);
             service.stopSelf();
           } else {
             PreferenceHelper.remove(PreferenceHelper.WAITING_START_TIME);
             PreferenceHelper.remove(PreferenceHelper.LAST_LAT);
             PreferenceHelper.remove(PreferenceHelper.LAST_LONG);
-            PreferenceHelper.setStringList("offline_route_data", []);
+            await databaseService.deleteAllRoutes();
+            // PreferenceHelper.setStringList("offline_route_data", []);
             service.stopSelf();
           }
         }
@@ -491,6 +496,7 @@ registerEventsToListener(ServiceInstance service) {
       });
     }
     if (service is IOSServiceInstance) {
+      DatabaseService databaseService = DatabaseService();
       service.on('stopService').listen((event) async {
         if (isInternetAvailable) {
           if (listOfAllActivity != null &&
@@ -499,14 +505,17 @@ registerEventsToListener(ServiceInstance service) {
             PreferenceHelper.remove(PreferenceHelper.LAST_LAT);
             PreferenceHelper.remove(PreferenceHelper.LAST_LONG);
 
+            await databaseService.deleteAllRoutes();
+
             PreferenceHelper.setStringList("offline_activities", []);
-            PreferenceHelper.setStringList("offline_route_data", []);
+            // PreferenceHelper.setStringList("offline_route_data", []);
             service.stopSelf();
           } else {
             PreferenceHelper.remove(PreferenceHelper.WAITING_START_TIME);
             PreferenceHelper.remove(PreferenceHelper.LAST_LAT);
             PreferenceHelper.remove(PreferenceHelper.LAST_LONG);
-            PreferenceHelper.setStringList("offline_route_data", []);
+            await databaseService.deleteAllRoutes();
+            // PreferenceHelper.setStringList("offline_route_data", []);
             service.stopSelf();
           }
         }
@@ -678,17 +687,19 @@ CreateRouteHistoryModel? createRouteHistoryModel;
 
 syncRouteHistory() async {
   try {
-    List<String>? offlineData =
-        PreferenceHelper.getStringList('offline_route_data');
+
+    final DatabaseService databaseService = DatabaseService();
+
+    List<OfflineRouteModel> offlineData = await databaseService.getRoutes();
+    // List<String>? offlineData =
+    //     PreferenceHelper.getStringList('offline_route_data');
 
     List<OfflineMapData> offlineDataMaps = offlineData
-            ?.map((data) => jsonDecode(data))
-            .map((json) => OfflineMapData(
-                lattitude: json['latitude'],
-                longitude: json['longitude'],
-                offlineTime: json['offlineTime']))
-            .toList() ??
-        [];
+        .map((route) => OfflineMapData(
+      lattitude: route.latitude,
+      longitude: route.longitude,
+      offlineTime: route.offlineTime,
+    )).toList();
 
     if (offlineDataMaps == null ||
         offlineDataMaps.length < 1 ||
@@ -711,7 +722,9 @@ syncRouteHistory() async {
 
     if (createRouteHistoryModel?.isError == false &&
         createRouteHistoryModel?.isValidationFailed == false) {
-      PreferenceHelper.setStringList("offline_route_data", []);
+
+      await databaseService.deleteAllRoutes();
+      // PreferenceHelper.setStringList("offline_route_data", []);
     }
   } catch (e) {
     print("createRouteHistory");

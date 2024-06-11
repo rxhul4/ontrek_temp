@@ -89,8 +89,7 @@ animatePanel(){
     try {
       String endPoint = ApiConstants.getSalesMenList;
       var response = await callPostMethod(endPoint, body);
-      getSalesMenListModel =
-          GetSalesMenListModel.fromJson(json.decode(response));
+      getSalesMenListModel = GetSalesMenListModel.fromJson(json.decode(response));
       print('response ${getSalesMenListModel?.toJson()}');
       if (getSalesMenListModel?.isError == false &&
           getSalesMenListModel?.isValidationFailed == false) {

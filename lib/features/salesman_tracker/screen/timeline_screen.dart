@@ -1224,19 +1224,17 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: ThemeData.light().copyWith(
-            backgroundColor: AppConstant.whiteColor,
             dialogBackgroundColor: AppConstant.whiteColor,
             scaffoldBackgroundColor: AppConstant.whiteColor,
             textSelectionTheme: TextSelectionThemeData(
               selectionColor:
                   AppConstant.appPrimaryColor, // Selected date color
-            ),
-            colorScheme: ColorScheme.light(
+            ), colorScheme: ColorScheme.light(
               background: Colors.white,
               onBackground: AppConstant.greyColor.withOpacity(0.5),
               primary: AppConstant.appPrimaryColor, // Button color
               onPrimary: AppConstant.whiteColor, // Text color on button
-            ).copyWith(background: AppConstant.whiteColor),
+            ).copyWith(background: AppConstant.whiteColor).copyWith(background: AppConstant.whiteColor),
             // Other theme modifications as needed...
           ),
           child: child ?? Container(),
