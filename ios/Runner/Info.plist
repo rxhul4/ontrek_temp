@@ -38,6 +38,8 @@
 	<string>This app needs access to location in the background.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>We need access to your photo library to select and upload photos for creating a user profile</string>
+	<key>NSMotionUsageDescription</key>
+    <string>This app needs access to motion activity in the background</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>

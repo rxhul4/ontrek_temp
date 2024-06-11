@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:ontrek/core/services/background_service.dart';
+import 'package:ontrek/core/services/background_service_ios.dart';
 import 'package:ontrek/core/services/local_notification.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
@@ -65,9 +68,16 @@ void main() async {
     runApp(MultiProvider(providers: providers, child: const MyApp()));
   });
   BackgroundService backgroundService = BackgroundService();
+  BackgroundServiceIos backgroundServiceIos = BackgroundServiceIos();
   NotificationService notificationService = NotificationService();
   await notificationService.initNotification();
-  await backgroundService.initializeService();
+
+  if(Platform.isIOS){
+    await backgroundServiceIos.initialize();
+  }else{
+    await backgroundService.initializeService();
+  }
+
 }
 
 class MyApp extends StatefulWidget {
