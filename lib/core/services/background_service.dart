@@ -16,6 +16,7 @@ import 'package:ontrek/core/background_service_model/bulk_activity_request_moode
 import 'package:ontrek/core/background_service_model/bulk_activity_response_model.dart';
 import 'package:ontrek/core/background_service_model/create_route_history_model.dart';
 import 'package:ontrek/core/background_service_model/offline_route_model.dart';
+import 'package:ontrek/core/services/Throttler.dart';
 import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/local_notification.dart';
 import 'package:ontrek/core/services/network_repository.dart';
@@ -27,6 +28,7 @@ import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqlite_api.dart';
 
 const notificationChannelId = 'my_foreground';
 const notificationId = 888;
@@ -52,7 +54,7 @@ double? lastWaitingLong;
 int? waitingTime = 10;
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin();
+FlutterLocalNotificationsPlugin();
 
 class BackgroundService {
   Future<void> initializeService() async {
@@ -64,11 +66,11 @@ class BackgroundService {
       importance: Importance.low,
     );
     final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-        FlutterLocalNotificationsPlugin();
+    FlutterLocalNotificationsPlugin();
 
     await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+        AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
 
     await service.configure(
@@ -115,62 +117,77 @@ void onStart(ServiceInstance service) async {
 
   PreferenceHelper.load().then((value) {
     int? liveLocationInterval =
-        value?.getInt(PreferenceHelper.LIVE_LOCATION_INTERVAL);
+        value?.getInt(PreferenceHelper.LIVE_LOCATION_INTERVAL) ?? 30;
     waitingTime = value?.getInt(PreferenceHelper.WAITING_TIME_INTERVAL);
     print("waitingTime$waitingTime");
     bool? isWaitingAllowed = value?.getBool(PreferenceHelper.ALLOW_WAITING);
+
+    // Instantiate the throttler with the desired interval
+    Throttler throttler = Throttler(milliseconds: (liveLocationInterval + 5) * 1000);
+
     Timer.periodic(
-      Duration(
-          seconds: liveLocationInterval != null || liveLocationInterval != 0
-              ? liveLocationInterval ?? 30
-              : 30),
-      (timer) async {
+      Duration(seconds: liveLocationInterval),
+          (timer) async {
         try {
-          isInternetAvailable = await checkInternetConnectivity();
-          isGpsAvailable = await isGpsOn();
 
-          await PreferenceHelper.reload();
-          waitingStartTime = PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
-          lastWaitingLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-          lastWaitingLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
+          throttler.run(() async {
+            //add developer mode function here
 
-          // Stop service between 11:50 to 12:00 Midnight
-          await stopServiceAtNight(service, timer);
-          //Set notification icon
-          await setBgNotificationIcon(service);
-          await setLastActivityData();
+            print("throttler_start${DateTime.now()}");
+            isInternetAvailable = await checkInternetConnectivity();
+            isGpsAvailable = await isGpsOn();
 
-          if (lastActivityData != null) {
-            listOfAllActivity = geAllActivitiesFromPrefOffLine();
+            await PreferenceHelper.reload();
+            waitingStartTime = PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
+            lastWaitingLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+            lastWaitingLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
 
-            if (isInternetAvailable) {
-              //sync Route Data
-              await syncRouteHistory();
+            // Stop service between 11:50 to 12:00 Midnight
+            await stopServiceAtNight(service, timer);
+            // Set notification icon
+            await setBgNotificationIcon(service);
+            await setLastActivityData();
 
-              if (listOfAllActivity != null && (listOfAllActivity?.length ?? 0) > 0) {
+            if (lastActivityData != null) {
+
+              isInRadius = await isWithinRadius(
+                  prevLat: prevLatitude,
+                  prevLong: prevLongitude,
+                  currentLat: currentLatitude,
+                  currentLong: currentLongitude,
+                  radiusMtr: 80);
+
+              DatabaseService dbService = DatabaseService();
+              Database db = await dbService.initializeOnTrekDB();
+
+              await db.transaction((txn) async {
+                try {
+                  await ManageRouteHistory();
+                  await ManageInternetOperations(txn);
+                  await ManageGpsOperations(txn);
+                  print("isCehckin$isCheckIn");
+                  if (!isCheckIn && isWaitingAllowed == true) {
+                    await ManageWaitingOperation(txn);
+                  }
+                } on DatabaseException catch (e) {
+                  if (e.isUniqueConstraintError()) {
+                    print('Error: Duplicate primary key');
+                  } else {
+                    rethrow;
+                  }
+                }
+              });
+
+              if (isInternetAvailable) {
+                // Sync Route Data
+                await syncRouteHistory();
                 // Sync Event Data
-                await syncData(listOfAllActivity ?? []);
+                await syncSqlData();
               }
             }
+            print("throttler_end${DateTime.now()}");
+          });
 
-            isInRadius = isWithinRadius(
-                prevLat: prevLatitude,
-                prevLong: prevLongitude,
-                currentLat: currentLatitude,
-                currentLong: currentLongitude,
-                radiusMtr: 80);
-
-            ManageRouteHistory();
-            ManageInternetOperations(listOfAllActivity ?? []);
-            ManageGpsOperations(listOfAllActivity ?? []);
-
-            print("isCehckin$isCheckIn");
-            if (isCheckIn == false) {
-              if (isWaitingAllowed == true) {
-                await ManageWaitingOperation(listOfAllActivity ?? []);
-              }
-            }
-          }
         } catch (e) {
           print(e);
         }
@@ -180,12 +197,10 @@ void onStart(ServiceInstance service) async {
 }
 
 ManageRouteHistory() async {
+
   if (isGpsAvailable && !isInRadius) {
 
     final DatabaseService databaseService = DatabaseService();
-
-    // List<String>? offlineData =
-    //     PreferenceHelper.getStringList('offline_route_data');
 
     OfflineRouteModel dataPoint = OfflineRouteModel(
       latitude: currentLatitude ?? 0,
@@ -200,12 +215,12 @@ ManageRouteHistory() async {
   }
 }
 
-ManageGpsOperations(List<Activity> listOfAllActivity) {
-  //send gps off data server
-  //   List<Activity> listOfflineData = geAllGpsActivitiesFromPrefOffLine();
+ManageGpsOperations(Transaction txn) async{
+
+  DatabaseService dbService = DatabaseService();
 
   var activity = Activity(
-      pkId: listOfAllActivity.length + 1,
+      pkId: 0,
       sessionId: lastActivityData?.sessionId ?? "",
       latitude: currentLatitude ?? (prevLatitude ?? 0),
       longitude: currentLongitude ?? (prevLongitude ?? 0),
@@ -214,55 +229,25 @@ ManageGpsOperations(List<Activity> listOfAllActivity) {
       isEventCompleted: false);
 
   if (isGpsAvailable == true) {
-    var gpsOffData = listOfAllActivity
-        .where((element) =>
-            element.eventCode == AppConstant.gpsOffEvent &&
-            element.isEventCompleted == false)
-        .firstOrNull;
-    var gpsOnData = listOfAllActivity
-        .where((element) =>
-            element.eventCode == AppConstant.gpsOnEvent &&
-            element.parentId == gpsOffData?.pkId)
-        .firstOrNull;
+    activity.eventCode = AppConstant.gpsOnEvent;
+    activity.isSync = false;
+    await  dbService.insertGpsActivity(txn,activity);
 
-    if (gpsOnData == null && gpsOffData != null) {
-      // update parent gps off event
-      gpsOffData.isEventCompleted = true;
-
-      //add gps on event
-      activity.parentId = gpsOffData.pkId;
-      activity.eventCode = AppConstant.gpsOnEvent;
-      activity.isEventCompleted = true;
-      activity.isSync = false;
-
-      listOfAllActivity.add(activity);
-      setAllActivityListToPref(listOfAllActivity);
-    }
   }
 
   if (isGpsAvailable == false) {
-    var gpsOffData = listOfAllActivity
-        .where((element) =>
-            element.eventCode == AppConstant.gpsOffEvent &&
-            element.isEventCompleted == false)
-        .firstOrNull;
-    if (gpsOffData == null) {
-      //add gps on event
-      activity.eventCode = AppConstant.gpsOffEvent;
-      activity.isEventCompleted = false;
-      activity.parentId = null;
-      activity.isSync = false;
-      listOfAllActivity.add(activity);
-      setAllActivityListToPref(listOfAllActivity);
-    }
+    activity.eventCode = AppConstant.gpsOffEvent;
+    activity.isSync = false;
+    await dbService.insertGpsActivity(txn,activity);
   }
 }
 
-ManageInternetOperations(List<Activity> listOfAllActivity) {
-  //send gps off data server
+ManageInternetOperations(Transaction txn) async {
+
+  DatabaseService dbService = DatabaseService();
 
   var activity = Activity(
-      pkId: listOfAllActivity.length + 1,
+      pkId: 0,
       sessionId: lastActivityData?.sessionId ?? "",
       latitude: currentLatitude ?? (prevLatitude ?? 0),
       longitude: currentLongitude ?? (prevLongitude ?? 0),
@@ -271,149 +256,66 @@ ManageInternetOperations(List<Activity> listOfAllActivity) {
       isEventCompleted: false);
 
   if (isInternetAvailable == true) {
-    var internetOffData = listOfAllActivity
-        .where((element) =>
-            element.eventCode == AppConstant.internetOffEvent &&
-            element.isEventCompleted == false)
-        .firstOrNull;
-    var internetOnData = listOfAllActivity
-        .where((element) =>
-            element.eventCode == AppConstant.internetOnEvent &&
-            element.parentId == internetOffData?.pkId)
-        .firstOrNull;
-
-    if (internetOnData == null && internetOffData != null) {
-      // update internet off event
-      internetOffData.isEventCompleted = true;
-
-      //add internet on event
-      activity.parentId = internetOffData.pkId;
-      activity.eventCode = AppConstant.internetOnEvent;
-      activity.isEventCompleted = true;
-      activity.isSync = false;
-
-      listOfAllActivity.add(activity);
-      setAllActivityListToPref(listOfAllActivity);
-    }
+    activity.eventCode = AppConstant.internetOnEvent;
+    activity.isSync = false;
+    await dbService.insertInternetActivity(txn,activity);
   }
 
   if (isInternetAvailable == false) {
-    var internetOffData = listOfAllActivity
-        .where((element) =>
-            element.eventCode == AppConstant.internetOffEvent &&
-            element.isEventCompleted == false)
-        .firstOrNull;
-    if (internetOffData == null) {
-      //add internet off event
-      activity.eventCode = AppConstant.internetOffEvent;
-      activity.isEventCompleted = false;
-      activity.parentId = null;
-      activity.isSync = false;
-      listOfAllActivity.add(activity);
-      setAllActivityListToPref(listOfAllActivity);
-    }
+    activity.eventCode = AppConstant.internetOffEvent;
+    activity.isSync = false;
+    await dbService.insertInternetActivity(txn,activity);
   }
 }
 
-ManageWaitingOperation(List<Activity> listOfAllActivity) async {
-  //send waiting start data local storage
-  var waitingStartData = listOfAllActivity
-      .where((element) =>
-          element.eventCode == AppConstant.trackingWaitingStartEvent &&
-          element.isEventCompleted == false)
-      .firstOrNull;
-  var waitingStopData = listOfAllActivity
-      .where((element) =>
-          element.eventCode == AppConstant.trackingWaitingStopEvent &&
-          element.parentId == waitingStartData?.pkId)
-      .firstOrNull;
+ManageWaitingOperation(Transaction txn) async {
+
+  DatabaseService dbService = DatabaseService();
 
   var activity = Activity(
-      pkId: listOfAllActivity.length + 1,
+      pkId: 0,
       sessionId: lastActivityData?.sessionId ?? "",
       latitude: currentLatitude ?? (prevLatitude ?? 0),
       longitude: currentLongitude ?? (prevLongitude ?? 0),
       isSync: false,
       isEventCompleted: false);
 
+
+
   if (isGpsAvailable == true) {
-    //Waiting Start Event
-    if (isInRadius) {
-      // await PreferenceHelper.reload();
+            //Waiting Start Event
+            if (isInRadius)
+            {
+                print("isInRadius$waitingStartTime");
+                print("waitingStartTime$waitingStartTime");
 
-      // String? waitingStartTime = "";
-      // double? lastWaitingLat = 0;
-      // double? lastWaitingLong = 0;
+                if (DateTime.now() .difference(DateTime.parse(waitingStartTime ?? "")).inMinutes >=(2))
+                {
+                    //add waiting start  event
+                    activity.eventCode = AppConstant.trackingWaitingStartEvent;
+                    activity.latitude = lastWaitingLat ?? 0;
+                    activity.longitude = lastWaitingLong ?? 0;
+                    activity.activityDate = AppUtils.getDate(date: waitingStartTime.toString(),format: AppConstant.dateFormat);
+                    await dbService.insertWaitingActivity(txn,activity);
+                }
+            }
+            else
+            {
+              //Waiting End Event
+              double? prevLat =  PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+              double? prevLong =  PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
 
-      // waitingStartTime = PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
-      print("waitingStartTime$waitingStartTime");
-      // lastWaitingLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-      // lastWaitingLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
+              var IsWaitingInRadius = await isWithinRadius(prevLat: prevLat, prevLong: prevLong,currentLat: currentLatitude,currentLong: currentLongitude, radiusMtr: 80);
 
-      if (DateTime.now()
-              .difference(DateTime.parse(waitingStartTime ?? ""))
-              .inMinutes >=
-          (waitingTime ?? 10)) {
-        if (waitingStartData == null) {
-          //add waiting start  event
-          activity.eventCode = AppConstant.trackingWaitingStartEvent;
-          activity.isEventCompleted = false;
-          activity.parentId = null;
-          activity.isSync = false;
-          activity.latitude = lastWaitingLat ?? 0;
-          activity.longitude = lastWaitingLong ?? 0;
-          activity.activityDate = AppUtils.getDate(
-              date: waitingStartTime.toString(),
-              format: AppConstant.dateFormat);
-          if (activity.latitude != 0 &&
-              activity.longitude != 0 &&
-              activity.latitude != null &&
-              activity.longitude != null) {
-            listOfAllActivity.add(activity);
-            setAllActivityListToPref(listOfAllActivity);
-          }
-        }
-      }
-    } else {
-      PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
-      PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT, currentLatitude ?? (prevLatitude  ?? 0));
-      PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, currentLongitude ?? (prevLongitude  ?? 0));
-      // waitingStartTime = DateTime.now();
-    }
-
-    //Waiting End Event
-    if (waitingStartData != null) {
-      var IsWaitingInRadius = isWithinRadius(
-          prevLat: waitingStartData.latitude,
-          prevLong: waitingStartData.longitude,
-          currentLat: currentLatitude,
-          currentLong: currentLongitude,
-          radiusMtr: 80);
-
-      // Below code is for testing waiting end event in debug mode do not remove
-      // var waitingTestStartTime = DateTime.parse(waitingStartData.activityDate!);
-      // if (DateTime.now().difference(waitingTestStartTime).inMinutes > 2) {
-      //   IsWaitingInRadius = false;
-      // }
-
-      if (!IsWaitingInRadius) {
-        if (waitingStartData != null && waitingStopData == null) {
-          waitingStartData.isEventCompleted = true;
-
-          activity.parentId = waitingStartData.pkId;
-          activity.eventCode = AppConstant.trackingWaitingStopEvent;
-          activity.isEventCompleted = true;
-          activity.isSync = false;
-          activity.activityDate = AppUtils.getDateTimeNow();
-
-          listOfAllActivity.add(activity);
-          setAllActivityListToPref(listOfAllActivity);
-          PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
-          PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT,  currentLatitude ?? (prevLatitude  ?? 0));
-          PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, currentLongitude ?? (prevLongitude  ?? 0));
-        }
-      }
-    }
+              if (!IsWaitingInRadius) {
+                activity.eventCode = AppConstant.trackingWaitingStopEvent;
+                activity.activityDate = AppUtils.getDateTimeNow();
+                await dbService.insertWaitingActivity(txn, activity);
+              }
+              PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
+              PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT, currentLatitude ?? (prevLatitude  ?? 0));
+              PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, currentLongitude ?? (prevLongitude  ?? 0));
+            }
   }
 }
 
@@ -438,8 +340,8 @@ registerEventsToListener(ServiceInstance service) {
             PreferenceHelper.remove(PreferenceHelper.LAST_LONG);
 
             await databaseService.deleteAllRoutes();
+            await databaseService.deleteAllActivities();
 
-            PreferenceHelper.setStringList("offline_activities", []);
             // PreferenceHelper.setStringList("offline_route_data", []);
             service.stopSelf();
           } else {
@@ -454,100 +356,38 @@ registerEventsToListener(ServiceInstance service) {
       });
 
       service.on('dayStart').listen((event) async {
-        Position position = await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.low);
-        PreferenceHelper.setString(
-            PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
-        // waitingStartTime = PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
-        PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT, currentLatitude ?? position.latitude);
-        // lastWaitingLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-        PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, currentLongitude ?? position.longitude);
-        // lastWaitingLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
-      });
-
-      service.on("checkIn_beforeEvent").listen((event) async {
-        List<Activity> listOfAllActivity = geAllActivitiesFromPrefOffLine();
-
-        manualWaitingEndEvent(listOfAllActivity);
-
-        manualInternetOnEvent(listOfAllActivity);
-
-        manualGpsOnEvent(listOfAllActivity);
-      });
-
-      service.on("checkIn_afterEvent").listen((event) {
-        PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
-        PreferenceHelper.reload();
-        isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
-        // PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
-      });
-
-      service.on('checkOut_event').listen((event) {
-        PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-        isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
-        print("isCheckIn$isCheckIn");
+        Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.low);
         PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
-        PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT,  currentLatitude ?? (prevLatitude  ?? 0));
-        PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG,  currentLongitude ?? (prevLongitude  ?? 0));
-      });
-
-      service.on("dayEnd_beforeEvent").listen((event) async {
-        // await syncData(listOfAllActivity!);
-      });
-    }
-    if (service is IOSServiceInstance) {
-      DatabaseService databaseService = DatabaseService();
-      service.on('stopService').listen((event) async {
-        if (isInternetAvailable) {
-          if (listOfAllActivity != null &&
-              (listOfAllActivity?.length ?? 0) > 0) {
-            PreferenceHelper.remove(PreferenceHelper.WAITING_START_TIME);
-            PreferenceHelper.remove(PreferenceHelper.LAST_LAT);
-            PreferenceHelper.remove(PreferenceHelper.LAST_LONG);
-
-            await databaseService.deleteAllRoutes();
-
-            PreferenceHelper.setStringList("offline_activities", []);
-            // PreferenceHelper.setStringList("offline_route_data", []);
-            service.stopSelf();
-          } else {
-            PreferenceHelper.remove(PreferenceHelper.WAITING_START_TIME);
-            PreferenceHelper.remove(PreferenceHelper.LAST_LAT);
-            PreferenceHelper.remove(PreferenceHelper.LAST_LONG);
-            await databaseService.deleteAllRoutes();
-            // PreferenceHelper.setStringList("offline_route_data", []);
-            service.stopSelf();
-          }
-        }
-      });
-
-      service.on('dayStart').listen((event) async {
-        Position position = await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.low);
-        PreferenceHelper.setString(
-            PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
-        // waitingStartTime = PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
         PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT, currentLatitude ?? position.latitude);
-        // lastWaitingLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
         PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, currentLongitude ?? position.longitude);
-        // lastWaitingLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
       });
 
       service.on("checkIn_beforeEvent").listen((event) async {
-        List<Activity> listOfAllActivity = geAllActivitiesFromPrefOffLine();
 
-        manualWaitingEndEvent(listOfAllActivity);
+        DatabaseService dbService = DatabaseService();
+        Database db = await dbService.initializeOnTrekDB();
 
-        manualInternetOnEvent(listOfAllActivity);
+        await db.transaction((txn) async {
+          try {
+            await manualWaitingEndEvent(txn);
+            await manualInternetOnEvent(txn);
+            await manualGpsOnEvent(txn);
 
-        manualGpsOnEvent(listOfAllActivity);
+          } on DatabaseException catch (e) {
+            if (e.isUniqueConstraintError()) {
+              print('Error: Duplicate primary key');
+            } else {
+              rethrow;
+            }
+          }
+        });
+
       });
 
       service.on("checkIn_afterEvent").listen((event) {
         PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
         PreferenceHelper.reload();
         isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
-        // PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
       });
 
       service.on('checkOut_event').listen((event) {
@@ -568,115 +408,42 @@ registerEventsToListener(ServiceInstance service) {
   }
 }
 
-manualWaitingEndEvent(List<Activity> listOfAllActivity) {
+manualWaitingEndEvent(Transaction txn) async{
+  DatabaseService databaseService = DatabaseService();
   var activity = Activity(
-      pkId: listOfAllActivity.length + 1,
+      pkId: 0,
       sessionId: lastActivityData?.sessionId ?? "",
       latitude: currentLatitude ?? (prevLatitude ?? 0),
       longitude: currentLongitude ?? (prevLongitude ?? 0),
-      isSync: false,
-      isEventCompleted: false);
-
-  var waitingStartData = listOfAllActivity
-      .where((element) =>
-          element.eventCode == AppConstant.trackingWaitingStartEvent &&
-          element.isEventCompleted == false)
-      .firstOrNull;
-
-  if (waitingStartData != null) {
-    var waitingStopData = listOfAllActivity
-        .where((element) =>
-            element.eventCode == AppConstant.trackingWaitingStopEvent &&
-            element.isEventCompleted == false &&
-            element.isSync == false)
-        .firstOrNull;
-
-    if (waitingStopData == null) {
-      waitingStartData.isEventCompleted = true;
-      activity.parentId = waitingStartData.pkId;
-      activity.eventCode = AppConstant.trackingWaitingStopEvent;
-      activity.isEventCompleted = true;
-      activity.isSync = waitingStartData.isSync;
-      activity.activityDate = AppUtils.getDateTimeNow();
-
-      listOfAllActivity.add(activity);
-      setAllActivityListToPref(listOfAllActivity);
+      eventCode : AppConstant.trackingWaitingStopEvent,
+      );
+      await databaseService.insertWaitingActivity(txn,activity);
       PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME,AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
-    }
-  }
 }
 
-manualInternetOnEvent(List<Activity> listOfAllActivity) {
+manualInternetOnEvent(Transaction txn)async {
+  DatabaseService databaseService = DatabaseService();
   var activity = Activity(
-      pkId: listOfAllActivity.length + 1,
+      pkId: 0,
       sessionId: lastActivityData?.sessionId ?? "",
       latitude: currentLatitude ?? (prevLatitude ?? 0),
       longitude: currentLongitude ?? (prevLongitude ?? 0),
-      isSync: false,
-      isEventCompleted: false);
-
-  var internetOffData = listOfAllActivity
-      .where((element) =>
-          element.eventCode == AppConstant.internetOffEvent &&
-          element.isEventCompleted == false)
-      .firstOrNull;
-  if (internetOffData != null) {
-    var internetOnData = listOfAllActivity
-        .where((element) =>
-            element.eventCode == AppConstant.internetOnEvent &&
-            element.isEventCompleted == false &&
-            element.isSync == false)
-        .firstOrNull;
-
-    if (internetOnData == null) {
-      internetOffData.isEventCompleted = true;
-
-      activity.parentId = internetOffData.pkId;
-      activity.eventCode = AppConstant.internetOnEvent;
-      activity.isEventCompleted = true;
-      activity.isSync = internetOffData.isSync;
-      activity.activityDate = AppUtils.getDateTimeNow();
-
-      listOfAllActivity.add(activity);
-      setAllActivityListToPref(listOfAllActivity);
-    }
-  }
+      eventCode : AppConstant.internetOnEvent,
+  );
+      await databaseService.insertInternetActivity(txn,activity);
 }
 
-manualGpsOnEvent(List<Activity> listOfAllActivity) {
+manualGpsOnEvent(Transaction txn) async{
+
+  DatabaseService databaseService = DatabaseService();
   var activity = Activity(
-      pkId: listOfAllActivity.length + 1,
-      sessionId: lastActivityData?.sessionId ?? "",
-      latitude: currentLatitude ?? (prevLatitude ?? 0),
-      longitude: currentLongitude ?? (prevLongitude ?? 0),
-      isSync: false,
-      isEventCompleted: false);
-
-  var gpsOffData = listOfAllActivity
-      .where((element) =>
-          element.eventCode == AppConstant.gpsOffEvent &&
-          element.isEventCompleted == false)
-      .firstOrNull;
-
-  if (gpsOffData != null) {
-    var gpsOnData = listOfAllActivity
-        .where((element) =>
-            element.eventCode == AppConstant.gpsOnEvent &&
-            element.isEventCompleted == false &&
-            element.isSync == false)
-        .firstOrNull;
-    if (gpsOnData == null) {
-      gpsOffData.isEventCompleted = true;
-      activity.parentId = gpsOffData.pkId;
-      activity.eventCode = AppConstant.gpsOnEvent;
-      activity.isEventCompleted = true;
-      activity.isSync = gpsOffData.isSync;
-      activity.activityDate = AppUtils.getDateTimeNow();
-
-      listOfAllActivity.add(activity);
-      setAllActivityListToPref(listOfAllActivity);
-    }
-  }
+    pkId: 0,
+    sessionId: lastActivityData?.sessionId ?? "",
+    latitude: currentLatitude ?? (prevLatitude ?? 0),
+    longitude: currentLongitude ?? (prevLongitude ?? 0),
+    eventCode : AppConstant.gpsOnEvent,
+  );
+    await databaseService.insertGpsActivity(txn,activity);
 }
 
 BulkActivityRequestModel? bulkActivityRequestModel;
@@ -691,8 +458,6 @@ syncRouteHistory() async {
     final DatabaseService databaseService = DatabaseService();
 
     List<OfflineRouteModel> offlineData = await databaseService.getRoutes();
-    // List<String>? offlineData =
-    //     PreferenceHelper.getStringList('offline_route_data');
 
     List<OfflineMapData> offlineDataMaps = offlineData
         .map((route) => OfflineMapData(
@@ -724,16 +489,21 @@ syncRouteHistory() async {
         createRouteHistoryModel?.isValidationFailed == false) {
 
       await databaseService.deleteAllRoutes();
-      // PreferenceHelper.setStringList("offline_route_data", []);
+
     }
   } catch (e) {
     print("createRouteHistory");
   }
 }
 
-syncData(List<Activity> listOfAllActivity) async {
+syncSqlData() async {
   try {
-    var listOfflineData = listOfAllActivity.where((element) => element.isSync == false).toList();
+
+    DatabaseService databaseService = DatabaseService();
+    List<Activity>? listOfAllActivity = await databaseService.getAllSyncedActivity();
+
+
+    var listOfflineData = listOfAllActivity?.where((element) => element.isSync == false).toList();
 
 
     if (listOfflineData == null || listOfflineData.length < 1)
@@ -741,30 +511,7 @@ syncData(List<Activity> listOfAllActivity) async {
       return;
     } else {
 
-      var internetOff = listOfAllActivity
-          .where((element) =>
-      element.eventCode == AppConstant.internetOffEvent &&
-          element.isSync == false)
-          .firstOrNull;
-      var internetOn = listOfAllActivity
-          .where((element) =>
-      element.eventCode == AppConstant.internetOnEvent &&
-          element.isSync == false &&
-          element.parentId == internetOff?.pkId)
-          .firstOrNull;
 
-      if (internetOn != null && internetOff != null) {
-        bool? isDifferenceLessTwoMinutes = isDifferenceLessFiveMinutes(
-            internetOff.activityDate ?? "", internetOn.activityDate ?? "");
-        if (isDifferenceLessTwoMinutes) {
-          internetOff.isSync = true;
-          internetOff.isEventCompleted=true;
-          internetOn.isSync=true;
-          internetOn.isEventCompleted=true;
-          setAllActivityListToPref(listOfflineData);
-          listOfflineData = listOfAllActivity.where((element) => element.isSync == false).toList();
-        }
-      }
 
       List<CreateActivityList> createActivityLists = [];
 
@@ -785,15 +532,7 @@ syncData(List<Activity> listOfAllActivity) async {
           // offlineMapData: activity.eventCode == AppConstant.internetOnEvent ? offlineDataMaps : null
         );
 
-        if(createActivityList.totTrackingEventId == AppConstant.internetOffEvent)
-         {
-           if(internetOn != null && internetOn.isSync == false){
-             createActivityLists.add(createActivityList);
-           }
-         }else
-          {
-            createActivityLists.add(createActivityList);
-          }
+        createActivityLists.add(createActivityList);
       }
 
       bulkActivityRequestModel =
@@ -811,19 +550,9 @@ syncData(List<Activity> listOfAllActivity) async {
             if (bulkActivityResponseModel?.isError == false) {
 
               bulkActivityResponseModel?.data?.forEach((element) {
-
-                var recordToSync = listOfAllActivity
-                    .where((x) => x.pkId == element.localPkId)
-                    .firstOrNull;
-                recordToSync?.isSync = true;
+                databaseService.syncRecord(element.localPkId ?? 0);
               });
 
-              List<String> allActivityList = listOfAllActivity
-                  .map((activity) => jsonEncode(activity.toJson()))
-                  .toList();
-
-              PreferenceHelper.setStringList("offline_activities", allActivityList);
-              listOfAllActivity = geAllActivitiesFromPrefOffLine();
               print("all Activity Data cleared");
             }
           } catch (e) {
@@ -834,21 +563,6 @@ syncData(List<Activity> listOfAllActivity) async {
     }
   } catch (e) {
     print("syncData$e");
-  }
-}
-
-geAllActivitiesFromPrefOffLine() {
-  try {
-    var offLineActivitiesStr =
-        PreferenceHelper.getStringList("offline_activities") ?? [];
-
-    List<Activity> offLinActivities = offLineActivitiesStr.map((data) {
-      Map<String, dynamic> jsonData = jsonDecode(data);
-      return Activity.fromJson(jsonData);
-    }).toList();
-    return offLinActivities;
-  } catch (e) {
-    print("error : geAllGpsActivitiesFromPrefOffLine");
   }
 }
 
@@ -897,28 +611,12 @@ setBgNotificationIcon(ServiceInstance service) async {
         );
       }
     }
-    if (service is IOSServiceInstance) {
-      flutterLocalNotificationsPlugin.show(
-        notificationId,
-        'On Trek Background Service',
-        'Background location capturing initiated.',
-        NotificationDetails(
-          iOS: DarwinNotificationDetails(
-              presentAlert: true,
-              presentBadge: true,
-              presentSound: true,
-              badgeNumber: 1,
-              subtitle: 'Background location capturing initiated.',
-              sound: 'default'),
-        ),
-      );
-    }
   } catch (e) {
     print("setBgNotificationIcon");
   }
 }
 
-stopServiceAtNight(ServiceInstance service, Timer timer) {
+stopServiceAtNight(ServiceInstance service, Timer timer) async {
   try {
     var now = DateTime.now();
     if (now.hour == 23 && now.minute >= 55 && now.minute <= 59) {
@@ -933,10 +631,10 @@ stopServiceAtNight(ServiceInstance service, Timer timer) {
 
 isWithinRadius(
     {double? currentLat,
-    double? currentLong,
-    double? prevLat,
-    double? prevLong,
-    int? radiusMtr}) {
+      double? currentLong,
+      double? prevLat,
+      double? prevLong,
+      int? radiusMtr}) async {
   try {
     if (prevLat == null || prevLong == null || prevLat == 0 || prevLong == 0) {
       return false;
@@ -962,9 +660,9 @@ isWithinRadius(
   }
 }
 
-setLastActivityData(/*LastActivityData? lastActivity*/) async {
+setLastActivityData() async {
   Map<String, dynamic> lastActivityMap =
-      PreferenceHelper.getObject("last_activity");
+  PreferenceHelper.getObject("last_activity");
   if (lastActivityMap != null) {
     lastActivityData = LastActivityData.fromJson(lastActivityMap);
   } else {
@@ -1010,8 +708,7 @@ setLastActivityData(/*LastActivityData? lastActivity*/) async {
 
 void setAllActivityListToPref(List<Activity> lstActivities) {
   try {
-    List<String> activitiesJsonList =
-        lstActivities.map((activity) => jsonEncode(activity.toJson())).toList();
+    List<String> activitiesJsonList = lstActivities.map((activity) => jsonEncode(activity.toJson())).toList();
 
     PreferenceHelper.setStringList('offline_activities', activitiesJsonList);
   } catch (e) {
@@ -1035,3 +732,4 @@ bool isDifferenceLessFiveMinutes(String time1, String time2) {
     return false;
   }
 }
+

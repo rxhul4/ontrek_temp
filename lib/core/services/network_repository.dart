@@ -37,71 +37,71 @@ Map<String, String> androidHeader = {
 };
 
 Future callPostMethod(String url, Map<String, dynamic> params) async {
-  if (Platform.isAndroid) {
-    bool developerMode = await FlutterJailbreakDetection.developerMode;
-    if (developerMode) {
-      AppUtils.showDialogBoxWithOneButton(
-        context: navigatorKey.currentState!.context,
-        text: "Please disable Developer Options to run the smoothly.",
-        titleText: "Developer Option",
-        btnColor: Colors.red,
-        btnText: "Open Settings",
-        onTap: () {
-          AppSettings.openAppSettings(type: AppSettingsType.developer);
-        },
-      );
-    } else {
-      if (kDebugMode) {
-        print("baseUrl--$url");
-        print("params--${jsonEncode(params)}");
-        print("header----${androidHeader}");
-      }
-
-      return await http
-          .post(
-        Uri.parse(url),
-        body: utf8.encode(json.encode(params)),
-        headers: androidHeader,
-      )
-          .then((http.Response response) {
-        return getResponse(response);
-      });
-    }
-  } else {
-    if (kDebugMode) {
-      print("baseUrl--$url");
-      print("params--${jsonEncode(params)}");
-      print("header----${iosHeader}");
-    }
-
-    return await http
-        .post(
-      Uri.parse(url),
-      body: utf8.encode(json.encode(params)),
-      headers: iosHeader,
-    )
-        .then((http.Response response) {
-      return getResponse(response);
-    });
-  }
-}
-
-//   if (kDebugMode) {
-//     print("baseUrl--$url");
-//     print("params--${jsonEncode(params)}");
-//     print("header----${iosHeader}");
-//   }
+//   if (Platform.isAndroid) {
+//     bool developerMode = await FlutterJailbreakDetection.developerMode;
+//     if (developerMode) {
+//       AppUtils.showDialogBoxWithOneButton(
+//         context: navigatorKey.currentState!.context,
+//         text: "Please disable Developer Options to run the smoothly.",
+//         titleText: "Developer Option",
+//         btnColor: Colors.red,
+//         btnText: "Open Settings",
+//         onTap: () {
+//           AppSettings.openAppSettings(type: AppSettingsType.developer);
+//         },
+//       );
+//     } else {
+//       if (kDebugMode) {
+//         print("baseUrl--$url");
+//         print("params--${jsonEncode(params)}");
+//         print("header----${androidHeader}");
+//       }
 //
-//   return await http
-//       .post(
-//     Uri.parse(url),
-//     body: utf8.encode(json.encode(params)),
-//     headers: androidHeader,
-//   )
-//       .then((http.Response response) {
-//     return getResponse(response);
-//   });
+//       return await http
+//           .post(
+//         Uri.parse(url),
+//         body: utf8.encode(json.encode(params)),
+//         headers: androidHeader,
+//       )
+//           .then((http.Response response) {
+//         return getResponse(response);
+//       });
+//     }
+//   } else {
+//     if (kDebugMode) {
+//       print("baseUrl--$url");
+//       print("params--${jsonEncode(params)}");
+//       print("header----${iosHeader}");
+//     }
+//
+//     return await http
+//         .post(
+//       Uri.parse(url),
+//       body: utf8.encode(json.encode(params)),
+//       headers: iosHeader,
+//     )
+//         .then((http.Response response) {
+//       return getResponse(response);
+//     });
+//   }
 // }
+
+  if (kDebugMode) {
+    print("baseUrl--$url");
+    print("params--${jsonEncode(params)}");
+    print("header----${androidHeader}");
+  }
+
+  return await http
+      .post(
+    Uri.parse(url),
+    body: utf8.encode(json.encode(params)),
+    headers: androidHeader,
+  )
+      .then((http.Response response) {
+    return getResponse(response);
+  });
+}
 
 // Future callGetMethod(String url) async {
 //   if (kDebugMode) {
