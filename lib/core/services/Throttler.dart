@@ -2,17 +2,17 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 
 class Throttler {
-  final int milliseconds;
+  final int seconds;
   bool _isReady = true;
   VoidCallback? _lastAction;
 
-  Throttler({required this.milliseconds});
+  Throttler({required this.seconds});
 
   void run(VoidCallback action) {
     if (_isReady) {
       action();
       _isReady = false;
-      Timer(Duration(milliseconds: milliseconds), () {
+      Timer(Duration(seconds: seconds), () {
         _isReady = true;
         if (_lastAction != null) {
           run(_lastAction!);

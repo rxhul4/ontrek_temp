@@ -9,17 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:flutter_jailbreak_detection/flutter_jailbreak_detection.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:interval_time_picker/interval_time_picker.dart';
-import 'package:intl/intl.dart';
-import 'package:ontrek/core/background_service_model/bulk_activity_model.dart';
-import 'package:ontrek/core/common_widgets/custom_upgrader_message.dart';
 import 'package:ontrek/core/common_widgets/loader_widget.dart';
-import 'package:ontrek/core/common_widgets/textfield_widget.dart';
-import 'package:ontrek/core/services/api_constants.dart';
-import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
@@ -209,7 +201,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   callDayEndApiAndUpdateUI(AttendanceProvider? attendanceProvider) async {
     //getCurrent Location for UI and api
     try {
-      service.invoke("dayEnd_beforeEvent");
+
       // Future.delayed(Duration(seconds: 5));
       var response = await callCreateActivityApi(
           totTrackingEventCode: AppConstant.dayEndEvent,

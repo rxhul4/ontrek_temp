@@ -255,8 +255,7 @@ class AttendanceProvider extends ChangeNotifier {
         DateTime sessionStartDate =
         DateFormat("dd-MM-yyyy").parse(sessionStartDateStr);
         DateTime today = DateTime.now();
-        DateTime todayWithoutTime =
-        DateTime(today.year, today.month, today.day);
+        DateTime todayWithoutTime = DateTime(today.year, today.month, today.day);
         if (sessionStartDate.isBefore(todayWithoutTime)) {
           if (getLastActivityModel?.data?.isSessionActive == true) {
             if (getLastActivityModel?.data?.alreadyRequested == false) {
@@ -277,21 +276,28 @@ class AttendanceProvider extends ChangeNotifier {
         if (sessionStartDateStr ==
             AppUtils.getDate(
                 date: DateTime.now().toString(), format: "dd-MM-yyyy")) {
-          sessionId = getLastActivityModel?.data?.sessionId;
-          print("sessionId$sessionId");
-          PreferenceHelper.setString(
-              PreferenceHelper.SESSION_ID, sessionId ?? "");
 
-          setDataAccordingToLastActivity(totEventCode);
-          if (isDayStart.value == true) {
-            bool? liveLocationTracking = PreferenceHelper.getBool(
-                PreferenceHelper.LIVE_LOCATION_TRACKING);
+          if(getLastActivityModel?.data == null){
+            service.invoke("stopService");
+          }else{
+            sessionId = getLastActivityModel?.data?.sessionId;
+            print("sessionId$sessionId");
+            PreferenceHelper.setString(
+                PreferenceHelper.SESSION_ID, sessionId ?? "");
 
-            if (liveLocationTracking == true) {
-              await service.startService();
-              print("dtaaadasd${getLastActivityModel?.data?.toJson()}");
-              PreferenceHelper.setObject<LastActivityData>("last_activity", getLastActivityModel?.data?.toJson());
-              service.invoke("appLoad", getLastActivityModel?.data?.toJson());
+            setDataAccordingToLastActivity(totEventCode);
+
+
+            if (isDayStart.value == true) {
+              bool? liveLocationTracking = PreferenceHelper.getBool(
+                  PreferenceHelper.LIVE_LOCATION_TRACKING);
+
+              if (liveLocationTracking == true) {
+                await service.startService();
+                print("dtaaadasd${getLastActivityModel?.data?.toJson()}");
+                PreferenceHelper.setObject<LastActivityData>("last_activity", getLastActivityModel?.data?.toJson());
+                service.invoke("appLoad", getLastActivityModel?.data?.toJson());
+              }
             }
           }
         }

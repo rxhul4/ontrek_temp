@@ -56,11 +56,12 @@ class DatabaseService {
     return maps.map((json) => OfflineRouteModel.fromJson(json)).toList();
   }
 
-  Future<void> insertGpsActivity(Transaction txn,Activity activity) async {
+  Future<void> insertGpsActivity(Activity activity) async {
+    final Database db = await initializeOnTrekDB();
 
      List<Map<String, dynamic>> gpsOff;
 
-     gpsOff = await txn.query(
+     gpsOff = await db.query(
       'Activity',
       where: 'IsEventCompleted = ? AND EventCode = ?',
       whereArgs: [0, AppConstant.gpsOffEvent]
@@ -70,7 +71,7 @@ class DatabaseService {
 
     if (gpsOffActivity.length > 1) {
       for (var i = 1; i < gpsOffActivity.length; i++) {
-        await txn.delete(
+        await db.delete(
           'Activity',
           where: 'PkId = ?',
           whereArgs: [gpsOffActivity[i].pkId],
@@ -78,7 +79,7 @@ class DatabaseService {
       }
     }
 
-    gpsOff = await txn.query(
+    gpsOff = await db.query(
       'Activity',
       where: 'IsEventCompleted = ? AND EventCode = ?',
       whereArgs: [0, AppConstant.gpsOffEvent],
@@ -87,17 +88,17 @@ class DatabaseService {
     gpsOffActivity = gpsOff.map((json) => Activity.fromJson(json)).toList();
 
     if (activity.eventCode == AppConstant.gpsOffEvent && gpsOffActivity.isEmpty) {
-      final result = await txn.rawQuery('SELECT MAX(PkId) AS max_pkid FROM Activity');
+      final result = await db.rawQuery('SELECT MAX(PkId) AS max_pkid FROM Activity');
       final maxPkid = (result.first['max_pkid'] as int?) ?? 0;
       activity.pkId = maxPkid + 1;
       activity.isSync = false;
       activity.isEventCompleted = false;
 
-      await txn.insert('Activity', activity.toJson());
+      await db.insert('Activity', activity.toJson());
     }
 
     if (activity.eventCode == AppConstant.gpsOnEvent) {
-      final List<Map<String, Object?>> gpsOn = await txn.query(
+      final List<Map<String, Object?>> gpsOn = await db.query(
         'Activity',
         where: 'IsEventCompleted = ? AND EventCode = ?',
         whereArgs: [0, AppConstant.gpsOnEvent],
@@ -105,7 +106,7 @@ class DatabaseService {
 
       if (gpsOn.isEmpty && gpsOff.length == 1) {
 
-        final result = await txn.rawQuery('SELECT MAX(PkId) AS max_pkid FROM Activity');
+        final result = await db.rawQuery('SELECT MAX(PkId) AS max_pkid FROM Activity');
         final maxPkid = (result.first['max_pkid'] as int?) ?? 0;
 
         gpsOffActivity[0].isEventCompleted = true;
@@ -114,87 +115,31 @@ class DatabaseService {
         activity.isEventCompleted = true;
         activity.pkId = maxPkid + 1;
 
-        await txn.rawQuery('update Activity set IsEventCompleted=1 where PkId=' + gpsOffActivity[0].pkId.toString() + '');
-        await txn.insert('Activity', activity.toJson());
+        await db.rawQuery('update Activity set IsEventCompleted=1 where PkId=' + gpsOffActivity[0].pkId.toString() + '');
+        await db.insert('Activity', activity.toJson());
       }
     }
   }
 
-  Future<void> insertInternetActivity(Transaction txn,Activity activity) async {
-
-    List<Map<String, dynamic>> internetOff;
-
-    internetOff = await txn.query(
-        'Activity',
-        where: 'IsEventCompleted = ? AND EventCode = ?',
-        whereArgs: [0, AppConstant.internetOffEvent]
-    );
-
-    List<Activity> internetOffActivity = internetOff.map((json) => Activity.fromJson(json)).toList();
-
-    if (internetOffActivity.length > 1) {
-      for (var i = 1; i < internetOffActivity.length; i++) {
-        await txn.delete(
-          'Activity',
-          where: 'PkId = ?',
-          whereArgs: [internetOffActivity[i].pkId],
-        );
-      }
-    }
-
-    internetOff = await txn.query(
-      'Activity',
-      where: 'IsEventCompleted = ? AND EventCode = ?',
-      whereArgs: [0, AppConstant.internetOffEvent],
-    );
-
-    internetOffActivity = internetOff.map((json) => Activity.fromJson(json)).toList();
-
-    if (activity.eventCode == AppConstant.internetOffEvent && internetOffActivity.isEmpty) {
-      final result = await txn.rawQuery('SELECT MAX(PkId) AS max_pkid FROM Activity');
-      final maxPkid = (result.first['max_pkid'] as int?) ?? 0;
-      activity.pkId = maxPkid + 1;
-      activity.isSync = false;
-      activity.isEventCompleted = false;
-
-      await txn.insert('Activity', activity.toJson());
-    }
-
-    if (activity.eventCode == AppConstant.internetOnEvent) {
-      final List<Map<String, Object?>> internetOn = await txn.query(
-        'Activity',
-        where: 'IsEventCompleted = ? AND EventCode = ?',
-        whereArgs: [0, AppConstant.internetOnEvent],
-      );
-
-      if (internetOn.isEmpty && internetOff.length == 1) {
-
-        bool isDifferenceLessTwoMinutes = isDifferenceLessFiveMinutes(internetOff[0]["ActivityDate"], activity.activityDate ?? "");
-        if (isDifferenceLessTwoMinutes) {
-          await txn.delete('Activity', where: 'pkId = ?', whereArgs: [internetOff[0]["pkId"]]);
-        }else
-        {
-          final result = await txn.rawQuery('SELECT MAX(PkId) AS max_pkid FROM Activity');
-          final maxPkid = (result.first['max_pkid'] as int?) ?? 0;
-
-          internetOffActivity[0].isEventCompleted = true;
-
-          activity.parentId =  internetOffActivity[0].pkId;
-          activity.isEventCompleted = true;
-          activity.pkId = maxPkid + 1;
-
-          await txn.rawQuery('update Activity set IsEventCompleted=1 where PkId=' + internetOffActivity[0].pkId.toString() + '');
-          await txn.insert('Activity', activity.toJson());
-        }
-      }
-    }
+  Future<void> insertInternetActivity(Activity activity) async {
+    final Database db = await initializeOnTrekDB();
+    await db.insert('Activity', activity.toJson());
   }
 
-  Future<void> insertWaitingActivity(Transaction txn,Activity activity) async {
+  getMaxPkId()async{
+    final Database db = await initializeOnTrekDB();
 
+    final result = await db.rawQuery('SELECT MAX(PkId) AS max_pkid FROM Activity');
+    final maxPkid = (result.first['max_pkid'] as int?) ?? 0;
+    return maxPkid;
+  }
+
+
+  Future<void> insertWaitingActivity(Activity activity) async {
+    final Database db = await initializeOnTrekDB();
     List<Map<String, dynamic>> waitingStart;
 
-    waitingStart = await txn.query(
+    waitingStart = await db.query(
         'Activity',
         where: 'IsEventCompleted = ? AND EventCode = ?',
         whereArgs: [0, AppConstant.trackingWaitingStartEvent]
@@ -204,7 +149,7 @@ class DatabaseService {
 
     if (waitingStartActivity.length > 1) {
       for (var i = 1; i < waitingStartActivity.length; i++) {
-        await txn.delete(
+        await db.delete(
           'Activity',
           where: 'PkId = ?',
           whereArgs: [waitingStartActivity[i].pkId],
@@ -212,7 +157,7 @@ class DatabaseService {
       }
     }
 
-    waitingStart = await txn.query(
+    waitingStart = await db.query(
       'Activity',
       where: 'IsEventCompleted = ? AND EventCode = ?',
       whereArgs: [0, AppConstant.trackingWaitingStartEvent],
@@ -221,17 +166,17 @@ class DatabaseService {
     waitingStartActivity = waitingStart.map((json) => Activity.fromJson(json)).toList();
 
     if (activity.eventCode == AppConstant.trackingWaitingStartEvent && waitingStartActivity.isEmpty) {
-      final result = await txn.rawQuery('SELECT MAX(PkId) AS max_pkid FROM Activity');
+      final result = await db.rawQuery('SELECT MAX(PkId) AS max_pkid FROM Activity');
       final maxPkid = (result.first['max_pkid'] as int?) ?? 0;
       activity.pkId = maxPkid + 1;
       activity.isSync = false;
       activity.isEventCompleted = false;
 
-      await txn.insert('Activity', activity.toJson());
+      await db.insert('Activity', activity.toJson());
     }
 
     if (activity.eventCode == AppConstant.trackingWaitingStopEvent) {
-      final List<Map<String, Object?>> waitingStop = await txn.query(
+      final List<Map<String, Object?>> waitingStop = await db.query(
         'Activity',
         where: 'IsEventCompleted = ? AND EventCode = ?',
         whereArgs: [0, AppConstant.trackingWaitingStopEvent],
@@ -239,7 +184,7 @@ class DatabaseService {
 
       if (waitingStop.isEmpty && waitingStart.length == 1) {
 
-          final result = await txn.rawQuery('SELECT MAX(PkId) AS max_pkid FROM Activity');
+          final result = await db.rawQuery('SELECT MAX(PkId) AS max_pkid FROM Activity');
           final maxPkid = (result.first['max_pkid'] as int?) ?? 0;
 
           waitingStartActivity[0].isEventCompleted = true;
@@ -248,14 +193,18 @@ class DatabaseService {
           activity.isEventCompleted = true;
           activity.pkId = maxPkid + 1;
 
-          await txn.rawQuery('update Activity set IsEventCompleted=1 where PkId=' + waitingStartActivity[0].pkId.toString() + '');
-          await txn.insert('Activity', activity.toJson());
+          await db.rawQuery('update Activity set IsEventCompleted=1 where PkId=' + waitingStartActivity[0].pkId.toString() + '');
+          await db.insert('Activity', activity.toJson());
 
       }
     }
   }
 
-
+  Future<void> removeSyncedNotCompletedEvents() async
+  {
+    final Database db = await initializeOnTrekDB();
+    await db.rawQuery("delete from Activity where IsSync=1 AND IsEventCompleted=0");
+  }
 
   Future<void> syncRecord(int pkId) async {
     final Database db = await initializeOnTrekDB();
@@ -291,13 +240,5 @@ class DatabaseService {
     return await db.delete('Activity');
   }
 
-  bool isDifferenceLessFiveMinutes(String time1, String time2) {
-    final format = DateFormat(AppConstant.dateFormat);
 
-    DateTime dateTime1 = format.parse(time1);
-    DateTime dateTime2 = format.parse(time2);
-
-    Duration difference = dateTime1.difference(dateTime2).abs();
-    return difference.inMinutes < 5;
-  }
 }

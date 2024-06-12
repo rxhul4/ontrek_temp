@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_jailbreak_detection/flutter_jailbreak_detection.dart';
+
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 
@@ -102,6 +103,25 @@ Future callPostMethod(String url, Map<String, dynamic> params) async {
     return getResponse(response);
   });
 }
+
+Future callPostMethodForDevmode(String url, Map<String, dynamic> params) async {
+  if (kDebugMode) {
+    print("baseUrl--$url");
+    print("params--${jsonEncode(params)}");
+    print("header----${androidHeader}");
+  }
+  var requestUrl = url;
+  return await http
+      .post(
+    Uri.parse(requestUrl),
+    body:  utf8.encode(json.encode(params)),
+    headers: androidHeader,
+  )
+      .then((http.Response response) {
+    return getResponse(response);
+  });
+}
+
 
 // Future callGetMethod(String url) async {
 //   if (kDebugMode) {
