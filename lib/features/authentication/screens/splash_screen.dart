@@ -30,13 +30,13 @@ class _SplashScreenState extends State<SplashScreen> {
 
   gotoLogin() async {
     isLogIn = PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN);
-    var status = await Permission.location.status;
-    var statusOfAlwaysOnLocation = await Permission.locationAlways.status;
+    // var status = await Permission.location.status;
+    // var statusOfAlwaysOnLocation = await Permission.locationAlways.status;
     UserPermission userPermission = UserPermission();
-    bool isAllPermissionAllowed = await userPermission.isAllPermissionsGranted();
+    // bool isAllPermissionAllowed = await userPermission.isAllPermissionsGranted();
     Timer(const Duration(milliseconds: 5000), ()async {
-      bool isAllPermissionAllowed = await userPermission.isAllPermissionsGranted();
-      if(isAllPermissionAllowed == true){
+      bool isPermissionGranted = await userPermission.isAllPermissionsGranted();
+      if(isPermissionGranted == true){
         if(isLogIn == true){
           Navigator.pushReplacement(
               context,
@@ -58,32 +58,6 @@ class _SplashScreenState extends State<SplashScreen> {
             ));
       }
 
-      // if(status.isGranted && statusOfAlwaysOnLocation.isGranted && )
-      //   if (status.isGranted) {
-      //     if (statusOfAlwaysOnLocation.isGranted) {
-      //       if (isLogIn ?? false) {
-      //
-      //       } else {
-      //         Navigator.pushReplacement(
-      //             context,
-      //             CupertinoPageRoute(
-      //               builder: (context) => const LoginScreen(),
-      //             ));
-      //       }
-      //     } else {
-      //       Navigator.pushReplacement(
-      //           context,
-      //           CupertinoPageRoute(
-      //             builder: (context) => const PermissionRequestScreen(),
-      //           ));
-      //     }
-      //   } else {
-      //     Navigator.pushReplacement(
-      //         context,
-      //         CupertinoPageRoute(
-      //           builder: (context) => const PermissionRequestScreen(),
-      //         ));
-      //   }
     });
   }
 

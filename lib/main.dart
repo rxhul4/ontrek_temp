@@ -95,7 +95,7 @@ class _MyAppState extends State<MyApp> {
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home: const PermissionRequestScreen(),
+      home: const SplashScreen(),
     );
   }
 }

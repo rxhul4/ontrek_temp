@@ -21,7 +21,8 @@ class UserPermission {
     List<Permission> permissions = [
       Permission.location,
       Permission.locationAlways,
-      Permission.ignoreBatteryOptimizations
+      Permission.ignoreBatteryOptimizations,
+      Permission.activityRecognition
     ];
 
     // Request and get the status of each permission
