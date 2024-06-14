@@ -1,3 +1,5 @@
+import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
+
 class CreateActivityModel {
   bool? isError;
   bool? isValidationFailed;
@@ -34,103 +36,143 @@ class CreateActivityModel {
 }
 
 class Data {
-  String? trackingId;
-  String? userId;
   String? sessionId;
-  String? parentTrackingId;
-  String? totTrackingEventId;
-  String? totTrackingValue;
-  int? batteryLevel;
-  String? deviceId;
-  String? deviceName;
-  int? locationAccuracy;
-  bool? isFakeLocation;
-  String? trackingAddress;
+  String? eventCode;
   String? eventDate;
-  String? durationMin;
-  bool? isActive;
-  bool? isDeleted;
-  String? createdBy;
-  String? createdOn;
-  String? modifiedBy;
-  String? modifiedOn;
-  double? lattitude;
-  double? longitude;
+  LastActivityData? lastActivityDto;
+  int? localPkId;
+  bool? isSuccess;
+  String? errorCode;
+  String? message;
 
   Data(
-      {this.trackingId,
-        this.userId,
-        this.sessionId,
-        this.parentTrackingId,
-        this.totTrackingEventId,
-        this.totTrackingValue,
-        this.batteryLevel,
-        this.deviceId,
-        this.deviceName,
-        this.locationAccuracy,
-        this.isFakeLocation,
-        this.trackingAddress,
+      {this.sessionId,
+        this.eventCode,
         this.eventDate,
-        this.durationMin,
-        this.isActive,
-        this.isDeleted,
-        this.createdBy,
-        this.createdOn,
-        this.modifiedBy,
-        this.modifiedOn,
-        this.lattitude,
-        this.longitude
-      });
+        this.lastActivityDto,
+        this.localPkId,
+        this.isSuccess,
+        this.errorCode,
+        this.message});
 
   Data.fromJson(Map<String, dynamic> json) {
-    trackingId = json['trackingId'];
-    userId = json['userId'];
     sessionId = json['sessionId'];
-    parentTrackingId = json['parentTrackingId'];
-    totTrackingEventId = json['totTrackingEventId'];
-    totTrackingValue = json['totTrackingValue'];
-    batteryLevel = json['batteryLevel'];
-    deviceId = json['deviceId'];
-    deviceName = json['deviceName'];
-    locationAccuracy = json['locationAccuracy'];
-    isFakeLocation = json['isFakeLocation'];
-    trackingAddress = json['trackingAddress'];
+    eventCode = json['eventCode'];
     eventDate = json['eventDate'];
-    durationMin = json['durationMin'];
-    isActive = json['isActive'];
-    isDeleted = json['isDeleted'];
-    createdBy = json['createdBy'];
-    createdOn = json['createdOn'];
-    modifiedBy = json['modifiedBy'];
-    modifiedOn = json['modifiedOn'];
-    lattitude = json['lattitude'];
-    longitude = json['longitude'];
+    lastActivityDto = json['lastActivityDto'] != null
+        ? new LastActivityData.fromJson(json['lastActivityDto'])
+        : null;
+    localPkId = json['localPkId'];
+    isSuccess = json['isSuccess'];
+    errorCode = json['errorCode'];
+    message = json['message'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['trackingId'] = this.trackingId;
-    data['userId'] = this.userId;
     data['sessionId'] = this.sessionId;
-    data['parentTrackingId'] = this.parentTrackingId;
-    data['totTrackingEventId'] = this.totTrackingEventId;
-    data['totTrackingValue'] = this.totTrackingValue;
-    data['batteryLevel'] = this.batteryLevel;
-    data['deviceId'] = this.deviceId;
-    data['deviceName'] = this.deviceName;
-    data['locationAccuracy'] = this.locationAccuracy;
-    data['isFakeLocation'] = this.isFakeLocation;
-    data['trackingAddress'] = this.trackingAddress;
+    data['eventCode'] = this.eventCode;
     data['eventDate'] = this.eventDate;
-    data['durationMin'] = this.durationMin;
-    data['isActive'] = this.isActive;
-    data['isDeleted'] = this.isDeleted;
-    data['createdBy'] = this.createdBy;
-    data['createdOn'] = this.createdOn;
-    data['modifiedBy'] = this.modifiedBy;
-    data['modifiedOn'] = this.modifiedOn;
-    data['lattitude'] = this.modifiedOn;
-    data['longitude'] = this.modifiedOn;
+    if (this.lastActivityDto != null) {
+      data['lastActivityDto'] = this.lastActivityDto!.toJson();
+    }
+    data['localPkId'] = this.localPkId;
+    data['isSuccess'] = this.isSuccess;
+    data['errorCode'] = this.errorCode;
+    data['message'] = this.message;
     return data;
   }
 }
+
+// class LastActivityDto {
+//   String? fieldUserId;
+//   String? trackingEventId;
+//   String? activityName;
+//   String? activityCode;
+//   String? lastTrackingActivityTime;
+//   double? lastActivityLat;
+//   double? lastActivityLong;
+//   String? lastActivityPlace;
+//   int? lastBatteryPercentage;
+//   String? sessionId;
+//   String? sessionStartDateTime;
+//   bool? isSessionActive;
+//   bool? alreadyRequested;
+//   double? lastLocationLat;
+//   double? lastLocationLong;
+//   String? lastLocationTime;
+//   String? tlDate;
+//   String? tlTime;
+//   String? tlDateTime;
+//   String? markerTitle;
+//
+//   LastActivityDto(
+//       {this.fieldUserId,
+//         this.trackingEventId,
+//         this.activityName,
+//         this.activityCode,
+//         this.lastTrackingActivityTime,
+//         this.lastActivityLat,
+//         this.lastActivityLong,
+//         this.lastActivityPlace,
+//         this.lastBatteryPercentage,
+//         this.sessionId,
+//         this.sessionStartDateTime,
+//         this.isSessionActive,
+//         this.alreadyRequested,
+//         this.lastLocationLat,
+//         this.lastLocationLong,
+//         this.lastLocationTime,
+//         this.tlDate,
+//         this.tlTime,
+//         this.tlDateTime,
+//         this.markerTitle});
+//
+//   LastActivityDto.fromJson(Map<String, dynamic> json) {
+//     fieldUserId = json['fieldUserId'];
+//     trackingEventId = json['trackingEventId'];
+//     activityName = json['activityName'];
+//     activityCode = json['activityCode'];
+//     lastTrackingActivityTime = json['lastTrackingActivityTime'];
+//     lastActivityLat = json['lastActivityLat'];
+//     lastActivityLong = json['lastActivityLong'];
+//     lastActivityPlace = json['lastActivityPlace'];
+//     lastBatteryPercentage = json['lastBatteryPercentage'];
+//     sessionId = json['sessionId'];
+//     sessionStartDateTime = json['sessionStartDateTime'];
+//     isSessionActive = json['isSessionActive'];
+//     alreadyRequested = json['alreadyRequested'];
+//     lastLocationLat = json['lastLocationLat'];
+//     lastLocationLong = json['lastLocationLong'];
+//     lastLocationTime = json['lastLocationTime'];
+//     tlDate = json['tlDate'];
+//     tlTime = json['tlTime'];
+//     tlDateTime = json['tlDateTime'];
+//     markerTitle = json['markerTitle'];
+//   }
+//
+//   Map<String, dynamic> toJson() {
+//     final Map<String, dynamic> data = new Map<String, dynamic>();
+//     data['fieldUserId'] = this.fieldUserId;
+//     data['trackingEventId'] = this.trackingEventId;
+//     data['activityName'] = this.activityName;
+//     data['activityCode'] = this.activityCode;
+//     data['lastTrackingActivityTime'] = this.lastTrackingActivityTime;
+//     data['lastActivityLat'] = this.lastActivityLat;
+//     data['lastActivityLong'] = this.lastActivityLong;
+//     data['lastActivityPlace'] = this.lastActivityPlace;
+//     data['lastBatteryPercentage'] = this.lastBatteryPercentage;
+//     data['sessionId'] = this.sessionId;
+//     data['sessionStartDateTime'] = this.sessionStartDateTime;
+//     data['isSessionActive'] = this.isSessionActive;
+//     data['alreadyRequested'] = this.alreadyRequested;
+//     data['lastLocationLat'] = this.lastLocationLat;
+//     data['lastLocationLong'] = this.lastLocationLong;
+//     data['lastLocationTime'] = this.lastLocationTime;
+//     data['tlDate'] = this.tlDate;
+//     data['tlTime'] = this.tlTime;
+//     data['tlDateTime'] = this.tlDateTime;
+//     data['markerTitle'] = this.markerTitle;
+//     return data;
+//   }
+// }

@@ -21,13 +21,13 @@ class PreferenceHelper {
   static const String ROLE_NAME = "roleName";
   static const String ROLE_ID = "roleId";
   static const String REPORTING_MANAGER = "MANAGER";
-  static const String DayStart = "dayStart";
+  // static const String DayStart = "dayStart";
   static const String checkIn = "checkIn";
-  static const String isWaiting = 'is_waiting';
+  // static const String isWaiting = 'is_waiting';
   static const String LAST_LAT = "LAST_LAT";
   static const String LAST_LONG = "LAST_LONG";
   static const String WAITING_START_TIME = "WAITING_START_TIME";
-
+  static const String LastActivity="last_activity";
 
 
   static const String LAST_INTERNET_OFF_TIME = "LAST_INTERNET_OFF_TIME";

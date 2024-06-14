@@ -32,7 +32,7 @@ class AppConstant {
 
 
   //IdleMarkerTime
-  static const int waitingEndRadius= 120;
+  static const int waitingEndRadius= 50;
 
 
   //app colors constant

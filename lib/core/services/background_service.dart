@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:detect_fake_location/detect_fake_location.dart';
+import 'package:disable_battery_optimization/disable_battery_optimization.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_jailbreak_detection/flutter_jailbreak_detection.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:intl/intl.dart';
 import 'package:ontrek/core/background_service_model/activity_model.dart';
 import 'package:ontrek/core/background_service_model/bulk_activity_request_moodel.dart';
@@ -24,6 +27,7 @@ import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
+import 'package:flutter_activity_recognition/flutter_activity_recognition.dart' as userActivity;
 import 'package:sqflite/sqlite_api.dart';
 
 const notificationChannelId = 'my_foreground';
@@ -33,6 +37,8 @@ const notificationIdDevMode = 777;
 LastActivityData? lastActivityData;
 List<Activity>? listOfAllActivity;
 
+String physicalActivity = "";
+
 double? prevLatitude = null;
 double? prevLongitude = null;
 double? currentLatitude = null;
@@ -41,12 +47,15 @@ double? currentLongitude = null;
 bool isInternetAvailable = false;
 bool isGpsAvailable = false;
 
+
 bool isCheckIn = false;
 bool isInRadius = false;
+userActivity.Activity? activityObj;
 
 String? waitingStartTime = "";
 double? lastWaitingLat;
 double? lastWaitingLong;
+StreamSubscription<Activity>? activityStreamSubscription;
 
 int? waitingTime = 10;
 
@@ -54,6 +63,9 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 FlutterLocalNotificationsPlugin();
 
 class BackgroundService {
+
+
+
   Future<void> initializeService() async {
     final service = FlutterBackgroundService();
 
@@ -85,33 +97,51 @@ class BackgroundService {
       ),
     );
   }
+
 }
+
+
+
 
 
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
+  final _activityStreamController = StreamController<userActivity.Activity>();
+  StreamSubscription<Activity>? _activityStreamSubscription;
+
   WidgetsFlutterBinding.ensureInitialized();
 
   registerEventsToListener(service);
+
+
   var connectivityListener =  await InternetAndGpsListener(
 
     onLocationServiceChange: (status) async{
       print("onLocationServiceChange$status");
       isGpsAvailable = status;
       await ManageGpsOperations();
+      if(isInternetAvailable == true) {
+        await syncSqlData();
+      }
     },
+    onActivityChange:(userActivity.Activity activity) {
+        print('Activity Detected >> ${activity.toJson()}');
+        physicalActivity  =  activity.type.toString();
+        print('Activity Detected >> ${physicalActivity}');
 
+        _activityStreamController.sink.add(activity);
+    },
     onInternetStatusChange: (status)async{
       print("onConnectivityChanged$status");
       isInternetAvailable = status;
       if(isInternetAvailable == true){
         await ManageInternetOperations();
-        await syncRouteHistory();
-        await syncSqlData();
+        // await syncRouteHistory();
+        //await syncSqlData();
       }else{
         String internetOffTime = AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat);
-        PreferenceHelper.setDouble(PreferenceHelper.LAST_INTERNET_OFF_LAT, currentLatitude ?? 0);
-        PreferenceHelper.setDouble(PreferenceHelper.LAST_INTERNET_OFF_LONG, currentLongitude ?? 0);
+        PreferenceHelper.setDouble(PreferenceHelper.LAST_INTERNET_OFF_LAT, currentLatitude ?? (prevLatitude ?? 0.0));
+        PreferenceHelper.setDouble(PreferenceHelper.LAST_INTERNET_OFF_LONG, currentLongitude ?? (prevLongitude ?? 0.0));
         PreferenceHelper.setString(PreferenceHelper.LAST_INTERNET_OFF_TIME, internetOffTime);
 
       }
@@ -128,19 +158,56 @@ void onStart(ServiceInstance service) async {
     bool? isWaitingAllowed = value?.getBool(PreferenceHelper.ALLOW_WAITING);
 
     // Instantiate the throttler with the desired interval
-    Throttler throttler = Throttler(seconds: (liveLocationInterval + 5 ));
-    Throttler throttlerforDevMode = Throttler(seconds: 300);
+    Throttler throttlerOfflineDataAdd = Throttler(seconds: 20);
+    Throttler throttlerSyncData = Throttler(seconds: liveLocationInterval);
 
-    Timer.periodic(Duration(seconds: liveLocationInterval),(timer) async {
+    Timer.periodic(Duration(seconds: 20),(timer) async {
         try
         {
-              throttlerforDevMode.run(()async {
-                  NotificationService notificationService = NotificationService();
-                  bool developerMode = await FlutterJailbreakDetection.developerMode;
-                  bool isFakeLocation = await DetectFakeLocation().detectFakeLocation();
-                  bool isLocationAlwaysOn  = await Permission.locationAlways.isGranted;
 
-                  if(developerMode)
+          throttlerOfflineDataAdd.run(() async {
+
+            await PreferenceHelper.reload();
+            waitingStartTime = PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
+            lastWaitingLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
+            lastWaitingLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
+
+            await setLastActivityData();
+
+            if (lastActivityData != null) {
+
+              isInRadius = await isWithinRadius(
+                  prevLat: prevLatitude,
+                  prevLong: prevLongitude,
+                  currentLat: currentLatitude,
+                  currentLong: currentLongitude,
+                  radiusMtr: AppConstant.waitingEndRadius);
+
+              if(physicalActivity != "ActivityType.STILL" || physicalActivity == ""){
+                await ManageRouteHistory();
+              }
+
+              if (!isCheckIn && isWaitingAllowed == true) {
+                await ManageWaitingOperation();
+              }
+            }
+          });
+
+          throttlerSyncData.run(()async {
+                 bool isLocationAlwaysOn = false;
+                 bool isBatteryOptimizationDisabled = false;
+                 NotificationService notificationService = NotificationService();
+                  bool developerMode = await FlutterJailbreakDetection.developerMode;
+                  bool isFakeLocation = await  DetectFakeLocation().detectFakeLocation();
+                  var locationAlwaysStatus = await Permission.locationAlways.status;
+                  var ignoreBatteryOptimizationsStatus = await Permission.ignoreBatteryOptimizations.status;
+                  if(locationAlwaysStatus.isGranted){
+                    isLocationAlwaysOn = true;
+                  }
+                 if(ignoreBatteryOptimizationsStatus.isGranted){
+                   isBatteryOptimizationDisabled = true;
+                 }
+                 if(developerMode)
                   {
                     notificationService.showNotification(
                       id: 2,
@@ -158,66 +225,18 @@ void onStart(ServiceInstance service) async {
                       payload: "",
                     );
                   }
+
                   if(isInternetAvailable){
-                    sendLastStatus(developerMode,isFakeLocation,isLocationAlwaysOn);
+                    await syncRouteHistory();
+                    await syncSqlData();
+                    sendLastStatus(developerMode,isFakeLocation,isLocationAlwaysOn,isBatteryOptimizationDisabled);
                   }
+
+                 // Stop service between 11:50 to 12:00 Midnight
+                 await stopServiceAtNight(service, timer);
+                 // Set notification icon
+                 await setBgNotificationIcon(service);
                 },);
-
-
-              throttler.run(() async {
-
-
-                await PreferenceHelper.reload();
-                waitingStartTime = PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
-                lastWaitingLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-                lastWaitingLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
-
-                // Stop service between 11:50 to 12:00 Midnight
-                await stopServiceAtNight(service, timer);
-                // Set notification icon
-                await setBgNotificationIcon(service);
-
-                await setLastActivityData();
-
-
-                if (lastActivityData != null) {
-
-                  isInRadius = await isWithinRadius(
-                      prevLat: prevLatitude,
-                      prevLong: prevLongitude,
-                      currentLat: currentLatitude,
-                      currentLong: currentLongitude,
-                      radiusMtr: AppConstant.waitingEndRadius);
-
-                DatabaseService dbService = DatabaseService();
-                Database db = await dbService.initializeOnTrekDB();
-
-                await ManageRouteHistory();
-
-        await db.transaction((txn) async {
-          try {
-            print("isCehckin$isCheckIn");
-            if (!isCheckIn && isWaitingAllowed == true) {
-              await ManageWaitingOperation();
-            }
-          } on DatabaseException catch (e) {
-            if (e.isUniqueConstraintError()) {
-              print('Error: Duplicate primary key');
-            } else {
-              rethrow;
-            }
-          }
-        });
-
-        if (isInternetAvailable) {
-          // Sync Route Data
-          await syncRouteHistory();
-          // Sync Event Data
-          await syncSqlData();
-        }
-      }
-      print("throttler_end${DateTime.now()}");
-    });
         }
         catch (e)
         {
@@ -229,14 +248,15 @@ void onStart(ServiceInstance service) async {
 }
 
 
-sendLastStatus(bool developerMode, bool isFakeLocation,bool isLocationAlwaysOn ){
+sendLastStatus(bool developerMode, bool isFakeLocation,bool isLocationAlwaysOn,bool? isBatteryOptimizationDisabled ){
   Map<String,dynamic> body =
     {
       "userId": lastActivityData?.fieldUserId,
       "isGpsOn": isGpsAvailable,
       "isDevModeOn": developerMode,
       "isFakeLocation": isFakeLocation,
-      "isLocationAlwaysOn": isLocationAlwaysOn
+      "isLocationAlwaysOn": isLocationAlwaysOn,
+      "isBatteryOptimizationDisabled" : isBatteryOptimizationDisabled
     };
 
   if (body != null) {
@@ -267,14 +287,14 @@ ManageRouteHistory() async {
 
   if (isGpsAvailable && !isInRadius) {
 
+    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
+
     final DatabaseService databaseService = DatabaseService();
 
     OfflineRouteModel dataPoint = OfflineRouteModel(
-      latitude: currentLatitude ?? 0,
-      longitude: currentLongitude ?? 0,
-      offlineTime: AppUtils.getDate(
-          date: DateTime.now().toString(), format: AppConstant.dateFormat),
-    );
+      latitude: position.latitude,
+      longitude:  position.longitude,
+      offlineTime: AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
 
     if (dataPoint.latitude != 0.0 && dataPoint.longitude != 0.0) {
       await databaseService.insertRoute(dataPoint);
@@ -299,7 +319,6 @@ ManageGpsOperations() async{
     activity.eventCode = AppConstant.gpsOnEvent;
     activity.isSync = false;
     await  dbService.insertGpsActivity(activity);
-
   }
 
   if (isGpsAvailable == false) {
@@ -325,8 +344,8 @@ ManageInternetOperations() async {
       pkId: 0,
       sessionId: lastActivityData?.sessionId ?? "",
       eventCode: AppConstant.internetOffEvent,
-      latitude: internetOffLat ?? 0,
-      longitude: internetOffLong ?? 0,
+      latitude: internetOffLat ?? (currentLatitude ?? (prevLatitude ?? 0.0)),
+      longitude: internetOffLong ?? (currentLongitude ?? (prevLongitude ?? 0.0)),
       activityDate: internetOffTIme,
       isSync: false,
       isEventCompleted: true);
@@ -343,14 +362,14 @@ ManageInternetOperations() async {
 
       bool isDifferenceLessTwoMinutes = await  isDifferenceLessFiveMinutes(internetOffActivity.activityDate ?? "", internetOnActivity.activityDate ?? "");
       if(!isDifferenceLessTwoMinutes){
+
         var internetOffPkId = await dbService.getMaxPkId();
         internetOffActivity.pkId = internetOffPkId + 1;
-
         await dbService.insertInternetActivity(internetOffActivity);
+
         var internetOnPkId = await dbService.getMaxPkId();
         internetOnActivity.pkId = internetOnPkId + 1;
         internetOnActivity.parentId = internetOffActivity.pkId;
-
         await dbService.insertInternetActivity(internetOnActivity);
       }
 }
@@ -426,6 +445,21 @@ registerEventsToListener(ServiceInstance service) {
         PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
         PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT, currentLatitude ?? position.latitude);
         PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, currentLongitude ?? position.longitude);
+        // await setLastActivityData();
+        // isInternetAvailable = await InternetConnectionChecker().hasConnection;
+        // isGpsAvailable = await Geolocator.isLocationServiceEnabled();
+        // if(!isGpsAvailable)
+        // {
+        //    ManageGpsOperations();
+        // }
+        //
+        // if(!isInternetAvailable)
+        // {
+        //   PreferenceHelper.setString(PreferenceHelper.LAST_INTERNET_OFF_TIME,AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
+        //   PreferenceHelper.setDouble(PreferenceHelper.LAST_INTERNET_OFF_LAT,currentLatitude ?? position.latitude);
+        //   PreferenceHelper.setDouble(PreferenceHelper.LAST_INTERNET_OFF_LONG, currentLatitude ?? position.latitude);
+        // }
+
       });
 
       service.on("checkIn_beforeEvent").listen((event) async {
@@ -646,7 +680,9 @@ isWithinRadius(
 }
 
 setLastActivityData() async {
-  Map<String, dynamic> lastActivityMap = PreferenceHelper.getObject("last_activity");
+
+  PreferenceHelper.reload();
+  Map<String, dynamic> lastActivityMap = PreferenceHelper.getObject(PreferenceHelper.LastActivity);
 
   if (lastActivityMap != null) {
     lastActivityData = LastActivityData.fromJson(lastActivityMap);
@@ -685,8 +721,7 @@ setLastActivityData() async {
         lastActivityData?.lastLocationLong =
             currentLongitude ?? (prevLongitude ?? 0);
 
-        PreferenceHelper.setObject<LastActivityData>(
-            "last_activity", lastActivityData);
+        PreferenceHelper.setObject<LastActivityData>(PreferenceHelper.LastActivity, lastActivityData);
       }
     }
   }
