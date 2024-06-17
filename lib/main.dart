@@ -1,3 +1,9 @@
+import 'dart:io';
+import 'dart:ui';
+
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:ontrek/core/services/background_service.dart';
@@ -14,7 +20,9 @@ import 'package:ontrek/features/leads/provider/lead_provider.dart';
 import 'package:ontrek/features/permissions/permission_request_screen.dart';
 import 'package:ontrek/features/salesman_tracker/provider/salesmen_tracking_timeline_provider.dart';
 import 'package:ontrek/features/task_list/provider/task_provider.dart';
+
 import 'package:ontrek/features/view_task/provider/view_task_provider.dart';
+import 'package:ontrek/firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'features/track_function/provider/salesmen_list_provider.dart';
@@ -56,10 +64,21 @@ List<SingleChildWidget> providers = [
 GlobalKey globalKey = GlobalKey();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  FlutterError.onError = (errorDetails) {
+    FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+  };
+  // Pass all uncaught asynchronous errors that aren't handled by the Flutter framework to Crashlytics
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
+  PreferenceHelper.load().then((value) async{
+    String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
+    if(userId != null || userId != ""){
+      await setCrashlyticsUserAndDeviceInfo(userId ?? "");
+    }
 
-  PreferenceHelper.load().then((value) {
-    PreferenceHelper.reload().then((value) {
-    });
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     runApp(MultiProvider(providers: providers, child: const MyApp()));
   });
@@ -69,6 +88,29 @@ void main() async {
   await notificationService.initNotification();
   await backgroundService.initializeService();
   // await databaseService.initDatabase();
+}
+
+
+Future<void> setCrashlyticsUserAndDeviceInfo(String userId) async {
+  // Get device information
+  var deviceInfo = DeviceInfoPlugin();
+
+  AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+
+  if(Platform.isAndroid){
+    // Map<String, dynamic> userInfo = {
+    //     'user_id': userId,
+    //     'platform': 'Android',
+    //     'android_version':  androidInfo.version.release ,
+    //     'model': androidInfo.model,
+    //     'deviceId':androidInfo.id
+    // };
+    FirebaseCrashlytics.instance.setCustomKey("user_id", userId);
+    FirebaseCrashlytics.instance.setCustomKey("platform", 'Android');
+    FirebaseCrashlytics.instance.setCustomKey("android_version", androidInfo.version.release);
+    FirebaseCrashlytics.instance.setCustomKey("model", androidInfo.model);
+    FirebaseCrashlytics.instance.setCustomKey("deviceId", androidInfo.id);
+  }
 }
 
 class MyApp extends StatefulWidget {

@@ -235,7 +235,7 @@ class AttendanceProvider extends ChangeNotifier {
         DateTime todayWithoutTime = DateTime(today.year, today.month, today.day);
 
         if (sessionStartDate.isBefore(todayWithoutTime)) {
-            if (getLastActivityModel?.data?.alreadyRequested == false) {
+            if (getLastActivityModel?.data?.alreadyRequested == false && getLastActivityModel?.data?.isSessionActive == true) {
               dateController.text = sessionStartDateStr;
               dayStartTimeController.text = AppUtils.getDate(date: getLastActivityModel?.data?.sessionStartDateTime ?? "",format: "hh:mm a");
               navigatePushFnc(PendingDayEndScreen(sessionId: getLastActivityModel?.data?.sessionId,sessionStartDate:getLastActivityModel?.data?.sessionStartDateTime ?? "",));
@@ -423,7 +423,7 @@ class AttendanceProvider extends ChangeNotifier {
     {
 
         PreferenceHelper.setObject<LastActivityData>(PreferenceHelper.LastActivity, lastActivityData);
-        PreferenceHelper.setString(PreferenceHelper.SESSION_ID, lastActivityData.sessionId??"");
+        PreferenceHelper.setString(PreferenceHelper.SESSION_ID, lastActivityData.sessionId ?? "");
         bool? liveLocationTracking = PreferenceHelper.getBool(PreferenceHelper.LIVE_LOCATION_TRACKING);
 
 
