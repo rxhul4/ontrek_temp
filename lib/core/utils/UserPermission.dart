@@ -6,6 +6,7 @@ import 'package:ontrek/main.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class UserPermission {
+
   Future<void> checkAndRequestPermissions() async {
     await checkPermissionOfLocation();
     await checkPermissionOfActivity();

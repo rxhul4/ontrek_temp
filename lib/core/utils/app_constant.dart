@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppConstant {
 
-  static const String appVersionAndroid = "1.1.1" ;
+  static const String appVersionAndroid = "1.1.2" ;
   static const String appVersionIos = "1.1.0" ;
   static const String androidAppLink = "https://play.google.com/store/apps/details?id=com.ontrek" ;
   static const String iosAppLink = "https://apps.apple.com/in/app/ea-sports-fc-mobile-football/id1094930513" ;

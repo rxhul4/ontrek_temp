@@ -1,8 +1,6 @@
-import 'package:app_settings/app_settings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ontrek/core/common_widgets/app_scaffold.dart';
-import 'package:ontrek/core/common_widgets/custom_upgrader_message.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/UserPermission.dart';
@@ -10,9 +8,7 @@ import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/features/authentication/screens/login_with_phone_number.dart';
 import 'package:ontrek/features/dashboard/screens/dashboard_screen.dart';
-import 'package:ontrek/features/permissions/always_on_location_permission_screen.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:upgrader/upgrader.dart';
+
 
 class PermissionRequestScreen extends StatefulWidget {
   const PermissionRequestScreen({super.key});
@@ -53,7 +49,7 @@ class _PermissionRequestScreenState extends State<PermissionRequestScreen> {
              AppUtils.showDialogBoxForPrivacyPolicy(
                  titleText: "Location Access Policy",
                  context: context,
-                 text3: "Application will collect user lattitude and longitude and will send to server for business purpose. User location will be provided to respective organization user associated with for business purposes.",
+                 text3: "Application will collect user latitude and longitude and will send to server for business purpose. User location will be provided to respective organization user associated with for business purposes.",
                  text: "Location data is collected during active sessions for business purposes, even when the application is in the background. Location will not be collected for the user if there is no active session.");
            },
            child: Padding(
@@ -129,66 +125,9 @@ class _PermissionRequestScreenState extends State<PermissionRequestScreen> {
                     }
                   }
                 },),
-            // AppUtils.commonInkWell(
-            //     child: AppUtils.commonTextWidget(
-            //       text: "NOT NOW",
-            //       textColor: AppConstant.greyColor,
-            //     ),
-            //     onTap: () {
-            //       bool? isLogIn =
-            //           PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN);
-            //       if (isLogIn == true) {
-            //         Navigator.pushReplacement(
-            //             context,
-            //             CupertinoPageRoute(
-            //               builder: (context) => DashBoard(),
-            //             ));
-            //       } else {
-            //         Navigator.pushReplacement(
-            //             context,
-            //             CupertinoPageRoute(
-            //               builder: (context) => LoginScreen(),
-            //             ));
-            //       }
-            //     })
           ],
         ),
       ),
     );
   }
-
-  // Future<void> askLocationPermission() async {
-  //   final status = await Permission.location.request();
-  //   var statusOfAlwaysOnPermission = await Permission.locationAlways.status;
-  //   if (status.isDenied) {
-  //     // Permission still denied, ask again
-  //     await askLocationPermission();
-  //   } else if (status.isPermanentlyDenied) {
-  //     // Permission permanently denied, show custom popup
-  //     AppSettings.openAppSettings(type: AppSettingsType.location);
-  //     // _showCustomPopup();
-  //   } else {
-  //     if (statusOfAlwaysOnPermission.isGranted) {
-  //       if (isLogIn == false) {
-  //         Navigator.pushReplacement(
-  //             context,
-  //             CupertinoPageRoute(
-  //               builder: (context) => LoginScreen(),
-  //             ));
-  //       } else {
-  //         Navigator.pushReplacement(
-  //             context,
-  //             CupertinoPageRoute(
-  //               builder: (context) => DashBoard(),
-  //             ));
-  //       }
-  //     } else {
-  //       Navigator.pushReplacement(
-  //           context,
-  //           CupertinoPageRoute(
-  //             builder: (context) => AlwaysPermissionScreen(),
-  //           ));
-  //     }
-  //   }
-  // }
 }

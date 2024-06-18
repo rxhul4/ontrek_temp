@@ -247,8 +247,10 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         String? sessionId = PreferenceHelper.getString(PreferenceHelper.SESSION_ID);
         if(sessionId != null || sessionId != ""){
           Navigator.push(context, CupertinoPageRoute(builder: (context) => CheckOutFormScreen(sessionId: sessionId ))).then((value1) {
-            if (widget.onLocationFetch != null) {
-              widget.onLocationFetch!(value1);
+            if(value1 != null){
+              if (widget.onLocationFetch != null) {
+                widget.onLocationFetch!(value1);
+              }
             }
           });
         }

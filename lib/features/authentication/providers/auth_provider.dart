@@ -120,13 +120,7 @@ class AuthenticationProvider extends ChangeNotifier {
         if(isFromOtpScreen == true){
 
         }else{
-
           navigatorFnc();
-          // navigatePushFnc(OTPVerificationCode(
-          //   appUserId: loginModel?.data?.appUserId,
-          //   phoneNumber: mobileNumberController.text,
-          //   countryCode: countryCode,
-          // ));
         }
 
       } else {
@@ -147,11 +141,16 @@ class AuthenticationProvider extends ChangeNotifier {
       print("inCatch ${loginModel?.message}");
       print("inCatchE ${e}");
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
-      if (!isInternetAvailable) {
-        loginModel =
-            LoginModel(message: "Internet is not available, please try again!");
+      if (isInternetAvailable == false) {
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Internet Off Alert",
+            text: "Internet is not available. Please Enable Mobile data or wifi.",
+            context: navigatorKey.currentState!.context);
       } else {
-        loginModel = LoginModel(message: "Something went wrong!");
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Error",
+            text: "Something went wrong!",
+            context: navigatorKey.currentState!.context);
       }
     }
     loaderFnc(false);
@@ -227,15 +226,17 @@ class AuthenticationProvider extends ChangeNotifier {
     } catch (e) {
       print("inCatch ${loginModel?.message}");
       print("inCatchE ${e}");
-      AppUtils.showDialogBoxWithOneButton(
-          context: navigatorKey.currentState!.context,
-          text: loginModel?.message ?? "");
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
-      if (!isInternetAvailable) {
-        loginModel =
-            LoginModel(message: "Internet is not available, please try again!");
+      if (isInternetAvailable == false) {
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Internet Off Alert",
+            text: "Internet is not available. Please Enable Mobile data or wifi.",
+            context: navigatorKey.currentState!.context);
       } else {
-        loginModel = LoginModel(message: "Something went wrong!");
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Error",
+            text: "Something went wrong!",
+            context: navigatorKey.currentState!.context);
       }
     }
     fetchingFnc(false);

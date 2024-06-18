@@ -30,12 +30,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
   gotoLogin() async {
     isLogIn = PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN);
-    // var status = await Permission.location.status;
-    // var statusOfAlwaysOnLocation = await Permission.locationAlways.status;
     UserPermission userPermission = UserPermission();
-    // bool isAllPermissionAllowed = await userPermission.isAllPermissionsGranted();
+    bool isPermissionGranted = await userPermission.isAllPermissionsGranted();
     Timer(const Duration(milliseconds: 5000), ()async {
-      bool isPermissionGranted = await userPermission.isAllPermissionsGranted();
       if(isPermissionGranted == true){
         if(isLogIn == true){
           Navigator.pushReplacement(

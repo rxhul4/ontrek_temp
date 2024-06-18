@@ -68,44 +68,35 @@ void main() async {
   FlutterError.onError = (errorDetails) {
     FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
   };
-  // Pass all uncaught asynchronous errors that aren't handled by the Flutter framework to Crashlytics
   PlatformDispatcher.instance.onError = (error, stack) {
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     return true;
   };
   PreferenceHelper.load().then((value) async{
     String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
-    if(userId != null || userId != ""){
-      await setCrashlyticsUserAndDeviceInfo(userId ?? "");
-    }
+    String? userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
+    // if((userId != null || userId != "") && (userName != null || userName != "")) {
+      await setCrashlyticsUserAndDeviceInfo(userId ?? "",userName ?? "");
+    // }
 
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     runApp(MultiProvider(providers: providers, child: const MyApp()));
   });
   BackgroundService backgroundService = BackgroundService();
   NotificationService notificationService = NotificationService();
-  // DatabaseService databaseService = DatabaseService();
   await notificationService.initNotification();
   await backgroundService.initializeService();
-  // await databaseService.initDatabase();
 }
 
 
-Future<void> setCrashlyticsUserAndDeviceInfo(String userId) async {
-  // Get device information
+Future<void> setCrashlyticsUserAndDeviceInfo(String userId, String userName) async {
   var deviceInfo = DeviceInfoPlugin();
 
   AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
 
   if(Platform.isAndroid){
-    // Map<String, dynamic> userInfo = {
-    //     'user_id': userId,
-    //     'platform': 'Android',
-    //     'android_version':  androidInfo.version.release ,
-    //     'model': androidInfo.model,
-    //     'deviceId':androidInfo.id
-    // };
     FirebaseCrashlytics.instance.setCustomKey("user_id", userId);
+    FirebaseCrashlytics.instance.setCustomKey("user_name", userName);
     FirebaseCrashlytics.instance.setCustomKey("platform", 'Android');
     FirebaseCrashlytics.instance.setCustomKey("android_version", androidInfo.version.release);
     FirebaseCrashlytics.instance.setCustomKey("model", androidInfo.model);

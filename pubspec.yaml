@@ -67,7 +67,7 @@ dependencies:
   sqflite: ^2.3.3+1
 #  safe_device: ^1.1.7
   flutter_jailbreak_detection: ^1.10.0
-  detect_fake_location: ^1.0.1
+#  detect_fake_location: ^1.0.1
   flutter_activity_recognition: ^3.1.0
   firebase_core: ^3.1.0
   firebase_crashlytics: ^4.0.1

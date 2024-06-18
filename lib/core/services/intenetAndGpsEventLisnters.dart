@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter_activity_recognition/flutter_activity_recognition.dart' ;
+import 'package:flutter_activity_recognition/flutter_activity_recognition.dart';
 import 'package:geolocator/geolocator.dart' as geoLocater;
 
 import 'package:internet_connection_checker/internet_connection_checker.dart';
@@ -40,7 +40,7 @@ class InternetAndGpsListener {
       }
     });
 
-      // _activityStreamSubscription = activityRecognition.activityStream.listen(onActivityChange);
+      _activityStreamSubscription = activityRecognition.activityStream.listen(onActivityChange);
 
 
       _activityRecognizationSubscription  = await activityRecognition.activityStream.listen((Activity activity)async{
