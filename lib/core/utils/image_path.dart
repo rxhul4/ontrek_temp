@@ -16,6 +16,7 @@ const checkOutIcon =  "$assetsBasePath/icons/check-out.png";
 const waitingIcon =  "$assetsBasePath/icons/waiting.png";
 const gpsIcon =  "$assetsBasePath/icons/gps.png";
 
+
 const assetsBasePathImage = "assets/images";
 const logoImagePath = "$assetsBasePath/images/logo.png";
 
@@ -24,6 +25,8 @@ const profileImage = "$assetsBasePathImage/profileImage.png";
 const locationMarker = "$assetsBasePathImage/loation_marker.png";
 const mobileVerificationImage = "$assetsBasePathImage/mobile_verification.jpg";
 const noDataFound = "$assetsBasePathImage/no_data_found.jpg";
+const batteryOptimization = "$assetsBasePathImage/batteryImage.jpg";
+
 
 
 

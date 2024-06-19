@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1054952669048",
+    "project_id": "on-trek-3dae9",
+    "storage_bucket": "on-trek-3dae9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1054952669048:android:81a331ba5927385b4d528d",
+        "android_client_info": {
+          "package_name": "com.ontrek"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzqXtoskSXimVa-Oe8ClGmNRJvI3a44w8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

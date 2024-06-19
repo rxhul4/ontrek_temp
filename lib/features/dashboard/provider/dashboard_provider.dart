@@ -211,7 +211,7 @@ class DashBoardProvider extends ChangeNotifier {
     print("showDashBoardUser$showUserInMap");
 
     if(showUserInMap == [] || showUserInMap.isEmpty){
-      getCurrentLocation();
+       getCurrentLocation();
     }else{
       print("adduserMArker");
       for (var element in showUserInMap) {
@@ -244,15 +244,17 @@ class DashBoardProvider extends ChangeNotifier {
           print("Error_in_marker$e");
         }
       }
+        // if(userLatLng == null || userLatLng.isEmpty || userLatLng.length == 0 || userLatLng == []  ){
+          boundsFromLatLngList(userLatLng);
+        // }
 
-      boundsFromLatLngList(userLatLng);
 
     }
     notifyListeners();
 
   }
 
-  Future<void> boundsFromLatLngList(List<LatLng> list) {
+  Future<void> boundsFromLatLngList(List<LatLng> list) async{
     double? x0, x1, y0, y1;
     for (LatLng latLng in list) {
       if (x0 == null) {
@@ -265,8 +267,7 @@ class DashBoardProvider extends ChangeNotifier {
         if (latLng.longitude < (y0! ?? 0)) y0 = latLng.longitude;
       }
     }
-    LatLngBounds bounds =
-        LatLngBounds(northeast: LatLng(x1 ?? 0, y1??0), southwest: LatLng(x0 ?? 0, y0 ?? 0));
+    LatLngBounds bounds = LatLngBounds(northeast: LatLng(x1 ?? 0, y1??0), southwest: LatLng(x0 ?? 0, y0 ?? 0));
     CameraUpdate cameraUpdate = CameraUpdate.newLatLngBounds(bounds, 100);
 
     return checkCameraLocation(cameraUpdate, googleMapController!);

@@ -11,19 +11,13 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:interval_time_picker/interval_time_picker.dart';
-import 'package:intl/intl.dart';
-import 'package:ontrek/core/background_service_model/bulk_activity_model.dart';
-import 'package:ontrek/core/common_widgets/custom_upgrader_message.dart';
 import 'package:ontrek/core/common_widgets/loader_widget.dart';
-import 'package:ontrek/core/common_widgets/textfield_widget.dart';
-import 'package:ontrek/core/services/api_constants.dart';
-import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/features/attendance/model/add_activity_model.dart';
+import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
 import 'package:ontrek/features/attendance/provider/attendance_provider.dart';
 import 'package:ontrek/features/attendance/screen/pending_dayend_screen.dart';
 
@@ -55,7 +49,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   CreateActivityModel? createActivityModel;
   FlutterBackgroundService service = FlutterBackgroundService();
   late AttendanceProvider attendanceProvider;
-  String? sessionId;
   String? sessionOnlyDate;
 
   @override
@@ -119,9 +112,15 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           attendanceProvider: attendanceProvider);
 
       if (response?.isError == false && response?.isValidationFailed == false) {
-        await attendanceProvider?.callGetLastActivity();
-        callLoginFunction(LatLng(attendanceProvider?.position?.latitude ?? 0,
-            attendanceProvider?.position?.longitude ?? 0));
+
+        await attendanceProvider?.EventUpdateProcess(response?.data?.lastActivityDto);
+
+        if(response?.data?.lastActivityDto?.sessionId != null){
+          if (widget.onLocationFetch != null) {
+            widget.onLocationFetch!(LatLng(response?.data?.lastActivityDto?.lastActivityLat ?? 0.0, response?.data?.lastActivityDto?.lastActivityLong ?? 0.0));
+          }
+          service.invoke("dayStart");
+        }
       } else {
         if (response?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(
@@ -141,7 +140,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                       context,
                       CupertinoPageRoute(
                         builder: (context) => PendingDayEndScreen(
-                            sessionId: sessionId,
+                            sessionId: response?.data?.lastActivityDto?.sessionId,
                             sessionStartDate: sessionOnlyDate),
                       )).then(
                     (value) async {
@@ -154,11 +153,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   );
                 });
           } else {
-            AppUtils.showDialogBoxWithOneButton(
-              context: context,
-              titleText: "Requested",
-              text: response?.message ?? "",
-            );
+            AppUtils.showDialogBoxWithOneButton(context: context,titleText: "Requested",text: response?.message ?? "",);
           }
         }
       }
@@ -172,20 +167,20 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     try {
 
       service.invoke("checkIn_beforeEvent");
-      var response = await callCreateActivityApi(
-          totTrackingEventCode: AppConstant.checkInEvent,
-          attendanceProvider: attendanceProvider);
+
+      var response = await callCreateActivityApi(totTrackingEventCode: AppConstant.checkInEvent,attendanceProvider: attendanceProvider);
 
       //check api success or not
       if (response?.isError == false && response?.isValidationFailed == false) {
+
+        await attendanceProvider?.EventUpdateProcess(response?.data?.lastActivityDto);
+
+        if (widget.onLocationFetch != null) {
+          widget.onLocationFetch!(LatLng(response?.data?.lastActivityDto?.lastActivityLat ?? 0.0, response?.data?.lastActivityDto?.lastActivityLong ?? 0.0));
+        }
+
         service.invoke("checkIn_afterEvent");
-        // if (response?.data != null) {
-        await attendanceProvider?.callGetLastActivity();
-        PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
-        attendanceProvider?.isCheckIn.value =
-            PreferenceHelper.getBool(PreferenceHelper.checkIn);
-        callCheckInFunction(LatLng(attendanceProvider?.position?.latitude ?? 0,
-            attendanceProvider?.position?.longitude ?? 0));
+
       } else {
         if (response?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(
@@ -204,24 +199,23 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       print("catch_at_checkInApi");
     }
   }
+
+
 
   callDayEndApiAndUpdateUI(AttendanceProvider? attendanceProvider) async {
-    //getCurrent Location for UI and api
     try {
-      service.invoke("dayEnd_beforeEvent");
-      // Future.delayed(Duration(seconds: 5));
-      var response = await callCreateActivityApi(
-          totTrackingEventCode: AppConstant.dayEndEvent,
-          attendanceProvider: attendanceProvider);
 
-      //check api success or not
+      var response = await callCreateActivityApi(totTrackingEventCode: AppConstant.dayEndEvent,attendanceProvider: attendanceProvider);
+
       if (response?.isError == false && response?.isValidationFailed == false) {
 
+        await attendanceProvider?.EventUpdateProcess(response?.data?.lastActivityDto);
 
-        callDayEndFunction(LatLng(attendanceProvider?.position?.latitude ?? 0,
-            attendanceProvider?.position?.longitude ?? 0));
-        service.invoke("stopService");
-        await attendanceProvider?.callGetLastActivity(isDayEnd: true);
+
+        if (widget.onLocationFetch != null) {
+          widget.onLocationFetch!(LatLng(response?.data?.lastActivityDto?.lastActivityLat ?? 0.0, response?.data?.lastActivityDto?.lastActivityLong ?? 0.0));
+        }
+        attendanceProvider?.isDayEnd.value = false;
       } else {
         if (response?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(
@@ -241,101 +235,39 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     }
   }
 
-  callLoginFunction(LatLng latLng) {
-    return dayStartAndUpdateUIFunction().then((value) {
-      if (widget.onLocationFetch != null) {
-        widget.onLocationFetch!(latLng);
-      }
-    });
-  }
 
-  callCheckInFunction(LatLng latLng) {
-    return checkInAndUpdateUIFunction().then((value) {
-      if (widget.onLocationFetch != null) {
-        widget.onLocationFetch!(latLng);
-      }
-    });
-  }
 
-  callDayEndFunction(LatLng latLng) {
-    return logOutAndUpdateUIFunction().then((value) {
-      if (widget.onLocationFetch != null) {
-        widget.onLocationFetch!(latLng);
-        isFromLogOutButton = false;
-      }
-      attendanceProvider.isDayEnd.value = false;
-    });
-  }
 
-  Future dayStartAndUpdateUIFunction() async {
-    try {
-      bool? isAllowBackgroundLocation =
-          PreferenceHelper.getBool(PreferenceHelper.LIVE_LOCATION_TRACKING);
-      if (isAllowBackgroundLocation == true) {
-        service.invoke("dayStart");
-        service.startService();
-      }
-
-      PreferenceHelper.setBool(PreferenceHelper.DayStart, true);
-      attendanceProvider.isDayStart.value =
-          PreferenceHelper.getBool(PreferenceHelper.DayStart);
-    } catch (e) {
-      print("catch_at_dayStartAndUpdateUIFunction$e");
-    }
-  }
-
-  Future<void> checkInAndUpdateUIFunction() async {
-    try {
-      PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
-      attendanceProvider.isCheckIn.value =
-          PreferenceHelper.getBool(PreferenceHelper.checkIn);
-    } catch (e) {
-      print("catch_at_checkInAndUpdateUIFunction$e");
-    }
-  }
 
   Future checkOutFunction() async {
-    bool isLocationServiceAvailable =
-        await AppUtils.checkLocationServiceAvailability();
-    if (isLocationServiceAvailable) {
+    bool isLocationServiceAvailable = await AppUtils.checkLocationServiceAvailability();
+    bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
+    if (isLocationServiceAvailable && isInternetAvailable) {
       try {
-        Navigator.push(
-            context,
-            CupertinoPageRoute(
-              builder: (context) =>
-                  CheckOutFormScreen(sessionId: attendanceProvider.sessionId),
-            )).then((value1) {
-          attendanceProvider.isCheckIn.value =
-              PreferenceHelper.getBool(PreferenceHelper.checkIn);
-          attendanceProvider.getCurrentLocation().then((value) {
-            if (widget.onLocationFetch != null) {
-              widget.onLocationFetch!(
-                  LatLng(value?.latitude ?? 0, value?.longitude ?? 0));
+        String? sessionId = PreferenceHelper.getString(PreferenceHelper.SESSION_ID);
+        if(sessionId != null || sessionId != ""){
+          Navigator.push(context, CupertinoPageRoute(builder: (context) => CheckOutFormScreen(sessionId: sessionId ))).then((value1) {
+            if(value1 != null){
+              if (widget.onLocationFetch != null) {
+                widget.onLocationFetch!(value1);
+              }
             }
           });
-        });
-        return position;
+        }
       } catch (e) {
         print("catch_at_checkOutFunction$e");
       }
+    }else{
+      AppUtils.showDialogBoxWithOneButton(
+        titleText: "Internet/Gps Off",
+        text: "Kindly turn on Internet and Gps.",
+        context: context,
+        btnText: "OK",
+      );
     }
     return position;
   }
 
-  Future logOutAndUpdateUIFunction() async {
-    try {
-      service.invoke("stopService");
-      PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-      PreferenceHelper.setBool(PreferenceHelper.DayStart, false);
-      attendanceProvider.isDayStart.value =
-          PreferenceHelper.getBool(PreferenceHelper.DayStart);
-      attendanceProvider.isCheckIn.value =
-          PreferenceHelper.getBool(PreferenceHelper.checkIn);
-      attendanceProvider.isDayEnd.value = false;
-    } catch (e) {
-      print("catch_at_logOutAndUpdateUIFunction$e");
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -596,22 +528,13 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                           }
                         } else if (!attendanceProvider.isCheckIn.value) {
                           PreferenceHelper.reload().then((value) async {
-                            print(
-                                "value_new_isWaiting${value?.getBool(PreferenceHelper.isWaiting)}");
-                            attendanceProvider.isWaiting.value =
-                                value?.getBool(PreferenceHelper.isWaiting) ??
-                                    false;
                             if (attendanceProvider.isAllowFgAuth == true) {
                               attendanceProvider.doLocalVerification(
                                 afterSuccessfulVerificationFnc: () async {
-                                  print(
-                                      "isWaiting_from_UI${attendanceProvider.isWaiting.value}");
                                   await callCheckInApiAndUpdateUI(postMdl);
                                 },
                               );
                             } else {
-                              print(
-                                  "isWaiting_from_UI${attendanceProvider.isWaiting.value}");
                               await callCheckInApiAndUpdateUI(postMdl);
                             }
                           });
@@ -771,12 +694,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   if (isInternetAvailable) {
                     if (isGpsAvailable) {
                       PreferenceHelper.reload().then((value) async {
-                        if (kDebugMode) {
-                          print(
-                              "value_new_isWaiting${value?.getBool(PreferenceHelper.isWaiting)}");
-                        }
-                        attendanceProvider.isWaiting.value =
-                            value?.getBool(PreferenceHelper.isWaiting) ?? false;
                         if (attendanceProvider.isAllowFgAuth == true) {
                           attendanceProvider.doLocalVerification(
                             afterSuccessfulVerificationFnc: () async {
@@ -960,8 +877,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
                   if (isAlwaysOnLocation) {
                     if (isGpsAvailable) {
                       PreferenceHelper.reload().then((value) async {
-                        attendanceProvider.isWaiting.value =
-                            value?.getBool(PreferenceHelper.isWaiting) ?? false;
                         if (attendanceProvider.isAllowFgAuth == true) {
                           attendanceProvider.doLocalVerification(
                               afterSuccessfulVerificationFnc: () async {

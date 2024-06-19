@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
+import 'package:disable_battery_optimization/disable_battery_optimization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -21,6 +22,7 @@ import 'package:ontrek/features/profile/screen/profile_screen.dart';
 import 'package:ontrek/features/task_list/screen/task_list_screen.dart';
 import 'package:ontrek/features/track_function/screen/track_screen.dart';
 import 'package:ontrek/main.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:upgrader/upgrader.dart';
 
@@ -57,6 +59,8 @@ class DashBoardState extends State<DashBoard> {
   @override
   void initState() {
     super.initState();
+
+
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       final dashBoardProvider =
           Provider.of<DashBoardProvider>(context, listen: false);
@@ -72,16 +76,37 @@ class DashBoardState extends State<DashBoard> {
             text:
             "Internet is not available. Please Enable Mobile data or wifi.",
             context: context);
-        var lastActivity =
-        PreferenceHelper.getObject("last_activity");
+        var lastActivity = PreferenceHelper.getObject(PreferenceHelper.LastActivity);
         LastActivityData lastActivityData = LastActivityData.fromJson(lastActivity);
-        attendanceProvider.offlineBtnChangeFnc(lastActivityData);
+        attendanceProvider.EventUpdateProcess(lastActivityData);
       }
       if (!mounted) {}
       dashBoardProvider.initialIndex();
       dashBoardProvider.checkPermission(context);
+      await checkPermissionOfBatteryOptimization();
       setState(() {});
     });
+  }
+
+  Future<void> checkPermissionOfBatteryOptimization() async {
+    // Check if battery optimization is disabled
+    bool? isBatteryOptimizationDisabled = await DisableBatteryOptimization.isBatteryOptimizationDisabled;
+
+    // If battery optimization is enabled, request to ignore battery optimizations
+    if (isBatteryOptimizationDisabled == false) {
+      PermissionStatus status = await Permission.ignoreBatteryOptimizations.request();
+
+      if (status.isGranted) {
+        print("Battery optimization is ignored.");
+      } else if (status.isDenied) {
+        await checkPermissionOfBatteryOptimization();
+        print("Battery optimization permission denied.");
+      } else if (status.isPermanentlyDenied) {
+        print("Battery optimization permission permanently denied. Please enable it from settings.");
+        // You can navigate to the app settings to let the user manually enable the permission
+        openAppSettings();
+      }
+    }
   }
 
   void _onMapCreated(GoogleMapController controller) {

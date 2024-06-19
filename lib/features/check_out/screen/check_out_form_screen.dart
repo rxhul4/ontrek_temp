@@ -25,12 +25,10 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
 class CheckOutFormScreen extends StatefulWidget {
-  Function(Position)? onLocationFetch;
   String? sessionId;
 
   CheckOutFormScreen({
     super.key,
-    this.onLocationFetch,
     this.sessionId,
   });
 
@@ -49,7 +47,6 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
   String? userUid;
   int? battery;
 
-  // var battery = Battery();
   int? batteryLevel;
   String? image64;
   bool showNoDataFound = false;
@@ -76,12 +73,9 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
     batteryPercentage();
     checkBiometricAvailable();
     WidgetsBinding.instance.addPostFrameCallback((_) async{
-
       checkOutProvider = Provider.of<CheckOutProvider>(context, listen: false);
       callGetTotByType(checkOutProvider);
-
       attendanceProvider = Provider.of<AttendanceProvider>(context, listen: false);
-
     });
   }
 
@@ -132,12 +126,13 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
             visitDiscussion: visitDiscussionNameController.text,
             visitTypeCode: selectedTotId)
         .then((value) async {
-      createActivityModel = value;
-      if (createActivityModel?.isError == false &&
-          createActivityModel?.isValidationFailed == false) {
-        checkOutFunction();
-        await attendanceProvider.callGetLastActivity(isDayEnd: true);
 
+      var response = value;
+      if (response?.isError == false && response?.isValidationFailed == false)
+      {
+        attendanceProvider.EventUpdateProcess(response?.data?.lastActivityDto);
+        service.invoke("checkOut_event");
+        Navigator.pop(context,LatLng(response?.data?.lastActivityDto?.lastActivityLat ?? 0.0, response?.data?.lastActivityDto?.lastActivityLong ?? 0.0));
       } else {
         if (createActivityModel?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(
@@ -156,11 +151,6 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
     });
   }
 
-  checkOutFunction() async {
-    service.invoke("checkOut_event");
-    PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
-    Navigator.pop(context);
-  }
 
   @override
   Widget build(BuildContext context) {

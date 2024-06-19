@@ -1,18 +1,18 @@
 import 'dart:async';
+import 'package:disable_battery_optimization/disable_battery_optimization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:ontrek/core/common_widgets/custom_upgrader_message.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
+import 'package:ontrek/core/utils/UserPermission.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/features/authentication/screens/login_with_phone_number.dart';
 import 'package:ontrek/features/dashboard/screens/dashboard_screen.dart';
 import 'package:ontrek/features/permissions/always_on_location_permission_screen.dart';
-import 'package:ontrek/features/permissions/location_permission_screen.dart';
+import 'package:ontrek/features/permissions/permission_request_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:upgrader/upgrader.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -30,26 +30,29 @@ class _SplashScreenState extends State<SplashScreen> {
 
   gotoLogin() async {
     isLogIn = PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN);
-    roleId = PreferenceHelper.getString(PreferenceHelper.ROLE_ID);
-    isDayStart = PreferenceHelper.getBool(PreferenceHelper.DayStart);
-    isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
-    isWaiting = PreferenceHelper.getBool(PreferenceHelper.isWaiting);
-    var status = await Permission.location.status;
-    var statusOfAlwaysOnLocation = await Permission.locationAlways.status;
-    Timer(const Duration(milliseconds: 3000), () {
-      if(status.isGranted){
-        if(statusOfAlwaysOnLocation.isGranted){
-          if(isLogIn ?? false){
-            Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => const DashBoard(),));
-          }else{
-            Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => const LoginScreen(),));
-          }
+    UserPermission userPermission = UserPermission();
+    bool isPermissionGranted = await userPermission.isAllPermissionsGranted();
+    Timer(const Duration(milliseconds: 5000), ()async {
+      if(isPermissionGranted == true){
+        if(isLogIn == true){
+          Navigator.pushReplacement(
+              context,
+              CupertinoPageRoute(
+                builder: (context) => const DashBoard(),
+              ));
         }else{
-          Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => const AlwaysPermissionScreen(),));
+          Navigator.pushReplacement(
+              context,
+              CupertinoPageRoute(
+                builder: (context) => const LoginScreen(),
+              ));
         }
-
       }else{
-        Navigator.pushReplacement(context, CupertinoPageRoute(builder: (context) => const LocationPermissionScreen(),));
+        Navigator.pushReplacement(
+            context,
+            CupertinoPageRoute(
+              builder: (context) => const PermissionRequestScreen(),
+            ));
       }
 
     });
@@ -61,9 +64,6 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     gotoLogin();
   }
-
-
-
 
   @override
   Widget build(BuildContext context) {

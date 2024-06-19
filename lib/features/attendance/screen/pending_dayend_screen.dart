@@ -183,15 +183,17 @@ class _PendingDayEndScreenState extends State<PendingDayEndScreen> {
     );
   }
 
-  void _showTimePicker(
-      {TimeOfDay? selectedTime, required BuildContext context}) async {
+  void _showTimePicker({
+    TimeOfDay? selectedTime,
+    required BuildContext context,
+  }) async {
     TimeOfDay _time = TimeOfDay(hour: 0, minute: 0);
     VisibleStep _visibleStep = VisibleStep.fifths;
+
     final TimeOfDay? result = await showIntervalTimePicker(
       context: context,
       initialTime: selectedTime ?? _time,
       visibleStep: _visibleStep,
-
       builder: (BuildContext context, Widget? child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
@@ -203,30 +205,57 @@ class _PendingDayEndScreenState extends State<PendingDayEndScreen> {
     if (result != null) {
       print("Result: $result");
 
-      // Format time in 12-hour format (hh:mm a)
-      String formattedTime12H = DateFormat('hh:mm a').format(
+      String startTime = AppUtils.getDate(
+        date: widget.sessionStartDate ?? "",
+        format: "hh:mm a",
+      );
+
+      // Debug prints
+      print("sessionStartDate: ${widget.sessionStartDate}");
+      print("Start Time: $startTime");
+
+      String selectedTime12Hr = DateFormat('hh:mm a').format(
         DateTime(2020, 1, 1, result.hour, result.minute),
       );
 
-      // Format time in 24-hour format (HH:mm:ss)
-      String formattedTime24H = DateFormat('HH:mm:ss').format(
-        DateTime(2020, 1, 1, result.hour, result.minute),
-      );
+      print("Selected Time (12-hour): $selectedTime12Hr");
 
-      print("Formatted Time (12-hour): $formattedTime12H");
-      print("Formatted Time (24-hour): $formattedTime24H");
+      try {
+        DateTime parsedStartTime = DateFormat('hh:mm a').parse(startTime);
+        DateTime parsedSelectedTime = DateFormat('hh:mm a').parse(selectedTime12Hr);
 
-      attendanceProvider.timeController.text = formattedTime12H;
-      String formatedDate = AppUtils.getDate(
-        date: "${widget.sessionStartDate}",
-        format: "yyyy-MM-dd",
-      );
-      print("formatedDate$formatedDate");
-      dateFormatInto24Hour = formattedTime24H;
-      print("EndDate${formatedDate + "T" + dateFormatInto24Hour}");
-      endDateTime = formatedDate + "T" + dateFormatInto24Hour;
-      print("endDateTime$endDateTime");
-      // You can also assign the 24-hour format to another controller if needed.
+        if (parsedSelectedTime.isBefore(parsedStartTime)) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Please select a time later than Day start time."),
+              backgroundColor: Colors.red,
+            ),
+          );
+        } else if (parsedSelectedTime.isAfter(parsedStartTime)) {
+          String selectedTime24Hr = DateFormat('HH:mm:ss').format(
+            DateTime(2020, 1, 1, result.hour, result.minute),
+          );
+
+          print("Formatted Time (12-hour): $selectedTime12Hr");
+          print("Formatted Time (24-hour): $selectedTime24Hr");
+
+          attendanceProvider.timeController.text = selectedTime12Hr;
+
+          String formatedDate = AppUtils.getDate(
+            date: widget.sessionStartDate ?? "",
+            format: "yyyy-MM-dd",
+          );
+          print("Formatted Date: $formatedDate");
+
+          dateFormatInto24Hour = selectedTime24Hr;
+          endDateTime = formatedDate + "T" + dateFormatInto24Hour;
+
+          print("End DateTime: $endDateTime");
+        }
+      } catch (e) {
+        print("Error parsing dates: $e");
+      }
     }
   }
+
 }

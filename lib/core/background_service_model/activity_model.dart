@@ -6,7 +6,7 @@ class Activity {
   double longitude;
   String? activityDate;
   int? parentId;
-  bool isSync;
+  bool? isSync;
   bool? isEventCompleted;
   bool? waitingStart;
 
@@ -19,7 +19,7 @@ class Activity {
      this.activityDate,
     this.parentId,
     this.waitingStart,
-    required this.isSync,
+    this.isSync,
     this.isEventCompleted,
   });
 
@@ -33,8 +33,8 @@ class Activity {
       longitude: json['Longitude'],
       activityDate: json["ActivityDate"],
       parentId: json['ParentId'],
-      isSync: json['IsSync'],
-      isEventCompleted: json['isEventCompleted'],
+      isSync: json['IsSync']==1?true:false,
+      isEventCompleted: json['isEventCompleted']==1?true:false,
       waitingStart: json['waitingStart'],
     );
   }
