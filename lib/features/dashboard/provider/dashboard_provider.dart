@@ -245,7 +245,7 @@ class DashBoardProvider extends ChangeNotifier {
         }
       }
         // if(userLatLng == null || userLatLng.isEmpty || userLatLng.length == 0 || userLatLng == []  ){
-      boundsFromLatLngList(userLatLng);
+          boundsFromLatLngList(userLatLng);
         // }
 
 
