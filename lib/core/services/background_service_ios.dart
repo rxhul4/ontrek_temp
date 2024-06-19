@@ -28,12 +28,14 @@ class BackgroundServiceIos {
       distanceFilter: 80,
       stopOnTerminate: false,
       startOnBoot: false,
+      foregroundService: true,
+
       debug: true,
       logLevel: bg.Config.LOG_LEVEL_VERBOSE,
     )).then((bg.State state) {
       if (!state.enabled) {
         // Start the plugin.
-        bg.BackgroundGeolocation.start();
+        // bg.BackgroundGeolocation.start();
       }
     });
 
@@ -59,9 +61,9 @@ class BackgroundServiceIos {
     });
 
     // Listen to activity change events.
-    bg.BackgroundGeolocation.onActivityChange((bg.ActivityChangeEvent event) {
-      print('[activitychange] - ${event.activity}');
-    });
+    // bg.BackgroundGeolocation.onActivityChange((bg.ActivityChangeEvent event) {
+    //   print('[activitychange] - ${event.activity}');
+    // });
 
 
 

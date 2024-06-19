@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_activity_recognition/flutter_activity_recognition.dart' as userActivity;
+// import 'package:flutter_activity_recognition/flutter_activity_recognition.dart' as userActivity;
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_jailbreak_detection/flutter_jailbreak_detection.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -100,7 +100,7 @@ class BackgroundService {
 void onStart(ServiceInstance service) async {
 
   WidgetsFlutterBinding.ensureInitialized();
-  final _activityStreamController = StreamController<userActivity.Activity>();
+  // final _activityStreamController = StreamController<userActivity.Activity>();
   StreamSubscription<Activity>? _activityStreamSubscription;
 
   registerEventsToListener(service);
@@ -115,13 +115,13 @@ void onStart(ServiceInstance service) async {
         // await syncSqlData();
       }
     },
-    onActivityChange:(userActivity.Activity activity) {
-        print('Activity Detected >> ${activity.toJson()}');
-        physicalActivity  =  activity.type.toString();
-        print('Activity Detected >> ${physicalActivity}');
-
-        _activityStreamController.sink.add(activity);
-    },
+    // onActivityChange:(userActivity.Activity activity) {
+    //     print('Activity Detected >> ${activity.toJson()}');
+    //     physicalActivity  =  activity.type.toString();
+    //     print('Activity Detected >> ${physicalActivity}');
+    //
+    //     _activityStreamController.sink.add(activity);
+    // },
     onInternetStatusChange: (status)async{
       print("onConnectivityChanged$status");
       isInternetAvailable = status;
