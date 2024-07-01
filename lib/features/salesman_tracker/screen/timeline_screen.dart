@@ -412,44 +412,40 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
-      body: AppUtils.commonSlidePanel(
-        body: Stack(
-          children: [
-            Positioned.fill(
-              child: GoogleMap(
-                zoomControlsEnabled: false,
-                padding: AppUtils.edgeInsetsOnly(
-                  bottom: MediaQuery.of(context).size.height * 0.25,
-                ),
-                mapType: MapType.normal,
-                onMapCreated: (controller) {
-                  googleMapController.complete(controller);
-                },
-                markers: markers,
-                polylines: Set<Polyline>.of(polylines),
-                initialCameraPosition: CameraPosition(
-                  target: currentLocation,
-                  zoom: 14,
-                ),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: GoogleMap(
+              zoomControlsEnabled: false,
+              padding: AppUtils.edgeInsetsOnly(
+                bottom: MediaQuery.of(context).size.height * 0.25,
+              ),
+              mapType: MapType.normal,
+              onMapCreated: (controller) {
+                googleMapController.complete(controller);
+              },
+              markers: markers,
+              polylines: Set<Polyline>.of(polylines),
+              initialCameraPosition: CameraPosition(
+                target: currentLocation,
+                zoom: 14,
               ),
             ),
-            trackAppBarWidget(
-              onTapGetCurrentPosition: getCurrentLocation,
-              onTapBackButton: () {
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-        maxHeight: height,
-        minHeight: height * 0.21,
-        controller: panelController,
-        isDraggable: true,
-        snapPoint: 0.0001,
-        panelBuilder: (p0) {
-          return Stack(
-            children: [
-              Column(
+          ),
+          trackAppBarWidget(
+            onTapGetCurrentPosition: getCurrentLocation,
+            onTapBackButton: () {
+              Navigator.pop(context);
+            },
+          ),
+          AppUtils.commonSlidePanel(
+            maxHeight: height,
+            minHeight: height * 0.21,
+            controller: panelController,
+            isDraggable: true,
+            snapPoint: 0.0001,
+            panelBuilder: (p0) {
+              return Column(
                 children: [
                   AppUtils.buildHeader(
                     isFromTimeLine: true,
@@ -678,11 +674,15 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
                                   element.sessionNo == selectedIndex)
                               .sessionEvents),
                 ],
-              ),
-            ],
-          );
-        },
-        // snapPoint: 0.01,
+              );
+            },
+            // snapPoint: 0.01,
+          ),
+        ],
+      ),
+      bottomNavigationBar: AppUtils.commonContainer(
+        height: 15,
+        color: AppConstant.whiteColor,
       ),
     );
   }
@@ -1032,7 +1032,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
       getMdl}) {
     return Positioned(
       child: AppUtils.commonContainer(
-        margin: const EdgeInsets.only(left: 10, right: 10, top: 10),
+        margin: const EdgeInsets.only(left: 10, right: 10, top: 40),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [

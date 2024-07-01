@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 import 'package:disable_battery_optimization/disable_battery_optimization.dart';
 import 'package:flutter/cupertino.dart';
@@ -83,7 +84,10 @@ class DashBoardState extends State<DashBoard> {
       if (!mounted) {}
       dashBoardProvider.initialIndex();
       dashBoardProvider.checkPermission(context);
-      await checkPermissionOfBatteryOptimization();
+      if(Platform.isAndroid){
+        await checkPermissionOfBatteryOptimization();
+      }
+
       setState(() {});
     });
   }
@@ -123,31 +127,27 @@ class DashBoardState extends State<DashBoard> {
   Widget build(BuildContext context) {
     dashBoardProvider = Provider.of<DashBoardProvider>(context);
     return Scaffold(
-      body: UpgradeAlert(
-        showReleaseNotes: false,
-        upgrader: Upgrader(messages: CustomUpgraderMessage()),
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: GoogleMap(
-                  zoomControlsEnabled: false,
-                  padding: AppUtils.edgeInsetsOnly(
-                      bottom: MediaQuery.of(context).size.height * 0.3),
-                  mapType: MapType.normal,
-                  onMapCreated: _onMapCreated,
-                  markers: dashBoardProvider.markers,
-                  initialCameraPosition: CameraPosition(
-                    target: LatLng(20.5937, 78.9629),
-                    zoom: 0,
-                  )),
-            ),
-            if (isMapLoaded == true)
-              getScreenForIndex(dashBoardProvider.selectedIndex),
-          ],
-        ),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: GoogleMap(
+                zoomControlsEnabled: false,
+                padding: AppUtils.edgeInsetsOnly(
+                    bottom: MediaQuery.of(context).size.height * 0.3),
+                mapType: MapType.normal,
+                onMapCreated: _onMapCreated,
+                markers: dashBoardProvider.markers,
+                initialCameraPosition: CameraPosition(
+                  target: LatLng(20.5937, 78.9629),
+                  zoom: 0,
+                )),
+          ),
+          if (isMapLoaded == true)
+            getScreenForIndex(dashBoardProvider.selectedIndex),
+        ],
       ),
       bottomNavigationBar: AppUtils.commonContainer(
-        height: 60,
+        height: 80,
         decoration: AppUtils.commonBoxDecoration(
           color: AppConstant.whiteColor,
           border: Border.all(
@@ -156,7 +156,7 @@ class DashBoardState extends State<DashBoard> {
           ),
         ),
         child: AppUtils.commonContainer(
-          padding: EdgeInsets.only(left: 10, right: 10, bottom: 0),
+          padding: EdgeInsets.only(left: 10, right: 10, bottom: 20),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,

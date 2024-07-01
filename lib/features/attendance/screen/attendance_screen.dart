@@ -119,6 +119,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           if (widget.onLocationFetch != null) {
             widget.onLocationFetch!(LatLng(response?.data?.lastActivityDto?.lastActivityLat ?? 0.0, response?.data?.lastActivityDto?.lastActivityLong ?? 0.0));
           }
+
           service.invoke("dayStart");
         }
       } else {

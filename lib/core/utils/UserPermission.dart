@@ -1,25 +1,22 @@
+import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
 
 class UserPermission {
   Future<void> checkAndRequestPermissions() async {
     await checkPermissionOfLocation();
     await checkPermissionOfActivity();
-    await checkPermissionOfLocationAlways();
   }
 
   Future<bool> isAllPermissionsGranted() async {
+    var locationStatus = await Permission.locationWhenInUse.status;
+    var locationAlwaysStatus = await Permission.locationAlways.status;
+    var activityStatus = Platform.isAndroid
+        ? await Permission.activityRecognition.status
+        : await Permission.sensors.status;
 
-
-    var locationStatus = Permission.locationWhenInUse.status;
-    var locationAlways = Permission.locationAlways.status;
-    var activityStatus = Permission.activityRecognition;
-
-    if(locationStatus ==  PermissionStatus.granted && locationAlways == PermissionStatus.granted && activityStatus == PermissionStatus.granted){
-      return true;
-    }else{
-      return false;
-    }
-
+    return locationStatus.isGranted &&
+        locationAlwaysStatus.isGranted &&
+        activityStatus.isGranted;
   }
 
   Future<void> checkPermissionOfLocation() async {
@@ -36,14 +33,20 @@ class UserPermission {
       } else if (result.isPermanentlyDenied) {
         openAppSettings(); // Open app settings for the user to enable permissions
       }
+    } else {
+      await checkPermissionOfLocationAlways();
     }
   }
 
   Future<void> checkPermissionOfActivity() async {
-    PermissionStatus activityStatus = await Permission.activityRecognition.status;
+    PermissionStatus activityStatus = Platform.isAndroid
+        ? await Permission.activityRecognition.status
+        : await Permission.sensors.status;
 
     if (!activityStatus.isGranted) {
-      PermissionStatus result = await Permission.activityRecognition.request();
+      PermissionStatus result = Platform.isAndroid
+          ? await Permission.activityRecognition.request()
+          : await Permission.sensors.request();
 
       if (result.isGranted) {
         print("Activity permission granted.");

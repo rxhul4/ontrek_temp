@@ -83,12 +83,13 @@ void main() async {
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     runApp(MultiProvider(providers: providers, child: const MyApp()));
   });
-  BackgroundService backgroundService = BackgroundService();
+  // BackgroundService backgroundService = BackgroundService();
   BackgroundServiceIos backgroundServiceIos = BackgroundServiceIos();
   NotificationService notificationService = NotificationService();
-  await notificationService.initNotification();
+
   if(Platform.isAndroid){
-    await backgroundService.initializeService();
+    await notificationService.initNotification();
+    // await backgroundService.initializeService();
   }else{
     await backgroundServiceIos.initialize();
   }

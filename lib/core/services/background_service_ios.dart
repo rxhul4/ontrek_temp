@@ -1,346 +1,264 @@
+import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
+import 'package:flutter/foundation.dart';
+
+import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
+    as bg;
 import 'package:geolocator/geolocator.dart';
-import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:intl/intl.dart';
+import 'package:ontrek/core/background_service_model/bulk_activity_response_model.dart';
+import 'package:ontrek/core/background_service_model/create_route_history_model.dart';
 import 'package:ontrek/core/background_service_model/offline_route_model.dart';
+import 'package:ontrek/core/services/api_constants.dart';
+import 'package:ontrek/core/services/background_service_operations.dart';
+import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/storage/db_service.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
-import 'package:permission_handler/permission_handler.dart';
-
+import 'package:ontrek/features/track_function/model/salemen_list_model.dart';
+import 'package:sqflite/sqflite.dart';
 import '../background_service_model/activity_model.dart';
+import '../background_service_model/bulk_activity_request_moodel.dart';
 
+bool isInternetAvailable = false;
+bool isGpsAvailable = false;
+String? waitingStartTime;
+
+LastActivityData? lastActivityData;
+BackgroundServiceOperations bgOps =BackgroundServiceOperations();
+DatabaseService dbServiece = new DatabaseService();
+late Database db;
 class BackgroundServiceIos {
-
-
   Future<void> initialize() async {
 
-   var  isInternetAvailable = await checkInternetConnectivity();
-    var isGpsAvailable = await isGpsOn();
+    db = await dbServiece.initializeOnTrekDB();
 
+    if(db==null)
+    {
+      print("Database object not created;");
+      return;
+    }
 
-    // Configure the plugin.
-    bg.BackgroundGeolocation.ready(bg.Config(
-      desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH,
-      distanceFilter: 80,
-      stopOnTerminate: false,
-      startOnBoot: false,
-      foregroundService: true,
+    bg.BackgroundGeolocation.setConfig(bg.Config(
+        desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH, // Minimal accuracy to avoid frequent updates
+        distanceFilter: 50, // Only get updates when the user moves more than 100 meters
+        stopOnTerminate: false, // Keep tracking even if the app is terminated
+        startOnBoot: false, // Don't start on boot
+        foregroundService: true, // Run as a foreground service
+        debug: true, // Enable debugging
+        autoSync: false, // Disable automatic syncing
+        showsBackgroundLocationIndicator: true, // Show location indicator
+        stationaryRadius: 50, // Radius to define the stationary state
+        useSignificantChangesOnly: false, // Use significant changes
+        disableMotionActivityUpdates: false, // Disable motion activity updates to avoid walking updates
+        locationUpdateInterval: 10000, // Update interval (not critical due to distance filter)
+        activityRecognitionInterval: 10000, // Check activity every 10 seconds
+        stopTimeout: 1, // Consider the user stationary after 1 minute of no movement
+        logLevel: bg.Config.LOG_LEVEL_VERBOSE, // Verbose logging for debugging
+        preventSuspend: true // Prevent the app from suspending
+    )).then((bg.State state) async {
 
-      debug: true,
-      logLevel: bg.Config.LOG_LEVEL_VERBOSE,
-    )).then((bg.State state) {
-      if (!state.enabled) {
-        // Start the plugin.
-        // bg.BackgroundGeolocation.start();
-      }
     });
+    listenGeofenceEvents();
 
-    // Listen to location updates.
-    bg.BackgroundGeolocation.onLocation((bg.Location location) {
-      print('[location] - $location');
-      // Handle the location update (e.g., save to database, send to server, etc.)
-    });
+    bg.BackgroundGeolocation.onConnectivityChange((bg.ConnectivityChangeEvent event) async
+    {
+      var lastActivityDataMap = PreferenceHelper.getObject(
+          PreferenceHelper.LastActivity);
+      lastActivityData = LastActivityData.fromJson(lastActivityDataMap);
+      var lastLat = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT) ??
+          0.0;
+      var lastLong = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG) ??
+          0.0;
 
-    // Listen to motion change events.
-    bg.BackgroundGeolocation.onMotionChange((bg.Location location) {
-      print('[motionchange] - $location');
-      if(isGpsAvailable){
-        if(location.isMoving){
-          ManageRouteHistory(location);
-          PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
-          PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT, location.coords.latitude);
-          PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG,  location.coords.longitude);
-        }else{
-          ManageWaitingOperation(location);
+      if (event.connected == true) {
+        PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, true);
+        if (lastActivityData == null) {
+          return;
         }
+        await bgOps.ManageInternetOperations(db,lastActivityData!);
+        PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_OFF_TIME);
+        PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_OFF_LAT);
+        PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_OFF_LONG);
+      } else {
+        String internetOffTime = AppUtils.getDate(
+            date: DateTime.now().toString(), format: AppConstant.dateFormat);
+        PreferenceHelper.setString(
+            PreferenceHelper.LAST_INTERNET_OFF_TIME, internetOffTime);
+        PreferenceHelper.setDouble(
+            PreferenceHelper.LAST_INTERNET_OFF_LAT, lastLat);
+        PreferenceHelper.setDouble(
+            PreferenceHelper.LAST_INTERNET_OFF_LONG, lastLong);
+        PreferenceHelper.setBool(PreferenceHelper.INTERNET_BOOL, false);
       }
     });
+    bg.BackgroundGeolocation.onProviderChange((bg.ProviderChangeEvent event) async
+    {
+      var lastActivityDataMap = PreferenceHelper.getObject(
+          PreferenceHelper.LastActivity);
+      if (lastActivityDataMap == null) {
+        return;
+      }
+      lastActivityData = LastActivityData.fromJson(lastActivityDataMap);
 
-    // Listen to activity change events.
-    // bg.BackgroundGeolocation.onActivityChange((bg.ActivityChangeEvent event) {
-    //   print('[activitychange] - ${event.activity}');
-    // });
+      if (event.enabled == true) {
+        PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, true);
+      } else {
+        PreferenceHelper.setBool(PreferenceHelper.GPS_BOOL, false);
+      }
+      if (lastActivityData == null) {
+        return;
+      }
+      await bgOps.ManageGpsOperations(db,lastActivityData!);
+    });
+
+    bg.BackgroundGeolocation.onLocation((bg.Location location) async {
+      var lastActivityDataMap = PreferenceHelper.getObject(PreferenceHelper.LastActivity);
+      LastActivityData lastActivityData = LastActivityData.fromJson(lastActivityDataMap);
+      LatLng currentLatLng = LatLng(location.coords.latitude, location.coords.longitude);
+      PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT, location.coords.latitude);
+      PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, location.coords.longitude);
 
 
+      print("OnLocationTime${DateTime.now().toString()}");
+      print("OnLocationIsMoving${location.isMoving}");
+      print("OnLocationActivity${location.activity.type.toString()}");
 
-    // Listen to errors.
-    // bg.BackgroundGeolocation.onError((bg.Error error) {
-    //   print('[error] - $error');
+      if (location.isMoving == false && location.activity.type == "still" && location.activity.confidence == 100)
+      {
+        await setDynamicGeofence(currentLatLng.latitude, currentLatLng.longitude);
+      }
+
+      if(location.isMoving == true && (location.activity.type == "in_vehicle" || location.activity.type == "on_bicycle") && location.activity.confidence == 100)
+      {
+        print("ManageRouteHistoryStart");
+        await bgOps.ManageRouteHistory(db,location);
+        print("ManageRouteHistoryEnd");
+      }
+
+      //Timer inside this function
+
+      if(isInternetAvailable == true){
+        print("syncDataStart");
+        await SyncData(lastActivityData);
+        print("syncDataEnd");
+      }
+
+
+    });
+
+    // bg.BackgroundGeolocation.onHeartbeat((bg.HeartbeatEvent heart) async {
+    //   print('[heartRate] - ${heart.location}');
+    //
+    //   if(heart.location?.activity.type =="still"){
+    //     await setDynamicGeofence(heart.location?.coords.latitude ?? 0, heart.location?.coords.longitude ?? 0);
+    //   }
+    //
+    //   var lastActivityDataMap = PreferenceHelper.getObject(PreferenceHelper.LastActivity);
+    //   lastActivityData = LastActivityData.fromJson(lastActivityDataMap);
+    //   if(lastActivityData == null) {
+    //      return;
+    //   }
+    //
+    //   isInternetAvailable = PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
+    //
+    //   if (isInternetAvailable && lastActivityData != null) {
+    //     print("syncSqlData");
+    //     await bgOps.syncSqlData(db,lastActivityData!);
+    //     print("syncRouteData");
+    //     await bgOps.syncRouteHistory(db,lastActivityData!);
+    //   }
     // });
   }
 
-  void start() {
+
+  void listenGeofenceEvents() {
+    bg.BackgroundGeolocation.onGeofence((bg.GeofenceEvent event) async {
+      var lastActivityDataMap = PreferenceHelper.getObject(PreferenceHelper.LastActivity);
+      LastActivityData lastActivityData = LastActivityData.fromJson(lastActivityDataMap);
+      if (event.action == 'ENTER') {
+        await handleGeofenceEnter(event,lastActivityData);
+      } else if (event.action == 'EXIT') {
+        await handleGeofenceExit(event,lastActivityData);
+      }
+    });
+  }
+
+  Future<void> setDynamicGeofence(double latitude, double longitude) async {
+    // Optionally, remove previous geofences if needed
+    bool isInGeoFence = await bg.BackgroundGeolocation.geofenceExists("100m-radius-geofence");
+    if(isInGeoFence ==true){
+      return;
+    }
+    await bg.BackgroundGeolocation.removeGeofence("100m-radius-geofence");
+    // Add new geofence at the current location
+    await bg.BackgroundGeolocation.addGeofence(bg.Geofence(
+        identifier: "100m-radius-geofence",
+        radius: 100.0,
+        latitude: latitude,
+        longitude: longitude,
+        notifyOnEntry: true,
+        notifyOnExit: true,
+        notifyOnDwell: false,
+        loiteringDelay: 60000,
+    ));
+
+
+  }
+
+  Future<void> handleGeofenceEnter(bg.GeofenceEvent event,LastActivityData lastActivityData) async {
+    print('Geofence ENTER: ${event.identifier} at ${event.location.coords
+        .latitude}, ${event.location.coords.longitude}');
+    LatLng currentLatLng = LatLng(event.location.coords.latitude, event.location.coords.longitude);
+    await bgOps.waitingStartEvent(db,lastActivityData, currentLatLng);
+  }
+
+  Future<void> handleGeofenceExit(bg.GeofenceEvent event,LastActivityData lastActivityData) async {
+    print('Geofence EXIT: ${event.identifier} at ${event.location.coords
+        .latitude}, ${event.location.coords.longitude}');
+    LatLng currentLatLng = LatLng(event.location.coords.latitude, event.location.coords.longitude);
+    await bgOps.waitingEndEvent(db,lastActivityData, currentLatLng);
+    await bg.BackgroundGeolocation.removeGeofence("100m-radius-geofence");
+  }
+
+  void start() async {
     bg.BackgroundGeolocation.start();
+    bg.Location location = await bg.BackgroundGeolocation.getCurrentPosition();
+    await setDynamicGeofence(location.coords.latitude,location.coords.longitude);
+    var lastActivity = PreferenceHelper.getObject(PreferenceHelper.LastActivity);
+    lastActivityData = LastActivityData.fromJson(lastActivity);
   }
-
-  void stop() {
+  void stop() async{
+    // final DatabaseService databaseService = DatabaseService();
+    PreferenceHelper.remove(PreferenceHelper.LAST_LAT);
+    PreferenceHelper.remove(PreferenceHelper.LAST_LONG);
+    PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_OFF_TIME);
+    PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_OFF_LAT);
+    PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_OFF_LONG);
+    await bgOps.stopServiceOperations(db);
     bg.BackgroundGeolocation.stop();
   }
-
-
-  ManageRouteHistory(bg.Location location) async {
-    // if (isGpsAvailable && !isInRadius) {
-
-      final DatabaseService databaseService = DatabaseService();
-
-      // List<String>? offlineData =
-      //     PreferenceHelper.getStringList('offline_route_data');
-
-      OfflineRouteModel dataPoint = OfflineRouteModel(
-        latitude: location.coords.latitude ,
-        longitude: location.coords.longitude ,
-        offlineTime: AppUtils.getDate(
-            date: DateTime.now().toString(), format: AppConstant.dateFormat),
-      );
-
-      if (dataPoint.latitude != 0.0 && dataPoint.longitude != 0.0) {
-        await databaseService.insertRoute(dataPoint);
-      }
-    // }
-  }
-
-  ManageWaitingOperation(bg.Location location) async {
-
-    List<Activity> listOfAllActivity = geAllActivitiesFromPrefOffLine();
-
-    var lastActivityData  =  PreferenceHelper.getObject("last_activity");
-
-    var  lastWaitingLatitude = PreferenceHelper.getDouble(PreferenceHelper.LAST_LAT);
-    var  lastWaitingLongitude = PreferenceHelper.getDouble(PreferenceHelper.LAST_LONG);
-    var  waitingStartTime = PreferenceHelper.getString(PreferenceHelper.WAITING_START_TIME);
-    //send waiting start data local storage
-    var waitingStartData = listOfAllActivity
-        .where((element) =>
-    element.eventCode == AppConstant.trackingWaitingStartEvent &&
-        element.isEventCompleted == false)
-        .firstOrNull;
-    var waitingStopData = listOfAllActivity
-        .where((element) =>
-    element.eventCode == AppConstant.trackingWaitingStopEvent &&
-        element.parentId == waitingStartData?.pkId)
-        .firstOrNull;
-
-    var activity = Activity(
-        pkId: listOfAllActivity.length + 1,
-        sessionId: lastActivityData?.sessionId ?? "",
-        latitude: location.coords.latitude,
-        longitude:  location.coords.longitude,
-        isSync: false,
-        isEventCompleted: false);
-
-      //Waiting Start Event
-      if (!location.isMoving) {
-        // print("waitingStartTime$waitingStartTime");
-        //Waiting Start Event
-
-        if (DateTime
-            .now()
-            .difference(DateTime.parse(waitingStartTime ?? ""))
-            .inMinutes >=
-            (5)) {
-          if (waitingStartData == null) {
-            //add waiting start  event
-            activity.eventCode = AppConstant.trackingWaitingStartEvent;
-            activity.isEventCompleted = false;
-            activity.parentId = null;
-            activity.isSync = false;
-            activity.latitude = lastWaitingLatitude ?? 0;
-            activity.longitude = lastWaitingLongitude ?? 0;
-            activity.activityDate = AppUtils.getDate(
-                date: waitingStartTime.toString(),
-                format: AppConstant.dateFormat);
-            if (activity.latitude != 0 &&
-                activity.longitude != 0 &&
-                activity.latitude != null &&
-                activity.longitude != null) {
-              listOfAllActivity.add(activity);
-              setAllActivityListToPref(listOfAllActivity);
-            }
-          }
-        }
-      }else{
-        //Waiting End Event
-        if (waitingStartData != null) {
-          var IsWaitingInRadius = isWithinRadius(
-              prevLat: waitingStartData.latitude,
-              prevLong: waitingStartData.longitude,
-              currentLat: location.coords.latitude,
-              currentLong: location.coords.longitude,
-              radiusMtr: 80);
-
-          // Below code is for testing waiting end event in debug mode do not remove
-          // var waitingTestStartTime = DateTime.parse(waitingStartData.activityDate!);
-          // if (DateTime.now().difference(waitingTestStartTime).inMinutes > 2) {
-          //   IsWaitingInRadius = false;
-          // }
-
-          if (!IsWaitingInRadius) {
-            if (waitingStartData != null && waitingStopData == null) {
-              waitingStartData.isEventCompleted = true;
-
-              activity.parentId = waitingStartData.pkId;
-              activity.eventCode = AppConstant.trackingWaitingStopEvent;
-              activity.isEventCompleted = true;
-              activity.isSync = false;
-              activity.activityDate = AppUtils.getDateTimeNow();
-
-              listOfAllActivity.add(activity);
-              setAllActivityListToPref(listOfAllActivity);
-              PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
-              PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT,  location.coords.latitude);
-              PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, location.coords.longitude);
-            }
-          }
-        }
-      }
-  }
-
-
-  void setAllActivityListToPref(List<Activity> lstActivities) {
-    try {
-      List<String> activitiesJsonList =
-      lstActivities.map((activity) => jsonEncode(activity.toJson())).toList();
-
-      PreferenceHelper.setStringList('offline_activities', activitiesJsonList);
-    } catch (e) {
-      print("setGpsActivityListToPref error: $e");
-    }
-  }
-
-  Future<bool> checkInternetConnectivity() async {
-    try {
-      bool isIntAvailable = false;
-      isIntAvailable = await InternetConnectionChecker().hasConnection;
-      return isIntAvailable;
-    } catch (e) {
-      print("isInternetOn: $e");
-      return false; // Return false in case of an error
-    }
-  }
-
-  Future<bool> isGpsOn() async {
-    try {
-      final locationAlwaysStatus = await Permission.locationAlways.serviceStatus;
-      final locationStatus = await Permission.location.serviceStatus;
-
-      bool isGPSEnabled =
-          locationAlwaysStatus.isEnabled && locationStatus.isEnabled;
-
-      return isGPSEnabled;
-    } catch (e) {
-      print("isGpsOn: $e");
-      return false; // Return false in case of an error
-    }
-  }
-
-  isWithinRadius(
-      {double? currentLat,
-        double? currentLong,
-        double? prevLat,
-        double? prevLong,
-        int? radiusMtr}) {
-    try {
-      if (prevLat == null || prevLong == null || prevLat == 0 || prevLong == 0) {
-        return false;
-      }
-
-      if (currentLat == null ||
-          currentLong == null ||
-          currentLong == 0 ||
-          currentLong == 0) {
-        return false;
-      }
-
-      double distance = 81;
-      distance = Geolocator.distanceBetween(
-          prevLat ?? 0, prevLong ?? 0, currentLat ?? 0, currentLong ?? 0);
-      if ((distance) < (radiusMtr ?? 50)) {
-        return true;
-      } else {
-        return false;
-      }
-    } catch (e) {
-      print("isWithinRadius");
-    }
-  }
-
-
-  setLastActivityData(/*LastActivityData? lastActivity*/) async {
-    var lastActivityData;
-    Map<String, dynamic> lastActivityMap =
-    PreferenceHelper.getObject("last_activity");
-    if (lastActivityMap != null) {
-       lastActivityData = LastActivityData.fromJson(lastActivityMap);
+  SyncData(LastActivityData lastActivityData) async
+  {
+    String? lastSyncTime = PreferenceHelper.getString("lastSyncTime");
+    if (lastSyncTime == null) {
+      PreferenceHelper.setString("lastSyncTime", AppUtils.getDate(
+          date: DateTime.now().toString(), format: AppConstant.dateFormat));
     } else {
-      lastActivityData = null;
-    }
-    if (lastActivityData != null) {
-      String? sessionId = lastActivityData?.sessionId;
-      PreferenceHelper.setObject<LastActivityData>(
-          "last_activity", lastActivityData);
-
-      // if (sessionId != null) {
-      //   if (prevLatitude == null) {
-      //     prevLatitude = lastActivityData?.lastActivityLat;
-      //   }
-      //
-      //   if (prevLongitude == null) {
-      //     prevLongitude = lastActivityData?.lastActivityLong;
-      //   }
-      //
-      //   if (currentLatitude == null) {
-      //     currentLatitude = lastActivityData?.lastActivityLat;
-      //   }
-      //
-      //   if (currentLongitude == null) {
-      //     currentLongitude = lastActivityData?.lastActivityLong;
-      //   }
-      //   if (isGpsAvailable) {
-      //     prevLatitude = currentLatitude;
-      //     prevLongitude = currentLongitude;
-      //     Position position1 = await Geolocator.getCurrentPosition(
-      //         desiredAccuracy: LocationAccuracy.high);
-      //     currentLatitude = position1.latitude;
-      //     currentLongitude = position1.longitude;
-      //     lastActivityData?.lastLocationLat =
-      //         currentLatitude ?? (prevLatitude ?? 0);
-      //     lastActivityData?.lastLocationLong =
-      //         currentLongitude ?? (prevLongitude ?? 0);
-      //
-      //
-      //   }
-      // }
+      bool isLastSyncLessThanTwoMinutes = bgOps
+          .isTimeDiffLessThanAssignedTime(lastSyncTime, AppUtils.getDate(
+          date: DateTime.now().toString(), format: AppConstant.dateFormat),
+          1);
+      if (isLastSyncLessThanTwoMinutes == false) {
+        await bgOps.syncSqlData(db,lastActivityData);
+        await bgOps.syncRouteHistory(db,lastActivityData);
+        PreferenceHelper.setString("lastSyncTime", AppUtils.getDate(
+            date: DateTime.now().toString(), format: AppConstant.dateFormat));
+      }
     }
   }
-
-  // void setAllActivityListToPref(List<Activity> lstActivities) {
-  //   try {
-  //     List<String> activitiesJsonList =
-  //     lstActivities.map((activity) => jsonEncode(activity.toJson())).toList();
-  //
-  //     PreferenceHelper.setStringList('offline_activities', activitiesJsonList);
-  //   } catch (e) {
-  //     print("setGpsActivityListToPref error: $e");
-  //   }
-  // }
-
-  geAllActivitiesFromPrefOffLine() {
-    try {
-      var offLineActivitiesStr =
-          PreferenceHelper.getStringList("offline_activities") ?? [];
-
-      List<Activity> offLinActivities = offLineActivitiesStr.map((data) {
-        Map<String, dynamic> jsonData = jsonDecode(data);
-        return Activity.fromJson(jsonData);
-      }).toList();
-      return offLinActivities;
-    } catch (e) {
-      print("error : geAllGpsActivitiesFromPrefOffLine");
-    }
-  }
-
 }

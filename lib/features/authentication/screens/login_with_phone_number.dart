@@ -68,184 +68,177 @@ AuthenticationProvider? authenticationProvider;
               )
             ],
           ),
-          body: UpgradeAlert(
-            showReleaseNotes: false,
-            upgrader: Upgrader(
-              debugLogging: true,
-                messages: CustomUpgraderMessage()
-            ),
-            child: LayoutBuilder(builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: Container(
-                  margin: const EdgeInsets.only(
-                    left: 20,
-                    right: 20,
-                  ),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                        minWidth: constraints.maxWidth,
-                        minHeight: constraints.maxHeight),
-                    child: IntrinsicHeight(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            margin: EdgeInsets.only(bottom: 70, top: 40),
-                            child: Image.asset(
-                              mobileVerificationImage,
-                              // Update with correct image path
-                              height: 300,
-                              width: 300,
-                            ),
+          body: LayoutBuilder(builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: Container(
+                margin: const EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                      minWidth: constraints.maxWidth,
+                      minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          margin: EdgeInsets.only(bottom: 70, top: 40),
+                          child: Image.asset(
+                            mobileVerificationImage,
+                            // Update with correct image path
+                            height: 300,
+                            width: 300,
                           ),
-                          AppUtils.commonContainer(
-                            margin: EdgeInsets.only(bottom: 30),
-                            child: AppUtils.commonTextWidget(
-                              text: "Enter your mobile number",
-                              textColor: AppConstant.blackColor,
+                        ),
+                        AppUtils.commonContainer(
+                          margin: EdgeInsets.only(bottom: 30),
+                          child: AppUtils.commonTextWidget(
+                            text: "Enter your mobile number",
+                            textColor: AppConstant.blackColor,
+                            fontSize: 14,
+                            textAlign: TextAlign.center,
+                            letterSpacing: 0.1,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Theme(
+                          data: ThemeData(
+                              dialogBackgroundColor: Colors.white,
+                              dialogTheme: DialogTheme(
+                                  backgroundColor: Colors.white,
+                                  surfaceTintColor: Colors.white)),
+                          child: IntlPhoneField(
+
+                            textAlignVertical: TextAlignVertical.center,
+                            flagsButtonPadding: EdgeInsets.zero,
+
+                            onCountryChanged: (value) {
+                              value.dialCode;
+                              authenticationProvider.mobileNumberController.clear();
+                            },
+                            initialCountryCode: "IN",
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
+                            disableLengthCheck: false,
+                            showCountryFlag: true,
+                            showDropdownIcon: false,
+                            flagsButtonMargin: const EdgeInsets.only(
+                              left: 10,
+                            ),
+                            controller: authenticationProvider.mobileNumberController,
+                            onChanged: (value) {
+                              try {
+                                value.isValidNumber.call();
+                                authenticationProvider.saveCountryCode(countryCodeFromView: value.countryCode);
+
+                                authenticationProvider.validation(isValidFromView: true);
+                                print("yes");
+                              } catch (e) {
+                                authenticationProvider.validation(isValidFromView: false);
+                                print("no");
+                              }
+                            },
+                            pickerDialogStyle: PickerDialogStyle(
+                              backgroundColor:AppConstant.whiteColor ,
+                              searchFieldPadding:
+                                  AppUtils.edgeInsetsOnly(left: 10, right: 10),
+                              searchFieldCursorColor:
+                                  AppConstant.appPrimaryColor,
+                              listTilePadding:
+                                  AppUtils.edgeInsetsOnly(left: 10, right: 10),
+                              countryCodeStyle: AppUtils.appTextStyle(),
+                              countryNameStyle: AppUtils.appTextStyle(),
+                              // backgroundColor: Colors.white,
+                            ),
+                            dropdownTextStyle: AppUtils.appTextStyle(),
+                            style: TextStyle(
                               fontSize: 14,
-                              textAlign: TextAlign.center,
-                              letterSpacing: 0.1,
+                              color: AppConstant.blackColor,
+                              fontFamily: "Poppins",
                               fontWeight: FontWeight.w500,
                             ),
-                          ),
-                          Theme(
-                            data: ThemeData(
-                                dialogBackgroundColor: Colors.white,
-                                dialogTheme: DialogTheme(
-                                    backgroundColor: Colors.white,
-                                    surfaceTintColor: Colors.white)),
-                            child: IntlPhoneField(
+                            decoration: InputDecoration(
+                              // contentPadding: EdgeInsets.zero,
+                              alignLabelWithHint: true,
 
-                              textAlignVertical: TextAlignVertical.center,
-                              flagsButtonPadding: EdgeInsets.zero,
-
-                              onCountryChanged: (value) {
-                                value.dialCode;
-                                authenticationProvider.mobileNumberController.clear();
-                              },
-                              initialCountryCode: "IN",
-                              autovalidateMode:
-                                  AutovalidateMode.onUserInteraction,
-                              disableLengthCheck: false,
-                              showCountryFlag: true,
-                              showDropdownIcon: false,
-                              flagsButtonMargin: const EdgeInsets.only(
-                                left: 10,
-                              ),
-                              controller: authenticationProvider.mobileNumberController,
-                              onChanged: (value) {
-                                try {
-                                  value.isValidNumber.call();
-                                  authenticationProvider.saveCountryCode(countryCodeFromView: value.countryCode);
-
-                                  authenticationProvider.validation(isValidFromView: true);
-                                  print("yes");
-                                } catch (e) {
-                                  authenticationProvider.validation(isValidFromView: false);
-                                  print("no");
-                                }
-                              },
-                              pickerDialogStyle: PickerDialogStyle(
-                                backgroundColor:AppConstant.whiteColor ,
-                                searchFieldPadding:
-                                    AppUtils.edgeInsetsOnly(left: 10, right: 10),
-                                searchFieldCursorColor:
-                                    AppConstant.appPrimaryColor,
-                                listTilePadding:
-                                    AppUtils.edgeInsetsOnly(left: 10, right: 10),
-                                countryCodeStyle: AppUtils.appTextStyle(),
-                                countryNameStyle: AppUtils.appTextStyle(),
-                                // backgroundColor: Colors.white,
-                              ),
-                              dropdownTextStyle: AppUtils.appTextStyle(),
-                              style: TextStyle(
+                              hintText: "Phone Number",
+                              hintStyle: TextStyle(
                                 fontSize: 14,
-                                color: AppConstant.blackColor,
+                                color: AppConstant.greyColor,
                                 fontFamily: "Poppins",
                                 fontWeight: FontWeight.w500,
                               ),
-                              decoration: InputDecoration(
-                                // contentPadding: EdgeInsets.zero,
-                                alignLabelWithHint: true,
-
-                                hintText: "Phone Number",
-                                hintStyle: TextStyle(
-                                  fontSize: 14,
-                                  color: AppConstant.greyColor,
-                                  fontFamily: "Poppins",
-                                  fontWeight: FontWeight.w500,
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: AppConstant.greyColor.withOpacity(0.5),
                                 ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: AppConstant.greyColor.withOpacity(0.5),
-                                  ),
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(8)),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(8)),
+                              ),
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: AppConstant.greyColor.withOpacity(0.5),
                                 ),
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: AppConstant.greyColor.withOpacity(0.5),
-                                  ),
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(8)),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(8)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: AppConstant.appPrimaryColor
+                                      .withOpacity(0.5),
                                 ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: AppConstant.appPrimaryColor
-                                        .withOpacity(0.5),
-                                  ),
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(8)),
-                                ),
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(8)),
                               ),
                             ),
                           ),
-                          AppUtils.commonElevatedBtn(
-                            isLoading: authenticationProvider.isLoading,
-                            topMargin: 20,
-                            width: double.infinity,
-                            height: 50,
-                            text: "Send OTP",
-                            bgColor: AppConstant.appPrimaryColor.withOpacity(0.9),
-                            borderRadiusAll: 8,
-                            onPressed: () {
-                              // print(
-                              //     "onPressed-----${authenticationProvider.mobileNumberController.text}");
-                              // print("onPressed-----${authenticationProvider.countryCode}");
-                              authenticationProvider.checkValidationAndCallLoginApi(navigatorFnc: () {
-                                Navigator.push(context, CupertinoPageRoute(builder: (context) => OTPVerificationCode(appUserId: authenticationProvider.userid,countryCode: authenticationProvider.countryCode,phoneNumber: authenticationProvider.mobileNumberController.text),));
-                              },);
-                            },
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                  margin: EdgeInsets.only(bottom: 10, top: 110),
-                                  child: AppUtils.commonTextWidget(
-                                      text: "Need help?",
-                                      fontWeight: FontWeight.w400,
-                                      textColor: AppConstant.appPrimaryColor,
-                                      fontSize: 14)),
-                              Container(
-                                  margin: EdgeInsets.only(bottom: 10, top: 110,left: 5),
-                                  child: AppUtils.commonTextWidget(
-                                      text: "Contact Admin",
-                                      fontWeight: FontWeight.w600,
-                                      textColor: AppConstant.appPrimaryColor,
-                                      fontSize: 14)),
-                            ],
-                          )
-                        ],
-                      ),
+                        ),
+                        AppUtils.commonElevatedBtn(
+                          isLoading: authenticationProvider.isLoading,
+                          topMargin: 20,
+                          width: double.infinity,
+                          height: 50,
+                          text: "Send OTP",
+                          bgColor: AppConstant.appPrimaryColor.withOpacity(0.9),
+                          borderRadiusAll: 8,
+                          onPressed: () {
+                            // print(
+                            //     "onPressed-----${authenticationProvider.mobileNumberController.text}");
+                            // print("onPressed-----${authenticationProvider.countryCode}");
+                            authenticationProvider.checkValidationAndCallLoginApi(navigatorFnc: () {
+                              Navigator.push(context, CupertinoPageRoute(builder: (context) => OTPVerificationCode(appUserId: authenticationProvider.userid,countryCode: authenticationProvider.countryCode,phoneNumber: authenticationProvider.mobileNumberController.text),));
+                            },);
+                          },
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                                margin: EdgeInsets.only(bottom: 10, top: 110),
+                                child: AppUtils.commonTextWidget(
+                                    text: "Need help?",
+                                    fontWeight: FontWeight.w400,
+                                    textColor: AppConstant.appPrimaryColor,
+                                    fontSize: 14)),
+                            Container(
+                                margin: EdgeInsets.only(bottom: 10, top: 110,left: 5),
+                                child: AppUtils.commonTextWidget(
+                                    text: "Contact Admin",
+                                    fontWeight: FontWeight.w600,
+                                    textColor: AppConstant.appPrimaryColor,
+                                    fontSize: 14)),
+                          ],
+                        )
+                      ],
                     ),
                   ),
                 ),
-              );
-            }),
-          )),
+              ),
+            );
+          })),
     );
   }
 }
