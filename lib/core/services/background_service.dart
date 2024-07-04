@@ -111,6 +111,11 @@ void onStart(ServiceInstance service) async {
       print("onLocationServiceChange$status");
       isGpsAvailable = status;
       await ManageGpsOperations();
+      if(isGpsAvailable == true){
+        await ManageRouteHistory();
+      }
+
+
       if(isInternetAvailable == true) {
         // await syncSqlData();
       }
@@ -315,10 +320,17 @@ ManageGpsOperations() async{
       isSync: false,
       isEventCompleted: false);
 
+
+
   if (isGpsAvailable == true) {
+
+    Position position = await Geolocator.getCurrentPosition();
+
     activity.eventCode = AppConstant.gpsOnEvent;
     activity.isSync = false;
-    await  dbService.insertGpsActivity(activity);
+    activity.latitude = position.latitude;
+    activity.longitude = position.longitude;
+  await  dbService.insertGpsActivity(activity);
   }
 
   if (isGpsAvailable == false) {
