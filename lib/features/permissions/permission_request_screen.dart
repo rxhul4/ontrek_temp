@@ -9,7 +9,6 @@ import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/features/authentication/screens/login_with_phone_number.dart';
 import 'package:ontrek/features/dashboard/screens/dashboard_screen.dart';
 
-
 class PermissionRequestScreen extends StatefulWidget {
   const PermissionRequestScreen({super.key});
 
@@ -29,8 +28,14 @@ class _PermissionRequestScreenState extends State<PermissionRequestScreen> {
     isLogIn = PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN);
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       scrollController = ScrollController();
+      AppUtils.showDialogBoxForPrivacyPolicy(
+          titleText: "Location Access Policy",
+          context: context,
+          text3:
+          "Application will collect user lattitude and longitude and will send to server for business purpose. User location will be provided to respective organization user associated with for business purposes.",
+          text:
+          "Location data is collected during active sessions for business purposes, even when the application is in the background. Location will not be collected for the user if there is no active session.");
     });
-
 
   }
 
@@ -38,27 +43,32 @@ class _PermissionRequestScreenState extends State<PermissionRequestScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       backgroundColor: AppConstant.whiteColor,
-     appBar: AppBar(
-       surfaceTintColor: AppConstant.transparentColor,
-       backgroundColor: Colors.white,
-       elevation: 0,
-       centerTitle: true,
-       actions: [
-         GestureDetector(
-           onTap: () {
-             AppUtils.showDialogBoxForPrivacyPolicy(
-                 titleText: "Location Access Policy",
-                 context: context,
-                 text3: "Application will collect user latitude and longitude and will send to server for business purpose. User location will be provided to respective organization user associated with for business purposes.",
-                 text: "Location data is collected during active sessions for business purposes, even when the application is in the background. Location will not be collected for the user if there is no active session.");
-           },
-           child: Padding(
-             padding: const EdgeInsets.only(right: 20,top: 10),
-             child: Icon(Icons.security,color: AppConstant.blackColor,),
-           ),
-         )
-       ],
-     ),
+      appBar: AppBar(
+        surfaceTintColor: AppConstant.transparentColor,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        actions: [
+          GestureDetector(
+            onTap: () {
+              AppUtils.showDialogBoxForPrivacyPolicy(
+                  titleText: "Location Access Policy",
+                  context: context,
+                  text3:
+                      "Application will collect user latitude and longitude and will send to server for business purpose. User location will be provided to respective organization user associated with for business purposes.",
+                  text:
+                      "Location data is collected during active sessions for business purposes, even when the application is in the background. Location will not be collected for the user if there is no active session.");
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(right: 20, top: 10),
+              child: Icon(
+                Icons.security,
+                color: AppConstant.blackColor,
+              ),
+            ),
+          )
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(30),
         child: Column(
@@ -87,8 +97,8 @@ class _PermissionRequestScreenState extends State<PermissionRequestScreen> {
             ),
             AppUtils.commonSizedBox(height: 20),
             Center(
-              child: Image.asset(locationPermissionImage,
-                  height: 300, width: 300),
+              child:
+                  Image.asset(locationPermissionImage, height: 300, width: 300),
             ),
             AppUtils.commonSizedBox(height: 20),
             Center(
@@ -100,31 +110,33 @@ class _PermissionRequestScreenState extends State<PermissionRequestScreen> {
                     letterSpacing: 1,
                     fontWeight: FontWeight.w500)),
             AppUtils.commonElevatedBtn(
-                width: double.infinity,
-                height: 50,
-                text: "ALLOW",
-                bgColor: AppConstant.appPrimaryColor.withOpacity(0.9),
-                borderRadiusAll: 30,
-                onPressed: () async{
-                  UserPermission userPermission = UserPermission();
-                  await userPermission.checkAndRequestPermissions();
-                  bool isPermissionGranted = await userPermission.isAllPermissionsGranted();
-                  if(isPermissionGranted == true){
-                    if(isLogIn == true){
-                      Navigator.pushReplacement(
-                          context,
-                          CupertinoPageRoute(
-                            builder: (context) => DashBoard(),
-                          ));
-                    }else{
-                      Navigator.pushReplacement(
-                          context,
-                          CupertinoPageRoute(
-                            builder: (context) => LoginScreen(),
-                          ));
-                    }
+              width: double.infinity,
+              height: 50,
+              text: "Continue",
+              bgColor: AppConstant.appPrimaryColor.withOpacity(0.9),
+              borderRadiusAll: 30,
+              onPressed: () async {
+                UserPermission userPermission = UserPermission();
+                await userPermission.checkAndRequestPermissions();
+                bool isPermissionGranted =
+                    await userPermission.isAllPermissionsGranted();
+                if (isPermissionGranted == true) {
+                  if (isLogIn == true) {
+                    Navigator.pushReplacement(
+                        context,
+                        CupertinoPageRoute(
+                          builder: (context) => DashBoard(),
+                        ));
+                  } else {
+                    Navigator.pushReplacement(
+                        context,
+                        CupertinoPageRoute(
+                          builder: (context) => LoginScreen(),
+                        ));
                   }
-                },),
+                }
+              },
+            ),
           ],
         ),
       ),

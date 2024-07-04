@@ -155,8 +155,7 @@
 //   await connectivityListener.startListening();
 //
 //   PreferenceHelper.load().then((value) {
-//     int? liveLocationInterval =
-//         value?.getInt(PreferenceHelper.LIVE_LOCATION_INTERVAL) ?? 30;
+//     int? liveLocationInterval = value?.getInt(PreferenceHelper.LIVE_LOCATION_INTERVAL) ?? 30;
 //     waitingTime = value?.getInt(PreferenceHelper.WAITING_TIME_INTERVAL);
 //     print("waitingTime$waitingTime");
 //     bool? isWaitingAllowed = value?.getBool(PreferenceHelper.ALLOW_WAITING);

@@ -6,17 +6,22 @@ class NotificationService {
 
   Future<void> initNotification() async {
     try {
-      final AndroidInitializationSettings initializationSettingsAndroid =
-      const AndroidInitializationSettings('app_icon');
+      final AndroidInitializationSettings initializationSettingsAndroid = const AndroidInitializationSettings('app_icon');
+      final DarwinInitializationSettings darwinInitializationSettings = const DarwinInitializationSettings(
+        defaultPresentSound: true,
+        defaultPresentBadge: true,
+        defaultPresentBanner: true
+      );
 
       final InitializationSettings initializationSettings = InitializationSettings(
         android: initializationSettingsAndroid,
-        iOS: null, // iOS initialization settings are not provided in your example.
+        iOS: darwinInitializationSettings, // iOS initialization settings are not provided in your example.
       );
 
       await notificationsPlugin.initialize(
         initializationSettings,
         onDidReceiveNotificationResponse: (payload) async {},
+
       );
     } catch (e) {
       print('Error initializing notifications: $e');

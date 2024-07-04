@@ -196,8 +196,12 @@ class _TrackScreenState extends State<TrackScreen>
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: AppTextField(
+        autoFocus: true,
         controller: salesMenListProvider.searchController,
-        onChanged: (value) {
+        // onChanged: (value) {
+        //   salesMenListProvider.apiCallGetSalesManList();
+        // },
+        onEditingComplete:() {
           salesMenListProvider.apiCallGetSalesManList();
         },
         hintText: "Search",

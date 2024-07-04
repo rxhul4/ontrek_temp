@@ -14,6 +14,7 @@ import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/add_lead/provider/add_lead_provider.dart';
 import 'package:ontrek/features/attendance/provider/attendance_provider.dart';
 import 'package:ontrek/features/authentication/providers/auth_provider.dart';
+import 'package:ontrek/features/authentication/screens/otp_verification%20screen.dart';
 import 'package:ontrek/features/authentication/screens/splash_screen.dart';
 import 'package:ontrek/features/check_out/provider/check_out_form_provider.dart';
 import 'package:ontrek/features/dashboard/provider/dashboard_provider.dart';
@@ -86,9 +87,10 @@ void main() async {
   // BackgroundService backgroundService = BackgroundService();
   BackgroundServiceIos backgroundServiceIos = BackgroundServiceIos();
   NotificationService notificationService = NotificationService();
+  await notificationService.initNotification();
 
   if(Platform.isAndroid){
-    await notificationService.initNotification();
+
     // await backgroundService.initializeService();
   }else{
     await backgroundServiceIos.initialize();
@@ -136,7 +138,7 @@ class _MyAppState extends State<MyApp> {
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home: const SplashScreen(),
+      home:  SplashScreen(),
     );
   }
 }

@@ -56,18 +56,6 @@ class BackgroundServiceOperations{
       return;
     }
 
-    var isWaitingInRadius = await isWithinRadius(
-      radiusMtr: 200,
-      prevLat: waitingStartActivity.latitude,
-      prevLong: waitingStartActivity.longitude,
-      currentLat: currentLatLng.latitude,
-      currentLong: currentLatLng.longitude,
-    );
-
-    if(isWaitingInRadius == true){
-      return;
-    }
-
     DatabaseService dbService = DatabaseService();
 
 
@@ -161,6 +149,7 @@ syncSqlData(Database db,LastActivityData lastActivityData) async {
   BulkActivityRequestModel? bulkActivityRequestModel;
   try {
     DatabaseService databaseService = DatabaseService();
+    int? waitingStartTime = PreferenceHelper.getInt(PreferenceHelper.WAITING_TIME_INTERVAL);
     List<Activity>? listOfAllActivity = await databaseService.getAllSyncedActivity(db);
     String currentSessionId = lastActivityData.sessionId ?? "";
 
@@ -191,7 +180,7 @@ syncSqlData(Database db,LastActivityData lastActivityData) async {
         );
 
         if(createActivityList.totTrackingEventId == AppConstant.trackingWaitingStartEvent){
-          bool isWaitingLessThanFiveMinute = isTimeDiffLessThanAssignedTime(activity.activityDate ?? "", AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat),5);
+          bool isWaitingLessThanFiveMinute = isTimeDiffLessThanAssignedTime(activity.activityDate ?? "", AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat),waitingStartTime ?? 5);
           if(isWaitingLessThanFiveMinute == false){
             createActivityLists.add(createActivityList);
           }

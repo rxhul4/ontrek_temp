@@ -102,6 +102,7 @@ animatePanel(){
             "userProfilePic": saleMenList?.profilePic,
             "userLastLat": saleMenList?.lastActivityDto?.lastActivityLat,
             "userLastLong": saleMenList?.lastActivityDto?.lastActivityLong,
+            "isPresent" : saleMenList?.isPresent
           };
           print("data_OF_MAP$data");
           if(data["userLastLat"] != null && data["userLastLong"]  != null){
@@ -118,14 +119,7 @@ animatePanel(){
 
         print("show_user_in_map${showUserInMap}");
         print("List${getSalesMenListModel?.data?.first.userName}");
-      } else {
-        if (getSalesMenListModel?.isValidationFailed == true) {
-          AppUtils.showDialogBoxWithOneButton(
-              titleText: "Information",
-              context: navigatorKey.currentState!.context,
-              text: getSalesMenListModel?.message ?? "");
-        }
-      }
+      } 
     } catch (e) {
       print('catch at GetEmployee_Provider ${e}');
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();

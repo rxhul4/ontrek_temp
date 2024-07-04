@@ -372,15 +372,18 @@ class AttendanceProvider extends ChangeNotifier {
       case AppConstant.checkInEvent:
         isDayStart.value = true;
         isCheckIn.value = true;
+        PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
         break;
       case AppConstant.checkOutEvent:
         isDayStart.value = true;
         isCheckIn.value = false;
+        PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
         break;
       case AppConstant.dayEndEvent:
         isDayStart.value = false;
         isCheckIn.value = false;
         isDayEnd.value = false;
+        PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
         break;
       case AppConstant.trackingWaitingStartEvent:
       case AppConstant.trackingWaitingStopEvent:
@@ -408,7 +411,7 @@ class AttendanceProvider extends ChangeNotifier {
          service.invoke("stopService");
 
        }else{
-         iosService.stop();
+         await iosService.stop();
        }
        return;
      }
@@ -427,7 +430,7 @@ class AttendanceProvider extends ChangeNotifier {
          service.invoke("stopService");
 
        }else{
-         iosService.stop();
+         await iosService.stop();
        }
        return;
      }
