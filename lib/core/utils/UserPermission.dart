@@ -4,7 +4,18 @@ import 'package:permission_handler/permission_handler.dart';
 class UserPermission {
   Future<void> checkAndRequestPermissions() async {
     await checkPermissionOfLocation();
+    // await checkPermissionOfLocationAlways();
+
     await checkPermissionOfActivity();
+  }
+
+  Future<bool> isAlwaysOnLocationGranted()async{
+    var locationAlwaysStatus = await Permission.locationAlways.status;
+    return locationAlwaysStatus.isGranted;
+  }
+  Future<bool> isLocationPermissionGranted()async{
+    var locationStatus = await Permission.location.status;
+    return locationStatus.isGranted;
   }
 
   Future<bool> isAllPermissionsGranted() async {
@@ -31,7 +42,7 @@ class UserPermission {
       } else if (result.isDenied) {
         print("Location permission denied.");
       } else if (result.isPermanentlyDenied) {
-        openAppSettings(); // Open app settings for the user to enable permissions
+        // openAppSettings(); // Open app settings for the user to enable permissions
       }
     } else {
       await checkPermissionOfLocationAlways();
@@ -53,7 +64,7 @@ class UserPermission {
       } else if (result.isDenied) {
         print("Activity permission denied.");
       } else if (result.isPermanentlyDenied) {
-        openAppSettings(); // Open app settings for the user to enable permissions
+        // openAppSettings(); // Open app settings for the user to enable permissions
       }
     }
   }
@@ -69,7 +80,7 @@ class UserPermission {
       } else if (result.isDenied) {
         print("Location Always permission denied.");
       } else if (result.isPermanentlyDenied) {
-        openAppSettings(); // Open app settings for the user to enable permissions
+        // openAppSettings(); // Open app settings for the user to enable permissions
       }
     }
   }

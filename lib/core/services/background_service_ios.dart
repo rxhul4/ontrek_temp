@@ -120,9 +120,9 @@ class BackgroundServiceIos {
       PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, location.coords.longitude);
       bool isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
       isInternetAvailable = PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
-      bool? isCheckInGeoFenceExit = PreferenceHelper.getBool("isCheckInGeoFenceExit");
-      bool? isCheckOutReminder = PreferenceHelper.getBool(PreferenceHelper.CHECKOUT_REMINDER);
-      int? checkOutReminderMtr = PreferenceHelper.getInt(PreferenceHelper.CHECKOUT_REMINDER_METER);
+      // bool? isCheckInGeoFenceExit = PreferenceHelper.getBool("isCheckInGeoFenceExit");
+      // bool? isCheckOutReminder = PreferenceHelper.getBool(PreferenceHelper.CHECKOUT_REMINDER);
+      // int? checkOutReminderMtr = PreferenceHelper.getInt(PreferenceHelper.CHECKOUT_REMINDER_METER);
 
       print("OnLocationTime${DateTime.now().toString()}");
       print("OnLocationIsMoving${location.isMoving}");
@@ -143,11 +143,11 @@ class BackgroundServiceIos {
       if(isCheckIn == true ){
         bgOps.manualWaitingEndEvent(db, location);
         await bg.BackgroundGeolocation.removeGeofence("waitingGeoFence");
-        if(isCheckOutReminder == true){
-          if(isCheckInGeoFenceExit == false || isCheckInGeoFenceExit == null ){
-            await setDynamicGeofence(location.coords.latitude, location.coords.longitude, "checkInGeoFence",checkOutReminderMtr?.toDouble() ?? 100.0);
-          }
-        }
+        // if(isCheckOutReminder == true){
+        //   if(isCheckInGeoFenceExit == false || isCheckInGeoFenceExit == null ){
+        //     await setDynamicGeofence(location.coords.latitude, location.coords.longitude, "checkInGeoFence",checkOutReminderMtr?.toDouble() ?? 100.0);
+        //   }
+        // }
 
       }
     });
@@ -164,9 +164,9 @@ class BackgroundServiceIos {
       isInternetAvailable = PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
       bool isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
       bool? isWaitingAllowed = PreferenceHelper.getBool(PreferenceHelper.ALLOW_WAITING);
-      bool? isCheckInGeoFenceExit = PreferenceHelper.getBool("isCheckInGeoFenceExit");
-      bool? isCheckOutReminder = PreferenceHelper.getBool(PreferenceHelper.CHECKOUT_REMINDER);
-      int? checkOutReminderMtr = PreferenceHelper.getInt(PreferenceHelper.CHECKOUT_REMINDER_METER);
+      // bool? isCheckInGeoFenceExit = PreferenceHelper.getBool("isCheckInGeoFenceExit");
+      // bool? isCheckOutReminder = PreferenceHelper.getBool(PreferenceHelper.CHECKOUT_REMINDER);
+      // int? checkOutReminderMtr = PreferenceHelper.getInt(PreferenceHelper.CHECKOUT_REMINDER_METER);
       if(lastActivityData == null) {
         return;
       }
@@ -192,17 +192,17 @@ class BackgroundServiceIos {
       }else{
         bgOps.manualWaitingEndEvent(db, heart.location);
         await bg.BackgroundGeolocation.removeGeofence("waitingGeoFence");
-        if(isCheckOutReminder == true){
-          if(isCheckInGeoFenceExit == false || isCheckInGeoFenceExit == null ){
-            await setDynamicGeofence( heart.location?.coords.latitude ?? 0,  heart.location?.coords.longitude ?? 0, "checkInGeoFence",checkOutReminderMtr?.toDouble() ?? 100.0);
-          }
-        }
+        // if(isCheckOutReminder == true){
+        //   if(isCheckInGeoFenceExit == false || isCheckInGeoFenceExit == null ){
+        //     await setDynamicGeofence( heart.location?.coords.latitude ?? 0,  heart.location?.coords.longitude ?? 0, "checkInGeoFence",checkOutReminderMtr?.toDouble() ?? 100.0);
+        //   }
+        // }
       }
 
-      if(isCheckIn == true && isCheckInGeoFenceExit){
-        NotificationService  notificationService = NotificationService();
-        notificationService.showNotification(id: 3, title: "Check Out Reminder", body: "Please perform check out as soon as possible.");
-      }
+      // if(isCheckIn == true && isCheckInGeoFenceExit){
+      //   NotificationService  notificationService = NotificationService();
+      //   notificationService.showNotification(id: 3, title: "Check Out Reminder", body: "Please perform check out as soon as possible.");
+      // }
 
     });
   }
