@@ -187,8 +187,8 @@ class BackgroundServiceIos {
 
       if(isCheckIn == false)
       {
-        PreferenceHelper.setBool("isCheckInGeoFenceExit", false);
-        await bg.BackgroundGeolocation.removeGeofence("checkInGeoFence");
+        // PreferenceHelper.setBool("isCheckInGeoFenceExit", false);
+        // await bg.BackgroundGeolocation.removeGeofence("checkInGeoFence");
       }else{
         bgOps.manualWaitingEndEvent(db, heart.location);
         await bg.BackgroundGeolocation.removeGeofence("waitingGeoFence");
@@ -221,9 +221,9 @@ class BackgroundServiceIos {
             await handleGeofenceEnter(event, lastActivityData);
           }
         } else if (event.action == 'EXIT') {
-          if(isCheckIn == true){
-            PreferenceHelper.setBool("isCheckInGeoFenceExit", true);
-          }
+          // if(isCheckIn == true){
+          //   PreferenceHelper.setBool("isCheckInGeoFenceExit", true);
+          // }
           print("Handling geofence exit");
           await handleGeofenceExit(event, lastActivityData, event.identifier);
         }

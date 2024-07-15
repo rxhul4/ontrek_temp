@@ -41,7 +41,7 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Required to capture location of user while performing activity Day start/end, checkin/checkout, Internet On/Off, GPS On /Off</string>
 	<key>NSMotionUsageDescription</key>
-	<string>This application tracks your steps</string>
+    <string>Motion data is used to enhance the accuracy of location tracking in the app.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>We need access to your photo library to select and upload photos for creating a user profile</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
