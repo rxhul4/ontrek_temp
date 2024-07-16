@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:ontrek/core/common_widgets/app_scaffold.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
@@ -8,7 +11,7 @@ import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/features/authentication/screens/login_with_phone_number.dart';
 import 'package:ontrek/features/dashboard/screens/dashboard_screen.dart';
-
+import 'package:permission_handler/permission_handler.dart';
 
 class PermissionRequestScreen extends StatefulWidget {
   const PermissionRequestScreen({super.key});
@@ -29,36 +32,46 @@ class _PermissionRequestScreenState extends State<PermissionRequestScreen> {
     isLogIn = PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN);
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       scrollController = ScrollController();
+      AppUtils.showDialogBoxForPrivacyPolicy(
+          titleText: "Location Access Policy",
+          context: context,
+          text3:
+              "Application will collect user lattitude and longitude and will send to server for business purpose. User location will be provided to respective organization user associated with for business purposes.",
+          text:
+              "Location data is collected during active sessions for business purposes, even when the application is in the background. Location will not be collected for the user if there is no active session.");
     });
-
-
   }
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
       backgroundColor: AppConstant.whiteColor,
-     appBar: AppBar(
-       surfaceTintColor: AppConstant.transparentColor,
-       backgroundColor: Colors.white,
-       elevation: 0,
-       centerTitle: true,
-       actions: [
-         GestureDetector(
-           onTap: () {
-             AppUtils.showDialogBoxForPrivacyPolicy(
-                 titleText: "Location Access Policy",
-                 context: context,
-                 text3: "Application will collect user latitude and longitude and will send to server for business purpose. User location will be provided to respective organization user associated with for business purposes.",
-                 text: "Location data is collected during active sessions for business purposes, even when the application is in the background. Location will not be collected for the user if there is no active session.");
-           },
-           child: Padding(
-             padding: const EdgeInsets.only(right: 20,top: 10),
-             child: Icon(Icons.security,color: AppConstant.blackColor,),
-           ),
-         )
-       ],
-     ),
+      appBar: AppBar(
+        surfaceTintColor: AppConstant.transparentColor,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        actions: [
+          GestureDetector(
+            onTap: () {
+              AppUtils.showDialogBoxForPrivacyPolicy(
+                  titleText: "Location Access Policy",
+                  context: context,
+                  text3:
+                      "Application will collect user latitude and longitude and will send to server for business purpose. User location will be provided to respective organization user associated with for business purposes.",
+                  text:
+                      "Location data is collected during active sessions for business purposes, even when the application is in the background. Location will not be collected for the user if there is no active session.");
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(right: 20, top: 10),
+              child: Icon(
+                Icons.security,
+                color: AppConstant.blackColor,
+              ),
+            ),
+          )
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(30),
         child: Column(
@@ -87,8 +100,8 @@ class _PermissionRequestScreenState extends State<PermissionRequestScreen> {
             ),
             AppUtils.commonSizedBox(height: 20),
             Center(
-              child: Image.asset(locationPermissionImage,
-                  height: 300, width: 300),
+              child:
+                  Image.asset(locationPermissionImage, height: 300, width: 300),
             ),
             AppUtils.commonSizedBox(height: 20),
             Center(
@@ -100,31 +113,49 @@ class _PermissionRequestScreenState extends State<PermissionRequestScreen> {
                     letterSpacing: 1,
                     fontWeight: FontWeight.w500)),
             AppUtils.commonElevatedBtn(
-                width: double.infinity,
-                height: 50,
-                text: "ALLOW",
-                bgColor: AppConstant.appPrimaryColor.withOpacity(0.9),
-                borderRadiusAll: 30,
-                onPressed: () async{
+              width: double.infinity,
+              height: 50,
+              text: "Continue",
+              bgColor: AppConstant.appPrimaryColor.withOpacity(0.9),
+              borderRadiusAll: 30,
+                onPressed: () async {
                   UserPermission userPermission = UserPermission();
                   await userPermission.checkAndRequestPermissions();
                   bool isPermissionGranted = await userPermission.isAllPermissionsGranted();
-                  if(isPermissionGranted == true){
-                    if(isLogIn == true){
+                  if (isPermissionGranted) {
+                    if (isLogIn == true) {
                       Navigator.pushReplacement(
-                          context,
-                          CupertinoPageRoute(
-                            builder: (context) => DashBoard(),
-                          ));
-                    }else{
+                        context,
+                        CupertinoPageRoute(
+                          builder: (context) => DashBoard(),
+                        ),
+                      );
+                    } else {
                       Navigator.pushReplacement(
-                          context,
-                          CupertinoPageRoute(
-                            builder: (context) => LoginScreen(),
-                          ));
+                        context,
+                        CupertinoPageRoute(
+                          builder: (context) => LoginScreen(),
+                        ),
+                      );
                     }
+                  } else {
+                    AppUtils.showDialogBoxWithTwoButton(
+                      context: context,
+                      titleText: "Required Permission",
+                      onSuccess: () async {
+                        await openAppSettings();
+                      },
+                      onCancel: () {
+                        exit(0);
+                      },
+                      onSuccessString: "Open Settings",
+                      onCancelString: "Exit App",
+                      text: "To continue using the app, you need access to your Motion and Fitness, Location and Location Always. This is essential for accurate functionality and the best experience. Would you like to enable these permissions now?",
+                    );
                   }
-                },),
+                }
+
+            ),
           ],
         ),
       ),

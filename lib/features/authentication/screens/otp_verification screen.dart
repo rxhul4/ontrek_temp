@@ -13,11 +13,11 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 
 class OTPVerificationCode extends StatefulWidget {
-  String? appUserId;
-  String? phoneNumber;
-  int? countryCode;
+  final String? appUserId;
+  final String? phoneNumber;
+  final int? countryCode;
 
-  OTPVerificationCode({super.key, this.appUserId,this.phoneNumber,this.countryCode});
+  OTPVerificationCode({super.key, this.appUserId, this.phoneNumber, this.countryCode});
 
   @override
   State<OTPVerificationCode> createState() => _OTPVerificationCodeState();
@@ -30,48 +30,49 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
   bool enableResend = false;
   Timer? timer;
 
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      authenticationProvider = Provider.of<AuthenticationProvider>(context,listen: false);
+      authenticationProvider = Provider.of<AuthenticationProvider>(context, listen: false);
       otpController.clear();
       authenticationProvider.userid = widget.appUserId;
       startTimer();
     });
-
   }
 
   @override
   void dispose() {
-    // TODO: implement dispose
-  timer?.cancel();
+    timer?.cancel();
     super.dispose();
   }
+
   void startTimer() {
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
       setState(() {
         if (secondRemaining != 0) {
           secondRemaining--;
-
         } else {
           enableResend = true;
           timer.cancel();
         }
       });
-
     });
   }
-  void resendCode() {
-    authenticationProvider.apiCallVerifyNumber(phoneNumber: widget.phoneNumber,countryCodeFromOtp: widget.countryCode,isFromOtpScreen: true,navigatorFnc: () {
 
-    },);
+  void resendCode() {
+    authenticationProvider.apiCallVerifyNumber(
+      phoneNumber: widget.phoneNumber,
+      countryCodeFromOtp: widget.countryCode,
+      isFromOtpScreen: true,
+      navigatorFnc: () {},
+    );
     secondRemaining = 30;
     enableResend = false;
     startTimer();
     setState(() {});
   }
+
   String formatTime(int seconds) {
     int minutes = seconds ~/ 60;
     int remainingSeconds = seconds % 60;
@@ -82,7 +83,10 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
 
   @override
   Widget build(BuildContext context) {
-     authenticationProvider = Provider.of<AuthenticationProvider>(context);
+    authenticationProvider = Provider.of<AuthenticationProvider>(context);
+    final mediaQuery = MediaQuery.of(context);
+    final isLandscape = mediaQuery.orientation == Orientation.landscape;
+
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -116,76 +120,74 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
         ),
         body: LayoutBuilder(builder: (context, constraints) {
           return SingleChildScrollView(
-            child: Container(
-              margin: const EdgeInsets.only(
-                left: 20,
-                right: 20,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minWidth: constraints.maxWidth,
+                minHeight: constraints.maxHeight,
               ),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                    minWidth: constraints.maxWidth,
-                    minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
+              child: IntrinsicHeight(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 20, right: 20),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
-                        margin: EdgeInsets.only(bottom: 70, top: 50),
+                        margin: EdgeInsets.only(bottom: 30, top: isLandscape ? 20 : 50),
                         child: Image.asset(
                           mobileVerificationImage,
-                          // Update with correct image path
-                          height: 300,
-                          width: 300,
+                          height: isLandscape ? constraints.maxHeight * 0.4 : constraints.maxWidth * 0.7,
+                          width: isLandscape ? constraints.maxHeight * 0.4 : constraints.maxWidth * 0.7,
                         ),
                       ),
-                      AppUtils.commonContainer(
-                        margin: EdgeInsets.only(bottom: 30),
-                        child: AppUtils.commonTextWidget(
-                          text: "Enter your One Time Password",
-                          textColor: AppConstant.blackColor,
-                          fontSize: 14,
-                          textAlign: TextAlign.center,
-                          letterSpacing: 0.1,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      otpView(context, otpController),
-                      AppUtils.commonElevatedBtn(
-                        isLoading: authenticationProvider.isFetching,
-                        topMargin: 20,
-                        width: double.infinity,
-                        height: 50,
-                        text: "Verify OTP",
-                        bgColor: AppConstant.appPrimaryColor.withOpacity(0.9),
-                        borderRadiusAll: 8,
-                        onPressed: () {
-                          authenticationProvider.checkValidationAndCallVerifyOtpApi(
-                            controller: otpController,
-                            navigatorFnc: () {
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                CupertinoPageRoute(
-                                  builder: (context) => DashBoard(),
-                                ),
-                                    (Route<dynamic> route) => false,
+                      Spacer(),
+                      Column(
+                        children: [
+                          AppUtils.commonContainer(
+                            margin: EdgeInsets.only(bottom: 20),
+                            child: AppUtils.commonTextWidget(
+                              text: "Enter your One Time Password",
+                              textColor: AppConstant.blackColor,
+                              fontSize: 14,
+                              textAlign: TextAlign.center,
+                              letterSpacing: 0.1,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          otpView(context, otpController),
+                          AppUtils.commonElevatedBtn(
+                            isLoading: authenticationProvider.isFetching,
+                            topMargin: 20,
+                            width: double.infinity,
+                            height: 50,
+                            text: "Verify OTP",
+                            bgColor: AppConstant.appPrimaryColor.withOpacity(0.9),
+                            borderRadiusAll: 8,
+                            onPressed: () {
+                              authenticationProvider.checkValidationAndCallVerifyOtpApi(
+                                controller: otpController,
+                                navigatorFnc: () {
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    CupertinoPageRoute(
+                                      builder: (context) => DashBoard(),
+                                    ),
+                                        (Route<dynamic> route) => false,
+                                  );
+                                },
                               );
                             },
-                          );
-                        },
+                          ),
+                          !enableResend
+                              ? AppUtils.commonContainer(
+                            margin: AppUtils.edgeInsetsOnly(bottom: 10,top: 40),
+                            child: TextButton(
+                              onPressed: () {
 
-                      ),
-                    !enableResend
-                          ? AppUtils.commonContainer(
-                              margin: const EdgeInsets.only(
-                                top: 110,
-                              ),
+                              },
                               child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   AppUtils.commonTextWidget(
-                                    text: "Did't receive? Resend in",
+                                    text: "Didn't receive? Resend in",
                                     textColor: AppConstant.blackColor,
                                     fontWeight: FontWeight.w400,
                                   ),
@@ -198,23 +200,34 @@ class _OTPVerificationCodeState extends State<OTPVerificationCode> {
                                   ),
                                 ],
                               ),
-                            )
-                          : AppUtils.commonContainer(
-                              margin: const EdgeInsets.only(
-                                top: 110,
-                              ),
-                              child: TextButton(
+                            ),
+                          )
+                              : AppUtils.commonContainer(
+                            margin: AppUtils.edgeInsetsOnly(bottom: 10,top: 40),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                TextButton(
                                   style: TextButton.styleFrom(
-                                      padding: EdgeInsets.zero),
+                                    padding: EdgeInsets.zero,
+                                  ),
                                   onPressed: () {
-                                   resendCode();
+                                    resendCode();
                                   },
                                   child: AppUtils.commonTextWidget(
-                                      text: "Resend Code",
-                                      fontWeight: FontWeight.w500,
-                                      textColor: AppConstant.appPrimaryColor,
-                                      letterSpacing: 0.1)),
+                                    text: "Resend Code",
+                                    fontWeight: FontWeight.w500,
+                                    textColor: AppConstant.appPrimaryColor,
+                                    letterSpacing: 0.1,
+                                  ),
+                                ),
+                              ],
                             ),
+                          ),
+
+                        ],
+                      ),
+                      // Spacer(),
                     ],
                   ),
                 ),

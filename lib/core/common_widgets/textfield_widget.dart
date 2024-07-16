@@ -35,6 +35,7 @@ class AppTextField extends StatelessWidget {
   bool? showCursor;
   bool? readOnly;
   int? maxLength;
+  bool? autoFocus;
 
   AppTextField(
       {Key? key,
@@ -67,20 +68,23 @@ class AppTextField extends StatelessWidget {
       this.maxLines,
       this.showCursor,
       this.readOnly,
+        this.autoFocus,
       this.maxLength})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+
       onChanged: onChanged,
       controller: controller,
       onTap: onTap,
-      autofocus: false,
+      autofocus: autoFocus ?? false,
       maxLength: maxLength,
       maxLengthEnforcement: MaxLengthEnforcement.none,
       onEditingComplete: onEditingComplete,
       onTapOutside: onTapOutside,
+
 
       style: TextStyle(
         letterSpacing: letterSpacing,

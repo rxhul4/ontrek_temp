@@ -292,6 +292,8 @@ class AuthenticationProvider extends ChangeNotifier {
         PreferenceHelper.RESTRICTED_LOCATION_METER,
         loginModel?.data?.appUserConfigAttendanceRequest?.locRestrictionMtrs ??
             0);
+    PreferenceHelper.setBool(PreferenceHelper.CHECKOUT_REMINDER, loginModel?.data?.appUserConfigTrackingRequest?.allowCheckoutReminder ?? false);
+    PreferenceHelper.setInt(PreferenceHelper.CHECKOUT_REMINDER_METER, loginModel?.data?.appUserConfigTrackingRequest?.chekoutReminderDistance ?? 0);
 
     PreferenceHelper.setBool(
         PreferenceHelper.LIVE_LOCATION_TRACKING,

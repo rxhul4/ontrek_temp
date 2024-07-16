@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
@@ -8,6 +9,7 @@ import 'package:local_auth/local_auth.dart';
 import 'package:ontrek/core/background_service_model/bulk_activity_model.dart';
 import 'package:ontrek/core/common_widgets/textfield_widget.dart';
 import 'package:ontrek/core/services/api_constants.dart';
+import 'package:ontrek/core/services/background_service_ios.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 
@@ -53,6 +55,7 @@ class AttendanceProvider extends ChangeNotifier {
   bool isBiometricAvailable = false;
   AnimationController? controller;
   FlutterBackgroundService service = FlutterBackgroundService();
+  BackgroundServiceIos iosService = BackgroundServiceIos();
   bool? isInternetAvailable;
   TextEditingController dateController = TextEditingController();
   TextEditingController timeController = TextEditingController();
@@ -369,15 +372,18 @@ class AttendanceProvider extends ChangeNotifier {
       case AppConstant.checkInEvent:
         isDayStart.value = true;
         isCheckIn.value = true;
+        PreferenceHelper.setBool(PreferenceHelper.checkIn, true);
         break;
       case AppConstant.checkOutEvent:
         isDayStart.value = true;
         isCheckIn.value = false;
+        PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
         break;
       case AppConstant.dayEndEvent:
         isDayStart.value = false;
         isCheckIn.value = false;
         isDayEnd.value = false;
+        PreferenceHelper.setBool(PreferenceHelper.checkIn, false);
         break;
       case AppConstant.trackingWaitingStartEvent:
       case AppConstant.trackingWaitingStopEvent:
@@ -401,7 +407,12 @@ class AttendanceProvider extends ChangeNotifier {
      if(lastActivityData==null) {
        PreferenceHelper.setObject<LastActivityData>(PreferenceHelper.LastActivity, null);
        PreferenceHelper.setString(PreferenceHelper.SESSION_ID, "");
-       service.invoke("stopService");
+       if(Platform.isAndroid){
+         service.invoke("stopService");
+
+       }else{
+         await iosService.stop();
+       }
        return;
      }
 
@@ -415,7 +426,12 @@ class AttendanceProvider extends ChangeNotifier {
      {
        PreferenceHelper.setObject<LastActivityData>(PreferenceHelper.LastActivity, null);
        PreferenceHelper.setString(PreferenceHelper.SESSION_ID, "");
-       service.invoke("stopService");
+       if(Platform.isAndroid){
+         service.invoke("stopService");
+
+       }else{
+         await iosService.stop();
+       }
        return;
      }
 
@@ -428,7 +444,16 @@ class AttendanceProvider extends ChangeNotifier {
 
 
          if (liveLocationTracking == true) {
-            await service.startService();
+           if(Platform.isAndroid){
+             await service.startService();
+           }else{
+             PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
+             PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT, lastActivityData.lastActivityLat ?? 0);
+             PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, lastActivityData.lastActivityLong ?? 0);
+             iosService.start();
+
+           }
+
         }
     }
   }

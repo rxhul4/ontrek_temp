@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter_activity_recognition/flutter_activity_recognition.dart';
+// import 'package:flutter_activity_recognition/flutter_activity_recognition.dart';
 import 'package:geolocator/geolocator.dart' as geoLocater;
 
 import 'package:internet_connection_checker/internet_connection_checker.dart';
@@ -10,23 +10,23 @@ class InternetAndGpsListener {
 
   StreamSubscription<InternetConnectionStatus>? _connectivitySubscription;
   StreamSubscription<geoLocater.ServiceStatus>? _locationServiceSubscription;
-  StreamSubscription<Activity>? _activityRecognizationSubscription;
+  // StreamSubscription<Activity>? _activityRecognizationSubscription;
 
-  StreamSubscription<Activity>? _activityStreamSubscription;
+  // StreamSubscription<Activity>? _activityStreamSubscription;
 
   final Function(bool isConnected) onInternetStatusChange;
   final Function(bool isConnected) onLocationServiceChange;
-  final Function(Activity  activity) onActivityChange;
+  // final Function(Activity  activity) onActivityChange;
 
   InternetAndGpsListener({
     required this.onInternetStatusChange,
     required this.onLocationServiceChange,
-    required this.onActivityChange,
+    // required this.onActivityChange,
   });
 
 
    startListening() async{
-     final activityRecognition = FlutterActivityRecognition.instance;
+     // final activityRecognition = FlutterActivityRecognition.instance;
 
      // Listen for connectivity changes
       bool isInternetAvilable  = await InternetConnectionChecker().hasConnection;
@@ -40,12 +40,12 @@ class InternetAndGpsListener {
       }
     });
 
-      _activityStreamSubscription = activityRecognition.activityStream.listen(onActivityChange);
+      // _activityStreamSubscription = activityRecognition.activityStream.listen(onActivityChange);
 
 
-      _activityRecognizationSubscription  = await activityRecognition.activityStream.listen((Activity activity)async{
-        await onActivityChange(activity);
-      });
+      // _activityRecognizationSubscription  = await activityRecognition.activityStream.listen((Activity activity)async{
+      //   await onActivityChange(activity);
+      // });
 
     try
     {
@@ -79,6 +79,6 @@ class InternetAndGpsListener {
   void stopListening() {
     _connectivitySubscription?.cancel();
     _locationServiceSubscription?.cancel();
-    _activityRecognizationSubscription?.cancel();
+    // _activityRecognizationSubscription?.cancel();
   }
 }

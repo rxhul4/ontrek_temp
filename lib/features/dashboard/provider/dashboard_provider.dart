@@ -205,6 +205,7 @@ class DashBoardProvider extends ChangeNotifier {
   double? userLat;
   double? userLong;
   String? userProfilePic;
+  bool? isPresent;
   List<LatLng> userLatLng = [];
 
   Future addUsersMarker() async {
@@ -220,6 +221,7 @@ class DashBoardProvider extends ChangeNotifier {
         userProfilePic = element["userProfilePic"];
         userLat = element["userLastLat"];
         userLong = element["userLastLong"];
+        isPresent = element["isPresent"];
         userLatLng.add(LatLng(userLat ?? 0, userLong ?? 0));
         try {
           await markers.add(
@@ -232,6 +234,7 @@ class DashBoardProvider extends ChangeNotifier {
               icon: (userProfilePic != null)
                   ? await CustomMarkerWidget(
                 imageUrl: userProfilePic,
+                isPresent: isPresent,
               ).toBitmapDescriptor(
                 logicalSize: Size(150, 150),
                 imageSize: Size(300, 300),

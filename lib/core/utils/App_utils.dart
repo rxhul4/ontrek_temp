@@ -356,15 +356,15 @@ class AppUtils {
     Function(double)? onPanelSlide,
     Widget? body,
   }) {
-    return SafeArea(
-      child: Animate(
-        effects: const [
-          SlideEffect(
-              end: Offset(0, 0),
-              curve: Curves.decelerate,
-              begin: Offset(0, 1),
-              duration: Duration(milliseconds: 700)),
-        ],
+    return Animate(
+      effects: const [
+        SlideEffect(
+            end: Offset(0, 0),
+            curve: Curves.decelerate,
+            begin: Offset(0, 1),
+            duration: Duration(milliseconds: 700)),
+      ],
+      child: SafeArea(
         child: SlidingUpPanel(
           body: body,
           onPanelSlide: onPanelSlide,

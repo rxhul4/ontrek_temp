@@ -58,6 +58,8 @@ class PreferenceHelper {
 
   static const String LIVE_LOCATION_INTERVAL = "LIVE_LOCATION_INTERVAL";
   static const String WAITING_TIME_INTERVAL = "WAITING_TIME_INTERVAL";
+  static const String CHECKOUT_REMINDER = "CHECKOUT_REMINDER";
+  static const String CHECKOUT_REMINDER_METER = "CHECKOUT_REMINDER_METER";
 
 
   static SharedPreferences? _prefs;

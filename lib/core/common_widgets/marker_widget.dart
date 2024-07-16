@@ -4,8 +4,9 @@ import 'package:ontrek/core/utils/app_constant.dart';
 
 class CustomMarkerWidget extends StatefulWidget {
   final String? imageUrl;
+  bool? isPresent;
 
-  const CustomMarkerWidget({Key? key, this.imageUrl}) : super(key: key);
+   CustomMarkerWidget({Key? key, this.imageUrl,this.isPresent}) : super(key: key);
 
   @override
   State<CustomMarkerWidget> createState() => _CustomMarkerWidgetState();
@@ -22,14 +23,14 @@ class _CustomMarkerWidgetState extends State<CustomMarkerWidget> {
         children: [
           Align(
             alignment: Alignment.bottomCenter,
-            child: Icon(Icons.arrow_drop_down_sharp, color: AppConstant.appPrimaryColor),
+            child: Icon(Icons.arrow_drop_down_sharp, color: widget.isPresent == true ?  Colors.green : AppConstant.appPrimaryColor),
           ),
           Container(
             height: 70,
             width: 70,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(width: 2, color: AppConstant.appPrimaryColor),
+              border: Border.all(width: 2, color: widget.isPresent == true ?  Colors.green :AppConstant.appPrimaryColor),
               color: Colors.white,
             ),
             child: ClipOval(

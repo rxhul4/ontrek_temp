@@ -6,6 +6,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 class DatabaseService {
+    // Database instance
   Future<Database> initializeOnTrekDB() async {
     String path = await getDatabasesPath();
     return openDatabase(
@@ -16,6 +17,7 @@ class DatabaseService {
       version: 1,
     );
   }
+
 
   Future<void> createTables(db) async {
     await db.execute('''
@@ -43,21 +45,22 @@ class DatabaseService {
     ''');
   }
 
+  Future<int> insertRoute(Database db, OfflineRouteModel route) async {
+    //final Database db = await initializeOnTrekDB();
 
-  Future<int> insertRoute(OfflineRouteModel route) async {
-    final Database db = await initializeOnTrekDB();
     return await db.insert('offline_routes', route.toJson());
   }
 
-  Future<List<OfflineRouteModel>> getRoutes() async {
-    final Database db = await initializeOnTrekDB();
+  Future<List<OfflineRouteModel>> getRoutes(Database db, ) async {
+    //final Database db = await initializeOnTrekDB();
+
     final List<Map<String, dynamic>> maps = await db.query('offline_routes');
 
     return maps.map((json) => OfflineRouteModel.fromJson(json)).toList();
   }
 
-  Future<void> insertGpsActivity(Activity activity) async {
-    final Database db = await initializeOnTrekDB();
+  Future<void> insertGpsActivity(Database db, Activity activity) async {
+    //final Database db = await initializeOnTrekDB();
 
      List<Map<String, dynamic>> gpsOff;
 
@@ -121,22 +124,21 @@ class DatabaseService {
     }
   }
 
-  Future<void> insertInternetActivity(Activity activity) async {
-    final Database db = await initializeOnTrekDB();
+  Future<void> insertInternetActivity(Database db, Activity activity) async {
+    //final Database db = await initializeOnTrekDB();
     await db.insert('Activity', activity.toJson());
   }
 
-  getMaxPkId()async{
-    final Database db = await initializeOnTrekDB();
+  getMaxPkId(Database db, )async{
+    //final Database db = await initializeOnTrekDB();
 
     final result = await db.rawQuery('SELECT MAX(PkId) AS max_pkid FROM Activity');
     final maxPkid = (result.first['max_pkid'] as int?) ?? 0;
     return maxPkid;
   }
 
-
-  Future<void> insertWaitingActivity(Activity activity) async {
-    final Database db = await initializeOnTrekDB();
+  Future<void> insertWaitingActivity(Database db, Activity activity) async {
+    //final Database db = await initializeOnTrekDB();
     List<Map<String, dynamic>> waitingStart;
 
     waitingStart = await db.query(
@@ -156,7 +158,6 @@ class DatabaseService {
         );
       }
     }
-
     waitingStart = await db.query(
       'Activity',
       where: 'IsEventCompleted = ? AND EventCode = ?',
@@ -171,7 +172,6 @@ class DatabaseService {
       activity.pkId = maxPkid + 1;
       activity.isSync = false;
       activity.isEventCompleted = false;
-
       await db.insert('Activity', activity.toJson());
     }
 
@@ -200,27 +200,26 @@ class DatabaseService {
     }
   }
 
-  Future<void> removeSyncedNotCompletedEvents() async
+  Future<void> removeSyncedNotCompletedEvents(Database db, ) async
   {
-    final Database db = await initializeOnTrekDB();
+   // final Database db = await initializeOnTrekDB();
     await db.rawQuery("delete from Activity where IsSync=1 AND IsEventCompleted=0");
   }
 
-  Future<void> syncRecord(int pkId) async {
-    final Database db = await initializeOnTrekDB();
+  Future<void> syncRecord(Database db, int pkId) async {
+    //final Database db = await initializeOnTrekDB();
     await db.rawUpdate("UPDATE Activity SET IsSync = 1 WHERE PkId = ?", [pkId]);
   }
 
-  Future<List<Activity>?> getAllSyncedActivity() async {
-    final Database db = await initializeOnTrekDB();
+  Future<List<Activity>?> getAllSyncedActivity(Database db, ) async {
+    //final Database db = await initializeOnTrekDB();
     // final List<Map<String, Object?>> maps = await db.query(
     //   'Activity',
     //   where: 'isSync = ?',
     //   whereArgs: [0],
     // );
 
-    final List<Map<String, Object?>> queryResult =
-    await db.query('Activity', where: "IsSync = ?", whereArgs: [0]);
+    final List<Map<String, Object?>> queryResult = await db.query('Activity', where: "IsSync = ?", whereArgs: [0]);
 
     if(queryResult != null && queryResult.length > 0)
       {
@@ -230,15 +229,30 @@ class DatabaseService {
     return null;
   }
 
-  Future<int> deleteAllRoutes() async {
-    final Database db = await initializeOnTrekDB();
+  Future<int> deleteAllRoutes(Database db) async {
+    //final Database db = await initializeOnTrekDB();
     return await db.delete('offline_routes');
   }
 
-  Future<int> deleteAllActivities() async {
-    final Database db = await initializeOnTrekDB();
+  Future<int> deleteAllActivities(Database db) async {
+    //final Database db = await initializeOnTrekDB();
     return await db.delete('Activity');
   }
 
+  Future<Activity?> getUnSyncedWaitingStartActivity(Database db) async {
+    //final Database db = await initializeOnTrekDB();
+    final List<Map<String, Object?>> queryResult = await db.query('Activity', where: "IsEventCompleted = ? AND EventCode = ?", whereArgs: [0, AppConstant.trackingWaitingStartEvent], limit: 1,);
 
+    if (queryResult.isNotEmpty) {
+      return Activity.fromJson(queryResult.first);
+    }
+
+    return null;
+  }
+
+  Future<void> removeActivity(Database db,int pkID) async
+  {
+    //final Database db = await initializeOnTrekDB();
+    await db.rawQuery("delete from Activity where PkId=$pkID");
+  }
 }

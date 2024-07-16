@@ -28,9 +28,10 @@ class _SplashScreenState extends State<SplashScreen> {
   bool? isCheckIn;
   bool? isWaiting;
 
+  UserPermission userPermission = UserPermission();
+
   gotoLogin() async {
     isLogIn = PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN);
-    UserPermission userPermission = UserPermission();
     bool isPermissionGranted = await userPermission.isAllPermissionsGranted();
     Timer(const Duration(milliseconds: 5000), ()async {
       if(isPermissionGranted == true){
