@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:app_settings/app_settings.dart';
@@ -120,7 +121,10 @@ class _AttendanceScreenState extends State<AttendanceScreen>
             widget.onLocationFetch!(LatLng(response?.data?.lastActivityDto?.lastActivityLat ?? 0.0, response?.data?.lastActivityDto?.lastActivityLong ?? 0.0));
           }
 
-          service.invoke("dayStart");
+          if(Platform.isAndroid){
+            service.invoke("dayStart");
+          }
+
         }
       } else {
         if (response?.isError == true) {
@@ -166,8 +170,10 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   callCheckInApiAndUpdateUI(AttendanceProvider? attendanceProvider) async {
     //getCurrent Location for UI and api
     try {
+      if(Platform.isAndroid){
+        service.invoke("checkIn_beforeEvent");
+      }
 
-      service.invoke("checkIn_beforeEvent");
 
       var response = await callCreateActivityApi(totTrackingEventCode: AppConstant.checkInEvent,attendanceProvider: attendanceProvider);
 
@@ -180,7 +186,10 @@ class _AttendanceScreenState extends State<AttendanceScreen>
           widget.onLocationFetch!(LatLng(response?.data?.lastActivityDto?.lastActivityLat ?? 0.0, response?.data?.lastActivityDto?.lastActivityLong ?? 0.0));
         }
 
-        service.invoke("checkIn_afterEvent");
+        if(Platform.isAndroid){
+          service.invoke("checkIn_afterEvent");
+        }
+
 
       } else {
         if (response?.isError == true) {

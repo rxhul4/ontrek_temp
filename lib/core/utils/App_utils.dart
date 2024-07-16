@@ -44,14 +44,19 @@ class AppUtils {
 
   static PreferredSizeWidget? commonAppBar(
       {required BuildContext context,
-      String? title,
-      Color? textColor,
-      bool? isBack,
-      bool? isBorder}) {
+        String? title,
+        Color? textColor,
+        bool? isBack,
+        bool? isBorder,
+        bool? isCenter,
+        bool? isActionWidgetAvailable,
+        List<Widget>? actions
+      }) {
     return AppBar(
       surfaceTintColor: AppConstant.transparentColor,
       backgroundColor: Colors.white,
       elevation: 0,
+      actions: isActionWidgetAvailable == true ? actions : [],
       leading: isBack == false
           ? AppUtils.commonSizedBox()
           : InkWell(
@@ -68,7 +73,7 @@ class AppUtils {
           textColor: textColor ?? AppConstant.blackColor.withOpacity(0.7),
           fontSize: 16,
           fontWeight: FontWeight.w500),
-      centerTitle: true,
+      centerTitle: isCenter ?? true,
       bottom: isBorder == true
           ? PreferredSize(
               preferredSize: Size.zero,

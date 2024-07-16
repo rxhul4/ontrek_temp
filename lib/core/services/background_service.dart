@@ -14,6 +14,7 @@ import 'package:ontrek/core/background_service_model/create_route_history_model.
 import 'package:ontrek/core/background_service_model/offline_route_model.dart';
 import 'package:ontrek/core/services/Throttler.dart';
 import 'package:ontrek/core/services/api_constants.dart';
+import 'package:ontrek/core/services/background_service_ios.dart';
 import 'package:ontrek/core/services/intenetAndGpsEventLisnters.dart';
 import 'package:ontrek/core/services/local_notification.dart';
 import 'package:ontrek/core/services/network_repository.dart';
@@ -24,6 +25,7 @@ import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
+import 'package:sqflite/sqlite_api.dart';
 
 const notificationChannelId = 'my_foreground';
 const notificationId = 888;
@@ -51,6 +53,8 @@ bool isInRadius = false;
 String? waitingStartTime = "";
 double? lastWaitingLat;
 double? lastWaitingLong;
+late Database db;
+DatabaseService dbServiece = new DatabaseService();
 StreamSubscription<Activity>? activityStreamSubscription;
 
 int? waitingTime = 10;
@@ -99,6 +103,14 @@ class BackgroundService {
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
 
+  db = await dbServiece.initializeOnTrekDB();
+
+  if(db==null)
+  {
+    print("Database object not created;");
+    return;
+  }
+
   WidgetsFlutterBinding.ensureInitialized();
   final _activityStreamController = StreamController<userActivity.Activity>();
   StreamSubscription<Activity>? _activityStreamSubscription;
@@ -120,7 +132,8 @@ void onStart(ServiceInstance service) async {
         // await syncSqlData();
       }
     },
-    onActivityChange:(userActivity.Activity activity) {
+
+    onActivityChange :(userActivity.Activity activity) {
         print('Activity Detected >> ${activity.toJson()}');
         physicalActivity  =  activity.type.toString();
         print('Activity Detected >> ${physicalActivity}');
@@ -286,8 +299,8 @@ dayEndProccess(ServiceInstance service)async{
   PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_OFF_TIME);
   PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_OFF_LAT);
   PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_OFF_LONG);
-  await databaseService.deleteAllRoutes();
-  await databaseService.deleteAllActivities();
+  await databaseService.deleteAllRoutes(db);
+  await databaseService.deleteAllActivities(db);
   service.stopSelf();
 }
 
@@ -302,7 +315,7 @@ ManageRouteHistory() async {
       offlineTime: AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
 
     if (dataPoint.latitude != 0.0 && dataPoint.longitude != 0.0) {
-      await databaseService.insertRoute(dataPoint);
+      await databaseService.insertRoute(db,dataPoint);
     }
   }
 }
@@ -330,13 +343,13 @@ ManageGpsOperations() async{
     activity.isSync = false;
     activity.latitude = position.latitude;
     activity.longitude = position.longitude;
-  await  dbService.insertGpsActivity(activity);
+  await  dbService.insertGpsActivity(db,activity);
   }
 
   if (isGpsAvailable == false) {
     activity.eventCode = AppConstant.gpsOffEvent;
     activity.isSync = false;
-    await dbService.insertGpsActivity(activity);
+    await dbService.insertGpsActivity(db,activity);
   }
 }
 
@@ -381,16 +394,16 @@ ManageInternetOperations() async {
       bool isDifferenceLessTwoMinutes = await  isDifferenceLessFiveMinutes(internetOffActivity.activityDate ?? "", internetOnActivity.activityDate ?? "");
       if(!isDifferenceLessTwoMinutes){
 
-        var internetOffPkId = await dbService.getMaxPkId();
+        var internetOffPkId = await dbService.getMaxPkId(db);
         internetOffActivity.pkId = internetOffPkId + 1;
 
-        await dbService.insertInternetActivity(internetOffActivity);
+        await dbService.insertInternetActivity(db,internetOffActivity);
 
-        var internetOnPkId = await dbService.getMaxPkId();
+        var internetOnPkId = await dbService.getMaxPkId(db);
         internetOnActivity.pkId = internetOnPkId + 1;
         internetOnActivity.parentId = internetOffActivity.pkId;
 
-        await dbService.insertInternetActivity(internetOnActivity);
+        await dbService.insertInternetActivity(db,internetOnActivity);
       }
 }
 
@@ -419,7 +432,7 @@ ManageWaitingOperation() async {
                     activity.latitude = lastWaitingLat ?? 0;
                     activity.longitude = lastWaitingLong ?? 0;
                     activity.activityDate = AppUtils.getDate(date: waitingStartTime.toString(),format: AppConstant.dateFormat);
-                    await dbService.insertWaitingActivity(activity);
+                    await dbService.insertWaitingActivity(db,activity);
                 }
             }
             else
@@ -434,7 +447,7 @@ ManageWaitingOperation() async {
                 if (!IsWaitingInRadius) {
                   activity.eventCode = AppConstant.trackingWaitingStopEvent;
                   activity.activityDate = AppUtils.getDateTimeNow();
-                  await dbService.insertWaitingActivity(activity);
+                  await dbService.insertWaitingActivity(db,activity);
                 }
               }
 
@@ -493,7 +506,7 @@ registerEventsToListener(ServiceInstance service) {
 
 manualWaitingEndEvent() async{
    DatabaseService databaseService = DatabaseService();
-   await databaseService.removeSyncedNotCompletedEvents();
+   await databaseService.removeSyncedNotCompletedEvents(db);
    PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME,AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
    PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT,  currentLatitude ?? (prevLatitude  ?? 0));
    PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG,  currentLongitude ?? (prevLongitude  ?? 0));
@@ -506,7 +519,7 @@ syncRouteHistory() async {
 
     final DatabaseService databaseService = DatabaseService();
 
-    List<OfflineRouteModel> offlineData = await databaseService.getRoutes();
+    List<OfflineRouteModel> offlineData = await databaseService.getRoutes(db);
 
     List<OfflineMapData> offlineDataMaps = offlineData
         .map((route) => OfflineMapData(
@@ -536,7 +549,7 @@ syncRouteHistory() async {
 
     if (createRouteHistoryModel.isError == false && createRouteHistoryModel.isValidationFailed == false) {
 
-      await databaseService.deleteAllRoutes();
+      await databaseService.deleteAllRoutes(db);
 
     }
   } catch (e) {
@@ -552,7 +565,7 @@ syncSqlData() async {
   try {
 
     DatabaseService databaseService = DatabaseService();
-    List<Activity>? listOfAllActivity = await databaseService.getAllSyncedActivity();
+    List<Activity>? listOfAllActivity = await databaseService.getAllSyncedActivity(db);
     String currentSessionId = lastActivityData?.sessionId??"";
 
     var listOfflineData = listOfAllActivity?.where((element) => element.isSync == false && element.sessionId==currentSessionId).toList();
@@ -598,7 +611,7 @@ syncSqlData() async {
             if (bulkActivityResponseModel.isError == false) {
 
               bulkActivityResponseModel.data?.forEach((element) async {
-                await databaseService.syncRecord(element.localPkId ?? 0);
+                await databaseService.syncRecord(db, element.localPkId ?? 0);
               });
 
               print("all Activity Data cleared");

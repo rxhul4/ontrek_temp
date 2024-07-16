@@ -2,6 +2,8 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 // import 'package:firebase_core/firebase_core.dart';
 // import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
@@ -66,53 +68,66 @@ List<SingleChildWidget> providers = [
 GlobalKey globalKey = GlobalKey();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // FlutterError.onError = (errorDetails) {
-  //   FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
-  // };
-  // PlatformDispatcher.instance.onError = (error, stack) {
-  //   FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-  //   return true;
-  // };
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  if(Platform.isAndroid){
+    FlutterError.onError = (errorDetails) {
+      FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+    };
+    PlatformDispatcher.instance.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
+  }
+
   PreferenceHelper.load().then((value) async{
     String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     String? userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
-    // if((userId != null || userId != "") && (userName != null || userName != "")) {
-    //   await setCrashlyticsUserAndDeviceInfo(userId ?? "",userName ?? "");
-    // }
+    if((userId != null || userId != "") && (userName != null || userName != "")) {
+      await setCrashlyticsUserAndDeviceInfo(userId ?? "",userName ?? "");
+    }
 
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     runApp(MultiProvider(providers: providers, child: const MyApp()));
   });
-  // BackgroundService backgroundService = BackgroundService();
-  BackgroundServiceIos backgroundServiceIos = BackgroundServiceIos();
+  BackgroundService backgroundService = BackgroundService();
+
   NotificationService notificationService = NotificationService();
   await notificationService.initNotification();
 
   if(Platform.isAndroid){
-
-    // await backgroundService.initializeService();
+    await backgroundService.initializeService();
   }else{
-    await backgroundServiceIos.initialize();
+    // BackgroundServiceIos backgroundServiceIos = BackgroundServiceIos();
+    // await backgroundServiceIos.initialize();
   }
 
 }
 
 
-// Future<void> setCrashlyticsUserAndDeviceInfo(String userId, String userName) async {
-//   var deviceInfo = DeviceInfoPlugin();
-//
-//   AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-//
-//   if(Platform.isAndroid){
-//     FirebaseCrashlytics.instance.setCustomKey("user_id", userId);
-//     FirebaseCrashlytics.instance.setCustomKey("user_name", userName);
-//     FirebaseCrashlytics.instance.setCustomKey("platform", 'Android');
-//     FirebaseCrashlytics.instance.setCustomKey("android_version", androidInfo.version.release);
-//     FirebaseCrashlytics.instance.setCustomKey("model", androidInfo.model);
-//     FirebaseCrashlytics.instance.setCustomKey("deviceId", androidInfo.id);
-//   }
-// }
+Future<void> setCrashlyticsUserAndDeviceInfo(String userId, String userName) async {
+  var deviceInfo = DeviceInfoPlugin();
+
+
+
+
+  if(Platform.isAndroid){
+    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+    FirebaseCrashlytics.instance.setCustomKey("user_id", userId);
+    FirebaseCrashlytics.instance.setCustomKey("user_name", userName);
+    FirebaseCrashlytics.instance.setCustomKey("platform", 'Android');
+    FirebaseCrashlytics.instance.setCustomKey("android_version", androidInfo.version.release);
+    FirebaseCrashlytics.instance.setCustomKey("model", androidInfo.model);
+    FirebaseCrashlytics.instance.setCustomKey("deviceId", androidInfo.id);
+  }else{
+    IosDeviceInfo iosDeviceInfo  = await deviceInfo.iosInfo;
+    FirebaseCrashlytics.instance.setCustomKey("user_id", userId);
+    FirebaseCrashlytics.instance.setCustomKey("user_name", userName);
+    FirebaseCrashlytics.instance.setCustomKey("platform", 'Ios');
+    FirebaseCrashlytics.instance.setCustomKey("android_version", iosDeviceInfo.systemVersion);
+    FirebaseCrashlytics.instance.setCustomKey("model", iosDeviceInfo.model);
+    FirebaseCrashlytics.instance.setCustomKey("deviceId", iosDeviceInfo.identifierForVendor.toString());
+  }
+}
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});

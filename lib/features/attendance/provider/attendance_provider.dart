@@ -55,7 +55,7 @@ class AttendanceProvider extends ChangeNotifier {
   bool isBiometricAvailable = false;
   AnimationController? controller;
   FlutterBackgroundService service = FlutterBackgroundService();
-  BackgroundServiceIos iosService = BackgroundServiceIos();
+  // BackgroundServiceIos iosService = BackgroundServiceIos();
   bool? isInternetAvailable;
   TextEditingController dateController = TextEditingController();
   TextEditingController timeController = TextEditingController();
@@ -411,7 +411,7 @@ class AttendanceProvider extends ChangeNotifier {
          service.invoke("stopService");
 
        }else{
-         await iosService.stop();
+         // await iosService.stop();
        }
        return;
      }
@@ -430,7 +430,7 @@ class AttendanceProvider extends ChangeNotifier {
          service.invoke("stopService");
 
        }else{
-         await iosService.stop();
+         // await iosService.stop();
        }
        return;
      }
@@ -450,7 +450,7 @@ class AttendanceProvider extends ChangeNotifier {
              PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
              PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT, lastActivityData.lastActivityLat ?? 0);
              PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, lastActivityData.lastActivityLong ?? 0);
-             iosService.start();
+             // iosService.start();
 
            }
 

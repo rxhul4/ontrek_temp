@@ -18,6 +18,7 @@ import 'package:ontrek/features/attendance/screen/attendance_screen.dart';
 import 'package:ontrek/features/attendance/screen/pending_dayend_screen.dart';
 import 'package:ontrek/features/authentication/screens/login_with_phone_number.dart';
 import 'package:ontrek/features/dashboard/provider/dashboard_provider.dart';
+import 'package:ontrek/features/home/screen/home_screen.dart';
 import 'package:ontrek/features/leads/screen/lead_screen.dart';
 import 'package:ontrek/features/profile/screen/profile_screen.dart';
 import 'package:ontrek/features/task_list/screen/task_list_screen.dart';
@@ -39,17 +40,17 @@ class DashBoardState extends State<DashBoard> {
   bool? isMapLoaded = false;
 
   List<String> lableString = [
+    "Home",
     "Attendance",
     "Track",
-    "Tasks",
-    "Leads",
     "More",
   ];
   List<String> iconString = [
+    homeIconsPath,
     attendanceIconPath,
     trackingIconPath,
-    taskIconPath,
-    leadIconPath,
+    // taskIconPath,
+    // leadIconPath,
     profileIconPath,
   ];
   late DashBoardProvider dashBoardProvider;
@@ -147,7 +148,7 @@ class DashBoardState extends State<DashBoard> {
         ],
       ),
       bottomNavigationBar: AppUtils.commonContainer(
-        height: 80,
+        height:  Platform.isIOS ? 80 : 60,
         decoration: AppUtils.commonBoxDecoration(
           color: AppConstant.whiteColor,
           border: Border.all(
@@ -156,7 +157,7 @@ class DashBoardState extends State<DashBoard> {
           ),
         ),
         child: AppUtils.commonContainer(
-          padding: EdgeInsets.only(left: 10, right: 10, bottom: 20),
+          padding: EdgeInsets.only(left: 10, right: 10, bottom: Platform.isIOS ? 20 : 0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -214,12 +215,14 @@ class DashBoardState extends State<DashBoard> {
   Widget getScreenForIndex(int index) {
     switch (index) {
       case 0:
+        return HomeScreen();
+      case 1:
         return AttendanceScreen(onLocationFetch: (value) {
           if (mounted) {
             dashBoardProvider.getLocationFromSheet(getCurrentLocation: value);
           }
         });
-      case 1:
+      case 2:
         return TrackScreen(onUserFetch: (value) async {
           if (value != null) {
             dashBoardProvider.showUserInMap = value;
@@ -229,12 +232,10 @@ class DashBoardState extends State<DashBoard> {
             await dashBoardProvider.addUsersMarker();
           }
         });
-      case 2:
-        return TaskListScreen();
       case 3:
-        return LeadScreen();
-      case 4:
         return ProfileScreen();
+      // case 4:
+      //   return ProfileScreen();
       default:
         return Container();
     }

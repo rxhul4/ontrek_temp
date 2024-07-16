@@ -211,7 +211,7 @@ class DatabaseService {
     await db.rawUpdate("UPDATE Activity SET IsSync = 1 WHERE PkId = ?", [pkId]);
   }
 
-  Future<List<Activity>?> getAllSyncedActivity(Database db, ) async {
+  Future<List<Activity>?> getAllSyncedActivity(Database db,) async {
     //final Database db = await initializeOnTrekDB();
     // final List<Map<String, Object?>> maps = await db.query(
     //   'Activity',

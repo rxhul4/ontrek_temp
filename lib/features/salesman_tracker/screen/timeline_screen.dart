@@ -418,7 +418,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
             child: GoogleMap(
               zoomControlsEnabled: false,
               padding: AppUtils.edgeInsetsOnly(
-                bottom: MediaQuery.of(context).size.height * 0.25,
+                bottom: MediaQuery.of(context).size.height * 0.20,
               ),
               mapType: MapType.normal,
               onMapCreated: (controller) {
@@ -440,7 +440,7 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
           ),
           AppUtils.commonSlidePanel(
             maxHeight: height,
-            minHeight: height * 0.21,
+            minHeight: height * 0.20,
             controller: panelController,
             isDraggable: true,
             snapPoint: 0.0001,
@@ -1039,8 +1039,9 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
             AppUtils.commonInkWell(
               onTap: onTapBackButton ?? () {},
               child: AppUtils.commonContainer(
-                  height: 40,
-                  width: 40,
+                margin: AppUtils.edgeInsetsOnly(top: 10),
+                  height: 45,
+                  width: 45,
                   decoration: AppUtils.commonBoxDecoration(
                       color: AppConstant.whiteColor,
                       shape: BoxShape.circle,
@@ -1064,8 +1065,9 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
             AppUtils.commonInkWell(
               onTap: onTapGetCurrentPosition ?? () {},
               child: AppUtils.commonContainer(
-                  height: 40,
-                  width: 40,
+                  margin: AppUtils.edgeInsetsOnly(top: 5),
+                  height: 45,
+                  width: 45,
                   decoration: AppUtils.commonBoxDecoration(
                       color: AppConstant.whiteColor,
                       shape: BoxShape.circle,
