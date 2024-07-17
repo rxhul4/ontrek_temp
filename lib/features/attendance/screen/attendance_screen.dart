@@ -295,6 +295,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
               AppUtils.buildHeader(
                   height: height,
                   width: width,
+                  isFromOthers: true,
                   title: attendanceProvider.userName,
                   subTitle: attendanceProvider.orgName,
                   leadingImage: profileImage,

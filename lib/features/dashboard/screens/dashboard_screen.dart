@@ -168,7 +168,7 @@ class DashBoardState extends State<DashBoard> {
                     HapticFeedback.vibrate();
                     if (!mounted) {}
                     dashBoardProvider.selectIndex(index);
-                    if (dashBoardProvider.selectedIndex == 0) {
+                    if (dashBoardProvider.selectedIndex == 1) {
                       dashBoardProvider.getCurrentLocation();
                     }
                   },

@@ -7,10 +7,15 @@ const trackingIconPath = "$assetsBasePath/icons/tracking_icon.png";
 const leadIconPath = "$assetsBasePath/icons/leads.png";
 const homeIconsPath = "$assetsBasePath/icons/home.png";
 
-const leadImagePathForHome = "$assetsBasePath/icons/leads.webp";
-const taskImagePathForHome = "$assetsBasePath/icons/task.png";
-const reportsImagePathForHome = "$assetsBasePath/icons/reports.png";
-const dayEndImagePathForHome = "$assetsBasePath/icons/day-end.webp";
+
+
+const reportsImagePath = "$assetsBasePath/icons/reports.png";
+const dayEndImagePath = "$assetsBasePath/icons/day_end.png";
+const leaveImagePath = "$assetsBasePath/icons/leave.png";
+const reimbursementImagePath = "$assetsBasePath/icons/reimbursement.png";
+const holidayImagePath = "$assetsBasePath/icons/holiday.png";
+const customerImagePath= "$assetsBasePath/icons/cutomer_management.png";
+
 
 
 const loginIcon =  "$assetsBasePath/icons/logged-In.png";

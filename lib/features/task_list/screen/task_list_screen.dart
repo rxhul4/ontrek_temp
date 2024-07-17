@@ -13,8 +13,6 @@ import 'package:ontrek/features/task_list/model/task_model.dart';
 import 'package:ontrek/features/task_list/provider/task_provider.dart';
 import 'package:ontrek/features/view_task/screen/view_task_screen.dart';
 import 'package:provider/provider.dart';
-import 'package:sliding_up_panel/sliding_up_panel.dart';
-import 'package:upgrader/upgrader.dart';
 
 class TaskListScreen extends StatefulWidget {
   ScrollController? scrollController;
@@ -41,8 +39,6 @@ class _TaskListScreenState extends State<TaskListScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
       taskProvider = Provider.of<TaskProvider>(context, listen: false);
-      // taskProvider.panelController
-      //     .animatePanelToSnapPoint(duration: const Duration(milliseconds: 0));
       taskProvider.selectedDate = DateTime.now();
       await callCallGetTaskByIdListApi(taskProvider: taskProvider);
 
@@ -60,119 +56,112 @@ class _TaskListScreenState extends State<TaskListScreen>
     taskProvider = Provider.of<TaskProvider>(context);
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
-    return Animate(
-      effects: const [
-        SlideEffect(
-            end: Offset(0, 0),
-            curve: Curves.decelerate,
-            begin: Offset(0, 1),
-            duration: Duration(milliseconds: 700)),
-      ],
-      child: Scaffold(
-        backgroundColor: AppConstant.whiteColor,
+    return Scaffold(
+      backgroundColor: AppConstant.whiteColor,
 
-        appBar: AppUtils.commonAppBar(
-          context: context,
-          title: "Task",
-          isBack: true,
-          isBorder: false,
-          isCenter: true,
-          isActionWidgetAvailable: true,
-          actions: [
+      // appBar: AppUtils.commonAppBar(
+      //   context: context,
+      //   title: "Task",
+      //   isBack: true,
+      //   isBorder: false,
+      //   isCenter: true,
+      //   isActionWidgetAvailable: true,
+      //   actions: [
+      //
+      //     commonIconWidget(
+      //             iconData: Icons.repeat,
+      //             iconColor: AppConstant.appPrimaryColor,
+      //             onTap: () {
+      //               callCallGetTaskByIdListApi(taskProvider: taskProvider);
+      //             },
+      //           ),
+      //     AppUtils.commonSizedBox(width: 15)
+      //
+      //   ]
+      // ),
+      body: SafeArea(
+        child: Column(
+          children: [
 
-            commonIconWidget(
+            AppUtils.buildHeader(
+                height: height,
+                width: width,
+                borderRadius: 0,
+                leadingOnTap: () {
+                  Navigator.pop(context);
+                },
+                actionWidget: [
+                  commonIconWidget(
+                    iconData: Icons.calendar_month_rounded,
+                    onTap: openDatePicker,
+                  ),
+                  AppUtils.commonSizedBox(width: 10),
+                  commonIconWidget(
                     iconData: Icons.repeat,
-                    iconColor: AppConstant.appPrimaryColor,
                     onTap: () {
                       callCallGetTaskByIdListApi(taskProvider: taskProvider);
                     },
                   ),
-            AppUtils.commonSizedBox(width: 15)
+                ],
+                title: "Task",
+                subTitle: "Select a Task",
+                backgroundColor: AppConstant.whiteColor,
+                leadingImage: taskIconPath),
 
-          ]
-        ),
-        body: SafeArea(
-          child: Column(
-            children: [
-              // AppUtils.buildHeader(
-              //     height: height,
-              //     width: width,
-              //     actionWidget: [
-              //       commonIconWidget(
-              //         iconData: Icons.calendar_month_rounded,
-              //         onTap: openDatePicker,
-              //       ),
-              //       AppUtils.commonSizedBox(width: 10),
-              //       commonIconWidget(
-              //         iconData: Icons.repeat,
-              //         onTap: () {
-              //           callCallGetTaskByIdListApi(taskProvider: taskProvider);
-              //         },
-              //       ),
-              //     ],
-              //     title: "Task",
-              //     subTitle: "Select a Task",
-              //     backgroundColor: AppConstant.whiteColor,
-              //     leadingImage: taskIconPath),
-
-              Expanded(
-                  child: TabBarView(
-                    physics: NeverScrollableScrollPhysics(),
-                    controller: tabController,
-                    children: [
-                      assignedToMeTabBar(height, width),
-                      allTaskTabBar(height, width)
-                    ],
-                  )),
-              AppUtils.commonContainer(
-                alignment: Alignment.bottomCenter,
-                // height: 30,
-                // margin:
-                //     EdgeInsets.only(top: 20, left: 30, right: 30, bottom: 20),
-                decoration: AppUtils.commonBoxDecoration(
-                  color: AppConstant.greyColor.withOpacity(0.2),
-                  // borderRadius: AppUtils.borderRadiusAll(raduis: 5),
-                ),
-                child: TabBar.secondary(
-                    onTap: (value) {
-                      setState(() {
-                        selectedIndex = value;
-                      });
-                      callCallGetTaskByIdListApi(taskProvider: taskProvider);
-                    },
-                    physics: const NeverScrollableScrollPhysics(),
-                    isScrollable: false,
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    controller: tabController,
-                    // padding: AppUtils.edgeInsetsAll(allPadding: 2),
-                    labelColor: Colors.white,
-                    unselectedLabelStyle: const TextStyle(
-                      fontFamily: "Poppins",
-                      letterSpacing: 0.2,
-                      fontWeight: FontWeight.w400,
-                      fontSize: 12,
-                    ),
-                    indicatorWeight: 0,
-                    dividerHeight: 0,
-                    labelStyle: const TextStyle(
-                      fontFamily: "Poppins",
-                      letterSpacing: 0.2,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                    automaticIndicatorColorAdjustment: true,
-                    indicator: BoxDecoration(
-                        color: AppConstant.appPrimaryColor,
-                        // borderRadius: AppUtils.borderRadiusAll(raduis: 5)
-                    ),
-                    tabs: const [
-                      Tab(text: 'ASSIGNED TO ME'),
-                      Tab(text: 'All TASK'),
-                    ]),
+            AppUtils.commonContainer(
+              height: 30,
+              margin: EdgeInsets.only(top: 20, left: 30, right: 30, bottom: 20),
+              decoration: AppUtils.commonBoxDecoration(
+                color: AppConstant.greyColor.withOpacity(0.2),
+                borderRadius: AppUtils.borderRadiusAll(raduis: 5),
               ),
+              child: TabBar.secondary(
+                  onTap: (value) {
+                    setState(() {
+                      selectedIndex = value;
+                    });
+                    callCallGetTaskByIdListApi(taskProvider: taskProvider);
+                  },
+                  physics: const NeverScrollableScrollPhysics(),
+                  isScrollable: false,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  controller: tabController,
+                  padding: AppUtils.edgeInsetsAll(allPadding: 2),
+                  labelColor: Colors.white,
+                  unselectedLabelStyle: const TextStyle(
+                    fontFamily: "Poppins",
+                    letterSpacing: 0.2,
+                    fontWeight: FontWeight.w400,
+                    fontSize: 12,
+                  ),
+                  indicatorWeight: 0,
+                  dividerHeight: 0,
+                  labelStyle: const TextStyle(
+                    fontFamily: "Poppins",
+                    letterSpacing: 0.2,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 12,
+                  ),
+                  automaticIndicatorColorAdjustment: true,
+                  indicator: BoxDecoration(
+                      color: AppConstant.appPrimaryColor,
+                      borderRadius: AppUtils.borderRadiusAll(raduis: 5)),
+                  tabs: const [
+                    Tab(text: 'ASSIGNED TO ME'),
+                    Tab(text: 'All TASK'),
+                  ]),
+            ),
+            Expanded(
+                child: TabBarView(
+                  physics: NeverScrollableScrollPhysics(),
+                  controller: tabController,
+                  children: [
+                    assignedToMeTabBar(height, width),
+                    allTaskTabBar(height, width)
+                  ],
+                ))
 
-            ],
-          ),
+          ],
         ),
       ),
     );
@@ -195,6 +184,7 @@ class _TaskListScreenState extends State<TaskListScreen>
   Widget assignedToMeTabBar(height, width) {
     return taskProvider.isFetching
         ? Column(
+      mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Align(
                   alignment: Alignment.center,
@@ -231,9 +221,10 @@ class _TaskListScreenState extends State<TaskListScreen>
               )
             : SingleChildScrollView(
                 // controller: p0,
+      physics: BouncingScrollPhysics(),
                 child: Padding(
                   padding:
-                  const EdgeInsets.only(left: 15, right: 15, bottom: 100 ,top: 20),
+                  const EdgeInsets.only(left: 15, right: 15, bottom: 100 ,top: 0),
                   child: taskListWidget(taskProvider.getAllTaskModel?.data
                           ?.where((element) =>
                               element.assignedTo == userId &&
@@ -283,9 +274,10 @@ class _TaskListScreenState extends State<TaskListScreen>
                 ],
               )
             : SingleChildScrollView(
+        physics: BouncingScrollPhysics(),
                 child: Padding(
                   padding:
-                      const EdgeInsets.only(left: 15, right: 15, bottom: 100 ,top: 20),
+                      const EdgeInsets.only(left: 15, right: 15, bottom: 100 ,top: 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

@@ -78,6 +78,7 @@ class _TrackScreenState extends State<TrackScreen>
         return Column(
           children: [
             AppUtils.buildHeader(
+              isFromOthers: true,
                 height: height,
                 width: width,
                 actionWidget: [

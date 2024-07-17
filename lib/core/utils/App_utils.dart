@@ -255,6 +255,9 @@ class AppUtils {
     Color? iconColor,
     bool? isFromTimeLine,
     int? batteryLevel,
+    double? borderRadius,
+    bool? isFromOthers,
+    Function()? leadingOnTap,
   }) {
     return Container(
       // height: height * 0.09,
@@ -266,7 +269,7 @@ class AppUtils {
             color: Colors.grey.withOpacity(0.5),
           ),
         ),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(borderRadius ?? 30)),
         color: Colors.white,
       ),
       child: Padding(
@@ -278,34 +281,37 @@ class AppUtils {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center, // Align vertically
               children: [
-                Container(
-                  margin: EdgeInsets.only(right: 10),
-                  height: 50,
-                  width: 50,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: backgroundColor ?? Colors.grey.withOpacity(0.5),
-                    border: Border.all(
-                      color: borderColor ?? Colors.grey.withOpacity(0.7),
-                      width: 2,
+                GestureDetector(
+                  onTap: isFromTimeLine == true ? (){} : leadingOnTap,
+                  child: Container(
+                    margin: EdgeInsets.only(right: 10),
+                    height: 50,
+                    width: 50,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: backgroundColor ?? Colors.grey.withOpacity(0.5),
+                      border: Border.all(
+                        color: isFromTimeLine  == true ? borderColor ?? Colors.grey.withOpacity(0.7) : isFromOthers ==true ? borderColor ?? Colors.grey.withOpacity(0.7) : AppConstant.transparentColor,
+                        width: 2,
+                      ),
                     ),
-                  ),
-                  child: Center(
-                    child: isFromTimeLine == true
-                        ? AppUtils.commonCacheNetworkImage(
-                      imgUrl: leadingImage,
-                      height: 50,
-                      width: 50,
-                      size: 20,
-                      errorIcon: Icons.person,
-                    )
-                        : AppUtils.commonAssetImageWidget(
-                      path: leadingImage ?? "",
-                      boxFit: BoxFit.cover,
-                      iconColor:
-                      iconColor ?? AppConstant.appPrimaryColor,
-                      height: 25,
-                      width: 25,
+                    child: Center(
+                      child: isFromTimeLine == true
+                          ? AppUtils.commonCacheNetworkImage(
+                        imgUrl: leadingImage,
+                        height: 50,
+                        width: 50,
+                        size: 20,
+                        errorIcon: Icons.person,
+                      )
+                          : isFromOthers == true ? AppUtils.commonAssetImageWidget(
+                        path: leadingImage ?? "",
+                        boxFit: BoxFit.cover,
+                        iconColor:
+                        iconColor ?? AppConstant.appPrimaryColor,
+                        height: 25,
+                        width: 25,
+                      ) : Icon(Icons.arrow_back_ios_new,size: 24,color: AppConstant.appPrimaryColor,)
                     ),
                   ),
                 ),
