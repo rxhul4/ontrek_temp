@@ -234,8 +234,6 @@ class DashBoardState extends State<DashBoard> {
         });
       case 3:
         return ProfileScreen();
-      // case 4:
-      //   return ProfileScreen();
       default:
         return Container();
     }

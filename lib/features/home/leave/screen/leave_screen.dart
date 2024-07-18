@@ -1,15 +1,17 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
+import 'package:ontrek/features/home/leave/screen/apply_leave_screen.dart';
 
-class DayEndApprovalScreen extends StatefulWidget {
-  const DayEndApprovalScreen({super.key});
+class LeaveScreen extends StatefulWidget {
+  const LeaveScreen({super.key});
 
   @override
-  State<DayEndApprovalScreen> createState() => _DayEndApprovalScreenState();
+  State<LeaveScreen> createState() => _LeaveScreenState();
 }
 
-class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
+class _LeaveScreenState extends State<LeaveScreen>
     with TickerProviderStateMixin {
   late TabController tabController;
   int selectedIndex = 0;
@@ -26,7 +28,21 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
     return Scaffold(
       backgroundColor: AppConstant.whiteColor,
       appBar: AppUtils.commonAppBar(
-          context: context, isBorder: true, isBack: true, title: "Day-end"),
+          context: context, isBorder: true, isBack: true, title: "Leave"),
+      floatingActionButton: GestureDetector(
+        onTap: () {
+          Navigator.push(context, CupertinoPageRoute(builder: (context) => ApplyLeaveScreen(),));
+        },
+        child: AppUtils.commonContainer(
+          margin: const EdgeInsets.only(top: 20,bottom: 60,right: 10),
+          padding:
+          const EdgeInsets.only(top: 13, bottom: 13,right: 30,left: 30),
+          decoration: BoxDecoration(
+              color: Colors.green,
+              borderRadius: AppUtils.borderRadiusAll(raduis: 10)),
+          child: AppUtils.commonTextWidget(text: "Apply",fontWeight: FontWeight.w400,textColor: AppConstant.whiteColor,fontSize: 12,),
+        ),
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -35,8 +51,8 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
               physics: NeverScrollableScrollPhysics(),
               controller: tabController,
               children: [
-                allDayEndRequests(),
-                allDayEndRequests(),
+                allLeaveRequests(),
+                allLeaveRequests(),
                 // allDayEndRequests(),
               ],
             )),
@@ -81,8 +97,8 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
                   ),
                   tabs: const [
                     // Tab(text: 'All'),
-                    Tab(text: 'My Request'),
-                    Tab(text: 'Employee Request'),
+                    Tab(text: 'My Leave Request'),
+                    Tab(text: 'Employee Leave Request'),
                   ]),
             ),
           ],
@@ -91,7 +107,7 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
     );
   }
 
-  allDayEndRequests() {
+  allLeaveRequests() {
     return ListView.builder(
       physics: BouncingScrollPhysics(),
       shrinkWrap: true,
@@ -129,7 +145,6 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
                             Icons.person,
                             color: Colors.orangeAccent,
                             size: 18,
-
                           ),
                           AppUtils.commonSizedBox(width: 5),
                           Expanded(
@@ -202,8 +217,9 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
                       padding: AppUtils.edgeInsetsOnly(
                           bottom: 3, top: 3, left: 10, right: 10),
                       decoration: AppUtils.commonBoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          color: AppConstant.appPrimaryColor,),
+                        borderRadius: BorderRadius.circular(6),
+                        color: AppConstant.appPrimaryColor,
+                      ),
                       child: AppUtils.commonTextWidget(
                           text: "Approved",
                           fontWeight: FontWeight.w400,
@@ -239,7 +255,7 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
               ),
               AppUtils.commonSizedBox(height: 8),
               AppUtils.commonTextWidget(
-                  text: "Test Data for day end approval design",
+                  text: "Test Data for Leave approval design",
                   fontSize: 12,
                   textColor: AppConstant.blackColor.withOpacity(0.9),
                   fontWeight: FontWeight.w400),
@@ -251,17 +267,17 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
               InkWell(
                 onTap: () {
                   AppUtils.showDialogBoxWithTwoButton(
-                    onSuccess: () {},
-                    onCancel: () {},
-                    context: context,
-                    onSuccessString: "Approve",
-                    onCancelString: "Cancel",
-                    text: "Do you want to approve Day end request ${"Kuldeep"} ",
-                    titleText: "DayEnd Request"
-                  );
+                      onSuccess: () {},
+                      onCancel: () {},
+                      context: context,
+                      onSuccessString: "Approve",
+                      onCancelString: "Cancel",
+                      text:
+                          "Do you want to approve Day end request ${"Kuldeep"} ",
+                      titleText: "DayEnd Request");
                 },
                 child: AppUtils.commonContainer(
-                  padding: AppUtils.edgeInsetsOnly(top: 5,bottom: 15),
+                  padding: AppUtils.edgeInsetsOnly(top: 5, bottom: 15),
                   color: Colors.white,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,

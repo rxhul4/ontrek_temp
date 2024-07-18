@@ -74,6 +74,7 @@ dependencies:
   firebase_analytics: ^11.0.1
   flutterfire_cli: ^1.0.1-dev.1
 #  flutter_background_geolocation: ^4.15.5
+  syncfusion_flutter_charts: ^26.1.42
 
 
 dev_dependencies:

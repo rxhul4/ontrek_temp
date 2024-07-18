@@ -6,7 +6,12 @@ import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
+import 'package:ontrek/features/home/customer/screen/cutomer_screen.dart';
 import 'package:ontrek/features/home/day_end_request_approval/screens/day_end_approval_screen.dart';
+import 'package:ontrek/features/home/expanse/screen/expanse_screen.dart';
+import 'package:ontrek/features/home/holidays/screen/holiday_screen.dart';
+import 'package:ontrek/features/home/leave/screen/leave_screen.dart';
+import 'package:ontrek/features/home/reports/screen/report_screen.dart';
 import 'package:ontrek/features/leads/screen/lead_screen.dart';
 import 'package:ontrek/features/task_list/screen/task_list_screen.dart';
 
@@ -183,6 +188,11 @@ class _HomeScreenState extends State<HomeScreen> {
         break;
       case 2:
         // for Reports
+        Navigator.push(
+            context,
+            CupertinoPageRoute(
+              builder: (context) => ReportScreen(),
+            ));
         break;
       case 3:
         // DayEnd Manual request Screen
@@ -195,17 +205,37 @@ class _HomeScreenState extends State<HomeScreen> {
         break;
       case 4:
         //Leave Management
-
+        Navigator.push(
+            context,
+            CupertinoPageRoute(
+              builder: (context) => LeaveScreen(),
+            ));
         break;
       case 5:
-        //Expanse Management
+
+        Navigator.push(
+            context,
+            CupertinoPageRoute(
+              builder: (context) => CustomerScreen(),
+            ));
         break;
 
       case 6:
-        //holiday Management
+        //Expanse Management
+        Navigator.push(
+            context,
+            CupertinoPageRoute(
+              builder: (context) => ExpanseScreen(),
+            ));
+
         break;
       case 7:
-        // customer listing screen
+        // holidays screen
+        Navigator.push(
+            context,
+            CupertinoPageRoute(
+              builder: (context) => HolidayScreen(),
+            ));
 
         break;
       default:
