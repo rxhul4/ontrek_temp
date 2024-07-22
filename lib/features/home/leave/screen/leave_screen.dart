@@ -51,7 +51,7 @@ class _LeaveScreenState extends State<LeaveScreen>
               physics: NeverScrollableScrollPhysics(),
               controller: tabController,
               children: [
-                allLeaveRequests(),
+                myLeaveRequests(),
                 allLeaveRequests(),
                 // allDayEndRequests(),
               ],
@@ -107,7 +107,7 @@ class _LeaveScreenState extends State<LeaveScreen>
     );
   }
 
-  allLeaveRequests() {
+  myLeaveRequests() {
     return ListView.builder(
       physics: BouncingScrollPhysics(),
       shrinkWrap: true,
@@ -118,7 +118,7 @@ class _LeaveScreenState extends State<LeaveScreen>
           width: double.infinity,
           margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
           padding:
-              const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 0),
+              const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 20),
           decoration: BoxDecoration(
               color: AppConstant.whiteColor,
               borderRadius: AppUtils.borderRadiusAll(raduis: 10),
@@ -259,6 +259,164 @@ class _LeaveScreenState extends State<LeaveScreen>
                   fontSize: 12,
                   textColor: AppConstant.blackColor.withOpacity(0.9),
                   fontWeight: FontWeight.w400),
+            ],
+          ),
+        );
+      },
+    );
+  }
+  allLeaveRequests() {
+    return ListView.builder(
+      physics: BouncingScrollPhysics(),
+      shrinkWrap: true,
+      itemCount: 10,
+      padding: AppUtils.edgeInsetsOnly(bottom: 20, top: 0, left: 0, right: 0),
+      itemBuilder: (context, index) {
+        return AppUtils.commonContainer(
+          width: double.infinity,
+          margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
+          padding:
+          const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 0),
+          decoration: BoxDecoration(
+              color: AppConstant.whiteColor,
+              borderRadius: AppUtils.borderRadiusAll(raduis: 10),
+              boxShadow: [
+                BoxShadow(
+                    color: AppConstant.greyColor.withOpacity(0.3),
+                    blurRadius: 8,
+                    blurStyle: BlurStyle.solid,
+                    spreadRadius: 0.8),
+              ]),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppUtils.commonContainer(
+                width: double.infinity,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      flex: 2,
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.person,
+                            color: Colors.orangeAccent,
+                            size: 18,
+                          ),
+                          AppUtils.commonSizedBox(width: 5),
+                          Expanded(
+                            child: AppUtils.commonTextWidget(
+                              text: "Demo Name",
+                              fontSize: 12,
+                              textColor:
+                              AppConstant.blackColor.withOpacity(0.9),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: 40),
+                    // Adjust the width as per your requirement
+                    Flexible(
+                      flex: 2,
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.timer_outlined,
+                            color: Colors.green,
+                            size: 15,
+                          ),
+                          AppUtils.commonSizedBox(width: 3),
+                          Expanded(
+                            child: AppUtils.commonTextWidget(
+                              text: AppUtils.getDate(
+                                date: "2024-07-07T23:20:00Z",
+                                format: "dd MMM yyyy hh:mm a",
+                              ),
+                              fontSize: 12,
+                              textColor:
+                              AppConstant.blackColor.withOpacity(0.9),
+                              fontWeight: FontWeight.w500,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              AppUtils.commonSizedBox(height: 5),
+              Divider(
+                color: AppConstant.greyColor.withOpacity(0.3),
+              ),
+              AppUtils.commonSizedBox(height: 5),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.task_sharp,
+                        color: Colors.blue,
+                        size: 18,
+                      ),
+                      AppUtils.commonSizedBox(width: 5),
+                      AppUtils.commonTextWidget(
+                          text: "Approval Status",
+                          fontSize: 12,
+                          textColor: AppConstant.blackColor.withOpacity(0.9),
+                          fontWeight: FontWeight.w500)
+                    ],
+                  ),
+                  AppUtils.commonContainer(
+                      padding: AppUtils.edgeInsetsOnly(
+                          bottom: 3, top: 3, left: 10, right: 10),
+                      decoration: AppUtils.commonBoxDecoration(
+                        borderRadius: BorderRadius.circular(6),
+                        color: AppConstant.appPrimaryColor,
+                      ),
+                      child: AppUtils.commonTextWidget(
+                          text: "Approved",
+                          fontWeight: FontWeight.w400,
+                          textColor: AppConstant.whiteColor,
+                          fontSize: 10))
+                ],
+              ),
+              AppUtils.commonSizedBox(height: 5),
+              Divider(
+                color: AppConstant.greyColor.withOpacity(0.3),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.notes,
+                        color: Colors.purpleAccent,
+                        size: 18,
+                      ),
+                      AppUtils.commonSizedBox(width: 5),
+                      AppUtils.commonTextWidget(
+                          text: /* viewTaskProvider
+                                          .taskByIdModel?.data?.taskTitle ??*/
+                          "Comment",
+                          fontSize: 12,
+                          textColor: AppConstant.blackColor.withOpacity(0.9),
+                          fontWeight: FontWeight.w500)
+                    ],
+                  ),
+                ],
+              ),
+              AppUtils.commonSizedBox(height: 8),
+              AppUtils.commonTextWidget(
+                  text: "Test Data for Leave approval design",
+                  fontSize: 12,
+                  textColor: AppConstant.blackColor.withOpacity(0.9),
+                  fontWeight: FontWeight.w400),
               AppUtils.commonSizedBox(height: 10),
               Divider(
                 color: AppConstant.greyColor.withOpacity(0.3),
@@ -273,7 +431,7 @@ class _LeaveScreenState extends State<LeaveScreen>
                       onSuccessString: "Approve",
                       onCancelString: "Cancel",
                       text:
-                          "Do you want to approve Day end request ${"Kuldeep"} ",
+                      "Do you want to approve Day end request ${"Kuldeep"} ",
                       titleText: "DayEnd Request");
                 },
                 child: AppUtils.commonContainer(

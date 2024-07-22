@@ -225,7 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Navigator.push(
             context,
             CupertinoPageRoute(
-              builder: (context) => ExpanseScreen(),
+              builder: (context) => ExpenseScreen(),
             ));
 
         break;
