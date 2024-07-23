@@ -122,7 +122,7 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
             positionData: position,
             companyName: companyNameController.text,
             customerName: customerNameController.text,
-            customerPhoneNumber: customerPhoneNumberController.text,
+            customerPhoneNumber: customerPhoneNumberController.text.trim(),
             visitDiscussion: visitDiscussionNameController.text,
             visitTypeCode: selectedTotId)
         .then((value) async {
@@ -527,11 +527,17 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
           context: context,
           message: "Enter Client Name",
           giveColor: Colors.red);
-    } else if (customerPhoneNumberController.text.isEmpty) {
+    } else if (customerPhoneNumberController.text.isEmpty ) {
       AppUtils.showSnackBarWithColor(
           context: context,
           message: "Enter Customer Phone Number",
           giveColor: Colors.red);
+    }else if(customerPhoneNumberController.text.length != 10 ){
+      AppUtils.showSnackBarWithColor(
+          context: context,
+          message: "Customer Phone Number Must be 10 Character.",
+          giveColor: Colors.red);
+
     } else if (visitDiscussionNameController.text.isEmpty) {
       AppUtils.showSnackBarWithColor(
           context: context,

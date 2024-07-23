@@ -850,13 +850,18 @@ class AppUtils {
       context: context ?? navigatorKey.currentState!.context,
       builder: (context) {
         return CupertinoAlertDialog(
-          title: AppUtils.commonTextWidget(
-              text: titleText ?? "",
-              textColor: AppConstant.blackColor,
-              fontSize: 14,
-              textAlign: TextAlign.center,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.5),
+          insetAnimationDuration: Duration(milliseconds: 400),
+          insetAnimationCurve: Curves.bounceIn,
+          title: Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: AppUtils.commonTextWidget(
+                text: titleText ?? "",
+                textColor: AppConstant.blackColor,
+                fontSize: 14,
+                textAlign: TextAlign.center,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5),
+          ),
           actions: [
             CupertinoDialogAction(
               child: AppUtils.commonTextWidget(

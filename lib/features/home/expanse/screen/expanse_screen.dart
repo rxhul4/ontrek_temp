@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
+import 'package:ontrek/features/home/expanse/screen/add_expense_screen.dart';
 import 'package:ontrek/features/home/leave/screen/apply_leave_screen.dart';
 
 class ExpenseScreen extends StatefulWidget {
@@ -28,34 +29,66 @@ class _ExpenseScreenState extends State<ExpenseScreen>
     return Scaffold(
       backgroundColor: AppConstant.whiteColor,
       appBar: AppUtils.commonAppBar(
-          context: context, isBorder: true, isBack: true, title: "Expense"),
-      floatingActionButton: GestureDetector(
-        onTap: () {
-          Navigator.push(context, CupertinoPageRoute(builder: (context) => ApplyLeaveScreen(),));
-        },
-        child: AppUtils.commonContainer(
-          margin: const EdgeInsets.only(top: 20,bottom: 60,right: 10),
-          padding:
-          const EdgeInsets.only(top: 13, bottom: 13,right: 30,left: 30),
-          decoration: BoxDecoration(
-              color: Colors.green,
-              borderRadius: AppUtils.borderRadiusAll(raduis: 10)),
-          child: AppUtils.commonTextWidget(text: "Add",fontWeight: FontWeight.w400,textColor: AppConstant.whiteColor,fontSize: 12,),
-        ),
-      ),
+          context: context,
+          isBorder: true,
+          isBack: true,
+          title: "Expense",
+          isActionWidgetAvailable: true,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 20,top:5),
+              child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        CupertinoPageRoute(
+                          builder: (context) => AddExpenseScreen(),
+                        ));
+                  },
+                  child: AppUtils.commonTextWidget(
+                    text: "Add",
+                    fontWeight: FontWeight.w400,
+                    textColor: AppConstant.blackColor,
+                    fontSize: 14,
+                  )),
+            )
+          ]),
+      // floatingActionButton: GestureDetector(
+      //   onTap: () {
+      //     Navigator.push(
+      //         context,
+      //         CupertinoPageRoute(
+      //           builder: (context) => AddExpenseScreen(),
+      //         ));
+      //   },
+      //   child: AppUtils.commonContainer(
+      //     margin: const EdgeInsets.only(top: 20, bottom: 60, right: 10),
+      //     padding:
+      //         const EdgeInsets.only(top: 13, bottom: 13, right: 30, left: 30),
+      //     decoration: BoxDecoration(
+      //         color: Colors.green,
+      //         borderRadius: AppUtils.borderRadiusAll(raduis: 10)),
+      //     child: AppUtils.commonTextWidget(
+      //       text: "Add",
+      //       fontWeight: FontWeight.w400,
+      //       textColor: AppConstant.whiteColor,
+      //       fontSize: 12,
+      //     ),
+      //   ),
+      // ),
       body: SafeArea(
         child: Column(
           children: [
             Expanded(
                 child: TabBarView(
-                  physics: NeverScrollableScrollPhysics(),
-                  controller: tabController,
-                  children: [
-                    myExpenses(),
-                    employeeExpenses(),
-                    // allDayEndRequests(),
-                  ],
-                )),
+              physics: NeverScrollableScrollPhysics(),
+              controller: tabController,
+              children: [
+                myExpenses(),
+                employeeExpenses(),
+                // allDayEndRequests(),
+              ],
+            )),
             AppUtils.commonContainer(
               height: 50,
               margin: EdgeInsets.only(top: 0, left: 0, right: 0, bottom: 0),
@@ -118,7 +151,7 @@ class _ExpenseScreenState extends State<ExpenseScreen>
           width: double.infinity,
           margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
           padding:
-          const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 20),
+              const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 20),
           decoration: BoxDecoration(
               color: AppConstant.whiteColor,
               borderRadius: AppUtils.borderRadiusAll(raduis: 10),
@@ -152,7 +185,7 @@ class _ExpenseScreenState extends State<ExpenseScreen>
                               text: "Demo Name",
                               fontSize: 12,
                               textColor:
-                              AppConstant.blackColor.withOpacity(0.9),
+                                  AppConstant.blackColor.withOpacity(0.9),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -179,7 +212,7 @@ class _ExpenseScreenState extends State<ExpenseScreen>
                               ),
                               fontSize: 12,
                               textColor:
-                              AppConstant.blackColor.withOpacity(0.9),
+                                  AppConstant.blackColor.withOpacity(0.9),
                               fontWeight: FontWeight.w500,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -243,9 +276,7 @@ class _ExpenseScreenState extends State<ExpenseScreen>
                       ),
                       AppUtils.commonSizedBox(width: 5),
                       AppUtils.commonTextWidget(
-                          text: /* viewTaskProvider
-                                          .taskByIdModel?.data?.taskTitle ??*/
-                          "Comment",
+                          text: "Comment",
                           fontSize: 12,
                           textColor: AppConstant.blackColor.withOpacity(0.9),
                           fontWeight: FontWeight.w500)
@@ -265,6 +296,7 @@ class _ExpenseScreenState extends State<ExpenseScreen>
       },
     );
   }
+
   employeeExpenses() {
     return ListView.builder(
       physics: BouncingScrollPhysics(),
@@ -275,8 +307,7 @@ class _ExpenseScreenState extends State<ExpenseScreen>
         return AppUtils.commonContainer(
           width: double.infinity,
           margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
-          padding:
-          const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 0),
+          padding: const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 0),
           decoration: BoxDecoration(
               color: AppConstant.whiteColor,
               borderRadius: AppUtils.borderRadiusAll(raduis: 10),
@@ -310,7 +341,7 @@ class _ExpenseScreenState extends State<ExpenseScreen>
                               text: "Demo Name",
                               fontSize: 12,
                               textColor:
-                              AppConstant.blackColor.withOpacity(0.9),
+                                  AppConstant.blackColor.withOpacity(0.9),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -337,7 +368,7 @@ class _ExpenseScreenState extends State<ExpenseScreen>
                               ),
                               fontSize: 12,
                               textColor:
-                              AppConstant.blackColor.withOpacity(0.9),
+                                  AppConstant.blackColor.withOpacity(0.9),
                               fontWeight: FontWeight.w500,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -403,7 +434,7 @@ class _ExpenseScreenState extends State<ExpenseScreen>
                       AppUtils.commonTextWidget(
                           text: /* viewTaskProvider
                                           .taskByIdModel?.data?.taskTitle ??*/
-                          "Comment",
+                              "Comment",
                           fontSize: 12,
                           textColor: AppConstant.blackColor.withOpacity(0.9),
                           fontWeight: FontWeight.w500)
@@ -431,7 +462,7 @@ class _ExpenseScreenState extends State<ExpenseScreen>
                       onSuccessString: "Approve",
                       onCancelString: "Cancel",
                       text:
-                      "Do you want to approve Expense request ${"Kuldeep"} ",
+                          "Do you want to approve Expense request ${"Kuldeep"} ",
                       titleText: "DayEnd Request");
                 },
                 child: AppUtils.commonContainer(
