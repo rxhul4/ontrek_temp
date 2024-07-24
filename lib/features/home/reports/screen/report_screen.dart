@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
+import 'package:ontrek/features/home/reports/model/get_all_report_model.dart';
 import 'package:ontrek/features/home/reports/model/report_model.dart';
+import 'package:ontrek/features/home/reports/provider/report_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class ReportScreen extends StatefulWidget {
@@ -12,25 +16,56 @@ class ReportScreen extends StatefulWidget {
   State<ReportScreen> createState() => _ReportScreenState();
 }
 
-class _ReportScreenState extends State<ReportScreen>  with TickerProviderStateMixin  {
+class _ReportScreenState extends State<ReportScreen>
+    with TickerProviderStateMixin {
   String? userId;
-  late List<UserAttendenceReport> chartData = [];
+  String? userName;
   late TooltipBehavior tooltipBehavior;
   late TabController tabController;
   int selectedIndex = 0;
+  late ReportProvider reportProvider;
+  List<bool> isExpandedList = [];
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
-    chartData = reportData();
     tabController = TabController(length: 2, vsync: this);
     tooltipBehavior = TooltipBehavior(enable: true);
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) async {
+        reportProvider = Provider.of<ReportProvider>(context, listen: false);
+        if (selectedIndex == 0) {
+          reportProvider.apiCallGetAllReport(
+              reportType: 1,
+              userId: userId,
+              reportDate: AppUtils.getDate(
+                  date: DateTime.now().toString(), format: "yyyy-MM-dd"));
+        } else {
+          reportProvider.apiCallGetAllReport(
+              userId: userId,
+              reportDate: AppUtils.getDate(
+                  date: DateTime.now().toString(), format: "yyyy-MM-01"));
+        }
+        userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
+        userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
+        isExpandedList = List.generate(
+            reportProvider.getAllReportModel?.data?.userAttendenceReport
+                    ?.firstWhere(
+                      (element) => element.userId == userId,
+                    )
+                    .userAttendenceDetail
+                    ?.length ??
+                0,
+            (index) => false);
+        setState(() {});
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    reportProvider = Provider.of<ReportProvider>(context);
     return Scaffold(
       backgroundColor: AppConstant.whiteColor,
       appBar: AppUtils.commonAppBar(
@@ -44,28 +79,61 @@ class _ReportScreenState extends State<ReportScreen>  with TickerProviderStateMi
         children: [
           Expanded(
               child: TabBarView(
-                physics: NeverScrollableScrollPhysics(),
-                controller: tabController,
-                children: [
-                  reportCardDaily(),
-                  reportCardMonthly(),
-                  // allDayEndRequests(),
-                ],
-              )),
-
+            physics: NeverScrollableScrollPhysics(),
+            controller: tabController,
+            children: [
+              reportCardDaily(
+                  reportProvider.getAllReportModel?.data?.userAttendenceReport
+                      ?.where(
+                        (element) => element.userId == userId,
+                      )
+                      .toList()),
+              reportCardMonthly(
+                  reportProvider.getAllReportModel?.data?.userAttendenceReport
+                      ?.firstWhere(
+                        (element) => element.userId == userId,
+                      )
+                      .userAttendenceDetail,
+                  reportProvider),
+              // allDayEndRequests(),
+            ],
+          )),
           AppUtils.commonContainer(
             height: 50,
             margin: EdgeInsets.only(top: 0, left: 0, right: 0, bottom: 0),
             decoration: AppUtils.commonBoxDecoration(
               color: AppConstant.greyColor.withOpacity(0.2),
-              // borderRadius: AppUtils.borderRadiusAll(raduis: 5),
             ),
             child: TabBar.secondary(
-                onTap: (value) {
+                onTap: (value) async {
                   setState(() {
                     selectedIndex = value;
                   });
-                  // callCallGetTaskByIdListApi(taskProvider: taskProvider);
+                  if (selectedIndex == 0) {
+                    await reportProvider.apiCallGetAllReport(
+                        reportType: 1,
+                        userId: userId,
+                        reportDate: AppUtils.getDate(
+                            date: DateTime.now().toString(),
+                            format: "yyyy-MM-dd"));
+                  } else {
+                    await reportProvider.apiCallGetAllReport(
+                        userId: userId,
+                        reportDate: AppUtils.getDate(
+                            date: DateTime.now().toString(),
+                            format: "yyyy-MM-01"));
+                    isExpandedList = List.generate(
+                        reportProvider
+                                .getAllReportModel?.data?.userAttendenceReport
+                                ?.firstWhere(
+                                  (element) => element.userId == userId,
+                                )
+                                .userAttendenceDetail
+                                ?.length ??
+                            0,
+                        (index) => false);
+                    setState(() {});
+                  }
                 },
                 physics: const NeverScrollableScrollPhysics(),
                 isScrollable: false,
@@ -98,436 +166,473 @@ class _ReportScreenState extends State<ReportScreen>  with TickerProviderStateMi
                   Tab(text: 'Monthly Report'),
                 ]),
           ),
-
         ],
       ),
     );
   }
 
-  bool _isExpanded = false;
-  List<bool> isExpandedList = List.generate(5, (index) => false); // Assuming 5 items
-
-
-  Widget reportCardMonthly(){
-    return SingleChildScrollView(
-      physics: BouncingScrollPhysics(),
-      child: Column(
-        children: [
-          AppUtils.commonContainer(
-            width: double.infinity,
-            margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
-            padding:
-            const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 0),
-            decoration: BoxDecoration(
-                color: AppConstant.whiteColor,
-                borderRadius: AppUtils.borderRadiusAll(raduis: 10),
-                boxShadow: [
-                  BoxShadow(
-                      color: AppConstant.greyColor.withOpacity(0.3),
-                      blurRadius: 8,
-                      blurStyle: BlurStyle.solid,
-                      spreadRadius: 0.8),
-                ]),
-            child: SfCartesianChart(
-              tooltipBehavior: tooltipBehavior,
-              title: ChartTitle(text: "Monthly Track Reports of Employee"),
-              legend: Legend(isVisible: true),
-              series: [
-                StackedColumnSeries<UserAttendenceReport,String>(
-                    dataSource: chartData,
-                    enableTooltip: true,
-                    name: "Internet",
-                    xValueMapper: (UserAttendenceReport data, _) => data.userId,
-                    yValueMapper: (UserAttendenceReport data, _) => data.sumInternetOffMinutes),
-                StackedColumnSeries<UserAttendenceReport,String>(
-                    dataSource: chartData,
-                    enableTooltip: true,
-                    name: "Gps",
-                    xValueMapper: (UserAttendenceReport data, _) => data.userId,
-                    yValueMapper: (UserAttendenceReport data, _) => data.sumGpsOffMinutes),
-                StackedColumnSeries<UserAttendenceReport,String>(
-                    dataSource: chartData,
-                    enableTooltip: true,
-                    name: "Waiting",
-                    xValueMapper: (UserAttendenceReport data, _) => data.userId,
-                    yValueMapper: (UserAttendenceReport data, _) => data.sumWaitingMinutes),
-                StackedColumnSeries<UserAttendenceReport,String>(
-                    dataSource: chartData,
-                    enableTooltip: true,
-                    name: "Traveling",
-                    xValueMapper: (UserAttendenceReport data, _) => data.userId,
-                    yValueMapper: (UserAttendenceReport data, _) => data.sumAppOffTime),
-              ],
-              primaryXAxis: CategoryAxis(),
-
-            ),
-          ),
-          ListView.builder(
-            itemCount: 5,
-            shrinkWrap: true,
-            padding: AppUtils.edgeInsetsOnly(bottom: 20),
-            physics: NeverScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
-              return  GestureDetector(
-                onTap: () {
-                  isExpandedList[index] = !isExpandedList[index];
-                  setState(() {
-
-                  });
+// daily report widget
+  Widget reportCardDaily(List<UserAttendenceReport>? userAttendenceReport) {
+    return reportProvider.isFetching
+        ? AppUtils.loaderWidget()
+        : userAttendenceReport == null || userAttendenceReport.length == 0
+            ? AppUtils.commonNoDataFound(
+                text: "No Data Found",
+                onPressed: () async {
+                  await reportProvider.apiCallGetAllReport(
+                      reportType: 1,
+                      userId: userId,
+                      reportDate: AppUtils.getDate(
+                          date: DateTime.now().toString(),
+                          format: "yyyy-MM-dd"));
                 },
-                child: AnimatedContainer(
-                  duration: !isExpandedList[index] ? Duration(milliseconds: 0) : Duration(milliseconds: 700),
-                  width: double.infinity,
-                  margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
-                  padding: isExpandedList[index]
-                      ? const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 0)
-                      : const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.all(Radius.circular(10)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.3),
-                        blurRadius: 8,
-                        blurStyle: BlurStyle.solid,
-                        spreadRadius: 0.8,
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            flex: 3,
-                            child: AppUtils.commonTextWidget(
-                             text:  "12 July 2024",
-                              textColor: AppConstant.appPrimaryColor,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          SizedBox(width: 50),
-                          Expanded(
-                            flex: 2,
-                            child: AppUtils.commonTextWidget(
-                              text:  "Kuldeep Chauhan",
-                              textColor: AppConstant.appPrimaryColor,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (isExpandedList[index]) ...[
-                        SizedBox(height: 10),
-                        Divider(
-                          color: Colors.grey.withOpacity(0.3),
-                        ),
-                        SizedBox(height: 10),
-                        GridView.builder(
-                          shrinkWrap: true,
-                          padding: EdgeInsets.only(bottom: 20),
-                          physics: NeverScrollableScrollPhysics(),
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            crossAxisSpacing: 60,
-                            mainAxisSpacing: 10,
-                          ),
-                          itemCount: 6,
-                          itemBuilder: (context, index) {
-                            return GestureDetector(
-                              onTap: () {
-                                // Add your navigation logic here
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey.withOpacity(0.2),
-                                      blurRadius: 8,
-                                      blurStyle: BlurStyle.solid,
-                                      spreadRadius: 0.8,
-                                    ),
-                                  ],
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    SizedBox(height: 10),
-                                    AppUtils.commonTextWidget(
-                                      text:  "Waiting",
-                                      textColor: AppConstant.appPrimaryColor,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    Divider(
-                                      indent: 10,
-                                      endIndent: 10,
-                                      color: Colors.grey.withOpacity(0.3),
-                                    ),
-
-                                    AppUtils.commonTextWidget(
-                                      text:  "500",
-                                      textColor: AppConstant.appPrimaryColor,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    )
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              );
-            },),
-        ],
-      ),
-    );
-  }
-  Widget reportCardDaily(){
-    return Column(
-      children: [
-        AppUtils.commonContainer(
-          width: double.infinity,
-          margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
-          padding:
-          const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 0),
-          decoration: BoxDecoration(
-              color: AppConstant.whiteColor,
-              borderRadius: AppUtils.borderRadiusAll(raduis: 10),
-              boxShadow: [
-                BoxShadow(
-                    color: AppConstant.greyColor.withOpacity(0.3),
-                    blurRadius: 8,
-                    blurStyle: BlurStyle.solid,
-                    spreadRadius: 0.8),
-              ]),
-          child: SfCartesianChart(
-            tooltipBehavior: tooltipBehavior,
-            title: ChartTitle(text: "Monthly Track Reports of Employee"),
-            legend: Legend(isVisible: true),
-            series: [
-              StackedColumnSeries<UserAttendenceReport,String>(
-                  dataSource: chartData,
-                  enableTooltip: true,
-                  name: "Internet",
-                  xValueMapper: (UserAttendenceReport data, _) => data.userId,
-                  yValueMapper: (UserAttendenceReport data, _) => data.sumInternetOffMinutes),
-              StackedColumnSeries<UserAttendenceReport,String>(
-                  dataSource: chartData,
-                  enableTooltip: true,
-                  name: "Gps",
-                  xValueMapper: (UserAttendenceReport data, _) => data.userId,
-                  yValueMapper: (UserAttendenceReport data, _) => data.sumGpsOffMinutes),
-              StackedColumnSeries<UserAttendenceReport,String>(
-                  dataSource: chartData,
-                  enableTooltip: true,
-                  name: "Waiting",
-                  xValueMapper: (UserAttendenceReport data, _) => data.userId,
-                  yValueMapper: (UserAttendenceReport data, _) => data.sumWaitingMinutes),
-              StackedColumnSeries<UserAttendenceReport,String>(
-                  dataSource: chartData,
-                  enableTooltip: true,
-                  name: "Traveling",
-                  xValueMapper: (UserAttendenceReport data, _) => data.userId,
-                  yValueMapper: (UserAttendenceReport data, _) => data.sumAppOffTime),
-            ],
-            primaryXAxis: CategoryAxis(),
-
-          ),
-        ),
-        AppUtils.commonContainer(
-          width: double.infinity,
-          margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
-          padding:
-          const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 0),
-          decoration: BoxDecoration(
-              color: AppConstant.whiteColor,
-              borderRadius: AppUtils.borderRadiusAll(raduis: 10),
-              boxShadow: [
-                BoxShadow(
-                    color: AppConstant.greyColor.withOpacity(0.3),
-                    blurRadius: 8,
-                    blurStyle: BlurStyle.solid,
-                    spreadRadius: 0.8),
-              ]),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(flex: 3,child: AppUtils.commonTextWidget(text: "12 July 2024",fontSize: 12,fontWeight: FontWeight.w500,textColor: AppConstant.appPrimaryColor)),
-                  AppUtils.commonSizedBox(width: 50),
-                  Expanded(flex: 2,child: AppUtils.commonTextWidget(text: "Kuldeep Chauhan",fontSize: 12,fontWeight: FontWeight.w500,textColor: AppConstant.appPrimaryColor,/*overflow: TextOverflow.ellipsis*/)),
-                ],
-              ),
-
-              AppUtils.commonSizedBox(height: 10,),
-              Divider(
-                color: AppConstant.greyColor.withOpacity(0.3),
-              ),
-              AppUtils.commonSizedBox(height: 10,),
-              GridView.builder(
-                shrinkWrap: true,
-                padding: AppUtils.edgeInsetsOnly(bottom: 20),
-                physics: NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    // childAspectRatio: 4/2,
-                    crossAxisSpacing: 60,
-                    mainAxisSpacing: 10),
-                itemCount: 6,
-                // Set the number of items in the grid
-                itemBuilder: (context, index) {
-                  return GestureDetector(
-                    onTap: () {
-                      // navigateToScreenFnc(index, context);
-                      // Navigator.push(context, CupertinoPageRoute(builder: (context) => TaskListScreen(),));
-                    },
-                    child: AppUtils.commonContainer(
-                      // margin: AppUtils.edgeInsetsOnly(top: 0,bottom: 0,right: 0,left: 0),
+              )
+            : SingleChildScrollView(
+                physics: BouncingScrollPhysics(),
+                child: Column(
+                  children: [
+                    AppUtils.commonContainer(
+                      width: double.infinity,
+                      margin:
+                          const EdgeInsets.only(left: 10, right: 10, top: 20),
+                      padding: const EdgeInsets.only(
+                          left: 15, right: 15, top: 20, bottom: 0),
                       decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppConstant.whiteColor,
                           borderRadius: AppUtils.borderRadiusAll(raduis: 10),
                           boxShadow: [
                             BoxShadow(
-                                color: AppConstant.greyColor
-                                    .withOpacity(0.2),
+                                color: AppConstant.greyColor.withOpacity(0.3),
+                                blurRadius: 8,
+                                blurStyle: BlurStyle.solid,
+                                spreadRadius: 0.8),
+                          ]),
+                      child: SfCartesianChart(
+                        tooltipBehavior: tooltipBehavior,
+                        title: ChartTitle(
+                            text: "Monthly Track Reports of Employee"),
+                        legend: Legend(isVisible: true),
+                        series: [
+                          StackedColumnSeries<UserAttendenceReport, String>(
+                              dataSource: userAttendenceReport,
+                              enableTooltip: true,
+                              name: "Internet",
+                              xValueMapper: (UserAttendenceReport data, _) =>
+                                  data.datePeriod,
+                              yValueMapper: (UserAttendenceReport data, _) =>
+                                  data.sumInternetOffMinutes),
+                          StackedColumnSeries<UserAttendenceReport, String>(
+                              dataSource: userAttendenceReport,
+                              enableTooltip: true,
+                              name: "Gps",
+                              xValueMapper: (UserAttendenceReport data, _) =>
+                                  data.datePeriod,
+                              yValueMapper: (UserAttendenceReport data, _) =>
+                                  data.sumGpsOffMinutes),
+                          StackedColumnSeries<UserAttendenceReport, String>(
+                              dataSource: userAttendenceReport,
+                              enableTooltip: true,
+                              name: "Waiting",
+                              xValueMapper: (UserAttendenceReport data, _) =>
+                                  data.datePeriod,
+                              yValueMapper: (UserAttendenceReport data, _) =>
+                                  data.sumWaitingMinutes),
+                          StackedColumnSeries<UserAttendenceReport, String>(
+                              dataSource: userAttendenceReport,
+                              enableTooltip: true,
+                              name: "Traveling",
+                              xValueMapper: (UserAttendenceReport data, _) =>
+                                  data.datePeriod,
+                              yValueMapper: (UserAttendenceReport data, _) =>
+                                  data.sumAppOffTime),
+                        ],
+                        primaryXAxis: CategoryAxis(),
+                      ),
+                    ),
+                    AppUtils.commonContainer(
+                      width: double.infinity,
+                      margin:
+                          const EdgeInsets.only(left: 10, right: 10, top: 20),
+                      padding: const EdgeInsets.only(
+                          left: 15, right: 15, top: 20, bottom: 0),
+                      decoration: BoxDecoration(
+                          color: AppConstant.whiteColor,
+                          borderRadius: AppUtils.borderRadiusAll(raduis: 10),
+                          boxShadow: [
+                            BoxShadow(
+                                color: AppConstant.greyColor.withOpacity(0.3),
                                 blurRadius: 8,
                                 blurStyle: BlurStyle.solid,
                                 spreadRadius: 0.8),
                           ]),
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          SizedBox(height: 5),
-                          AppUtils.commonTextWidget(
-                              text: "Waiting",
-                              textColor: AppConstant.appPrimaryColor,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500),
-                          Divider(
-                            indent: 10,
-                            endIndent: 10,
-                            color: AppConstant.greyColor.withOpacity(0.3),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: AppUtils.commonTextWidget(
+                                  text: userAttendenceReport?.first.datePeriod
+                                          .toString() ??
+                                      "",
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  textColor: AppConstant.appPrimaryColor,
+                                ),
+                              ),
+                              Container(
+                                width: MediaQuery.of(context).size.width / 3,
+                                child: AppUtils.commonTextWidget(
+                                  text: userName ?? "",
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  textColor: AppConstant.appPrimaryColor,
+                                  overflow: TextOverflow
+                                      .ellipsis, // Ensure text does not overflow
+                                ),
+                              ),
+                            ],
                           ),
-                          SizedBox(height: 5),
-                          AppUtils.commonTextWidget(
-                              text: "50",
-                              textColor: AppConstant.appPrimaryColor,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500),
-
-
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              AppUtils.commonSizedBox(
+                                height: 10,
+                              ),
+                              Divider(
+                                color: AppConstant.greyColor.withOpacity(0.3),
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  CommonContainerOfReportData(
+                                      title: "Attendance",
+                                      value: userAttendenceReport
+                                                  ?.first.absentDays ==
+                                              0
+                                          ? "P"
+                                          : "A",
+                                      valueColor: userAttendenceReport
+                                                  ?.first.absentDays ==
+                                              0
+                                          ? Colors.green
+                                          : Colors.red),
+                                  CommonContainerOfReportData(
+                                      title: "App Off",
+                                      value: userAttendenceReport
+                                          ?.first.sumAppOffTime
+                                          .toString()),
+                                  CommonContainerOfReportData(
+                                      title: "Km",
+                                      value: userAttendenceReport
+                                          ?.first.sumTotalKm
+                                          .toString()),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  CommonContainerOfReportData(
+                                      title: "Waiting",
+                                      value: userAttendenceReport
+                                          ?.first.sumWaitingMinutes
+                                          .toString()),
+                                  CommonContainerOfReportData(
+                                      title: "Internet",
+                                      value: userAttendenceReport
+                                          ?.first.sumInternetOffMinutes
+                                          .toString()),
+                                  CommonContainerOfReportData(
+                                      title: "Gps",
+                                      value: userAttendenceReport
+                                          ?.first.sumGpsOffMinutes
+                                          .toString()),
+                                ],
+                              )
+                            ],
+                          ),
                         ],
                       ),
                     ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
+                  ],
+                ),
+              );
   }
 
-  List<UserAttendenceReport> reportData() {
-    List<UserAttendenceReport> _chartData = [
-      UserAttendenceReport(
-        userId: "1",
-        absentDays: 5,
-        sumAppOffTime: 10,
-        sumGpsOffMinutes: 15,
-        sumInternetOffMinutes: 15,
-        sumWaitingMinutes: 200,
+// Monthly report widget
+  Widget reportCardMonthly(List<UserAttendenceDetail>? userAttendenceDetail,
+      ReportProvider reportProvider) {
+    return reportProvider.isFetching
+        ? AppUtils.loaderWidget()
+        : userAttendenceDetail == null || userAttendenceDetail.length == 0
+            ? AppUtils.commonNoDataFound(
+                text: "No Data Found",
+                onPressed: () async {
+                  await reportProvider.apiCallGetAllReport(
+                      reportType: 1,
+                      userId: userId,
+                      reportDate: AppUtils.getDate(
+                          date: DateTime.now().toString(),
+                          format: "yyyy-MM-dd"));
+                },
+              )
+            : SingleChildScrollView(
+                physics: BouncingScrollPhysics(),
+                child: Column(
+                  children: [
+                    AppUtils.commonContainer(
+                      width: double.infinity,
+                      margin:
+                          const EdgeInsets.only(left: 10, right: 10, top: 20),
+                      padding: const EdgeInsets.only(
+                          left: 15, right: 15, top: 20, bottom: 0),
+                      decoration: BoxDecoration(
+                          color: AppConstant.whiteColor,
+                          borderRadius: AppUtils.borderRadiusAll(raduis: 10),
+                          boxShadow: [
+                            BoxShadow(
+                                color: AppConstant.greyColor.withOpacity(0.3),
+                                blurRadius: 8,
+                                blurStyle: BlurStyle.solid,
+                                spreadRadius: 0.8),
+                          ]),
+                      child: SfCartesianChart(
+                        tooltipBehavior: tooltipBehavior,
+                        title: ChartTitle(
+                            text: "Monthly Track Reports of Employee"),
+                        legend: Legend(isVisible: true),
+                        series: [
+                          StackedColumnSeries<UserAttendenceDetail, String>(
+                              dataSource: userAttendenceDetail,
+                              enableTooltip: true,
+                              name: "Internet",
+                              xValueMapper: (UserAttendenceDetail data, _) =>
+                                  data.reportDate,
+                              yValueMapper: (UserAttendenceDetail data, _) =>
+                                  data.internetOffMinutes),
+                          StackedColumnSeries<UserAttendenceDetail, String>(
+                              dataSource: userAttendenceDetail,
+                              enableTooltip: true,
+                              name: "Gps",
+                              xValueMapper: (UserAttendenceDetail data, _) =>
+                                  data.reportDate,
+                              yValueMapper: (UserAttendenceDetail data, _) =>
+                                  data.gpsOffMinutes),
+                          StackedColumnSeries<UserAttendenceDetail, String>(
+                              dataSource: userAttendenceDetail,
+                              enableTooltip: true,
+                              name: "Waiting",
+                              xValueMapper: (UserAttendenceDetail data, _) =>
+                                  data.reportDate,
+                              yValueMapper: (UserAttendenceDetail data, _) =>
+                                  data.waitingMinutes),
+                          StackedColumnSeries<UserAttendenceDetail, String>(
+                              dataSource: userAttendenceDetail,
+                              enableTooltip: true,
+                              name: "Traveling",
+                              xValueMapper: (UserAttendenceDetail data, _) =>
+                                  data.reportDate,
+                              yValueMapper: (UserAttendenceDetail data, _) =>
+                                  data.appOffTime),
+                        ],
+                        primaryXAxis: CategoryAxis(),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 20, left: 10),
+                          child: AppUtils.commonTextWidget(
+                              text: "Datewise Reports",
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
+                              textColor:
+                                  AppConstant.greyColor.withOpacity(0.8)),
+                        )
+                      ],
+                    ),
+                    ListView.builder(
+                      itemCount: userAttendenceDetail.length,
+                      shrinkWrap: true,
+                      padding: AppUtils.edgeInsetsOnly(bottom: 20),
+                      physics: NeverScrollableScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              isExpandedList[index] = !isExpandedList[index];
+                            });
+                          },
+                          child: AnimatedContainer(
+                            duration: Duration(milliseconds: 300),
+                            width: double.infinity,
+                            margin: const EdgeInsets.only(
+                                left: 10, right: 10, top: 20),
+                            padding: isExpandedList[index]
+                                ? const EdgeInsets.only(
+                                    left: 15, right: 15, top: 20, bottom: 0)
+                                : const EdgeInsets.only(
+                                    left: 15, right: 15, top: 20, bottom: 20),
+                            decoration: BoxDecoration(
+                                color: AppConstant.whiteColor,
+                                borderRadius:
+                                    AppUtils.borderRadiusAll(raduis: 10),
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: AppConstant.greyColor
+                                          .withOpacity(0.3),
+                                      blurRadius: 8,
+                                      blurStyle: BlurStyle.solid,
+                                      spreadRadius: 0.8),
+                                ]),
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      flex: 3,
+                                      child: AppUtils.commonTextWidget(
+                                        text: userAttendenceDetail[index]
+                                                .reportDate ??
+                                            "",
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        textColor: AppConstant.appPrimaryColor,
+                                      ),
+                                    ),
+                                    Container(
+                                      width: MediaQuery.of(context).size.width /
+                                          3.3,
+                                      child: AppUtils.commonTextWidget(
+                                        text: userName ?? "",
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        textColor: AppConstant.appPrimaryColor,
+                                        overflow: TextOverflow
+                                            .ellipsis, // Ensure text does not overflow
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                if (isExpandedList[index])
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      AppUtils.commonSizedBox(
+                                        height: 10,
+                                      ),
+                                      Divider(
+                                        color: AppConstant.greyColor
+                                            .withOpacity(0.3),
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          CommonContainerOfReportData(
+                                              title: "Attendance",
+                                              value: userAttendenceDetail[index]
+                                                  .attendenceType,
+                                              valueColor:
+                                                  userAttendenceDetail[index]
+                                                              .attendenceType ==
+                                                          "P"
+                                                      ? Colors.green
+                                                      : Colors.red),
+                                          CommonContainerOfReportData(
+                                              title: "App Off",
+                                              value: userAttendenceDetail[index]
+                                                  .appOffTime
+                                                  .toString()),
+                                          CommonContainerOfReportData(
+                                              title: "Km",
+                                              value: userAttendenceDetail[index]
+                                                  .totalKm
+                                                  .toString()),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          CommonContainerOfReportData(
+                                              title: "Waiting",
+                                              value: userAttendenceDetail[index]
+                                                  .waitingMinutes
+                                                  .toString()),
+                                          CommonContainerOfReportData(
+                                              title: "Internet",
+                                              value: userAttendenceDetail[index]
+                                                  .internetOffMinutes
+                                                  .toString()),
+                                          CommonContainerOfReportData(
+                                              title: "Gps",
+                                              value: userAttendenceDetail[index]
+                                                  .gpsOffMinutes
+                                                  .toString()),
+                                        ],
+                                      )
+                                    ],
+                                  ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              );
+  }
+
+  //Card widget
+  Widget CommonContainerOfReportData(
+      {String? title, String? value, Color? valueColor}) {
+    return Expanded(
+      flex: 1,
+      child: AppUtils.commonContainer(
+        margin:
+            AppUtils.edgeInsetsOnly(top: 10, bottom: 15, right: 10, left: 10),
+        padding:
+            AppUtils.edgeInsetsOnly(top: 10, bottom: 15, right: 10, left: 10),
+        decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: AppUtils.borderRadiusAll(raduis: 10),
+            boxShadow: [
+              BoxShadow(
+                  color: AppConstant.greyColor.withOpacity(0.2),
+                  blurRadius: 8,
+                  blurStyle: BlurStyle.solid,
+                  spreadRadius: 0.8),
+            ]),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(height: 5),
+            AppUtils.commonTextWidget(
+                text: title ?? "",
+                textColor: AppConstant.appPrimaryColor,
+                fontSize: 10,
+                fontWeight: FontWeight.w500),
+            Divider(
+              indent: 10,
+              endIndent: 10,
+              color: AppConstant.greyColor.withOpacity(0.3),
+            ),
+            SizedBox(height: 5),
+            AppUtils.commonTextWidget(
+                text: value ?? "0",
+                textColor: valueColor ?? AppConstant.appPrimaryColor,
+                fontSize: 16,
+                fontWeight: FontWeight.w500),
+          ],
+        ),
       ),
-      UserAttendenceReport(
-        userId: "2",
-        absentDays: 15,
-        sumAppOffTime: 26,
-        sumGpsOffMinutes: 18,
-        sumInternetOffMinutes: 50,
-        sumWaitingMinutes: 360,
-      ),
-      UserAttendenceReport(
-        userId: "3",
-        absentDays: 10,
-        sumAppOffTime: 35,
-        sumGpsOffMinutes: 96,
-        sumInternetOffMinutes: 28,
-        sumWaitingMinutes: 400,
-      ),
-      UserAttendenceReport(
-        userId: "4",
-        absentDays: 18,
-        sumAppOffTime: 10,
-        sumGpsOffMinutes: 168,
-        sumInternetOffMinutes: 26,
-        sumWaitingMinutes: 260,
-      ),
-      UserAttendenceReport(
-        userId: "5",
-        absentDays: 25,
-        sumAppOffTime: 19,
-        sumGpsOffMinutes: 35,
-        sumInternetOffMinutes: 35,
-        sumWaitingMinutes: 352,
-      ),
-      UserAttendenceReport(
-        userId: "6",
-        absentDays: 25,
-        sumAppOffTime: 19,
-        sumGpsOffMinutes: 35,
-        sumInternetOffMinutes: 35,
-        sumWaitingMinutes: 352,
-      ),
-      UserAttendenceReport(
-        userId: "7",
-        absentDays: 25,
-        sumAppOffTime: 19,
-        sumGpsOffMinutes: 35,
-        sumInternetOffMinutes: 35,
-        sumWaitingMinutes: 352,
-      ),
-      UserAttendenceReport(
-        userId: "8",
-        absentDays: 25,
-        sumAppOffTime: 19,
-        sumGpsOffMinutes: 35,
-        sumInternetOffMinutes: 35,
-        sumWaitingMinutes: 352,
-      ),
-      UserAttendenceReport(
-        userId: "9",
-        absentDays: 25,
-        sumAppOffTime: 19,
-        sumGpsOffMinutes: 35,
-        sumInternetOffMinutes: 35,
-        sumWaitingMinutes: 352,
-      ),
-      UserAttendenceReport(
-        userId: "10",
-        absentDays: 25,
-        sumAppOffTime: 19,
-        sumGpsOffMinutes: 35,
-        sumInternetOffMinutes: 35,
-        sumWaitingMinutes: 352,
-      ),
-      
-    ];
-    return _chartData;
+    );
   }
 }

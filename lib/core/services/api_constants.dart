@@ -37,5 +37,7 @@ class ApiConstants{
       static const String updateTaskStatus = "$baseUrl/Admin/AppUserTask/Update";
 
 
+      static const String getAttendanceReport = "$baseUrl/Admin/Report/AttendenceReport";
+
 
 }
