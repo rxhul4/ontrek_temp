@@ -103,11 +103,8 @@ class DayEndRequestProvider extends ChangeNotifier{
       var response = await callPostMethod(endPoint, body);
       approveRequestModel = ApproveRequestModel.fromJson(json.decode(response));
       print('response ${approveRequestModel?.toJson()}');
-      if (approveRequestModel?.isError == false &&
-          approveRequestModel?.isValidationFailed == false) {
-
-        await apiCallGetDayEndRequestList(isApproved: false,);
-
+      if (approveRequestModel?.isError == false && approveRequestModel?.isValidationFailed == false) {
+        await apiCallGetDayEndRequestList(isApproved: false);
       } else {
         if (approveRequestModel?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
