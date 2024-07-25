@@ -20,6 +20,7 @@ import 'package:ontrek/features/authentication/screens/otp_verification%20screen
 import 'package:ontrek/features/authentication/screens/splash_screen.dart';
 import 'package:ontrek/features/check_out/provider/check_out_form_provider.dart';
 import 'package:ontrek/features/dashboard/provider/dashboard_provider.dart';
+import 'package:ontrek/features/home/day_end_request_approval/provider/day_end_request_provider.dart';
 import 'package:ontrek/features/home/reports/provider/report_provider.dart';
 import 'package:ontrek/features/leads/provider/lead_provider.dart';
 import 'package:ontrek/features/permissions/permission_request_screen.dart';
@@ -67,6 +68,9 @@ List<SingleChildWidget> providers = [
   ),
   ChangeNotifierProvider<ReportProvider>(
     create: (_) => ReportProvider(),
+  ),
+  ChangeNotifierProvider<DayEndRequestProvider>(
+    create: (_) => DayEndRequestProvider(),
   ),
 ];
 GlobalKey globalKey = GlobalKey();

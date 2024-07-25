@@ -38,6 +38,8 @@ class ApiConstants{
 
 
       static const String getAttendanceReport = "$baseUrl/Admin/Report/AttendenceReport";
+      static const String getDayEndRequestList = "$baseUrl/Admin/DayEnd/RequestList";
+      static const String approveRequest = "$baseUrl/Admin/DayEnd/ApproveRequest";
 
 
 }
