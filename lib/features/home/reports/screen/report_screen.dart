@@ -400,6 +400,8 @@ class _ReportScreenState extends State<ReportScreen>
                           ]),
                       child: SfCartesianChart(
                         tooltipBehavior: tooltipBehavior,
+
+
                         title: ChartTitle(
                             text: "Monthly Track Reports of Employee"),
                         legend: Legend(isVisible: true),
@@ -409,7 +411,7 @@ class _ReportScreenState extends State<ReportScreen>
                               enableTooltip: true,
                               name: "Internet",
                               xValueMapper: (UserAttendenceDetail data, _) =>
-                                  data.reportDate,
+                                  AppUtils.extractDay(data.reportDate ?? "" , "d/M/yyyy"),
                               yValueMapper: (UserAttendenceDetail data, _) =>
                                   data.internetOffMinutes),
                           StackedColumnSeries<UserAttendenceDetail, String>(
@@ -417,7 +419,7 @@ class _ReportScreenState extends State<ReportScreen>
                               enableTooltip: true,
                               name: "Gps",
                               xValueMapper: (UserAttendenceDetail data, _) =>
-                                  data.reportDate,
+                                  AppUtils.extractDay(data.reportDate ?? "" , "d/M/yyyy"),
                               yValueMapper: (UserAttendenceDetail data, _) =>
                                   data.gpsOffMinutes),
                           StackedColumnSeries<UserAttendenceDetail, String>(
@@ -425,7 +427,7 @@ class _ReportScreenState extends State<ReportScreen>
                               enableTooltip: true,
                               name: "Waiting",
                               xValueMapper: (UserAttendenceDetail data, _) =>
-                                  data.reportDate,
+                                  AppUtils.extractDay(data.reportDate ?? "" , "d/M/yyyy"),
                               yValueMapper: (UserAttendenceDetail data, _) =>
                                   data.waitingMinutes),
                           StackedColumnSeries<UserAttendenceDetail, String>(
@@ -433,9 +435,9 @@ class _ReportScreenState extends State<ReportScreen>
                               enableTooltip: true,
                               name: "Traveling",
                               xValueMapper: (UserAttendenceDetail data, _) =>
-                                  data.reportDate,
+                                  AppUtils.extractDay(data.reportDate ?? "" , "d/M/yyyy"),
                               yValueMapper: (UserAttendenceDetail data, _) =>
-                                  data.appOffTime),
+                                  data.totalKm),
                         ],
                         primaryXAxis: CategoryAxis(),
                       ),
@@ -491,32 +493,18 @@ class _ReportScreenState extends State<ReportScreen>
                               children: [
                                 Row(
                                   mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
+                                      MainAxisAlignment.spaceBetween,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Expanded(
-                                      flex: 3,
-                                      child: AppUtils.commonTextWidget(
-                                        text: userAttendenceDetail[index]
-                                                .reportDate ??
-                                            "",
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                        textColor: AppConstant.appPrimaryColor,
-                                      ),
+                                    AppUtils.commonTextWidget(
+                                      text: userAttendenceDetail[index]
+                                              .reportDate ??
+                                          "",
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      textColor: AppConstant.appPrimaryColor,
                                     ),
-                                    Container(
-                                      width: MediaQuery.of(context).size.width /
-                                          3.3,
-                                      child: AppUtils.commonTextWidget(
-                                        text: userName ?? "",
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                        textColor: AppConstant.appPrimaryColor,
-                                        overflow: TextOverflow
-                                            .ellipsis, // Ensure text does not overflow
-                                      ),
-                                    ),
+                                    Icon(isExpandedList[index] == true ? Icons.arrow_drop_up :Icons.arrow_drop_down,color: AppConstant.appPrimaryColor,size: 20,)
                                   ],
                                 ),
                                 if (isExpandedList[index])

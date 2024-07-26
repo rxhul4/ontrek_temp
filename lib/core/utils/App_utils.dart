@@ -838,6 +838,39 @@ class AppUtils {
     return formattedDuration;
   }
 
+
+  static String extractDay(String serverDate, String inputFormat) {
+    try {
+      // Parse the date string using the custom format
+      DateTime parsedDate = DateFormat(inputFormat).parse(serverDate);
+
+      // Format the date to extract the day
+      String day = DateFormat('d').format(parsedDate);
+
+      return day;
+    } catch (e) {
+      // Handle any parsing or formatting errors
+      print("Error formatting date: $e");
+      return "";
+    }
+  }
+
+  static String formatDateString(String serverDate,String? format) {
+    try {
+      // Parse the date string
+      DateTime parsedDate = DateTime.parse(serverDate);
+
+      // Format the date
+      String formattedDate = DateFormat(format).format(parsedDate);
+
+      return formattedDate;
+    } catch (e) {
+      // Handle any parsing or formatting errors
+      print("Error formatting date: $e");
+      return "";
+    }
+  }
+
   static showDialogBoxWithTwoButton(
       {BuildContext? context,
       String? text,

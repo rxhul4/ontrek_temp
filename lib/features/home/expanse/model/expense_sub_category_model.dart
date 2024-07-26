@@ -1,18 +1,18 @@
-class GetLeaveTypeModel {
+class ExpenseSubCategoryModel {
   bool? isError;
   bool? isValidationFailed;
   String? errorCode;
   String? message;
   List<Data>? data;
 
-  GetLeaveTypeModel(
+  ExpenseSubCategoryModel(
       {this.isError,
         this.isValidationFailed,
         this.errorCode,
         this.message,
         this.data});
 
-  GetLeaveTypeModel.fromJson(Map<String, dynamic> json) {
+  ExpenseSubCategoryModel.fromJson(Map<String, dynamic> json) {
     isError = json['isError'];
     isValidationFailed = json['isValidationFailed'];
     errorCode = json['errorCode'];
@@ -39,38 +39,30 @@ class GetLeaveTypeModel {
 }
 
 class Data {
-  String? totId;
-  String? totGroup;
-  int? totKey;
-  String? totValue;
-  int? totSequence;
-  String? totCode;
+  String? subCategoryId;
+  String? subCategoryName;
+  String? categoryId;
+  String? categoryName;
 
   Data(
-      {this.totId,
-        this.totGroup,
-        this.totKey,
-        this.totValue,
-        this.totSequence,
-        this.totCode});
+      {this.subCategoryId,
+        this.subCategoryName,
+        this.categoryId,
+        this.categoryName});
 
   Data.fromJson(Map<String, dynamic> json) {
-    totId = json['totId'];
-    totGroup = json['totGroup'];
-    totKey = json['totKey'];
-    totValue = json['totValue'];
-    totSequence = json['totSequence'];
-    totCode = json['totCode'];
+    subCategoryId = json['subCategoryId'];
+    subCategoryName = json['subCategoryName'];
+    categoryId = json['categoryId'];
+    categoryName = json['categoryName'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['totId'] = this.totId;
-    data['totGroup'] = this.totGroup;
-    data['totKey'] = this.totKey;
-    data['totValue'] = this.totValue;
-    data['totSequence'] = this.totSequence;
-    data['totCode'] = this.totCode;
+    data['subCategoryId'] = this.subCategoryId;
+    data['subCategoryName'] = this.subCategoryName;
+    data['categoryId'] = this.categoryId;
+    data['categoryName'] = this.categoryName;
     return data;
   }
 }

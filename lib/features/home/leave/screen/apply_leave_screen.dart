@@ -5,7 +5,9 @@ import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/home/leave/model/leave_type_model.dart';
+import 'package:ontrek/features/home/leave/provider/leave_provider.dart';
 import 'package:ontrek/features/home/leave/screen/choose_leave_type_screen.dart';
+import 'package:provider/provider.dart';
 
 class ApplyLeaveScreen extends StatefulWidget {
   const ApplyLeaveScreen({super.key});
@@ -17,6 +19,7 @@ class ApplyLeaveScreen extends StatefulWidget {
 class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
   bool isLoading = false;
   String? userName;
+  String? userId;
   TextEditingController leaveStartDateController = TextEditingController();
   TextEditingController leaveEndDateController = TextEditingController();
   TextEditingController leaveReasonController = TextEditingController();
@@ -24,8 +27,11 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
   TextEditingController leaveTypeController = TextEditingController();
   DateTime? selectedStartDate;
   DateTime? selectedEndDate;
-  LeaveTypeModel? leaveTypeModel;
+  String? selectedLeaveTypeId;
+  String? selectedLeaveTypeName;
   int selectedValue = 1;
+  late LeaveProvider leaveProvider;
+  bool? isFullDay = false;
 
   @override
   void initState() {
@@ -33,10 +39,16 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
     selectedStartDate = DateTime.now();
     selectedEndDate = DateTime.now();
     _loadUserName();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) async {
+        leaveProvider = Provider.of<LeaveProvider>(context, listen: false);
+      },
+    );
   }
 
   Future<void> _loadUserName() async {
     userName = await PreferenceHelper.getString(PreferenceHelper.USER_NAME);
+    userId = await PreferenceHelper.getString(PreferenceHelper.USER_ID);
     if (userName != null && userName!.isNotEmpty) {
       setState(() {
         employeeNameController.text = userName!;
@@ -66,12 +78,32 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
                   onTap: () {
                     AppUtils.showDialogBoxWithTwoButton(
                       titleText: "Leave Apply",
-                      text: "Are you sure you want to apply this application of leave",
+                      text:
+                          "Are you sure you want to apply this application of leave",
                       onSuccessString: "Yes",
                       onCancelString: "No",
                       context: context,
-                      onSuccess: () {
+                      onSuccess: () async {
+                        await leaveProvider.apiCallApplyLeave(
+                          userId: userId,
+                          isFullDay: isFullDay,
+                          leaveCategoryTotId: selectedLeaveTypeId,
+                          leaveStartDate: AppUtils.dateFormat(
+                              date: selectedStartDate,
+                              dateFormat: "yyyy-MM-dd"),
+                          leaveEndDate:  AppUtils.dateFormat(
+                              date: selectedEndDate,
+                              dateFormat: "yyyy-MM-dd"),
+                          submissionDate:  AppUtils.dateFormat(
+                              date: DateTime.now(),
+                              dateFormat: "yyyy-MM-dd"),
+                          leaveDays: 1,
+                          leaveReason: leaveReasonController.text,
+                          onSuccess: () {
+                            Navigator.pop(context);
+                          },
 
+                        );
                       },
                       onCancel: () {
 
@@ -141,7 +173,7 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
                 ),
               ),
             ),
-            if (isLoading)
+            if (leaveProvider.isAdding)
               AppUtils.loaderWidget(color: AppConstant.appPrimaryColor),
           ],
         ),
@@ -191,6 +223,11 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
       onChanged: (value) {
         setState(() {
           selectedValue = value!;
+          if (selectedValue == 1) {
+            isFullDay = false;
+          } else {
+            isFullDay = true;
+          }
         });
       },
     );
@@ -244,8 +281,9 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
     );
     if (result != null) {
       setState(() {
-        leaveTypeModel = result;
-        leaveTypeController.text = leaveTypeModel?.leaveName ?? "";
+        selectedLeaveTypeId = result["leaveTypeId"];
+        selectedLeaveTypeName = result["leaveTypeName"];
+        leaveTypeController.text = selectedLeaveTypeName ?? "";
       });
     }
   }

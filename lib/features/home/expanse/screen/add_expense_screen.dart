@@ -8,9 +8,13 @@ import 'package:ontrek/core/common_widgets/textfield_widget.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
+import 'package:ontrek/features/home/expanse/provider/expense_provider.dart';
+import 'package:ontrek/features/home/expanse/screen/choose_expense_category_screen.dart';
+import 'package:ontrek/features/home/expanse/screen/choose_expense_sub_category_screen.dart';
 import 'package:ontrek/features/home/leave/model/leave_type_model.dart';
 import 'package:ontrek/features/home/leave/screen/choose_leave_type_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   const AddExpenseScreen({super.key});
@@ -22,24 +26,33 @@ class AddExpenseScreen extends StatefulWidget {
 class _AddExpenseScreenState extends State<AddExpenseScreen> {
   bool isLoading = false;
   String? userName;
-  TextEditingController titleController = TextEditingController();
+  TextEditingController expenseDateController = TextEditingController();
   TextEditingController categoryController = TextEditingController();
   TextEditingController sub_categoryController = TextEditingController();
   TextEditingController amountController = TextEditingController();
   TextEditingController reasonController = TextEditingController();
-  LeaveTypeModel? leaveTypeModel;
   int selectedValue = 1;
+  String? selectedCategoryId;
+  String? selectedSubCategoryId;
+  late ExpenseProvider expenseProvider;
   String? image64;
-
+  DateTime? selectedDate;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) async {
+        selectedDate = DateTime.now();
+        expenseProvider = Provider.of<ExpenseProvider>(context, listen: false);
+      },
+    );
   }
-
 
   @override
   Widget build(BuildContext context) {
+    expenseProvider = Provider.of<ExpenseProvider>(context);
+
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -60,16 +73,36 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                   onTap: () {
                     AppUtils.showDialogBoxWithTwoButton(
                       titleText: "Add Expanse",
-                      text: "Are you sure you want to apply this application of Expense",
+                      text:
+                          "Are you sure you want to apply this application of Expense",
                       onSuccessString: "Yes",
                       onCancelString: "No",
                       context: context,
-                      onSuccess: () {
+                      onSuccess: () async {
+                        await expenseProvider.apiCallAddExpense(
+                          pkId: null,
+                          invoiceImage: image64,
+                          expenseCategoryId: selectedCategoryId,
+                          expenseSubCategoryId: selectedSubCategoryId,
+                          expenseDate: selectedDate.toString(),
+                          expenseDescription: reasonController.text,
+                          submittedAmount: int.parse(
+                            amountController.text,
+                          ),
+                          onSuccess: () async{
+                            FocusScope.of(context).unfocus();
+                            Navigator.pop(context);
+                            if(selectedValue == 0){
+                              await expenseProvider.apiCallGetMyExpenseList();
+                            }else{
+                              await expenseProvider.apiCallGetEmployeeExpenseList();
+                            }
 
-                      },
-                      onCancel: () {
+                          },
 
+                        );
                       },
+                      onCancel: () {},
                     );
                   },
                   child: AppUtils.commonTextWidget(
@@ -101,94 +134,80 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                     ),
                     _image != null
                         ? Align(
-                      alignment: Alignment.center,
-                      child: Column(
-                        children: [
-                          AppUtils.commonContainer(
-                              padding: EdgeInsets.all(15),
-                              height: 150,
-                              width: 150,
-                              decoration: AppUtils
-                                  .commonBoxDecoration(
-                                color: AppConstant
-                                    .greyWithShade,
-                                borderRadius:
-                                BorderRadius.circular(
-                                    10),
-                              ),
-                              child:
-                              // isImageLoading
-                              Image.file(
-                                _image ??
-                                    File(
-                                        _image?.path ?? ""),
-                                fit: BoxFit.cover,
-                                height: 0,
-                                width: 0,
-                              )),
-                          AppUtils.commonSizedBox(
-                              height: 15),
-                          AppUtils.commonInkWell(
-                            onTap: () {
-                              _image = null;
-                              setState(() {});
-                            },
-                            child:
-                            AppUtils.commonTextWidget(
-                              text: "Remove",
-                              textColor: Colors.red,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
+                            alignment: Alignment.center,
+                            child: Column(
+                              children: [
+                                AppUtils.commonContainer(
+                                    padding: EdgeInsets.all(15),
+                                    height: 150,
+                                    width: 150,
+                                    decoration: AppUtils.commonBoxDecoration(
+                                      color: AppConstant.greyWithShade,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child:
+                                        // isImageLoading
+                                        Image.file(
+                                      _image ?? File(_image?.path ?? ""),
+                                      fit: BoxFit.cover,
+                                      height: 0,
+                                      width: 0,
+                                    )),
+                                AppUtils.commonSizedBox(height: 15),
+                                AppUtils.commonInkWell(
+                                  onTap: () {
+                                    _image = null;
+                                    setState(() {});
+                                  },
+                                  child: AppUtils.commonTextWidget(
+                                    text: "Remove",
+                                    textColor: Colors.red,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                )
+                              ],
                             ),
                           )
-                        ],
-                      ),
-                    )
                         : InkWell(
-                      enableFeedback: true,
-                      borderRadius:
-                      BorderRadius.circular(5),
-                      onTap: () {
-                        getImage();
-                      },
-                      child: Center(
-                        child: AppUtils.commonContainer(
-                          padding: AppUtils.edgeInsetsOnly(
-                              left: 15, right: 15),
-                          // alignment: Alignment.center,
-                          height: 50,
-                          width: double.infinity,
-                          decoration:
-                          AppUtils.commonBoxDecoration(
-                            color:
-                            AppConstant.greyWithShade,
-                            borderRadius:
-                            BorderRadius.circular(5),
-                            border: Border.all(
-                                color: AppConstant
-                                    .appPrimaryColor),
+                            enableFeedback: true,
+                            borderRadius: BorderRadius.circular(5),
+                            onTap: () {
+                              getImage();
+                            },
+                            child: Center(
+                              child: AppUtils.commonContainer(
+                                padding: AppUtils.edgeInsetsOnly(
+                                    left: 15, right: 15),
+                                // alignment: Alignment.center,
+                                height: 50,
+                                width: double.infinity,
+                                decoration: AppUtils.commonBoxDecoration(
+                                  color: AppConstant.greyWithShade,
+                                  borderRadius: BorderRadius.circular(5),
+                                  border: Border.all(
+                                      color: AppConstant.appPrimaryColor),
+                                ),
+                                child: Center(
+                                  child: AppUtils.commonTextWidget(
+                                      text: "Add Expense Picture",
+                                      textColor: AppConstant.blackColor
+                                          .withOpacity(0.6),
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 16),
+                                ),
+                              ),
+                            ),
                           ),
-                          child: Center(
-                            child:
-                            AppUtils.commonTextWidget(
-                                text:
-                                "Add Expense Picture",
-                                textColor: AppConstant
-                                    .blackColor
-                                    .withOpacity(0.6),
-                                fontWeight:
-                                FontWeight.w500,
-                                fontSize: 16),
-                          ),
-                        ),
-                      ),
-                    ),
                     AppUtils.commonSizedBox(height: 10),
                     _buildCommonTextField(
-                      readOnly: false,
-                      controller: titleController,
-                      showCursor: true,
-                      text: "Title",
+                      readOnly: true,
+                      controller: expenseDateController,
+                      showCursor: false,
+                      text: "Expense Date",
+                      onTap: () {
+                        _openDatePicker();
+                      },
                     ),
                     AppUtils.commonSizedBox(height: 10),
                     _buildCommonTextField(
@@ -196,7 +215,26 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       controller: categoryController,
                       showCursor: false,
                       text: "Category",
-                      onTap: chooseCategory,
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            CupertinoPageRoute(
+                              builder: (context) =>
+                                  ChooseExpenseCategoryScreen(),
+                            )).then(
+                          (value) {
+                            if (value != null) {
+                              sub_categoryController.clear();
+                              selectedSubCategoryId = "";
+                              categoryController.text =
+                                  value["expenseCategoryName"];
+                              selectedCategoryId = value["expenseCategoryId"];
+                            }
+                            setState(() {});
+                          },
+                        );
+                      },
+                      // onTap: chooseCategory,
                     ),
                     AppUtils.commonSizedBox(height: 10),
                     _buildCommonTextField(
@@ -204,7 +242,26 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       controller: sub_categoryController,
                       showCursor: false,
                       text: "Sub-Category",
-                      onTap: chooseSubCategory,
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            CupertinoPageRoute(
+                              builder: (context) =>
+                                  ChooseExpenseSubCategoryScreen(
+                                expenseCategoryId: selectedCategoryId,
+                              ),
+                            )).then(
+                          (value) {
+                            if (value != null) {
+                              sub_categoryController.text =
+                                  value["expenseSubCategoryName"];
+                              selectedSubCategoryId =
+                                  value["expenseSubCategoryId"];
+                            }
+                          },
+                        );
+                      },
+                      // onTap: chooseSubCategory,
                     ),
                     AppUtils.commonSizedBox(height: 10),
                     _buildCommonTextField(
@@ -234,6 +291,42 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     );
   }
 
+  Future<void> _openDatePicker() async {
+    DateTime? initialDate = selectedDate;
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+      initialEntryMode: DatePickerEntryMode.calendarOnly,
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            dialogBackgroundColor: AppConstant.whiteColor,
+            scaffoldBackgroundColor: AppConstant.whiteColor,
+            textSelectionTheme: TextSelectionThemeData(
+              selectionColor: AppConstant.appPrimaryColor,
+            ),
+            colorScheme: ColorScheme.light(
+              background: Colors.white,
+              onBackground: AppConstant.greyColor.withOpacity(0.5),
+              primary: AppConstant.appPrimaryColor,
+              onPrimary: AppConstant.whiteColor,
+            ),
+          ),
+          child: child ?? Container(),
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        selectedDate = picked;
+        expenseDateController.text = AppUtils.getDate(
+            date: selectedDate.toString(), format: "dd-MM-yyyy");
+      });
+    }
+  }
 
   Widget _buildCommonTextField({
     String? text,
@@ -276,31 +369,31 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     );
   }
 
-  Future<void> chooseCategory() async {
-    final result = await Navigator.push(
-      context,
-      CupertinoPageRoute(builder: (context) => ChooseLeaveTypeScreen()),
-    );
-    if (result != null) {
-      setState(() {
-        leaveTypeModel = result;
-        categoryController.text = leaveTypeModel?.leaveName ?? "";
-      });
-    }
-  }
+  // Future<void> chooseCategory() async {
+  //   final result = await Navigator.push(
+  //     context,
+  //     CupertinoPageRoute(builder: (context) => ChooseLeaveTypeScreen()),
+  //   );
+  //   if (result != null) {
+  //     setState(() {
+  //       leaveTypeModel = result;
+  //       categoryController.text = leaveTypeModel?.leaveName ?? "";
+  //     });
+  //   }
+  // }
 
-  Future<void> chooseSubCategory() async {
-    final result = await Navigator.push(
-      context,
-      CupertinoPageRoute(builder: (context) => ChooseLeaveTypeScreen()),
-    );
-    if (result != null) {
-      setState(() {
-        leaveTypeModel = result;
-        sub_categoryController.text = leaveTypeModel?.leaveName ?? "";
-      });
-    }
-  }
+  // Future<void> chooseSubCategory() async {
+  //   final result = await Navigator.push(
+  //     context,
+  //     CupertinoPageRoute(builder: (context) => ChooseLeaveTypeScreen()),
+  //   );
+  //   if (result != null) {
+  //     setState(() {
+  //       leaveTypeModel = result;
+  //       sub_categoryController.text = leaveTypeModel?.leaveName ?? "";
+  //     });
+  //   }
+  // }
 
   var imageFull;
   File? _image;
@@ -336,5 +429,4 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       return null;
     }
   }
-
 }

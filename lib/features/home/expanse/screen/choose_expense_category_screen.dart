@@ -4,43 +4,40 @@ import 'package:flutter/material.dart';
 import 'package:ontrek/core/common_widgets/app_scaffold.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
-import 'package:ontrek/features/add_lead/model/get_all_country_model.dart';
-import 'package:ontrek/features/add_lead/provider/add_lead_provider.dart';
-import 'package:ontrek/features/home/leave/model/leave_type_model.dart';
-import 'package:ontrek/features/home/leave/provider/leave_provider.dart';
+import 'package:ontrek/features/home/expanse/provider/expense_provider.dart';
 import 'package:provider/provider.dart';
 
-class ChooseLeaveTypeScreen extends StatefulWidget {
-  const ChooseLeaveTypeScreen({Key? key}) : super(key: key);
+class ChooseExpenseCategoryScreen extends StatefulWidget {
+  const ChooseExpenseCategoryScreen({Key? key}) : super(key: key);
 
   @override
-  State<ChooseLeaveTypeScreen> createState() => _ChooseLeaveTypeScreenState();
+  State<ChooseExpenseCategoryScreen> createState() => _ChooseExpenseCategoryScreenState();
 }
 
-class _ChooseLeaveTypeScreenState extends State<ChooseLeaveTypeScreen> {
+class _ChooseExpenseCategoryScreenState extends State<ChooseExpenseCategoryScreen> {
   TextEditingController searchController = TextEditingController();
-  late LeaveProvider leaveProvider;
-  String? selectedLeaveTypeId;
-  String? selectedLeaveTypeName;
+  late ExpenseProvider expenseProvider;
+  String? selectCategoryId;
+  String? selectCategoryName;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      leaveProvider = Provider.of<LeaveProvider>(context, listen: false);
-      await leaveProvider.apiCallGetTotByType();
+      expenseProvider = Provider.of<ExpenseProvider>(context, listen: false);
+      await expenseProvider.apiCallExpenseCategory();
     });
   }
-  
+
 
 
   @override
   Widget build(BuildContext context) {
-    leaveProvider = Provider.of<LeaveProvider>(context);
+    expenseProvider = Provider.of<ExpenseProvider>(context);
     return AppScaffold(
       appBar: AppUtils.commonAppBar(
         context: context,
-        title: "Leave Type",
+        title: "Expense Category",
         isBack: true,
         isBorder: true,
       ),
@@ -51,40 +48,41 @@ class _ChooseLeaveTypeScreenState extends State<ChooseLeaveTypeScreen> {
           children: [
             AppUtils.commonSizedBox(height: 20),
             AppUtils.commonTextWidget(
-              text: "Select Leave Type",
+              text: "Select Category",
               textColor: AppConstant.blackColor.withOpacity(0.7),
               fontWeight: FontWeight.w600,
               fontSize: 16,
             ),
             AppUtils.commonSizedBox(height: 20),
             Expanded(
-              child: leaveProvider.isFetching
+              child:
+              expenseProvider.isFetching
                   ? AppUtils.loaderWidget()
-                  : leaveProvider.getTotByGroupTypeModel?.data == null ||
-                  (leaveProvider.getTotByGroupTypeModel?.data?.length ?? 0) <= 0
+                  : expenseProvider.expenseCategoryModel?.data == null ||
+                  (expenseProvider.expenseCategoryModel?.data?.length ?? 0) <= 0
                   ? AppUtils.commonNoDataFound(
                 text: "No Leave Type Found",
                 onPressed: () async{
-                  await leaveProvider.apiCallGetTotByType();
+                  await expenseProvider.apiCallExpenseCategory();
                 },
               )
                   : ListView.builder(
                 padding: const EdgeInsets.only(bottom: 30),
                 physics: const BouncingScrollPhysics(),
-                itemCount: leaveProvider.getTotByGroupTypeModel?.data?.length,
+                itemCount: expenseProvider.expenseCategoryModel?.data?.length,
                 itemBuilder: (context, index) {
                   return GestureDetector(
                     onTap: () {
                       setState(() {
-                        selectedLeaveTypeId = leaveProvider.getTotByGroupTypeModel?.data?[index].totId;
-                        selectedLeaveTypeName = leaveProvider.getTotByGroupTypeModel?.data?[index].totValue;
+                        selectCategoryId = expenseProvider.expenseCategoryModel?.data?[index].categoryId;
+                        selectCategoryName = expenseProvider.expenseCategoryModel?.data?[index].categoryName;
 
                       });
                       Navigator.pop(
                         context,
                         {
-                          'leaveTypeId': selectedLeaveTypeId,
-                          'leaveTypeName': selectedLeaveTypeName,
+                          'expenseCategoryId': selectCategoryId,
+                          'expenseCategoryName': selectCategoryName,
                         },
                       );
                     },
@@ -111,7 +109,7 @@ class _ChooseLeaveTypeScreenState extends State<ChooseLeaveTypeScreen> {
                         leadingSize: 0,
                         padding: EdgeInsets.zero,
                         title: AppUtils.commonTextWidget(
-                          text: leaveProvider.getTotByGroupTypeModel?.data?[index].totValue ?? "",
+                          text: expenseProvider.expenseCategoryModel?.data?[index].categoryName ?? "name",
                           textColor:
                           AppConstant.blackColor.withOpacity(0.7),
                         ),

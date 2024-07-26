@@ -21,6 +21,18 @@ class ApiConstants{
       static const String dayEndManualRequest = "$baseUrl/FieldUser/DayEndManualRequest";
       static const String checkPendingEndDate = "$baseUrl/FieldUser/CheckPendingEndDate";
       static const String sendLastStatus = "$baseUrl/FieldUser/SendLastStatus";
+      static const String getMyLeaveList = "$baseUrl/FieldUser/Leave/MyList";
+      static const String getMyEmployeeLeaveList = "$baseUrl/FieldUser/Leave/SubOrdinateList";
+      static const String applyAndUpdateLeave = "$baseUrl/FieldUser/Leave/AddUpdate";
+      static const String approveRejectLeave = "$baseUrl/FieldUser/Leave/ApproveReject";
+
+
+   static const String getMyExpenseList = "$baseUrl/FieldUser/Expense/MyExpenseList";
+   static const String getMyEmployeeExpenseList = "$baseUrl/FieldUser/Expense/SubOrdinateList";
+   static const String applyAndUpdateExpense = "$baseUrl/FieldUser/Expense/AddUpdate";
+   static const String approveRejectExpense = "$baseUrl/FieldUser/Expense/ApproveReject";
+
+
 
    
       static const String getTotByGroupType = "$baseUrl/Super/Tot/GetTotByGroupType";
@@ -41,6 +53,10 @@ class ApiConstants{
       static const String getDayEndRequestList = "$baseUrl/Admin/DayEnd/RequestList";
       static const String approveRequest = "$baseUrl/Admin/DayEnd/ApproveRequest";
       static const String getHolidayList = "$baseUrl/Admin/Holiday/ListAll";
+      static const String getExpenseCategory = "$baseUrl/Admin/Master/GetExpenseCategoryList";
+      static const String getExpenseSubCategory = "$baseUrl/Admin/Master/GetSubExpenseCategoryList";
+
+
 
 
 }
