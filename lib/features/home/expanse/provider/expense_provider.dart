@@ -29,6 +29,9 @@ class ExpenseProvider extends ChangeNotifier {
   CommonExpenseModel? commonExpenseModel;
   ExpenseCategoryModel? expenseCategoryModel;
   ExpenseSubCategoryModel? expenseSubCategoryModel;
+  bool? isMyExpenseFiltered;
+  bool? isEmployeeExpenseFiltered;
+
 
   fetchingFnc(bool isLoading) {
     _isFetching = isLoading;
@@ -54,6 +57,7 @@ class ExpenseProvider extends ChangeNotifier {
       print('response ${expenseListModel?.toJson()}');
       if (expenseListModel?.isError == false &&
           expenseListModel?.isValidationFailed == false) {
+        approvalStatus == null ?  isMyExpenseFiltered == true : isMyExpenseFiltered == false;
       } else {
         if (expenseListModel?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
@@ -85,6 +89,7 @@ class ExpenseProvider extends ChangeNotifier {
 
   Future<ExpenseListModel?> apiCallGetEmployeeExpenseList(
       {String? submissionDate, bool? approvalStatus}) async {
+
     var userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     var organizationId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
     _isFetching = true;
@@ -102,6 +107,8 @@ class ExpenseProvider extends ChangeNotifier {
       print('response ${expenseListModel?.toJson()}');
       if (expenseListModel?.isError == false &&
           expenseListModel?.isValidationFailed == false) {
+
+        approvalStatus == null ?  isEmployeeExpenseFiltered == true : isEmployeeExpenseFiltered == false;
       } else {
         if (expenseListModel?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
@@ -203,6 +210,7 @@ class ExpenseProvider extends ChangeNotifier {
       String? approvedRejectedOn,
       bool? isApproved,
       int? approvedAmount,
+      String? approvedNotes,
       required Function() onSuccess}) async {
     var organizationId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
     _isLoading = true;
@@ -212,15 +220,15 @@ class ExpenseProvider extends ChangeNotifier {
       "orgId": organizationId,
       "userId": userId,
       "approvedRejectedBy": approvedRejectedBy,
-      "approvedRejectedOn":
+      "approveRejectDate":
           AppUtils.formatDateString(approvedRejectedOn ?? "", "yyyy-MM-dd"),
       "isApproved": isApproved,
-      "approvedAmount": 100,
-      "approverNote":
-          isApproved == false ? "Request Rejected" : "Request Approved."
+      "approvedAmount": approvedAmount,
+      "approverNotes": approvedNotes
+
     };
     try {
-      String endPoint = ApiConstants.approveRejectLeave;
+      String endPoint = ApiConstants.approveRejectExpense;
       var response = await callPostMethod(endPoint, body);
       commonExpenseModel = CommonExpenseModel.fromJson(json.decode(response));
       print('response ${commonExpenseModel?.toJson()}');

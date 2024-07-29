@@ -70,40 +70,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               Padding(
                 padding: const EdgeInsets.only(right: 20),
                 child: GestureDetector(
-                  onTap: () {
-                    AppUtils.showDialogBoxWithTwoButton(
-                      titleText: "Add Expanse",
-                      text:
-                          "Are you sure you want to apply this application of Expense",
-                      onSuccessString: "Yes",
-                      onCancelString: "No",
-                      context: context,
-                      onSuccess: () async {
-                        await expenseProvider.apiCallAddExpense(
-                          pkId: null,
-                          invoiceImage: image64,
-                          expenseCategoryId: selectedCategoryId,
-                          expenseSubCategoryId: selectedSubCategoryId,
-                          expenseDate: selectedDate.toString(),
-                          expenseDescription: reasonController.text,
-                          submittedAmount: int.parse(
-                            amountController.text,
-                          ),
-                          onSuccess: () async{
-                            FocusScope.of(context).unfocus();
-                            Navigator.pop(context);
-                            if(selectedValue == 0){
-                              await expenseProvider.apiCallGetMyExpenseList();
-                            }else{
-                              await expenseProvider.apiCallGetEmployeeExpenseList();
-                            }
+                  onTap: () async{
+                    await checkValidationAndSubmitForm(context);
 
-                          },
 
-                        );
-                      },
-                      onCancel: () {},
-                    );
                   },
                   child: AppUtils.commonTextWidget(
                       text: "Submit",
@@ -283,13 +253,71 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 ),
               ),
             ),
-            if (isLoading)
+            if (expenseProvider.isAdding)
               AppUtils.loaderWidget(color: AppConstant.appPrimaryColor),
           ],
         ),
       ),
     );
   }
+
+
+
+  checkValidationAndSubmitForm(BuildContext context)async{
+    FocusScope.of(context).unfocus();
+
+    if(image64 == null){
+      AppUtils.showSnackBarWithColor(message: "Please Click Image of invoice or expense",context: context,giveColor: Colors.red);
+    }else if(expenseDateController.text.isEmpty){
+      AppUtils.showSnackBarWithColor(message: "Please Enter Expense Date",context: context,giveColor: Colors.red);
+    }else if(categoryController.text.isEmpty){
+      AppUtils.showSnackBarWithColor(message: "Please select Expense Category",context: context,giveColor: Colors.red);
+    }else if(sub_categoryController.text.isEmpty){
+      AppUtils.showSnackBarWithColor(message: "Please select Expense Sub Category",context: context,giveColor: Colors.red);
+    }
+    else if(amountController.text.isEmpty){
+      AppUtils.showSnackBarWithColor(message: "Please Enter Expense Amount",context: context,giveColor: Colors.red);
+    }
+    else if(reasonController.text.isEmpty){
+      AppUtils.showSnackBarWithColor(message: "Please Enter Expense Reason",context: context,giveColor: Colors.red);
+    }else{
+      AppUtils.showDialogBoxWithTwoButton(
+        titleText: "Add Expanse",
+        text:
+        "Are you sure you want to apply this application of Expense",
+        onSuccessString: "Yes",
+        onCancelString: "No",
+        context: context,
+        onSuccess: () async {
+          await expenseProvider.apiCallAddExpense(
+            pkId: null,
+            invoiceImage: image64,
+            expenseCategoryId: selectedCategoryId,
+            expenseSubCategoryId: selectedSubCategoryId,
+            expenseDate: selectedDate.toString(),
+            expenseDescription: reasonController.text,
+            submittedAmount: int.parse(
+              amountController.text,
+            ),
+            onSuccess: () async{
+              Navigator.pop(context);
+              if(selectedValue == 0){
+                await expenseProvider.apiCallGetMyExpenseList();
+              }else{
+                await expenseProvider.apiCallGetEmployeeExpenseList();
+              }
+
+            },
+
+          );
+        },
+        onCancel: () {},
+      );
+    }
+
+
+  }
+
 
   Future<void> _openDatePicker() async {
     DateTime? initialDate = selectedDate;

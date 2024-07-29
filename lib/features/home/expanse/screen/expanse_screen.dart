@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:ontrek/core/common_widgets/textfield_widget.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
@@ -21,7 +22,8 @@ class _ExpenseScreenState extends State<ExpenseScreen>
   late TabController tabController;
   int selectedIndex = 0;
   late ExpenseProvider expenseProvider;
-  bool? isFiltered;
+  TextEditingController approvalAmountController = TextEditingController();
+  TextEditingController approvalNotesController = TextEditingController();
 
   @override
   void initState() {
@@ -32,7 +34,6 @@ class _ExpenseScreenState extends State<ExpenseScreen>
       (_) async {
         expenseProvider = Provider.of<ExpenseProvider>(context, listen: false);
         await expenseProvider.apiCallGetMyExpenseList();
-        isFiltered = false;
       },
     );
   }
@@ -202,9 +203,6 @@ class _ExpenseScreenState extends State<ExpenseScreen>
                 approvalStatus: true,
               );
 
-        setState(() {
-          isFiltered = true;
-        });
         break;
       case 3:
         selectedIndex == 0
@@ -214,9 +212,7 @@ class _ExpenseScreenState extends State<ExpenseScreen>
             : expenseProvider.apiCallGetEmployeeExpenseList(
                 approvalStatus: false,
               );
-        setState(() {
-          isFiltered = true;
-        });
+
         break;
       default:
         message = "Unknown option";
@@ -348,15 +344,20 @@ class _ExpenseScreenState extends State<ExpenseScreen>
                                     bottom: 3, top: 3, left: 10, right: 10),
                                 decoration: AppUtils.commonBoxDecoration(
                                   borderRadius: BorderRadius.circular(6),
-                                  color: myExpenseData[index].isApproved == true
-                                      ? Colors.green
-                                      : Colors.grey,
+                                  color: myExpenseData[index].isApproved == null
+                                      ? Colors.grey
+                                      : myExpenseData[index].isApproved == true
+                                          ? Colors.green
+                                          : Colors.red,
                                 ),
                                 child: AppUtils.commonTextWidget(
                                     text:
-                                        myExpenseData[index].isApproved == true
-                                            ? "Approved"
-                                            : "Pending",
+                                        myExpenseData[index].isApproved == null
+                                            ? "Pending"
+                                            : myExpenseData[index].isApproved ==
+                                                    true
+                                                ? "Approve"
+                                                : "Rejected",
                                     fontWeight: FontWeight.w400,
                                     textColor: AppConstant.whiteColor,
                                     fontSize: 10))
@@ -524,8 +525,13 @@ class _ExpenseScreenState extends State<ExpenseScreen>
                   return AppUtils.commonContainer(
                     width: double.infinity,
                     margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
-                    padding:  EdgeInsets.only(
-                        left: 15, right: 15, top: 20, bottom: isFiltered == true ? 20 :0),
+                    padding: EdgeInsets.only(
+                        left: 15,
+                        right: 15,
+                        top: 20,
+                        bottom: myEmployeeExpenseData[index].isApproved == false
+                            ? 20
+                            : 0),
                     decoration: BoxDecoration(
                         color: AppConstant.whiteColor,
                         borderRadius: AppUtils.borderRadiusAll(raduis: 10),
@@ -630,17 +636,25 @@ class _ExpenseScreenState extends State<ExpenseScreen>
                                 decoration: AppUtils.commonBoxDecoration(
                                   borderRadius: BorderRadius.circular(6),
                                   color:
-                                  myEmployeeExpenseData[index].isApproved == null ? Colors.grey: myEmployeeExpenseData[index].isApproved ==
-                                              true
-                                          ? Colors.green
-                                          : Colors.red,
+                                      myEmployeeExpenseData[index].isApproved ==
+                                              null
+                                          ? Colors.grey
+                                          : myEmployeeExpenseData[index]
+                                                      .isApproved ==
+                                                  true
+                                              ? Colors.green
+                                              : Colors.red,
                                 ),
                                 child: AppUtils.commonTextWidget(
-                                    text: myEmployeeExpenseData[index].isApproved == null ? "Pending" :myEmployeeExpenseData[index]
+                                    text: myEmployeeExpenseData[index]
                                                 .isApproved ==
-                                            true
-                                        ? "Approved"
-                                        : "Rejected",
+                                            null
+                                        ? "Pending"
+                                        : myEmployeeExpenseData[index]
+                                                    .isApproved ==
+                                                true
+                                            ? "Approved"
+                                            : "Rejected",
                                     fontWeight: FontWeight.w400,
                                     textColor: AppConstant.whiteColor,
                                     fontSize: 10))
@@ -782,99 +796,101 @@ class _ExpenseScreenState extends State<ExpenseScreen>
                             fontSize: 12,
                             textColor: AppConstant.blackColor.withOpacity(0.9),
                             fontWeight: FontWeight.w400),
-
                         AppUtils.commonSizedBox(height: 5),
-                        if(isFiltered == false)
-
-                          Column(children: [
-                            Divider(
-                              color: AppConstant.greyColor.withOpacity(0.3),
-                            ),
-                            // AppUtils.commonSizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Expanded(
-                                  flex: 2,
-                                  child: InkWell(
-                                    onTap: () {
-                                      AppUtils.showDialogBoxWithTwoButton(
-                                          onSuccess: () async{
-                                            await expenseProvider.apiCallApplyRejectLeave(
-                                              pkId: myEmployeeExpenseData[index].pkId,
-                                              userId: myEmployeeExpenseData[index].userId,
-                                              approvedRejectedBy: userName,
-                                              approvedAmount:  myEmployeeExpenseData[index].submittedAmount,
-                                              isApproved: false,
-                                              approvedRejectedOn: DateTime.now().toString(),
-                                              onSuccess: () async{
-                                                await expenseProvider.apiCallGetMyExpenseList();
-                                              },
-                                            );
-                                          },
-                                          onCancel: () {},
+                        if (myEmployeeExpenseData[index].isApproved == null)
+                          Column(
+                            children: [
+                              Divider(
+                                color: AppConstant.greyColor.withOpacity(0.3),
+                              ),
+                              // AppUtils.commonSizedBox(height: 10),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Expanded(
+                                    flex: 2,
+                                    child: InkWell(
+                                      onTap: () {
+                                        showDialog(
                                           context: context,
-                                          onSuccessString: "Reject",
-                                          onCancelString: "Cancel",
-                                          text:
-                                          "Do you want to reject Expense request ${myEmployeeExpenseData[index].userName} ",
-                                          titleText: "Expense Request");
-                                    },
-                                    child: AppUtils.commonContainer(
-                                      padding: AppUtils.edgeInsetsOnly(top: 5, bottom: 15),
-                                      color: Colors.white,
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(Icons.close,color: Colors.red,size: 26,),
-                                        ],
+                                          barrierDismissible: false,
+                                          builder: (context) {
+                                            return showNotesForm(
+                                                index, myEmployeeExpenseData);
+                                          },
+                                        );
+                                      },
+                                      child: AppUtils.commonContainer(
+                                        padding: AppUtils.edgeInsetsOnly(
+                                            top: 5, bottom: 15),
+                                        color: Colors.white,
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.close,
+                                              color: Colors.red,
+                                              size: 26,
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                Expanded(
-                                  flex: 2,
-                                  child: InkWell(
-                                    onTap: () {
-
-                                      AppUtils.showDialogBoxWithTwoButton(
-                                          onSuccess: () async{
-                                            await expenseProvider.apiCallApplyRejectLeave(
-                                              pkId: myEmployeeExpenseData[index].pkId,
-                                              userId: myEmployeeExpenseData[index].userId,
-                                              approvedRejectedBy: userName,
-                                              approvedAmount:  myEmployeeExpenseData[index].submittedAmount,
-                                              isApproved: true,
-                                              approvedRejectedOn: DateTime.now().toString(),
-                                              onSuccess: () async{
-                                                await expenseProvider.apiCallGetEmployeeExpenseList();
-                                              },
-                                            );
-                                          },
-                                          onCancel: () {},
+                                  Expanded(
+                                    flex: 2,
+                                    child: InkWell(
+                                      onTap: () {
+                                        approvalAmountController.text =
+                                            myEmployeeExpenseData[index]
+                                                .submittedAmount
+                                                .toString();
+                                        approvalNotesController.clear();
+                                        showDialog(
                                           context: context,
-                                          onSuccessString: "Approve",
-                                          onCancelString: "Cancel",
-                                          text:
-                                          "Do you want to approve Expense request ${myEmployeeExpenseData[index].userName} ",
-                                          titleText: "Expense Request");
-                                    },
-                                    child: AppUtils.commonContainer(
-                                      padding:
-                                      AppUtils.edgeInsetsOnly(top: 5, bottom: 15),
-                                      color: Colors.white,
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(Icons.check,color: Colors.green,size: 26,),
-                                        ],
+                                          barrierDismissible: false,
+                                          builder: (context) {
+                                            return showAmountAndNotesForm(
+                                                index, myEmployeeExpenseData);
+                                          },
+                                        );
+
+                                        // AppUtils.showDialogBoxWithTwoButton(
+                                        //     onSuccess: () async{
+                                        //
+                                        //     },
+                                        //     onCancel: () {},
+                                        //     context: context,
+                                        //     onSuccessString: "Approve",
+                                        //     onCancelString: "Cancel",
+                                        //     text:
+                                        //     "Do you want to approve Expense request ${myEmployeeExpenseData[index].userName} ",
+                                        //     titleText: "Expense Request");
+                                      },
+                                      child: AppUtils.commonContainer(
+                                        padding: AppUtils.edgeInsetsOnly(
+                                            top: 5, bottom: 15),
+                                        color: Colors.white,
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.check,
+                                              color: Colors.green,
+                                              size: 26,
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            )
-                          ],)
+                                ],
+                              )
+                            ],
+                          )
                       ],
                     ),
                   );
@@ -882,5 +898,206 @@ class _ExpenseScreenState extends State<ExpenseScreen>
               );
   }
 
+  Widget showAmountAndNotesForm(index, List<ListItem>? myEmployeeExpenseData) {
+    return AlertDialog(
+      backgroundColor: AppConstant.whiteColor,
+      // contentPadding: AppUtils.edgeInsetsAll(allPadding: 0),
+      // insetPadding:
+      // AppUtils.edgeInsetsOnly(top: 0, bottom: 0, right: 0, left: 0),
+      titlePadding: AppUtils.edgeInsetsOnly(top: 30, bottom: 10),
+      title: AppUtils.commonTextWidget(
+          text: "Approve Amount",
+          textColor: AppConstant.appPrimaryColor,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+          textAlign: TextAlign.center),
 
+      content: AppUtils.commonContainer(
+          width: MediaQuery.of(context).size.width - 30,
+          height: MediaQuery.of(context).size.height / 5,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _buildCommonTextField(
+                  readOnly: false,
+                  maxLine: 1,
+                  text: "Enter Approval Amount",
+                  textInputType: TextInputType.number,
+                  controller: approvalAmountController),
+              AppUtils.commonSizedBox(height: 10),
+              _buildCommonTextField(
+                  readOnly: false,
+                  maxLine: 1,
+                  text: "Enter Approval Notes",
+                  textInputType: TextInputType.text,
+                  controller: approvalNotesController)
+            ],
+          )),
+      actionsPadding: AppUtils.edgeInsetsOnly(top: 0, bottom: 10, right: 20),
+      actions: [
+        TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: AppUtils.commonTextWidget(
+              text: "Cancel",
+              fontWeight: FontWeight.w500,
+              textColor: Colors.red,
+              fontSize: 14,
+            )),
+        TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              if (myEmployeeExpenseData != null) {
+                if (int.parse(approvalAmountController.text) >
+                    (myEmployeeExpenseData[index].submittedAmount ?? 0)) {
+                  AppUtils.showSnackBarWithColor(
+                      message:
+                          "Please check the entered amount. it should not be bigger than the listed amount",
+                      context: context,
+                      giveColor: Colors.red);
+                } else {
+                  await expenseProvider.apiCallApplyRejectLeave(
+                    pkId: myEmployeeExpenseData[index].pkId,
+                    userId: myEmployeeExpenseData[index].userId,
+                    approvedRejectedBy: userName,
+                    approvedAmount: int.parse(approvalAmountController.text),
+                    isApproved: true,
+                    approvedNotes: approvalNotesController.text,
+                    approvedRejectedOn: DateTime.now().toString(),
+                    onSuccess: () async {
+                      await expenseProvider.apiCallGetEmployeeExpenseList();
+                    },
+                  );
+                }
+              }
+            },
+            child: AppUtils.commonTextWidget(
+              text: "Save",
+              fontWeight: FontWeight.w500,
+              textColor: Colors.green,
+              fontSize: 14,
+            ))
+      ],
+    );
+  }
+
+  Widget showNotesForm(index, List<ListItem>? myEmployeeExpenseData) {
+    return AlertDialog(
+      backgroundColor: AppConstant.whiteColor,
+      // contentPadding: AppUtils.edgeInsetsAll(allPadding: 0),
+      // insetPadding:
+      // AppUtils.edgeInsetsOnly(top: 0, bottom: 0, right: 0, left: 0),
+      titlePadding: AppUtils.edgeInsetsOnly(top: 30, bottom: 10),
+      title: AppUtils.commonTextWidget(
+          text: "Approve Notes",
+          textColor: AppConstant.appPrimaryColor,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+          textAlign: TextAlign.center),
+
+      content: AppUtils.commonContainer(
+          width: MediaQuery.of(context).size.width - 30,
+          height: MediaQuery.of(context).size.height / 6,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _buildCommonTextField(
+                  readOnly: false,
+                  maxLine: 3,
+                  text: "Enter Approval Notes",
+                  maxLength: 200,
+                  textInputType: TextInputType.text,
+                  controller: approvalNotesController)
+            ],
+          )),
+      actionsPadding: AppUtils.edgeInsetsOnly(top: 0, bottom: 10, right: 20),
+      actions: [
+        TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: AppUtils.commonTextWidget(
+              text: "Cancel",
+              fontWeight: FontWeight.w500,
+              textColor: Colors.red,
+              fontSize: 14,
+            )),
+        TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              if (myEmployeeExpenseData != null) {
+                if (approvalNotesController.text.isEmpty) {
+                  AppUtils.showSnackBarWithColor(
+                      message: "Please Enter Approval notes",
+                      context: context,
+                      giveColor: Colors.red);
+                } else {
+                  await expenseProvider.apiCallApplyRejectLeave(
+                    pkId: myEmployeeExpenseData[index].pkId,
+                    userId: myEmployeeExpenseData[index].userId,
+                    approvedRejectedBy: userName,
+                    approvedAmount: myEmployeeExpenseData[index].submittedAmount,
+                    isApproved: true,
+                    approvedNotes: approvalNotesController.text,
+                    approvedRejectedOn: DateTime.now().toString(),
+                    onSuccess: () async {
+                      await expenseProvider.apiCallGetEmployeeExpenseList();
+                    },
+                  );
+                }
+              }
+            },
+            child: AppUtils.commonTextWidget(
+              text: "Save",
+              fontWeight: FontWeight.w500,
+              textColor: Colors.green,
+              fontSize: 14,
+            ))
+      ],
+    );
+  }
+
+  Widget _buildCommonTextField({
+    String? text,
+    int? maxLine,
+    Function()? onTap,
+    TextEditingController? controller,
+    bool? showCursor,
+    TextInputType? textInputType,
+    Widget? suffixIcon,
+    bool? readOnly,
+    int? maxLength,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppUtils.commonTextWidget(
+          text: text ?? "",
+          textColor: AppConstant.blackColor.withOpacity(0.6),
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+        ),
+        const SizedBox(height: 5),
+        AppTextField(
+          readOnly: readOnly,
+          suffixIcon: suffixIcon,
+          controller: controller,
+          hintText: text ?? "",
+          maxLines: maxLine ?? 1,
+          maxLength: maxLength,
+          cursorColor: AppConstant.appPrimaryColor.withOpacity(0.9),
+          allBorderRadius: 3,
+          fillColor: AppConstant.whiteColor,
+          hintTextColor: AppConstant.greyColor.withOpacity(0.3),
+          hintFontSize: 12,
+          textInputType: textInputType,
+          onTap: onTap,
+          showCursor: showCursor,
+        ),
+      ],
+    );
+  }
 }

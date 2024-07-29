@@ -342,7 +342,7 @@ class _LeaveScreenState extends State<LeaveScreen>
                                   borderRadius: BorderRadius.circular(6),
                                   color: myLeaveData[index].isApproved == null
                                       ? AppConstant.greyColor:myLeaveData[index].isApproved == false ? Colors.red
-                                      : AppConstant.appPrimaryColor,
+                                      : Colors.green,
                                 ),
                                 child: AppUtils.commonTextWidget(
                                     text: myLeaveData[index].isApproved == null
@@ -593,7 +593,7 @@ class _LeaveScreenState extends State<LeaveScreen>
                                   borderRadius: BorderRadius.circular(6),
                                   color: myEmployeeLeaveData[index].isApproved == null
                                       ? AppConstant.greyColor:myEmployeeLeaveData[index].isApproved == false ? Colors.red
-                                      : AppConstant.appPrimaryColor,
+                                      : Colors.green,
                                 ),
                                 child: AppUtils.commonTextWidget(
                                     text: myEmployeeLeaveData[index].isApproved == null

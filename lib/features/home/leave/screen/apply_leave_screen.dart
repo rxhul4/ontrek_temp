@@ -20,12 +20,13 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
   bool isLoading = false;
   String? userName;
   String? userId;
+  int? numberOfLeaves;
   TextEditingController leaveStartDateController = TextEditingController();
   TextEditingController leaveEndDateController = TextEditingController();
   TextEditingController leaveReasonController = TextEditingController();
   TextEditingController employeeNameController = TextEditingController();
   TextEditingController leaveTypeController = TextEditingController();
-  DateTime? selectedStartDate;
+  DateTime selectedStartDate = DateTime.now();
   DateTime? selectedEndDate;
   String? selectedLeaveTypeId;
   String? selectedLeaveTypeName;
@@ -58,6 +59,7 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
 
   @override
   Widget build(BuildContext context) {
+    leaveProvider = Provider.of<LeaveProvider>(context);
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -76,39 +78,8 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
                 padding: const EdgeInsets.only(right: 20),
                 child: GestureDetector(
                   onTap: () {
-                    AppUtils.showDialogBoxWithTwoButton(
-                      titleText: "Leave Apply",
-                      text:
-                          "Are you sure you want to apply this application of leave",
-                      onSuccessString: "Yes",
-                      onCancelString: "No",
-                      context: context,
-                      onSuccess: () async {
-                        await leaveProvider.apiCallApplyLeave(
-                          userId: userId,
-                          isFullDay: isFullDay,
-                          leaveCategoryTotId: selectedLeaveTypeId,
-                          leaveStartDate: AppUtils.dateFormat(
-                              date: selectedStartDate,
-                              dateFormat: "yyyy-MM-dd"),
-                          leaveEndDate:  AppUtils.dateFormat(
-                              date: selectedEndDate,
-                              dateFormat: "yyyy-MM-dd"),
-                          submissionDate:  AppUtils.dateFormat(
-                              date: DateTime.now(),
-                              dateFormat: "yyyy-MM-dd"),
-                          leaveDays: 1,
-                          leaveReason: leaveReasonController.text,
-                          onSuccess: () {
-                            Navigator.pop(context);
-                          },
+                    checkValidationAndSubmitForm(context);
 
-                        );
-                      },
-                      onCancel: () {
-
-                      },
-                    );
                   },
                   child: AppUtils.commonTextWidget(
                       text: "Submit",
@@ -179,6 +150,61 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
         ),
       ),
     );
+  }
+
+
+  checkValidationAndSubmitForm(BuildContext context)async{
+    FocusScope.of(context).unfocus();
+
+    if(leaveTypeController.text.isEmpty){
+      AppUtils.showSnackBarWithColor(message: "Please select Leave Type",context: context,giveColor: Colors.red);
+    }else if(leaveStartDateController.text.isEmpty){
+      AppUtils.showSnackBarWithColor(message: "Please select Leave Start Date",context: context,giveColor: Colors.red);
+    }
+    else if(leaveEndDateController.text.isEmpty){
+      AppUtils.showSnackBarWithColor(message: "Please select Leave End Date",context: context,giveColor: Colors.red);
+    } else if(leaveReasonController.text.isEmpty){
+      AppUtils.showSnackBarWithColor(message: "Please Enter Leave Reason",context: context,giveColor: Colors.red);
+    }else  {
+      if(selectedStartDate != null && selectedEndDate != null){
+        numberOfLeaves = selectedEndDate!.difference(selectedStartDate).inDays;
+      }
+      AppUtils.showDialogBoxWithTwoButton(
+        titleText: "Leave Apply",
+        text:
+        "Are you sure you want to apply this application of leave",
+        onSuccessString: "Yes",
+        onCancelString: "No",
+        context: context,
+        onSuccess: () async {
+          await leaveProvider.apiCallApplyLeave(
+            userId: userId,
+            isFullDay: isFullDay,
+            leaveCategoryTotId: selectedLeaveTypeId,
+            leaveStartDate: AppUtils.dateFormat(
+                date: selectedStartDate,
+                dateFormat: "yyyy-MM-dd"),
+            leaveEndDate:  AppUtils.dateFormat(
+                date: selectedEndDate,
+                dateFormat: "yyyy-MM-dd"),
+            submissionDate:  AppUtils.dateFormat(
+                date: DateTime.now(),
+                dateFormat: "yyyy-MM-dd"),
+            leaveDays: numberOfLeaves,
+            leaveReason: leaveReasonController.text,
+            onSuccess: () {
+              Navigator.pop(context);
+            },
+
+          );
+        },
+        onCancel: () {
+
+        },
+      );
+    }
+
+
   }
 
   Widget _buildRequestTypeSelector() {
@@ -289,15 +315,34 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
   }
 
   Future<void> _openDatePicker({required bool isStartDate}) async {
-    DateTime? initialDate = isStartDate ? selectedStartDate : selectedEndDate;
+    DateTime? initialDate;
+    DateTime firstDate;
+
+    if (isStartDate) {
+      initialDate = selectedStartDate;
+      firstDate = DateTime(2000);
+    } else {
+      // For end date picker, ensure initialDate is valid
+      initialDate = selectedEndDate != null && selectedEndDate!.isAfter(selectedStartDate)
+          ? selectedEndDate
+          : selectedStartDate.add(Duration(days: 1));
+      firstDate = selectedStartDate.add(Duration(days: 1));
+    }
+
     DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: initialDate!,
-      firstDate: DateTime(2000),
+      initialDate: initialDate ?? DateTime.now(),
+      firstDate: firstDate,
       lastDate: DateTime(2101),
       initialEntryMode: DatePickerEntryMode.calendarOnly,
       selectableDayPredicate: (DateTime date) {
-        return date.isAfter(DateTime.now().subtract(const Duration(days: 1)));
+        if (isStartDate) {
+          // For start date selection, allow all dates from today onwards
+          return date.isAfter(DateTime.now().subtract(const Duration(days: 1)));
+        } else {
+          // For end date selection, allow dates after the selected start date
+          return date.isAfter(selectedStartDate);
+        }
       },
       builder: (BuildContext context, Widget? child) {
         return Theme(
@@ -327,6 +372,9 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
             date: selectedStartDate,
             dateFormat: "dd-MM-yyyy",
           );
+          // Reset the selected end date to null when a new start date is selected
+          selectedEndDate = null;
+          leaveEndDateController.clear();
         } else {
           selectedEndDate = picked;
           leaveEndDateController.text = AppUtils.dateFormat(
@@ -337,4 +385,6 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
       });
     }
   }
+
+
 }

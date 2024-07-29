@@ -924,24 +924,6 @@ class _TimeLineScreenState extends State<TimeLineScreen> {
     );
   }
 
-  Widget checkOutNoteWidget(List<SessionEvents>? sessionList) {
-    final checkOutSession =
-        sessionList?.firstWhere((element) => element.eventName == "Check Out");
-
-    if (checkOutSession != null) {
-      return AppUtils.commonElevatedBtn(
-        bottomMargin: 0,
-        topMargin: 0,
-        text: "Notes",
-        height: 40,
-        textColor: AppConstant.whiteColor,
-        bgColor: AppConstant.appPrimaryColor,
-        fontSize: 12,
-      );
-    } else {
-      return AppUtils.commonSizedBox();
-    }
-  }
 
   Widget informationBar(
       {required String totalDuration,
