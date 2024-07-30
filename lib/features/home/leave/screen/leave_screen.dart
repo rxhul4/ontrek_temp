@@ -22,15 +22,27 @@ class _LeaveScreenState extends State<LeaveScreen>
   bool? isFiltered;
   late LeaveProvider leaveProvider;
 
+  ScrollController pageScrollController = ScrollController();
+
+  void pageScrollListener()async{
+    if(pageScrollController.offset >= pageScrollController.position.maxScrollExtent && !pageScrollController.position.outOfRange){
+      selectedIndex == 0 ? await leaveProvider.apiCallGetMyLeaveList(pageNo: leaveProvider.pageNO)  : await leaveProvider.apiCallGetEmployeeLeaveList(pageNo: leaveProvider.pageNO) ;
+    }
+  }
+
   @override
   void initState() {
     // TODO: implement initState
+
     super.initState();
     tabController = TabController(length: 2, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback(
       (_) async {
         leaveProvider = Provider.of<LeaveProvider>(context, listen: false);
-        await leaveProvider.apiCallGetMyLeaveList();
+        await leaveProvider.apiCallGetMyLeaveList(pageNo: 1);
+        pageScrollController.addListener(pageScrollListener);
+
+        
         isFiltered = false;
       },
     );
@@ -237,6 +249,7 @@ class _LeaveScreenState extends State<LeaveScreen>
                 },
               )
             : ListView.builder(
+      controller: pageScrollController,
                 physics: BouncingScrollPhysics(),
                 shrinkWrap: true,
                 itemCount: myLeaveData.length,

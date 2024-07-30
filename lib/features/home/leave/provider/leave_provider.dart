@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
+import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
@@ -28,18 +29,18 @@ class LeaveProvider extends ChangeNotifier {
   GetTotByGroupTypeModel? getTotByGroupTypeModel;
   AddLeaveModel? addLeaveModel;
 
-  fetchingFnc(bool isLoading) {
-    _isFetching = isLoading;
-    notifyListeners();
-  }
+  int pageNO =1;
+
 
   Future<LeaveListModel?> apiCallGetMyLeaveList(
-      {String? submissionDate, bool? approvalStatus}) async {
+      {String? submissionDate, bool? approvalStatus,int? pageNo,int? pageSize}) async {
     var userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     var organizationId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
     _isFetching = true;
     notifyListeners();
     Map<String, dynamic> body = {
+      "pageNo": pageNO,
+      "pageSize": 10,
       "orgId": organizationId,
       "userId": userId,
       "approvalStatus": approvalStatus,
@@ -52,6 +53,7 @@ class LeaveProvider extends ChangeNotifier {
       print('response ${myLeaveListModel?.toJson()}');
       if (myLeaveListModel?.isError == false &&
           myLeaveListModel?.isValidationFailed == false) {
+        pageNO = (myLeaveListModel?.data?.pageNo ?? 0) + 1;
       } else {
         if (myLeaveListModel?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
@@ -82,12 +84,14 @@ class LeaveProvider extends ChangeNotifier {
   }
 
   Future<LeaveListModel?> apiCallGetEmployeeLeaveList(
-      {String? submissionDate, bool? approvalStatus}) async {
+      {String? submissionDate, bool? approvalStatus,int? pageNo}) async {
     var userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     var organizationId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
     _isFetching = true;
     notifyListeners();
     Map<String, dynamic> body = {
+      "pageNo": pageNo,
+      "pageSize": 10,
       "orgId": organizationId,
       "userId": userId,
       "approvalStatus": approvalStatus,
@@ -130,7 +134,8 @@ class LeaveProvider extends ChangeNotifier {
   }
 
   Future<GetTotByGroupTypeModel?> apiCallGetTotByType() async {
-    fetchingFnc(true);
+    _isFetching = true;
+    notifyListeners();
     Map<String, dynamic> body = {
       "groupType": "leave_category",
     };
@@ -156,7 +161,8 @@ class LeaveProvider extends ChangeNotifier {
             context: navigatorKey.currentState!.context);
       }
     }
-    fetchingFnc(false);
+    _isFetching = false;
+    notifyListeners();
     return getTotByGroupTypeModel;
   }
 
@@ -194,6 +200,7 @@ class LeaveProvider extends ChangeNotifier {
       if (addLeaveModel?.isError == false &&
           addLeaveModel?.isValidationFailed == false) {
         onSuccess();
+
       } else {
         if (addLeaveModel?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(

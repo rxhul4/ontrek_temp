@@ -1,18 +1,18 @@
-class DayEndRequestListModel {
+class DayEndRequestModel {
   bool? isError;
   bool? isValidationFailed;
   String? errorCode;
   String? message;
   Data? data;
 
-  DayEndRequestListModel(
+  DayEndRequestModel(
       {this.isError,
         this.isValidationFailed,
         this.errorCode,
         this.message,
         this.data});
 
-  DayEndRequestListModel.fromJson(Map<String, dynamic> json) {
+  DayEndRequestModel.fromJson(Map<String, dynamic> json) {
     isError = json['isError'];
     isValidationFailed = json['isValidationFailed'];
     errorCode = json['errorCode'];

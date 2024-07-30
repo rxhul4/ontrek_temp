@@ -193,7 +193,10 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
             leaveDays: numberOfLeaves,
             leaveReason: leaveReasonController.text,
             onSuccess: () {
-              Navigator.pop(context);
+              Navigator.pop(context,{
+                "isSuccess" : true
+              });
+
             },
 
           );

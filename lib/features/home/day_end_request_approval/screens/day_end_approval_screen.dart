@@ -52,14 +52,14 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
                   controller: tabController,
                   children: [
                     myDayEndRequests(
-                        dayEndRequestProvider.dayEndRequestListModel?.data
+                        dayEndRequestProvider.dayEndRequestModel?.data
                             ?.listItem
                             ?.where(
                               (element) => element.userId == userId,
                         )
                             .toList()),
                     allDayEndRequests(
-                        dayEndRequestProvider.dayEndRequestListModel?.data
+                        dayEndRequestProvider.dayEndRequestModel?.data
                             ?.listItem
                             ?.where(
                               (element) => element.userId != userId,
@@ -83,7 +83,7 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
                       await dayEndRequestProvider.apiCallGetDayEndRequestList(
                           isApproved: false);
                     } else {
-                      await dayEndRequestProvider.apiCallGetDayEndRequestList(
+                      await dayEndRequestProvider.apiCallEmployeeRequests(
                           isApproved: false);
                     }
                   },

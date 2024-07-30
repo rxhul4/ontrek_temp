@@ -101,7 +101,6 @@ class _CheckOutFormScreenState extends State<CheckOutFormScreen> {
               text: "Something went wrong, Please try again later!");
         }
         if (getTotByGroupTypeModel?.isValidationFailed == true) {
-
           AppUtils.showDialogBoxWithOneButton(
             titleText: "Information",
               context: context, text: getTotByGroupTypeModel?.message ?? "");

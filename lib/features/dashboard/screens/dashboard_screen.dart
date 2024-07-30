@@ -61,8 +61,6 @@ class DashBoardState extends State<DashBoard> {
   @override
   void initState() {
     super.initState();
-
-
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       final dashBoardProvider =
           Provider.of<DashBoardProvider>(context, listen: false);

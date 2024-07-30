@@ -25,47 +25,49 @@ class DayEndRequestProvider extends ChangeNotifier{
 
   bool get isAdding => _isAdding;
 
-  DayEndRequestListModel? dayEndRequestListModel;
+  DayEndRequestModel? dayEndRequestModel;
   ApproveRequestModel? approveRequestModel;
 
 
 
-  Future<DayEndRequestListModel?> apiCallGetDayEndRequestList(
+
+  Future<DayEndRequestModel?> apiCallGetDayEndRequestList(
       {String? requestedDate,
         String? empName,
         String? organizationId,
         bool? isApproved}) async {
     var userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
+    var userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
     var organizationId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
     _isFetching = true;
     notifyListeners();
     Map<String, dynamic> body = {
-      "empName": "",
+      "empName": userName,
+      "userId": userId,
       "orgId": organizationId,
-      // "requestedDate": AppUtils.dateFormat(date: DateTime.now(),dateFormat: AppConstant.dateFormat),
-      "isApproved": isApproved ?? true,
-      // "pageSize" : 10,
-      // "pageNo" : 1
+      "requestedDate": null /*?? AppUtils.dateFormat(date: DateTime.now(),dateFormat: AppConstant.dateFormat)*/,
+      "isApproved": true,
+      "pageNo": 1,
+      "pageSize": 10
     };
     try {
-      String endPoint = ApiConstants.getDayEndRequestList;
+      String endPoint = ApiConstants.dayEndMyRequestList;
       var response = await callPostMethod(endPoint, body);
-      dayEndRequestListModel = DayEndRequestListModel.fromJson(json.decode(response));
-      print('response ${dayEndRequestListModel?.toJson()}');
-      if (dayEndRequestListModel?.isError == false &&
-          dayEndRequestListModel?.isValidationFailed == false) {
+      dayEndRequestModel = DayEndRequestModel.fromJson(json.decode(response));
+      print('response ${dayEndRequestModel?.toJson()}');
+      if (dayEndRequestModel?.isError == false &&
+          dayEndRequestModel?.isValidationFailed == false) {
 
       } else {
-        if (dayEndRequestListModel?.isValidationFailed == true) {
+        if (dayEndRequestModel?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
               titleText: "Information",
               context: navigatorKey.currentState!.context,
-              text: dayEndRequestListModel?.message ?? "");
+              text: dayEndRequestModel?.message ?? "");
         }
       }
     } catch (e) {
-      print('catch at Get Task Provider $e');
-      // AppUtils.showDialogBoxWithOneButton(context: navigatorKey.currentContext,text: getAllTaskModel?.message ?? "");
+      print('catch at Get DayEnd Provider $e');
       bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
       if (isInternetAvailable == false) {
         AppUtils.showDialogBoxWithOneButton(
@@ -82,7 +84,63 @@ class DayEndRequestProvider extends ChangeNotifier{
     }
     _isFetching = false;
     notifyListeners();
-    return dayEndRequestListModel;
+    return dayEndRequestModel;
+  }
+
+  Future<DayEndRequestModel?> apiCallEmployeeRequests(
+      {String? requestedDate,
+        String? empName,
+        String? organizationId,
+        bool? isApproved}) async {
+    var userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
+    var userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
+    var organizationId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
+    _isFetching = true;
+    notifyListeners();
+    Map<String, dynamic> body = {
+      "empName": userName,
+      "userId": userId,
+      "orgId": organizationId,
+      "requestedDate": AppUtils.dateFormat(date: DateTime.now(),dateFormat: AppConstant.dateFormat),
+      "isApproved": true,
+      "pageNo": 1,
+      "pageSize": 10
+    };
+    try {
+      String endPoint = ApiConstants.dayEndMyEmployeeRequest;
+      var response = await callPostMethod(endPoint, body);
+      dayEndRequestModel = DayEndRequestModel.fromJson(json.decode(response));
+      print('response ${dayEndRequestModel?.toJson()}');
+      if (dayEndRequestModel?.isError == false &&
+          dayEndRequestModel?.isValidationFailed == false) {
+
+      } else {
+        if (dayEndRequestModel?.isValidationFailed == true) {
+          AppUtils.showDialogBoxWithOneButton(
+              titleText: "Information",
+              context: navigatorKey.currentState!.context,
+              text: dayEndRequestModel?.message ?? "");
+        }
+      }
+    } catch (e) {
+      print('catch at Get DayEnd Provider $e');
+      bool isInternetAvailable = await AppUtils.checkInternetConnectivity();
+      if (isInternetAvailable == false) {
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Internet Off Alert",
+            text:
+            "Internet is not available. Please Enable Mobile data or wifi.",
+            context: navigatorKey.currentState!.context);
+      } else {
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Error",
+            text: "Something went wrong!",
+            context: navigatorKey.currentState!.context);
+      }
+    }
+    _isFetching = false;
+    notifyListeners();
+    return dayEndRequestModel;
   }
 
 
