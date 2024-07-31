@@ -35,7 +35,6 @@ class _HomeScreenState extends State<HomeScreen> {
     reportsImagePath,
     dayEndImagePath,
     leaveImagePath,
-    customerImagePath,
     reimbursementImagePath,
     holidayImagePath,
   ];
@@ -46,7 +45,6 @@ class _HomeScreenState extends State<HomeScreen> {
     "Reports",
     "DayEnd",
     "Leave",
-    "Customer",
     "Expanse",
     "Holidays"
   ];
@@ -211,16 +209,8 @@ class _HomeScreenState extends State<HomeScreen> {
               builder: (context) => LeaveScreen(),
             ));
         break;
-      case 5:
 
-        Navigator.push(
-            context,
-            CupertinoPageRoute(
-              builder: (context) => CustomerScreen(),
-            ));
-        break;
-
-      case 6:
+      case 5 :
         //Expanse Management
         Navigator.push(
             context,
@@ -229,7 +219,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ));
 
         break;
-      case 7:
+      case 6:
         // holidays screen
         Navigator.push(
             context,

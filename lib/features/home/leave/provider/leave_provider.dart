@@ -29,7 +29,6 @@ class LeaveProvider extends ChangeNotifier {
   GetTotByGroupTypeModel? getTotByGroupTypeModel;
   AddLeaveModel? addLeaveModel;
 
-  int pageNO =1;
 
 
   Future<LeaveListModel?> apiCallGetMyLeaveList(
@@ -39,7 +38,7 @@ class LeaveProvider extends ChangeNotifier {
     _isFetching = true;
     notifyListeners();
     Map<String, dynamic> body = {
-      "pageNo": pageNO,
+      "pageNo": 1,
       "pageSize": 10,
       "orgId": organizationId,
       "userId": userId,
@@ -53,7 +52,6 @@ class LeaveProvider extends ChangeNotifier {
       print('response ${myLeaveListModel?.toJson()}');
       if (myLeaveListModel?.isError == false &&
           myLeaveListModel?.isValidationFailed == false) {
-        pageNO = (myLeaveListModel?.data?.pageNo ?? 0) + 1;
       } else {
         if (myLeaveListModel?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
@@ -90,7 +88,7 @@ class LeaveProvider extends ChangeNotifier {
     _isFetching = true;
     notifyListeners();
     Map<String, dynamic> body = {
-      "pageNo": pageNo,
+      "pageNo": 1,
       "pageSize": 10,
       "orgId": organizationId,
       "userId": userId,

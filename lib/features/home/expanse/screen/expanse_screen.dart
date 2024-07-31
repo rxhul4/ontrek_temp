@@ -21,6 +21,7 @@ class _ExpenseScreenState extends State<ExpenseScreen>
     with TickerProviderStateMixin {
   late TabController tabController;
   int selectedIndex = 0;
+
   late ExpenseProvider expenseProvider;
   TextEditingController approvalAmountController = TextEditingController();
   TextEditingController approvalNotesController = TextEditingController();
@@ -50,6 +51,15 @@ class _ExpenseScreenState extends State<ExpenseScreen>
           title: "Expense",
           isActionWidgetAvailable: true,
           actions: [
+
+            commonIconWidget(iconData: Icons.add,onTap: () {
+              Navigator.push(
+                  context,
+                  CupertinoPageRoute(
+                    builder: (context) => AddExpenseScreen(),
+                  ));
+            },),
+            AppUtils.commonSizedBox(width: 10),
             InkWell(
               onTap: () {
                 _showPopupMenu(context);
@@ -64,29 +74,6 @@ class _ExpenseScreenState extends State<ExpenseScreen>
               ),
             )
           ]),
-      floatingActionButton: GestureDetector(
-        onTap: () {
-          Navigator.push(
-              context,
-              CupertinoPageRoute(
-                builder: (context) => AddExpenseScreen(),
-              ));
-        },
-        child: AppUtils.commonContainer(
-          margin: const EdgeInsets.only(top: 20, bottom: 60, right: 10),
-          padding:
-              const EdgeInsets.only(top: 13, bottom: 13, right: 30, left: 30),
-          decoration: BoxDecoration(
-              color: Colors.green,
-              borderRadius: AppUtils.borderRadiusAll(raduis: 10)),
-          child: AppUtils.commonTextWidget(
-            text: "Add",
-            fontWeight: FontWeight.w400,
-            textColor: AppConstant.whiteColor,
-            fontSize: 12,
-          ),
-        ),
-      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -151,6 +138,19 @@ class _ExpenseScreenState extends State<ExpenseScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+
+  Widget commonIconWidget(
+      {Function()? onTap, IconData? iconData, Color? iconColor, double? size}) {
+    return InkWell(
+      onTap: onTap,
+      child: Icon(
+        iconData,
+        size: size ?? 26,
+        color: iconColor ?? AppConstant.blackColor.withOpacity(0.6),
       ),
     );
   }
@@ -529,9 +529,9 @@ class _ExpenseScreenState extends State<ExpenseScreen>
                         left: 15,
                         right: 15,
                         top: 20,
-                        bottom: myEmployeeExpenseData[index].isApproved == false
-                            ? 20
-                            : 0),
+                        bottom: myEmployeeExpenseData[index].isApproved == null
+                            ? 0
+                            : 20),
                     decoration: BoxDecoration(
                         color: AppConstant.whiteColor,
                         borderRadius: AppUtils.borderRadiusAll(raduis: 10),
@@ -991,7 +991,7 @@ class _ExpenseScreenState extends State<ExpenseScreen>
       // AppUtils.edgeInsetsOnly(top: 0, bottom: 0, right: 0, left: 0),
       titlePadding: AppUtils.edgeInsetsOnly(top: 30, bottom: 10),
       title: AppUtils.commonTextWidget(
-          text: "Approve Notes",
+          text: "Reject Notes",
           textColor: AppConstant.appPrimaryColor,
           fontWeight: FontWeight.w500,
           fontSize: 14,
@@ -1007,7 +1007,7 @@ class _ExpenseScreenState extends State<ExpenseScreen>
               _buildCommonTextField(
                   readOnly: false,
                   maxLine: 3,
-                  text: "Enter Approval Notes",
+                  text: "Enter Reject notes",
                   maxLength: 200,
                   textInputType: TextInputType.text,
                   controller: approvalNotesController)
@@ -1031,7 +1031,7 @@ class _ExpenseScreenState extends State<ExpenseScreen>
               if (myEmployeeExpenseData != null) {
                 if (approvalNotesController.text.isEmpty) {
                   AppUtils.showSnackBarWithColor(
-                      message: "Please Enter Approval notes",
+                      message: "Please Enter Reject notes",
                       context: context,
                       giveColor: Colors.red);
                 } else {

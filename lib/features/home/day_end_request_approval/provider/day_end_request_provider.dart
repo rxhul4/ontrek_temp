@@ -28,6 +28,18 @@ class DayEndRequestProvider extends ChangeNotifier{
   DayEndRequestModel? dayEndRequestModel;
   ApproveRequestModel? approveRequestModel;
 
+  DateTime myDayEndSelectedDate = DateTime.now();
+  DateTime employeeDayEndSelectedDate = DateTime.now();
+  bool? isMyRequestApproved;
+  bool? isEmployeeRequestApproved;
+
+
+  filterDayEndRequest({bool? isApproved,int? index}){
+
+    index == 0 ? isMyRequestApproved = isApproved : isEmployeeRequestApproved = isApproved;
+    notifyListeners();
+  }
+
 
 
 
@@ -35,18 +47,17 @@ class DayEndRequestProvider extends ChangeNotifier{
       {String? requestedDate,
         String? empName,
         String? organizationId,
-        bool? isApproved}) async {
+       }) async {
     var userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
-    var userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
     var organizationId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
     _isFetching = true;
     notifyListeners();
     Map<String, dynamic> body = {
-      "empName": userName,
+      "empName": "",
       "userId": userId,
       "orgId": organizationId,
-      "requestedDate": null /*?? AppUtils.dateFormat(date: DateTime.now(),dateFormat: AppConstant.dateFormat)*/,
-      "isApproved": true,
+      "requestedDate": AppUtils.dateFormat(date: myDayEndSelectedDate,dateFormat: AppConstant.dateFormat),
+      "isApproved": isMyRequestApproved,
       "pageNo": 1,
       "pageSize": 10
     };
@@ -91,18 +102,17 @@ class DayEndRequestProvider extends ChangeNotifier{
       {String? requestedDate,
         String? empName,
         String? organizationId,
-        bool? isApproved}) async {
+      }) async {
     var userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
-    var userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
     var organizationId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
     _isFetching = true;
     notifyListeners();
     Map<String, dynamic> body = {
-      "empName": userName,
+      "empName": "",
       "userId": userId,
       "orgId": organizationId,
-      "requestedDate": AppUtils.dateFormat(date: DateTime.now(),dateFormat: AppConstant.dateFormat),
-      "isApproved": true,
+      "requestedDate":  AppUtils.dateFormat(date: employeeDayEndSelectedDate,dateFormat: AppConstant.dateFormat),
+      "isApproved": isEmployeeRequestApproved,
       "pageNo": 1,
       "pageSize": 10
     };
@@ -162,7 +172,7 @@ class DayEndRequestProvider extends ChangeNotifier{
       approveRequestModel = ApproveRequestModel.fromJson(json.decode(response));
       print('response ${approveRequestModel?.toJson()}');
       if (approveRequestModel?.isError == false && approveRequestModel?.isValidationFailed == false) {
-        await apiCallGetDayEndRequestList(isApproved: false);
+        await apiCallGetDayEndRequestList();
       } else {
         if (approveRequestModel?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(

@@ -22,13 +22,8 @@ class _LeaveScreenState extends State<LeaveScreen>
   bool? isFiltered;
   late LeaveProvider leaveProvider;
 
-  ScrollController pageScrollController = ScrollController();
 
-  void pageScrollListener()async{
-    if(pageScrollController.offset >= pageScrollController.position.maxScrollExtent && !pageScrollController.position.outOfRange){
-      selectedIndex == 0 ? await leaveProvider.apiCallGetMyLeaveList(pageNo: leaveProvider.pageNO)  : await leaveProvider.apiCallGetEmployeeLeaveList(pageNo: leaveProvider.pageNO) ;
-    }
-  }
+
 
   @override
   void initState() {
@@ -40,9 +35,6 @@ class _LeaveScreenState extends State<LeaveScreen>
       (_) async {
         leaveProvider = Provider.of<LeaveProvider>(context, listen: false);
         await leaveProvider.apiCallGetMyLeaveList(pageNo: 1);
-        pageScrollController.addListener(pageScrollListener);
-
-        
         isFiltered = false;
       },
     );
@@ -60,6 +52,14 @@ class _LeaveScreenState extends State<LeaveScreen>
           title: "Leave",
           isActionWidgetAvailable: true,
           actions: [
+            commonIconWidget(iconData: Icons.add,onTap: () {
+              Navigator.push(
+                  context,
+                  CupertinoPageRoute(
+                    builder: (context) => ApplyLeaveScreen(),
+                  ));
+            },),
+            AppUtils.commonSizedBox(width: 10),
             InkWell(
               onTap: () {
                 _showPopupMenu(context);
@@ -74,29 +74,25 @@ class _LeaveScreenState extends State<LeaveScreen>
               ),
             )
           ]),
-      floatingActionButton: GestureDetector(
-        onTap: () {
-          Navigator.push(
-              context,
-              CupertinoPageRoute(
-                builder: (context) => ApplyLeaveScreen(),
-              ));
-        },
-        child: AppUtils.commonContainer(
-          margin: const EdgeInsets.only(top: 20, bottom: 60, right: 10),
-          padding:
-              const EdgeInsets.only(top: 13, bottom: 13, right: 30, left: 30),
-          decoration: BoxDecoration(
-              color: Colors.green,
-              borderRadius: AppUtils.borderRadiusAll(raduis: 10)),
-          child: AppUtils.commonTextWidget(
-            text: "Apply",
-            fontWeight: FontWeight.w400,
-            textColor: AppConstant.whiteColor,
-            fontSize: 12,
-          ),
-        ),
-      ),
+      // floatingActionButton: GestureDetector(
+      //   onTap: () {
+      //
+      //   },
+      //   child: AppUtils.commonContainer(
+      //     margin: const EdgeInsets.only(top: 20, bottom: 60, right: 10),
+      //     padding:
+      //         const EdgeInsets.only(top: 13, bottom: 13, right: 30, left: 30),
+      //     decoration: BoxDecoration(
+      //         color: Colors.green,
+      //         borderRadius: AppUtils.borderRadiusAll(raduis: 10)),
+      //     child: AppUtils.commonTextWidget(
+      //       text: "Apply",
+      //       fontWeight: FontWeight.w400,
+      //       textColor: AppConstant.whiteColor,
+      //       fontSize: 12,
+      //     ),
+      //   ),
+      // ),
       body: SafeArea(
         child: Column(
           children: [
@@ -163,6 +159,18 @@ class _LeaveScreenState extends State<LeaveScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget commonIconWidget(
+      {Function()? onTap, IconData? iconData, Color? iconColor, double? size}) {
+    return InkWell(
+      onTap: onTap,
+      child: Icon(
+        iconData,
+        size: size ?? 26,
+        color: iconColor ?? AppConstant.blackColor.withOpacity(0.6),
       ),
     );
   }
@@ -249,7 +257,6 @@ class _LeaveScreenState extends State<LeaveScreen>
                 },
               )
             : ListView.builder(
-      controller: pageScrollController,
                 physics: BouncingScrollPhysics(),
                 shrinkWrap: true,
                 itemCount: myLeaveData.length,
@@ -503,7 +510,7 @@ class _LeaveScreenState extends State<LeaveScreen>
                     width: double.infinity,
                     margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
                     padding:  EdgeInsets.only(
-                        left: 15, right: 15, top: 20, bottom: isFiltered == true? 20 : 0),
+                        left: 15, right: 15, top: 20, bottom: myEmployeeLeaveData[index].isApproved != null? 20 : 0),
                     decoration: BoxDecoration(
                         color: AppConstant.whiteColor,
                         borderRadius: AppUtils.borderRadiusAll(raduis: 10),
@@ -730,7 +737,7 @@ class _LeaveScreenState extends State<LeaveScreen>
                             textColor: AppConstant.blackColor.withOpacity(0.9),
                             fontWeight: FontWeight.w400),
                         AppUtils.commonSizedBox(height: 5),
-                        if(isFiltered == false)
+                        if(myEmployeeLeaveData[index].isApproved  == null)
 
                           Column(children: [
                             Divider(

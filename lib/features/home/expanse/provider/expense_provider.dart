@@ -213,13 +213,14 @@ class ExpenseProvider extends ChangeNotifier {
       String? approvedNotes,
       required Function() onSuccess}) async {
     var organizationId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
+    var userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
     _isLoading = true;
     notifyListeners();
     Map<String, dynamic> body = {
       "pkId": pkId,
       "orgId": organizationId,
       "userId": userId,
-      "approvedRejectedBy": approvedRejectedBy,
+      "approvedRejectedBy": userName,
       "approveRejectDate":
           AppUtils.formatDateString(approvedRejectedOn ?? "", "yyyy-MM-dd"),
       "isApproved": isApproved,
