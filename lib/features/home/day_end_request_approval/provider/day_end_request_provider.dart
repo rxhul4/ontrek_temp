@@ -75,7 +75,7 @@ class DayEndRequestProvider extends ChangeNotifier{
       "empName": empName ?? "",
       "userId": userId,
       "orgId": organizationId,
-      "requestedDate": AppUtils.getDateForDayEnd(date: myDayEndSelectedDate ?? "", format: AppConstant.dateFormat),
+      "requestedDate": AppUtils.getDateForDayEnd(date: myDayEndSelectedDate ?? "", format: "yyyy-MM-dd"),
       "isApproved": isApproved,
       "pageNo": pageNo,
       "pageSize": 10 // Fixed page size
@@ -137,7 +137,7 @@ class DayEndRequestProvider extends ChangeNotifier{
       "empName": "",
       "userId": userId,
       "orgId": organizationId,
-      "requestedDate":   AppUtils.getDateForDayEnd(date: employeeDayEndSelectedDate ?? "", format: AppConstant.dateFormat),
+      "requestedDate":   AppUtils.getDateForDayEnd(date: employeeDayEndSelectedDate ?? "", format:  "yyyy-MM-dd"),
       "isApproved": isApproved,
       "pageNo": pageNo,
       "pageSize": 10
