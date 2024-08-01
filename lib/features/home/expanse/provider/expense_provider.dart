@@ -29,26 +29,30 @@ class ExpenseProvider extends ChangeNotifier {
   CommonExpenseModel? commonExpenseModel;
   ExpenseCategoryModel? expenseCategoryModel;
   ExpenseSubCategoryModel? expenseSubCategoryModel;
-  bool? isMyExpenseFiltered;
-  bool? isEmployeeExpenseFiltered;
-
+  bool? ApprovalStatus;
 
   fetchingFnc(bool isLoading) {
     _isFetching = isLoading;
     notifyListeners();
   }
+  manageApprovalStatus(bool? approvalStatus){
+    ApprovalStatus = approvalStatus;
+    notifyListeners();
+  }
 
   Future<ExpenseListModel?> apiCallGetMyExpenseList(
-      {String? submissionDate, bool? approvalStatus}) async {
+      {String? submissionDate, bool? approvalStatus, int? pageNo}) async {
     var userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     var organizationId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
-    _isFetching = true;
-    notifyListeners();
+    // _isFetching = true;
+    // notifyListeners();
     Map<String, dynamic> body = {
       "orgId": organizationId,
       "userId": userId,
-      "approvalStatus": approvalStatus,
-      "submissionDate": null
+      "approvalStatus": ApprovalStatus,
+      "submissionDate": null,
+      "pageNo": pageNo,
+      "pageSize": 10
     };
     try {
       String endPoint = ApiConstants.getMyExpenseList;
@@ -57,7 +61,7 @@ class ExpenseProvider extends ChangeNotifier {
       print('response ${expenseListModel?.toJson()}');
       if (expenseListModel?.isError == false &&
           expenseListModel?.isValidationFailed == false) {
-        approvalStatus == null ?  isMyExpenseFiltered == true : isMyExpenseFiltered == false;
+
       } else {
         if (expenseListModel?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
@@ -82,23 +86,24 @@ class ExpenseProvider extends ChangeNotifier {
             context: navigatorKey.currentState!.context);
       }
     }
-    _isFetching = false;
-    notifyListeners();
+    // _isFetching = false;
+    // notifyListeners();
     return expenseListModel;
   }
 
   Future<ExpenseListModel?> apiCallGetEmployeeExpenseList(
-      {String? submissionDate, bool? approvalStatus}) async {
-
+      {String? submissionDate, bool? approvalStatus, int? pageNo}) async {
     var userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     var organizationId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
-    _isFetching = true;
-    notifyListeners();
+    // _isFetching = true;
+    // notifyListeners();
     Map<String, dynamic> body = {
       "orgId": organizationId,
       "userId": userId,
-      "approvalStatus": approvalStatus,
-      "submissionDate": null
+      "approvalStatus": ApprovalStatus,
+      "submissionDate": null,
+      "pageNo": pageNo,
+      "pageSize": 10
     };
     try {
       String endPoint = ApiConstants.getMyEmployeeExpenseList;
@@ -107,8 +112,6 @@ class ExpenseProvider extends ChangeNotifier {
       print('response ${expenseListModel?.toJson()}');
       if (expenseListModel?.isError == false &&
           expenseListModel?.isValidationFailed == false) {
-
-        approvalStatus == null ?  isEmployeeExpenseFiltered == true : isEmployeeExpenseFiltered == false;
       } else {
         if (expenseListModel?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
@@ -133,8 +136,8 @@ class ExpenseProvider extends ChangeNotifier {
             context: navigatorKey.currentState!.context);
       }
     }
-    _isFetching = false;
-    notifyListeners();
+    // _isFetching = false;
+    // notifyListeners();
     return expenseListModel;
   }
 
@@ -147,7 +150,6 @@ class ExpenseProvider extends ChangeNotifier {
     int? submittedAmount,
     String? invoiceImage,
     required Function() onSuccess,
-
   }) async {
     String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     String? orgId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
@@ -157,8 +159,10 @@ class ExpenseProvider extends ChangeNotifier {
       "pkId": null,
       "orgId": orgId,
       "userId": userId,
-      "expenseDate": AppUtils.getDate(date: DateTime.now().toString(), format: "yyyy-MM-dd"),
-      "submissionDate": AppUtils.getDate(date: DateTime.now().toString(), format: "yyyy-MM-dd"),
+      "expenseDate": AppUtils.getDate(
+          date: DateTime.now().toString(), format: "yyyy-MM-dd"),
+      "submissionDate": AppUtils.getDate(
+          date: DateTime.now().toString(), format: "yyyy-MM-dd"),
       "expenseCategoryId": expenseCategoryId,
       "expenseSubCategoryId": expenseSubCategoryId,
       "expenseDescription": expenseDescription,
@@ -202,7 +206,7 @@ class ExpenseProvider extends ChangeNotifier {
     return commonExpenseModel;
   }
 
-  Future<CommonExpenseModel?> apiCallApplyRejectLeave(
+  Future<CommonExpenseModel?> apiCallApplyRejectExpense(
       {String? pkId,
       String? orgId,
       String? userId,
@@ -225,8 +229,7 @@ class ExpenseProvider extends ChangeNotifier {
           AppUtils.formatDateString(approvedRejectedOn ?? "", "yyyy-MM-dd"),
       "isApproved": isApproved,
       "approvedAmount": approvedAmount,
-      "approverNotes": approvedNotes
-
+      "approverNotes":  approvedNotes
     };
     try {
       String endPoint = ApiConstants.approveRejectExpense;

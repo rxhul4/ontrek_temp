@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
@@ -20,24 +21,75 @@ class _LeaveScreenState extends State<LeaveScreen>
   late TabController tabController;
   int selectedIndex = 0;
   bool? isFiltered;
+  bool? approvalStatus = null;
   late LeaveProvider leaveProvider;
-
-
-
+  final PagingController<int, ListItem> myLeaveListController =
+  PagingController(firstPageKey: 1);
+  final PagingController<int, ListItem> employeeLeaveListController =
+  PagingController(firstPageKey: 1);
 
   @override
   void initState() {
     // TODO: implement initState
-
     super.initState();
     tabController = TabController(length: 2, vsync: this);
+    myLeaveListController.addPageRequestListener((pageKey) async {
+      await myDayEndRequestPagination(pageKey);
+    });
+    employeeLeaveListController.addPageRequestListener((pageKey) async {
+      await EmployeeDayEndRequestPagination(pageKey);
+    });
+
     WidgetsBinding.instance.addPostFrameCallback(
-      (_) async {
+          (_) async {
         leaveProvider = Provider.of<LeaveProvider>(context, listen: false);
-        await leaveProvider.apiCallGetMyLeaveList(pageNo: 1);
         isFiltered = false;
       },
     );
+  }
+
+  Future<void> myDayEndRequestPagination(int pageKey) async {
+    try {
+      final newItems = await leaveProvider.apiCallGetMyLeaveList(
+          pageNo: pageKey, approvalStatus: approvalStatus);
+      bool isLastPage = (newItems?.data?.listItem?.length ?? 0) < 10;
+      if (isLastPage) {
+        myLeaveListController.appendLastPage(newItems?.data?.listItem ?? []);
+      } else {
+        final nextPageKey = pageKey + 1;
+        myLeaveListController.appendPage(
+            newItems?.data?.listItem ?? [], nextPageKey);
+      }
+    } catch (error) {
+      myLeaveListController.error = error;
+    }
+  }
+
+  Future<void> EmployeeDayEndRequestPagination(int pageKey) async {
+    try {
+      final newItems = await leaveProvider.apiCallGetEmployeeLeaveList(
+          pageNo: pageKey, approvalStatus: approvalStatus);
+      bool isLastPage = (newItems?.data?.listItem?.length ?? 0) < 10;
+      if (isLastPage) {
+        employeeLeaveListController
+            .appendLastPage(newItems?.data?.listItem ?? []);
+      } else {
+        final nextPageKey = pageKey + 1;
+        employeeLeaveListController.appendPage(
+            newItems?.data?.listItem ?? [], nextPageKey);
+      }
+    } catch (error) {
+      employeeLeaveListController.error = error;
+    }
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    myLeaveListController.dispose();
+    employeeLeaveListController.dispose();
+    leaveProvider.ApprovalStatus = null;
+    super.dispose();
   }
 
   @override
@@ -52,13 +104,22 @@ class _LeaveScreenState extends State<LeaveScreen>
           title: "Leave",
           isActionWidgetAvailable: true,
           actions: [
-            commonIconWidget(iconData: Icons.add,onTap: () {
-              Navigator.push(
-                  context,
-                  CupertinoPageRoute(
-                    builder: (context) => ApplyLeaveScreen(),
-                  ));
-            },),
+            commonIconWidget(
+              iconData: Icons.add,
+              onTap: () {
+                Navigator.push(
+                    context,
+                    CupertinoPageRoute(
+                      builder: (context) => ApplyLeaveScreen(),
+                    )).then(
+                      (value) {
+                    selectedIndex == 0
+                        ? myLeaveListController.refresh()
+                        : employeeLeaveListController.refresh();
+                  },
+                );
+              },
+            ),
             AppUtils.commonSizedBox(width: 10),
             InkWell(
               onTap: () {
@@ -74,57 +135,29 @@ class _LeaveScreenState extends State<LeaveScreen>
               ),
             )
           ]),
-      // floatingActionButton: GestureDetector(
-      //   onTap: () {
-      //
-      //   },
-      //   child: AppUtils.commonContainer(
-      //     margin: const EdgeInsets.only(top: 20, bottom: 60, right: 10),
-      //     padding:
-      //         const EdgeInsets.only(top: 13, bottom: 13, right: 30, left: 30),
-      //     decoration: BoxDecoration(
-      //         color: Colors.green,
-      //         borderRadius: AppUtils.borderRadiusAll(raduis: 10)),
-      //     child: AppUtils.commonTextWidget(
-      //       text: "Apply",
-      //       fontWeight: FontWeight.w400,
-      //       textColor: AppConstant.whiteColor,
-      //       fontSize: 12,
-      //     ),
-      //   ),
-      // ),
       body: SafeArea(
         child: Column(
           children: [
             Expanded(
                 child: TabBarView(
-              physics: NeverScrollableScrollPhysics(),
-              controller: tabController,
-              children: [
-                myLeaveRequests(leaveProvider.myLeaveListModel?.data?.listItem),
-                allLeaveRequests(
-                    leaveProvider.myLeaveListModel?.data?.listItem),
-                // allDayEndRequests(),
-              ],
-            )),
+                  physics: NeverScrollableScrollPhysics(),
+                  controller: tabController,
+                  children: [
+                    myLeaveRequests(),
+                    allLeaveRequests(),
+                  ],
+                )),
             AppUtils.commonContainer(
               height: 50,
               margin: EdgeInsets.only(top: 0, left: 0, right: 0, bottom: 0),
               decoration: AppUtils.commonBoxDecoration(
                 color: AppConstant.greyColor.withOpacity(0.2),
-                // borderRadius: AppUtils.borderRadiusAll(raduis: 5),
               ),
               child: TabBar.secondary(
                   onTap: (value) async {
                     setState(() {
                       selectedIndex = value;
                     });
-                    if (selectedIndex == 0) {
-                      await leaveProvider.apiCallGetMyLeaveList();
-                    } else {
-                      await leaveProvider.apiCallGetEmployeeLeaveList();
-                    }
-                    // callCallGetTaskByIdListApi(taskProvider: taskProvider);
                   },
                   physics: const NeverScrollableScrollPhysics(),
                   isScrollable: false,
@@ -161,6 +194,637 @@ class _LeaveScreenState extends State<LeaveScreen>
         ),
       ),
     );
+  }
+
+  myLeaveRequests() {
+    return PagedListView<int, ListItem>(
+      pagingController: myLeaveListController,
+      physics: BouncingScrollPhysics(),
+      padding: AppUtils.edgeInsetsOnly(bottom: 20),
+      builderDelegate: PagedChildBuilderDelegate<ListItem>(
+        animateTransitions: true,
+        firstPageProgressIndicatorBuilder: (context) {
+          return Center(
+            child: AppUtils.loaderWidget(),
+          );
+        },
+        noItemsFoundIndicatorBuilder: (context) {
+          return AppUtils.commonNoDataFound(
+            text: "No Leaves Found",
+            onPressed: () {
+              myLeaveListController.refresh();
+            },
+          );
+        },
+        newPageProgressIndicatorBuilder: (context) {
+          return Padding(
+            padding: EdgeInsets.only(top: 30),
+            child: AppUtils.loaderWidget(),
+          );
+        },
+        itemBuilder: (context, item, index) {
+          return AppUtils.commonContainer(
+            width: double.infinity,
+            margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
+            padding:
+            const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 20),
+            decoration: BoxDecoration(
+                color: AppConstant.whiteColor,
+                borderRadius: AppUtils.borderRadiusAll(raduis: 10),
+                boxShadow: [
+                  BoxShadow(
+                      color: AppConstant.greyColor.withOpacity(0.3),
+                      blurRadius: 8,
+                      blurStyle: BlurStyle.solid,
+                      spreadRadius: 0.8),
+                ]),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppUtils.commonContainer(
+                  width: double.infinity,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        flex: 4,
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.person,
+                              color: Colors.orangeAccent,
+                              size: 18,
+                            ),
+                            AppUtils.commonSizedBox(width: 5),
+                            Expanded(
+                              child: AppUtils.commonTextWidget(
+                                text: item.userName ?? "",
+                                fontSize: 12,
+                                textColor:
+                                AppConstant.blackColor.withOpacity(0.9),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: 40),
+                      // Adjust the width as per your requirement
+                      Flexible(
+                        flex: 2,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: AppUtils.commonTextWidget(
+                                text:
+                                "${AppUtils.formatDateString(
+                                    item.leaveStartDate ?? "",
+                                    "dd-MM")} To ${AppUtils.formatDateString(
+                                    item.leaveEndDate ?? "", "dd-MM")}",
+                                fontSize: 12,
+                                textColor:
+                                AppConstant.blackColor.withOpacity(0.9),
+                                fontWeight: FontWeight.w500,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                AppUtils.commonSizedBox(height: 5),
+                Divider(
+                  color: AppConstant.greyColor.withOpacity(0.3),
+                ),
+                AppUtils.commonSizedBox(height: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.task_sharp,
+                          color: Colors.blue,
+                          size: 18,
+                        ),
+                        AppUtils.commonSizedBox(width: 5),
+                        AppUtils.commonTextWidget(
+                            text: "Approval Status",
+                            fontSize: 12,
+                            textColor: AppConstant.blackColor.withOpacity(0.9),
+                            fontWeight: FontWeight.w500)
+                      ],
+                    ),
+                    AppUtils.commonContainer(
+                        padding: AppUtils.edgeInsetsOnly(
+                            bottom: 3, top: 3, left: 10, right: 10),
+                        decoration: AppUtils.commonBoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: item.isApproved == null
+                              ? AppConstant.greyColor
+                              : item.isApproved == false
+                              ? Colors.red
+                              : Colors.green,
+                        ),
+                        child: AppUtils.commonTextWidget(
+                            text: item.isApproved == null
+                                ? "Pending"
+                                : item.isApproved == false
+                                ? "Rejected"
+                                : "Approved",
+                            fontWeight: FontWeight.w400,
+                            textColor: AppConstant.whiteColor,
+                            fontSize: 10))
+                  ],
+                ),
+                AppUtils.commonSizedBox(height: 5),
+                Divider(
+                  color: AppConstant.greyColor.withOpacity(0.3),
+                ),
+                AppUtils.commonSizedBox(height: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.time_to_leave,
+                          color: Colors.orange,
+                          size: 18,
+                        ),
+                        AppUtils.commonSizedBox(width: 5),
+                        AppUtils.commonTextWidget(
+                            text: "Half/Full Day",
+                            fontSize: 12,
+                            textColor: AppConstant.blackColor.withOpacity(0.9),
+                            fontWeight: FontWeight.w500)
+                      ],
+                    ),
+                    AppUtils.commonContainer(
+                        padding: AppUtils.edgeInsetsOnly(
+                            bottom: 3, top: 3, left: 10, right: 10),
+                        decoration: AppUtils.commonBoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: item.isFullDay == true
+                              ? Colors.green
+                              : Colors.amber,
+                        ),
+                        child: AppUtils.commonTextWidget(
+                            text: item.isFullDay == true
+                                ? "Full Day"
+                                : "Half Day",
+                            fontWeight: FontWeight.w400,
+                            textColor: AppConstant.whiteColor,
+                            fontSize: 10))
+                  ],
+                ),
+                AppUtils.commonSizedBox(height: 5),
+                Divider(
+                  color: AppConstant.greyColor.withOpacity(0.3),
+                ),
+                AppUtils.commonSizedBox(height: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.category_outlined,
+                          color: Colors.blue,
+                          size: 18,
+                        ),
+                        AppUtils.commonSizedBox(width: 5),
+                        AppUtils.commonTextWidget(
+                            text: "Leave Category",
+                            fontSize: 12,
+                            textColor: AppConstant.blackColor.withOpacity(0.9),
+                            fontWeight: FontWeight.w500)
+                      ],
+                    ),
+                    AppUtils.commonTextWidget(
+                        text: item.leaveCategoryTotName ?? "",
+                        fontWeight: FontWeight.w500,
+                        textColor: AppConstant.blackColor,
+                        fontSize: 14)
+                  ],
+                ),
+                AppUtils.commonSizedBox(height: 5),
+                Divider(
+                  color: AppConstant.greyColor.withOpacity(0.3),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.notes,
+                          color: Colors.purpleAccent,
+                          size: 18,
+                        ),
+                        AppUtils.commonSizedBox(width: 5),
+                        AppUtils.commonTextWidget(
+                            text: /* viewTaskProvider
+                                          .taskByIdModel?.data?.taskTitle ??*/
+                            "Reason",
+                            fontSize: 12,
+                            textColor: AppConstant.blackColor.withOpacity(0.9),
+                            fontWeight: FontWeight.w500)
+                      ],
+                    ),
+                  ],
+                ),
+                AppUtils.commonSizedBox(height: 8),
+                AppUtils.commonTextWidget(
+                    text: item.leaveReason ?? "",
+                    fontSize: 12,
+                    textColor: AppConstant.blackColor.withOpacity(0.9),
+                    fontWeight: FontWeight.w400),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  allLeaveRequests() {
+    return PagedListView<int, ListItem>(
+        pagingController: employeeLeaveListController,
+        physics: BouncingScrollPhysics(),
+        padding: AppUtils.edgeInsetsOnly(bottom: 20),
+        builderDelegate: PagedChildBuilderDelegate<ListItem>(
+            firstPageProgressIndicatorBuilder: (context) {
+              return AppUtils.loaderWidget();
+            }, newPageProgressIndicatorBuilder: (context) {
+          return Padding(
+            padding: EdgeInsets.only(top: 30),
+            child: AppUtils.loaderWidget(),
+          );
+        }, itemBuilder: (context, item, index) {
+          return AppUtils.commonContainer(
+            width: double.infinity,
+            margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
+            padding: EdgeInsets.only(
+                left: 15,
+                right: 15,
+                top: 20,
+                bottom: item.isApproved != null ? 20 : 0),
+            decoration: BoxDecoration(
+                color: AppConstant.whiteColor,
+                borderRadius: AppUtils.borderRadiusAll(raduis: 10),
+                boxShadow: [
+                  BoxShadow(
+                      color: AppConstant.greyColor.withOpacity(0.3),
+                      blurRadius: 8,
+                      blurStyle: BlurStyle.solid,
+                      spreadRadius: 0.8),
+                ]),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppUtils.commonContainer(
+                  width: double.infinity,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        flex: 3,
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.person,
+                              color: Colors.orangeAccent,
+                              size: 18,
+                            ),
+                            AppUtils.commonSizedBox(width: 5),
+                            Expanded(
+                              child: AppUtils.commonTextWidget(
+                                text: item.userName ?? "",
+                                fontSize: 12,
+                                textColor:
+                                AppConstant.blackColor.withOpacity(0.9),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: 40),
+                      // Adjust the width as per your requirement
+                      Flexible(
+                        flex: 2,
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.timer_outlined,
+                              color: Colors.green,
+                              size: 15,
+                            ),
+                            AppUtils.commonSizedBox(width: 3),
+                            Expanded(
+                              child: AppUtils.commonTextWidget(
+                                text:
+                                "${AppUtils.formatDateString(
+                                    item.leaveStartDate ?? "",
+                                    "dd-MM")} To ${AppUtils.formatDateString(
+                                    item.leaveEndDate ?? "", "dd-MM")}",
+                                fontSize: 12,
+                                textColor:
+                                AppConstant.blackColor.withOpacity(0.9),
+                                fontWeight: FontWeight.w500,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                AppUtils.commonSizedBox(height: 5),
+                Divider(
+                  color: AppConstant.greyColor.withOpacity(0.3),
+                ),
+                AppUtils.commonSizedBox(height: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.task_sharp,
+                          color: Colors.blue,
+                          size: 18,
+                        ),
+                        AppUtils.commonSizedBox(width: 5),
+                        AppUtils.commonTextWidget(
+                            text: "Approval Status",
+                            fontSize: 12,
+                            textColor: AppConstant.blackColor.withOpacity(0.9),
+                            fontWeight: FontWeight.w500)
+                      ],
+                    ),
+                    AppUtils.commonContainer(
+                        padding: AppUtils.edgeInsetsOnly(
+                            bottom: 3, top: 3, left: 10, right: 10),
+                        decoration: AppUtils.commonBoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: item.isApproved == null
+                              ? AppConstant.greyColor
+                              : item.isApproved == false
+                              ? Colors.red
+                              : Colors.green,
+                        ),
+                        child: AppUtils.commonTextWidget(
+                            text: item.isApproved == null
+                                ? "Pending"
+                                : item.isApproved == false
+                                ? "Rejected"
+                                : "Approved",
+                            fontWeight: FontWeight.w400,
+                            textColor: AppConstant.whiteColor,
+                            fontSize: 10))
+                  ],
+                ),
+                AppUtils.commonSizedBox(height: 5),
+                Divider(
+                  color: AppConstant.greyColor.withOpacity(0.3),
+                ),
+                AppUtils.commonSizedBox(height: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.time_to_leave,
+                          color: Colors.orange,
+                          size: 18,
+                        ),
+                        AppUtils.commonSizedBox(width: 5),
+                        AppUtils.commonTextWidget(
+                            text: "Half/Full Day",
+                            fontSize: 12,
+                            textColor: AppConstant.blackColor.withOpacity(0.9),
+                            fontWeight: FontWeight.w500)
+                      ],
+                    ),
+                    AppUtils.commonContainer(
+                        padding: AppUtils.edgeInsetsOnly(
+                            bottom: 3, top: 3, left: 10, right: 10),
+                        decoration: AppUtils.commonBoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: item.isFullDay == true
+                              ? Colors.green
+                              : Colors.amber,
+                        ),
+                        child: AppUtils.commonTextWidget(
+                            text: item.isFullDay == true
+                                ? "Full Day"
+                                : "Half Day",
+                            fontWeight: FontWeight.w400,
+                            textColor: AppConstant.whiteColor,
+                            fontSize: 10))
+                  ],
+                ),
+                AppUtils.commonSizedBox(height: 5),
+                Divider(
+                  color: AppConstant.greyColor.withOpacity(0.3),
+                ),
+                AppUtils.commonSizedBox(height: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.category_outlined,
+                          color: Colors.blue,
+                          size: 18,
+                        ),
+                        AppUtils.commonSizedBox(width: 5),
+                        AppUtils.commonTextWidget(
+                            text: "Leave Category",
+                            fontSize: 12,
+                            textColor: AppConstant.blackColor.withOpacity(0.9),
+                            fontWeight: FontWeight.w500)
+                      ],
+                    ),
+                    AppUtils.commonTextWidget(
+                        text: item.leaveCategoryTotName ?? "",
+                        fontWeight: FontWeight.w500,
+                        textColor: AppConstant.blackColor,
+                        fontSize: 14)
+                  ],
+                ),
+                AppUtils.commonSizedBox(height: 5),
+                Divider(
+                  color: AppConstant.greyColor.withOpacity(0.3),
+                ),
+                AppUtils.commonSizedBox(height: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.notes,
+                          color: Colors.purpleAccent,
+                          size: 18,
+                        ),
+                        AppUtils.commonSizedBox(width: 5),
+                        AppUtils.commonTextWidget(
+                            text: /* viewTaskProvider
+                                          .taskByIdModel?.data?.taskTitle ??*/
+                            "Reason",
+                            fontSize: 12,
+                            textColor: AppConstant.blackColor.withOpacity(0.9),
+                            fontWeight: FontWeight.w500)
+                      ],
+                    ),
+                  ],
+                ),
+                AppUtils.commonSizedBox(height: 5),
+                AppUtils.commonTextWidget(
+                    text: item.leaveReason ?? "",
+                    fontSize: 12,
+                    textColor: AppConstant.blackColor.withOpacity(0.9),
+                    fontWeight: FontWeight.w400),
+                AppUtils.commonSizedBox(height: 5),
+                if (item.isApproved == null)
+                  Column(
+                    children: [
+                      Divider(
+                        color: AppConstant.greyColor.withOpacity(0.3),
+                      ),
+                      // AppUtils.commonSizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: InkWell(
+                              onTap: () {
+                                AppUtils.showDialogBoxWithTwoButton(
+                                    onSuccess: () async {
+                                      await leaveProvider
+                                          .apiCallApplyRejectLeave(
+                                        pkId: item.pkId,
+                                        userId: item.userId,
+                                        approvedRejectedBy: userName,
+                                        isApproved: false,
+                                        approvedRejectedOn:
+                                        DateTime.now().toString(),
+                                        onSuccess: () async {
+                                          employeeLeaveListController.refresh();
+                                        },
+                                      );
+                                    },
+                                    onCancel: () {},
+                                    context: context,
+                                    onSuccessString: "Reject",
+                                    onCancelString: "Cancel",
+                                    text:
+                                    "Do you want to reject Leave request ${item
+                                        .userName} ",
+                                    titleText: "Leave Request");
+                              },
+                              child: AppUtils.commonContainer(
+                                padding:
+                                AppUtils.edgeInsetsOnly(top: 5, bottom: 15),
+                                color: Colors.white,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.close,
+                                      color: Colors.red,
+                                      size: 26,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: InkWell(
+                              onTap: () {
+                                showDialog(
+                                  context: context, builder: (context) {
+                                  return AppUtils.showNotesForm(
+                                      context: context,
+                                      title: "Leave Approval",
+                                      textFieldText: "Approval Comment",
+                                      controller: leaveProvider.approvalNotesController,
+                                      onSave: () async {
+                                        await leaveProvider
+                                            .apiCallApplyRejectLeave(
+                                          pkId: item.pkId,
+                                          userId: item.userId,
+                                          approvedRejectedBy: userName,
+                                          isApproved: true,
+                                          approvedRejectedOn:
+                                          DateTime.now().toString(),
+                                          onSuccess: () async {
+                                            employeeLeaveListController
+                                                .refresh();
+                                          },
+                                        );
+                                      },
+                                     );
+                                },);
+                                // AppUtils.showDialogBoxWithTwoButton(
+                                //     onSuccess: () async {
+                                //       await leaveProvider
+                                //           .apiCallApplyRejectLeave(
+                                //         pkId: item.pkId,
+                                //         userId: item.userId,
+                                //         approvedRejectedBy: userName,
+                                //         isApproved: true,
+                                //         approvedRejectedOn:
+                                //             DateTime.now().toString(),
+                                //         onSuccess: () async {
+                                //           employeeLeaveListController.refresh();
+                                //         },
+                                //       );
+                                //     },
+                                //     onCancel: () {},
+                                //     context: context,
+                                //     onSuccessString: "Approve",
+                                //     onCancelString: "Cancel",
+                                //     text:
+                                //         "Do you want to approve Leave request ${item.userName} ",
+                                //     titleText: "Leave Request");
+                              },
+                              child: AppUtils.commonContainer(
+                                padding:
+                                AppUtils.edgeInsetsOnly(top: 5, bottom: 15),
+                                color: Colors.white,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.check,
+                                      color: Colors.green,
+                                      size: 26,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  )
+              ],
+            ),
+          );
+        }));
   }
 
   Widget commonIconWidget(
@@ -206,630 +870,28 @@ class _LeaveScreenState extends State<LeaveScreen>
     String message;
     switch (value) {
       case 1:
+        leaveProvider.manageApprovalStatus(null);
         selectedIndex == 0
-            ? leaveProvider.apiCallGetMyLeaveList(
-                approvalStatus: null,
-              )
-            : leaveProvider.apiCallGetEmployeeLeaveList(
-                approvalStatus: null,
-              );
+            ? myLeaveListController.refresh()
+            : employeeLeaveListController.refresh();
+
         break;
       case 2:
+        leaveProvider.manageApprovalStatus(true);
         selectedIndex == 0
-            ? leaveProvider.apiCallGetMyLeaveList(
-          approvalStatus: true,
-        )
-            : leaveProvider.apiCallGetEmployeeLeaveList(
-          approvalStatus: true,
+            ? myLeaveListController.refresh()
+            : employeeLeaveListController.refresh();
 
-        );
-
-
-        setState(() {
-          isFiltered = true;
-        });
         break;
       case 3:
+        leaveProvider.manageApprovalStatus(false);
         selectedIndex == 0
-            ? leaveProvider.apiCallGetMyLeaveList(
-          approvalStatus: false,
-        )
-            : leaveProvider.apiCallGetEmployeeLeaveList(
-          approvalStatus: false,
-        );
-        setState(() {
-          isFiltered = true;
-        });
+            ? myLeaveListController.refresh()
+            : employeeLeaveListController.refresh();
+
         break;
       default:
         message = "Unknown option";
     }
-  }
-
-  myLeaveRequests(List<ListItem>? myLeaveData) {
-    return leaveProvider.isFetching
-        ? AppUtils.loaderWidget()
-        : myLeaveData?.length == 0 || myLeaveData == [] || myLeaveData == null
-            ? AppUtils.commonNoDataFound(
-                text: "No Data Found",
-                onPressed: () {
-                  leaveProvider.apiCallGetMyLeaveList();
-                },
-              )
-            : ListView.builder(
-                physics: BouncingScrollPhysics(),
-                shrinkWrap: true,
-                itemCount: myLeaveData.length,
-                padding: AppUtils.edgeInsetsOnly(
-                    bottom: 20, top: 0, left: 0, right: 0),
-                itemBuilder: (context, index) {
-                  return AppUtils.commonContainer(
-                    width: double.infinity,
-                    margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
-                    padding: const EdgeInsets.only(
-                        left: 15, right: 15, top: 20, bottom: 20),
-                    decoration: BoxDecoration(
-                        color: AppConstant.whiteColor,
-                        borderRadius: AppUtils.borderRadiusAll(raduis: 10),
-                        boxShadow: [
-                          BoxShadow(
-                              color: AppConstant.greyColor.withOpacity(0.3),
-                              blurRadius: 8,
-                              blurStyle: BlurStyle.solid,
-                              spreadRadius: 0.8),
-                        ]),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        AppUtils.commonContainer(
-                          width: double.infinity,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Flexible(
-                                flex: 4,
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.person,
-                                      color: Colors.orangeAccent,
-                                      size: 18,
-                                    ),
-                                    AppUtils.commonSizedBox(width: 5),
-                                    Expanded(
-                                      child: AppUtils.commonTextWidget(
-                                        text: myLeaveData[index].userName ?? "",
-                                        fontSize: 12,
-                                        textColor: AppConstant.blackColor
-                                            .withOpacity(0.9),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(width: 40),
-                              // Adjust the width as per your requirement
-                              Flexible(
-                                flex: 2,
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: AppUtils.commonTextWidget(
-                                        text:
-                                            "${AppUtils.formatDateString(myLeaveData[index].leaveStartDate ?? "", "dd-MM")} To ${AppUtils.formatDateString(myLeaveData[index].leaveEndDate ?? "", "dd-MM")}",
-                                        fontSize: 12,
-                                        textColor: AppConstant.blackColor
-                                            .withOpacity(0.9),
-                                        fontWeight: FontWeight.w500,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        AppUtils.commonSizedBox(height: 5),
-                        Divider(
-                          color: AppConstant.greyColor.withOpacity(0.3),
-                        ),
-                        AppUtils.commonSizedBox(height: 5),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.task_sharp,
-                                  color: Colors.blue,
-                                  size: 18,
-                                ),
-                                AppUtils.commonSizedBox(width: 5),
-                                AppUtils.commonTextWidget(
-                                    text: "Approval Status",
-                                    fontSize: 12,
-                                    textColor:
-                                        AppConstant.blackColor.withOpacity(0.9),
-                                    fontWeight: FontWeight.w500)
-                              ],
-                            ),
-                            AppUtils.commonContainer(
-                                padding: AppUtils.edgeInsetsOnly(
-                                    bottom: 3, top: 3, left: 10, right: 10),
-                                decoration: AppUtils.commonBoxDecoration(
-                                  borderRadius: BorderRadius.circular(6),
-                                  color: myLeaveData[index].isApproved == null
-                                      ? AppConstant.greyColor:myLeaveData[index].isApproved == false ? Colors.red
-                                      : Colors.green,
-                                ),
-                                child: AppUtils.commonTextWidget(
-                                    text: myLeaveData[index].isApproved == null
-                                        ? "Pending" : myLeaveData[index].isApproved == false? "Rejected"
-                                        : "Approved",
-                                    fontWeight: FontWeight.w400,
-                                    textColor: AppConstant.whiteColor,
-                                    fontSize: 10))
-                          ],
-                        ),
-                        AppUtils.commonSizedBox(height: 5),
-                        Divider(
-                          color: AppConstant.greyColor.withOpacity(0.3),
-                        ),
-                        AppUtils.commonSizedBox(height: 5),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.time_to_leave,
-                                  color: Colors.orange,
-                                  size: 18,
-                                ),
-                                AppUtils.commonSizedBox(width: 5),
-                                AppUtils.commonTextWidget(
-                                    text: "Half/Full Day",
-                                    fontSize: 12,
-                                    textColor:
-                                        AppConstant.blackColor.withOpacity(0.9),
-                                    fontWeight: FontWeight.w500)
-                              ],
-                            ),
-                            AppUtils.commonContainer(
-                                padding: AppUtils.edgeInsetsOnly(
-                                    bottom: 3, top: 3, left: 10, right: 10),
-                                decoration: AppUtils.commonBoxDecoration(
-                                  borderRadius: BorderRadius.circular(6),
-                                  color: myLeaveData[index].isFullDay == true
-                                      ? Colors.green
-                                      : Colors.amber,
-                                ),
-                                child: AppUtils.commonTextWidget(
-                                    text: myLeaveData[index].isFullDay == true
-                                        ? "Full Day"
-                                        : "Half Day",
-                                    fontWeight: FontWeight.w400,
-                                    textColor: AppConstant.whiteColor,
-                                    fontSize: 10))
-                          ],
-                        ),
-                        AppUtils.commonSizedBox(height: 5),
-                        Divider(
-                          color: AppConstant.greyColor.withOpacity(0.3),
-                        ),
-                        AppUtils.commonSizedBox(height: 5),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.category_outlined,
-                                  color: Colors.blue,
-                                  size: 18,
-                                ),
-                                AppUtils.commonSizedBox(width: 5),
-                                AppUtils.commonTextWidget(
-                                    text: "Leave Category",
-                                    fontSize: 12,
-                                    textColor:
-                                        AppConstant.blackColor.withOpacity(0.9),
-                                    fontWeight: FontWeight.w500)
-                              ],
-                            ),
-                            AppUtils.commonTextWidget(
-                                text: myLeaveData[index].leaveCategoryTotName ??
-                                    "",
-                                fontWeight: FontWeight.w500,
-                                textColor: AppConstant.blackColor,
-                                fontSize: 14)
-                          ],
-                        ),
-                        AppUtils.commonSizedBox(height: 5),
-                        Divider(
-                          color: AppConstant.greyColor.withOpacity(0.3),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.notes,
-                                  color: Colors.purpleAccent,
-                                  size: 18,
-                                ),
-                                AppUtils.commonSizedBox(width: 5),
-                                AppUtils.commonTextWidget(
-                                    text: /* viewTaskProvider
-                                          .taskByIdModel?.data?.taskTitle ??*/
-                                        "Reason",
-                                    fontSize: 12,
-                                    textColor:
-                                        AppConstant.blackColor.withOpacity(0.9),
-                                    fontWeight: FontWeight.w500)
-                              ],
-                            ),
-                          ],
-                        ),
-                        AppUtils.commonSizedBox(height: 8),
-                        AppUtils.commonTextWidget(
-                            text: myLeaveData[index].leaveReason ?? "",
-                            fontSize: 12,
-                            textColor: AppConstant.blackColor.withOpacity(0.9),
-                            fontWeight: FontWeight.w400),
-                      ],
-                    ),
-                  );
-                },
-              );
-  }
-
-  allLeaveRequests(List<ListItem>? myEmployeeLeaveData) {
-    return leaveProvider.isFetching
-        ? AppUtils.loaderWidget()
-        : myEmployeeLeaveData?.length == 0 ||
-                myEmployeeLeaveData == [] ||
-                myEmployeeLeaveData == null
-            ? AppUtils.commonNoDataFound(
-                text: "No Data Found",
-                onPressed: () {
-                  leaveProvider.apiCallGetEmployeeLeaveList();
-                },
-              )
-            : ListView.builder(
-                physics: BouncingScrollPhysics(),
-                shrinkWrap: true,
-                itemCount: myEmployeeLeaveData.length,
-                padding: AppUtils.edgeInsetsOnly(
-                    bottom: 20, top: 0, left: 0, right: 0),
-                itemBuilder: (context, index) {
-                  return AppUtils.commonContainer(
-                    width: double.infinity,
-                    margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
-                    padding:  EdgeInsets.only(
-                        left: 15, right: 15, top: 20, bottom: myEmployeeLeaveData[index].isApproved != null? 20 : 0),
-                    decoration: BoxDecoration(
-                        color: AppConstant.whiteColor,
-                        borderRadius: AppUtils.borderRadiusAll(raduis: 10),
-                        boxShadow: [
-                          BoxShadow(
-                              color: AppConstant.greyColor.withOpacity(0.3),
-                              blurRadius: 8,
-                              blurStyle: BlurStyle.solid,
-                              spreadRadius: 0.8),
-                        ]),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        AppUtils.commonContainer(
-                          width: double.infinity,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Flexible(
-                                flex: 3,
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.person,
-                                      color: Colors.orangeAccent,
-                                      size: 18,
-                                    ),
-                                    AppUtils.commonSizedBox(width: 5),
-                                    Expanded(
-                                      child: AppUtils.commonTextWidget(
-                                        text: myEmployeeLeaveData[index]
-                                                .userName ??
-                                            "",
-                                        fontSize: 12,
-                                        textColor: AppConstant.blackColor
-                                            .withOpacity(0.9),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(width: 40),
-                              // Adjust the width as per your requirement
-                              Flexible(
-                                flex: 2,
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.timer_outlined,
-                                      color: Colors.green,
-                                      size: 15,
-                                    ),
-                                    AppUtils.commonSizedBox(width: 3),
-                                    Expanded(
-                                      child: AppUtils.commonTextWidget(
-                                        text:
-                                            "${AppUtils.formatDateString(myEmployeeLeaveData[index].leaveStartDate ?? "", "dd-MM")} To ${AppUtils.formatDateString(myEmployeeLeaveData[index].leaveEndDate ?? "", "dd-MM")}",
-                                        fontSize: 12,
-                                        textColor: AppConstant.blackColor
-                                            .withOpacity(0.9),
-                                        fontWeight: FontWeight.w500,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        AppUtils.commonSizedBox(height: 5),
-                        Divider(
-                          color: AppConstant.greyColor.withOpacity(0.3),
-                        ),
-                        AppUtils.commonSizedBox(height: 5),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.task_sharp,
-                                  color: Colors.blue,
-                                  size: 18,
-                                ),
-                                AppUtils.commonSizedBox(width: 5),
-                                AppUtils.commonTextWidget(
-                                    text: "Approval Status",
-                                    fontSize: 12,
-                                    textColor:
-                                        AppConstant.blackColor.withOpacity(0.9),
-                                    fontWeight: FontWeight.w500)
-                              ],
-                            ),
-                            AppUtils.commonContainer(
-                                padding: AppUtils.edgeInsetsOnly(
-                                    bottom: 3, top: 3, left: 10, right: 10),
-                                decoration: AppUtils.commonBoxDecoration(
-                                  borderRadius: BorderRadius.circular(6),
-                                  color: myEmployeeLeaveData[index].isApproved == null
-                                      ? AppConstant.greyColor:myEmployeeLeaveData[index].isApproved == false ? Colors.red
-                                      : Colors.green,
-                                ),
-                                child: AppUtils.commonTextWidget(
-                                    text: myEmployeeLeaveData[index].isApproved == null
-                                        ? "Pending" : myEmployeeLeaveData[index].isApproved == false? "Rejected"
-                                        : "Approved",
-                                    fontWeight: FontWeight.w400,
-                                    textColor: AppConstant.whiteColor,
-                                    fontSize: 10))
-                          ],
-                        ),
-                        AppUtils.commonSizedBox(height: 5),
-                        Divider(
-                          color: AppConstant.greyColor.withOpacity(0.3),
-                        ),
-                        AppUtils.commonSizedBox(height: 5),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.time_to_leave,
-                                  color: Colors.orange,
-                                  size: 18,
-                                ),
-                                AppUtils.commonSizedBox(width: 5),
-                                AppUtils.commonTextWidget(
-                                    text: "Half/Full Day",
-                                    fontSize: 12,
-                                    textColor:
-                                        AppConstant.blackColor.withOpacity(0.9),
-                                    fontWeight: FontWeight.w500)
-                              ],
-                            ),
-                            AppUtils.commonContainer(
-                                padding: AppUtils.edgeInsetsOnly(
-                                    bottom: 3, top: 3, left: 10, right: 10),
-                                decoration: AppUtils.commonBoxDecoration(
-                                  borderRadius: BorderRadius.circular(6),
-                                  color: myEmployeeLeaveData[index].isFullDay ==
-                                          true
-                                      ? Colors.green
-                                      : Colors.amber,
-                                ),
-                                child: AppUtils.commonTextWidget(
-                                    text:
-                                        myEmployeeLeaveData[index].isFullDay ==
-                                                true
-                                            ? "Full Day"
-                                            : "Half Day",
-                                    fontWeight: FontWeight.w400,
-                                    textColor: AppConstant.whiteColor,
-                                    fontSize: 10))
-                          ],
-                        ),
-                        AppUtils.commonSizedBox(height: 5),
-                        Divider(
-                          color: AppConstant.greyColor.withOpacity(0.3),
-                        ),
-                        AppUtils.commonSizedBox(height: 5),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.category_outlined,
-                                  color: Colors.blue,
-                                  size: 18,
-                                ),
-                                AppUtils.commonSizedBox(width: 5),
-                                AppUtils.commonTextWidget(
-                                    text: "Leave Category",
-                                    fontSize: 12,
-                                    textColor:
-                                        AppConstant.blackColor.withOpacity(0.9),
-                                    fontWeight: FontWeight.w500)
-                              ],
-                            ),
-                            AppUtils.commonTextWidget(
-                                text: myEmployeeLeaveData[index]
-                                        .leaveCategoryTotName ??
-                                    "",
-                                fontWeight: FontWeight.w500,
-                                textColor: AppConstant.blackColor,
-                                fontSize: 14)
-                          ],
-                        ),
-                        AppUtils.commonSizedBox(height: 5),
-                        Divider(
-                          color: AppConstant.greyColor.withOpacity(0.3),
-                        ),
-                        AppUtils.commonSizedBox(height: 5),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.notes,
-                                  color: Colors.purpleAccent,
-                                  size: 18,
-                                ),
-                                AppUtils.commonSizedBox(width: 5),
-                                AppUtils.commonTextWidget(
-                                    text: /* viewTaskProvider
-                                          .taskByIdModel?.data?.taskTitle ??*/
-                                        "Reason",
-                                    fontSize: 12,
-                                    textColor:
-                                        AppConstant.blackColor.withOpacity(0.9),
-                                    fontWeight: FontWeight.w500)
-                              ],
-                            ),
-                          ],
-                        ),
-                        AppUtils.commonSizedBox(height: 5),
-                        AppUtils.commonTextWidget(
-                            text: "Test Data for Leave approval design",
-                            fontSize: 12,
-                            textColor: AppConstant.blackColor.withOpacity(0.9),
-                            fontWeight: FontWeight.w400),
-                        AppUtils.commonSizedBox(height: 5),
-                        if(myEmployeeLeaveData[index].isApproved  == null)
-
-                          Column(children: [
-                            Divider(
-                              color: AppConstant.greyColor.withOpacity(0.3),
-                            ),
-                            // AppUtils.commonSizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Expanded(
-                                  flex: 2,
-                                  child: InkWell(
-                                    onTap: () {
-                                      AppUtils.showDialogBoxWithTwoButton(
-                                          onSuccess: () async{
-                                            await leaveProvider.apiCallApplyRejectLeave(
-                                              pkId: myEmployeeLeaveData[index].pkId,
-                                              userId: myEmployeeLeaveData[index].userId,
-                                              approvedRejectedBy: userName,
-                                              isApproved: false,
-                                              approvedRejectedOn: DateTime.now().toString(),
-                                              onSuccess: () async{
-                                                await leaveProvider.apiCallGetEmployeeLeaveList();
-                                              },
-                                            );
-                                          },
-                                          onCancel: () {},
-                                          context: context,
-                                          onSuccessString: "Reject",
-                                          onCancelString: "Cancel",
-                                          text:
-                                          "Do you want to reject Day end request ${myEmployeeLeaveData[index].userName} ",
-                                          titleText: "DayEnd Request");
-                                    },
-                                    child: AppUtils.commonContainer(
-                                      padding: AppUtils.edgeInsetsOnly(top: 5, bottom: 15),
-                                      color: Colors.white,
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(Icons.close,color: Colors.red,size: 26,),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  flex: 2,
-                                  child: InkWell(
-                                    onTap: () {
-                                      AppUtils.showDialogBoxWithTwoButton(
-                                          onSuccess: () async{
-                                            await leaveProvider.apiCallApplyRejectLeave(
-                                              pkId: myEmployeeLeaveData[index].pkId,
-                                              userId: myEmployeeLeaveData[index].userId,
-                                              approvedRejectedBy: userName,
-                                              isApproved: true,
-                                              approvedRejectedOn: DateTime.now().toString(),
-                                              onSuccess: () async{
-                                                await leaveProvider.apiCallGetEmployeeLeaveList();
-                                              },
-                                            );
-                                          },
-                                          onCancel: () {},
-                                          context: context,
-                                          onSuccessString: "Approve",
-                                          onCancelString: "Cancel",
-                                          text:
-                                          "Do you want to approve Day end request ${myEmployeeLeaveData[index].userName} ",
-                                          titleText: "DayEnd Request");
-                                    },
-                                    child: AppUtils.commonContainer(
-                                      padding:
-                                      AppUtils.edgeInsetsOnly(top: 5, bottom: 15),
-                                      color: Colors.white,
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(Icons.check,color: Colors.green,size: 26,),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            )
-                          ],)
-
-                      ],
-                    ),
-                  );
-                },
-              );
   }
 }

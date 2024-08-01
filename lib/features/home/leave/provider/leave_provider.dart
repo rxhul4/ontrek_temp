@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
-import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
@@ -28,21 +27,26 @@ class LeaveProvider extends ChangeNotifier {
   LeaveListModel? myLeaveListModel;
   GetTotByGroupTypeModel? getTotByGroupTypeModel;
   AddLeaveModel? addLeaveModel;
+  bool? ApprovalStatus = null;
 
+  manageApprovalStatus(bool? approvalStatus){
+    ApprovalStatus = approvalStatus;
+    notifyListeners();
+  }
 
 
   Future<LeaveListModel?> apiCallGetMyLeaveList(
       {String? submissionDate, bool? approvalStatus,int? pageNo,int? pageSize}) async {
     var userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     var organizationId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
-    _isFetching = true;
-    notifyListeners();
+    // _isFetching = true;
+    // notifyListeners();
     Map<String, dynamic> body = {
-      "pageNo": 1,
+      "pageNo": pageNo,
       "pageSize": 10,
       "orgId": organizationId,
       "userId": userId,
-      "approvalStatus": approvalStatus,
+      "approvalStatus": ApprovalStatus,
       "submissionDate": null
     };
     try {
@@ -52,6 +56,7 @@ class LeaveProvider extends ChangeNotifier {
       print('response ${myLeaveListModel?.toJson()}');
       if (myLeaveListModel?.isError == false &&
           myLeaveListModel?.isValidationFailed == false) {
+
       } else {
         if (myLeaveListModel?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
@@ -76,8 +81,8 @@ class LeaveProvider extends ChangeNotifier {
             context: navigatorKey.currentState!.context);
       }
     }
-    _isFetching = false;
-    notifyListeners();
+    // _isFetching = false;
+    // notifyListeners();
     return myLeaveListModel;
   }
 
@@ -85,14 +90,14 @@ class LeaveProvider extends ChangeNotifier {
       {String? submissionDate, bool? approvalStatus,int? pageNo}) async {
     var userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     var organizationId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
-    _isFetching = true;
-    notifyListeners();
+    // _isFetching = true;
+    // notifyListeners();
     Map<String, dynamic> body = {
-      "pageNo": 1,
+      "pageNo": pageNo,
       "pageSize": 10,
       "orgId": organizationId,
       "userId": userId,
-      "approvalStatus": approvalStatus,
+      "approvalStatus": ApprovalStatus,
       "submissionDate": null
     };
     try {
@@ -126,8 +131,8 @@ class LeaveProvider extends ChangeNotifier {
             context: navigatorKey.currentState!.context);
       }
     }
-    _isFetching = false;
-    notifyListeners();
+    // _isFetching = false;
+    // notifyListeners();
     return myLeaveListModel;
   }
 
@@ -227,13 +232,14 @@ class LeaveProvider extends ChangeNotifier {
     notifyListeners();
     return addLeaveModel;
   }
-
+TextEditingController approvalNotesController = TextEditingController();
   Future<AddLeaveModel?> apiCallApplyRejectLeave(
       {String? pkId,
       String? orgId,
       String? userId,
       String? approvedRejectedBy,
       String? approvedRejectedOn,
+      String? approverNote,
       bool? isApproved,
         required Function() onSuccess
       }) async {
@@ -247,8 +253,8 @@ class LeaveProvider extends ChangeNotifier {
       "approvedRejectedBy": approvedRejectedBy,
       "approvedRejectedOn": AppUtils.formatDateString(approvedRejectedOn ?? "", "yyyy-MM-dd"),
       "isApproved": isApproved,
-      "approverNote":
-          isApproved == false ? "Request Rejected" : "Request Approved."
+      "approverNote" : approvalNotesController.text
+
     };
     try {
       String endPoint = ApiConstants.approveRejectLeave;

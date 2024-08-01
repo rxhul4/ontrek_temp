@@ -9,6 +9,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:intl/intl.dart';
+import 'package:ontrek/core/common_widgets/textfield_widget.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/main.dart';
@@ -560,6 +561,106 @@ class AppUtils {
   // }
 
 
+  static Widget showNotesForm(
+      {required BuildContext context, required Function() onSave,String? title,String? textFieldText,required TextEditingController controller}) {
+    return AlertDialog(
+      backgroundColor: AppConstant.whiteColor,
+      // contentPadding: AppUtils.edgeInsetsAll(allPadding: 0),
+      // insetPadding:
+      // AppUtils.edgeInsetsOnly(top: 0, bottom: 0, right: 0, left: 0),
+      titlePadding: AppUtils.edgeInsetsOnly(top: 30, bottom: 10),
+      title: AppUtils.commonTextWidget(
+          text: title ?? "",
+          textColor: AppConstant.appPrimaryColor,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+          textAlign: TextAlign.center),
+
+      content: AppUtils.commonContainer(
+          width: MediaQuery.of(context).size.width - 30,
+          height: MediaQuery.of(context).size.height / 6,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              AppUtils.buildCommonTextField(
+                  readOnly: false,
+                  maxLine: 3,
+                  text: textFieldText,
+                  maxLength: 200,
+                  textInputType: TextInputType.text,
+                  controller: controller)
+            ],
+          )),
+      actionsPadding: AppUtils.edgeInsetsOnly(top: 0, bottom: 10, right: 20),
+      actions: [
+        TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: AppUtils.commonTextWidget(
+              text: "Cancel",
+              fontWeight: FontWeight.w500,
+              textColor: Colors.red,
+              fontSize: 14,
+            )),
+        TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              onSave();
+            },
+            child: AppUtils.commonTextWidget(
+              text: "Save",
+              fontWeight: FontWeight.w500,
+              textColor: Colors.green,
+              fontSize: 14,
+            ))
+      ],
+    );
+  }
+
+  static Widget buildCommonTextField({
+    String? text,
+    int? maxLine,
+    Function()? onTap,
+    TextEditingController? controller,
+    bool? showCursor,
+    TextInputType? textInputType,
+    Widget? suffixIcon,
+    bool? readOnly,
+    int? maxLength,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppUtils.commonTextWidget(
+          text: text ?? "",
+          textColor: AppConstant.blackColor.withOpacity(0.6),
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+        ),
+        const SizedBox(height: 5),
+        AppTextField(
+          readOnly: readOnly,
+          suffixIcon: suffixIcon,
+          controller: controller,
+          hintText: text ?? "",
+          maxLines: maxLine ?? 1,
+          maxLength: maxLength,
+          cursorColor: AppConstant.appPrimaryColor.withOpacity(0.9),
+          allBorderRadius: 3,
+          fillColor: AppConstant.whiteColor,
+          hintTextColor: AppConstant.greyColor.withOpacity(0.3),
+          hintFontSize: 12,
+          textInputType: textInputType,
+          onTap: onTap,
+          showCursor: showCursor,
+        ),
+      ],
+    );
+  }
+
+
 
   static loaderWidget({Color? color, double? radius}) {
     return Center(
@@ -809,6 +910,21 @@ class AppUtils {
     }
     return parseDate;
   }
+  static String? getDateForDayEnd({required String date, required String format}) {
+    print("uuuuuuuuu $date");
+    String parseDate = '';
+    if (date != '') {
+      try {
+        parseDate = DateFormat(format).format(DateTime.parse(date));
+      } catch (e) {
+        return parseDate;
+      }
+    }else{
+      return null;
+    }
+    return parseDate;
+  }
+
 
   static String getDateTimeNow(){
     return AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat);

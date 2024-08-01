@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
+import 'package:intl/intl.dart';
 import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
@@ -27,39 +28,57 @@ class DayEndRequestProvider extends ChangeNotifier{
 
   DayEndRequestModel? dayEndRequestModel;
   ApproveRequestModel? approveRequestModel;
+  List<ListItem> myDayEndList =[];
+  List<ListItem> employeeDayEndList =[];
 
-  DateTime myDayEndSelectedDate = DateTime.now();
-  DateTime employeeDayEndSelectedDate = DateTime.now();
+  bool? isApproved;
+
+  int pageSize = 1;
+
+
+  String? myDayEndSelectedDate;
+  String? employeeDayEndSelectedDate;
   bool? isMyRequestApproved;
   bool? isEmployeeRequestApproved;
 
 
   filterDayEndRequest({bool? isApproved,int? index}){
-
     index == 0 ? isMyRequestApproved = isApproved : isEmployeeRequestApproved = isApproved;
+    notifyListeners();
+  }
+
+  manageApprovalStatus(bool? approvalStatus){
+    isApproved = approvalStatus;
+    notifyListeners();
+  }
+
+  manageSelectedDate(String? selectedDate){
+    myDayEndSelectedDate = selectedDate;
     notifyListeners();
   }
 
 
 
 
-  Future<DayEndRequestModel?> apiCallGetDayEndRequestList(
-      {String? requestedDate,
-        String? empName,
-        String? organizationId,
-       }) async {
+
+  Future<DayEndRequestModel?> apiCallGetDayEndRequestList({
+    String? requestedDate,
+    String? empName,
+    String? organizationId,
+    int pageNo = 1,
+  }) async {
     var userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     var organizationId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
-    _isFetching = true;
-    notifyListeners();
+    // _isFetching = true;
+    // notifyListeners();
     Map<String, dynamic> body = {
-      "empName": "",
+      "empName": empName ?? "",
       "userId": userId,
       "orgId": organizationId,
-      "requestedDate": AppUtils.dateFormat(date: myDayEndSelectedDate,dateFormat: AppConstant.dateFormat),
-      "isApproved": isMyRequestApproved,
-      "pageNo": 1,
-      "pageSize": 10
+      "requestedDate": AppUtils.getDateForDayEnd(date: myDayEndSelectedDate ?? "", format: AppConstant.dateFormat),
+      "isApproved": isApproved,
+      "pageNo": pageNo,
+      "pageSize": 10 // Fixed page size
     };
     try {
       String endPoint = ApiConstants.dayEndMyRequestList;
@@ -68,7 +87,11 @@ class DayEndRequestProvider extends ChangeNotifier{
       print('response ${dayEndRequestModel?.toJson()}');
       if (dayEndRequestModel?.isError == false &&
           dayEndRequestModel?.isValidationFailed == false) {
-
+        if (dayEndRequestModel?.data?.pageNo == 1) {
+          myDayEndList = dayEndRequestModel?.data?.listItem ?? [];
+        } else {
+          myDayEndList.addAll(dayEndRequestModel?.data?.listItem ?? []);
+        }
       } else {
         if (dayEndRequestModel?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
@@ -93,27 +116,30 @@ class DayEndRequestProvider extends ChangeNotifier{
             context: navigatorKey.currentState!.context);
       }
     }
-    _isFetching = false;
-    notifyListeners();
+    // _isFetching = false;
+    // notifyListeners();
     return dayEndRequestModel;
   }
+
 
   Future<DayEndRequestModel?> apiCallEmployeeRequests(
       {String? requestedDate,
         String? empName,
         String? organizationId,
+        int pageNo = 1,
+
       }) async {
     var userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     var organizationId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
-    _isFetching = true;
-    notifyListeners();
+    // _isFetching = true;
+    // notifyListeners();
     Map<String, dynamic> body = {
       "empName": "",
       "userId": userId,
       "orgId": organizationId,
-      "requestedDate":  AppUtils.dateFormat(date: employeeDayEndSelectedDate,dateFormat: AppConstant.dateFormat),
-      "isApproved": isEmployeeRequestApproved,
-      "pageNo": 1,
+      "requestedDate":   AppUtils.getDateForDayEnd(date: employeeDayEndSelectedDate ?? "", format: AppConstant.dateFormat),
+      "isApproved": isApproved,
+      "pageNo": pageNo,
       "pageSize": 10
     };
     try {
@@ -124,6 +150,7 @@ class DayEndRequestProvider extends ChangeNotifier{
       if (dayEndRequestModel?.isError == false &&
           dayEndRequestModel?.isValidationFailed == false) {
 
+
       } else {
         if (dayEndRequestModel?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(
@@ -148,8 +175,8 @@ class DayEndRequestProvider extends ChangeNotifier{
             context: navigatorKey.currentState!.context);
       }
     }
-    _isFetching = false;
-    notifyListeners();
+    // _isFetching = false;
+    // notifyListeners();
     return dayEndRequestModel;
   }
 
