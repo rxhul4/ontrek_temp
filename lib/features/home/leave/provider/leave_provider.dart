@@ -177,7 +177,7 @@ class LeaveProvider extends ChangeNotifier {
     String? submissionDate,
     String? leaveStartDate,
     String? leaveEndDate,
-    int? leaveDays,
+    num? leaveDays,
     required Function() onSuccess,
   }) async {
     var organizationId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
@@ -233,6 +233,7 @@ class LeaveProvider extends ChangeNotifier {
     return addLeaveModel;
   }
 TextEditingController approvalNotesController = TextEditingController();
+TextEditingController rejectionNotesController = TextEditingController();
   Future<AddLeaveModel?> apiCallApplyRejectLeave(
       {String? pkId,
       String? orgId,
@@ -253,7 +254,7 @@ TextEditingController approvalNotesController = TextEditingController();
       "approvedRejectedBy": approvedRejectedBy,
       "approvedRejectedOn": AppUtils.formatDateString(approvedRejectedOn ?? "", "yyyy-MM-dd"),
       "isApproved": isApproved,
-      "approverNote" : approvalNotesController.text
+      "approverNote" : isApproved == false ? rejectionNotesController.text :  approvalNotesController.text
 
     };
     try {

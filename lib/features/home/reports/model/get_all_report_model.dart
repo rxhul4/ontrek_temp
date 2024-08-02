@@ -3,7 +3,7 @@ class GetAllReportModel {
   bool? isValidationFailed;
   String? errorCode;
   String? message;
-  ReportData? data;
+  Data? data;
 
   GetAllReportModel(
       {this.isError,
@@ -17,7 +17,7 @@ class GetAllReportModel {
     isValidationFailed = json['isValidationFailed'];
     errorCode = json['errorCode'];
     message = json['message'];
-    data = json['data'] != null ? new ReportData.fromJson(json['data']) : null;
+    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -33,12 +33,12 @@ class GetAllReportModel {
   }
 }
 
-class ReportData {
+class Data {
   List<UserAttendenceReport>? userAttendenceReport;
 
-  ReportData({this.userAttendenceReport});
+  Data({this.userAttendenceReport});
 
-  ReportData.fromJson(Map<String, dynamic> json) {
+  Data.fromJson(Map<String, dynamic> json) {
     if (json['userAttendenceReport'] != null) {
       userAttendenceReport = <UserAttendenceReport>[];
       json['userAttendenceReport'].forEach((v) {
@@ -67,9 +67,12 @@ class UserAttendenceReport {
   int? sumGpsOffMinutes;
   int? sumInternetOffMinutes;
   int? sumWaitingMinutes;
-  int? sumProductiveHours;
-  int? sumTotalHours;
   int? sumAppOffTime;
+  int? sumTotalHours;
+  int? sumProductiveHours;
+  int? meetingCount;
+  int? sumMeetingMinutes;
+  int? sumTravellingMinutes;
   int? absentDays;
   int? totalDays;
 
@@ -83,9 +86,12 @@ class UserAttendenceReport {
         this.sumGpsOffMinutes,
         this.sumInternetOffMinutes,
         this.sumWaitingMinutes,
-        this.sumProductiveHours,
-        this.sumTotalHours,
         this.sumAppOffTime,
+        this.sumTotalHours,
+        this.sumProductiveHours,
+        this.meetingCount,
+        this.sumMeetingMinutes,
+        this.sumTravellingMinutes,
         this.absentDays,
         this.totalDays});
 
@@ -104,9 +110,12 @@ class UserAttendenceReport {
     sumGpsOffMinutes = json['sumGpsOffMinutes'];
     sumInternetOffMinutes = json['sumInternetOffMinutes'];
     sumWaitingMinutes = json['sumWaitingMinutes'];
-    sumProductiveHours = json['sumProductiveHours'];
-    sumTotalHours = json['sumTotalHours'];
     sumAppOffTime = json['sumAppOffTime'];
+    sumTotalHours = json['sumTotalHours'];
+    sumProductiveHours = json['sumProductiveHours'];
+    meetingCount = json['meetingCount'];
+    sumMeetingMinutes = json['sumMeetingMinutes'];
+    sumTravellingMinutes = json['sumTravellingMinutes'];
     absentDays = json['absentDays'];
     totalDays = json['totalDays'];
   }
@@ -125,9 +134,12 @@ class UserAttendenceReport {
     data['sumGpsOffMinutes'] = this.sumGpsOffMinutes;
     data['sumInternetOffMinutes'] = this.sumInternetOffMinutes;
     data['sumWaitingMinutes'] = this.sumWaitingMinutes;
-    data['sumProductiveHours'] = this.sumProductiveHours;
-    data['sumTotalHours'] = this.sumTotalHours;
     data['sumAppOffTime'] = this.sumAppOffTime;
+    data['sumTotalHours'] = this.sumTotalHours;
+    data['sumProductiveHours'] = this.sumProductiveHours;
+    data['meetingCount'] = this.meetingCount;
+    data['sumMeetingMinutes'] = this.sumMeetingMinutes;
+    data['sumTravellingMinutes'] = this.sumTravellingMinutes;
     data['absentDays'] = this.absentDays;
     data['totalDays'] = this.totalDays;
     return data;
@@ -145,6 +157,9 @@ class UserAttendenceDetail {
   int? waitingMinutes;
   int? productiveHours;
   int? totalHours;
+  int? meetingCount;
+  int? meetingMinutes;
+  int? travellingMinutes;
   String? attendenceType;
 
   UserAttendenceDetail(
@@ -158,6 +173,9 @@ class UserAttendenceDetail {
         this.waitingMinutes,
         this.productiveHours,
         this.totalHours,
+        this.meetingCount,
+        this.meetingMinutes,
+        this.travellingMinutes,
         this.attendenceType});
 
   UserAttendenceDetail.fromJson(Map<String, dynamic> json) {
@@ -171,6 +189,9 @@ class UserAttendenceDetail {
     waitingMinutes = json['waitingMinutes'];
     productiveHours = json['productiveHours'];
     totalHours = json['totalHours'];
+    meetingCount = json['meetingCount'];
+    meetingMinutes = json['meetingMinutes'];
+    travellingMinutes = json['travellingMinutes'];
     attendenceType = json['attendenceType'];
   }
 
@@ -186,6 +207,9 @@ class UserAttendenceDetail {
     data['waitingMinutes'] = this.waitingMinutes;
     data['productiveHours'] = this.productiveHours;
     data['totalHours'] = this.totalHours;
+    data['meetingCount'] = this.meetingCount;
+    data['meetingMinutes'] = this.meetingMinutes;
+    data['travellingMinutes'] = this.travellingMinutes;
     data['attendenceType'] = this.attendenceType;
     return data;
   }

@@ -1,3 +1,4 @@
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ontrek/core/common_widgets/textfield_widget.dart';
@@ -10,7 +11,8 @@ import 'package:ontrek/features/home/leave/screen/choose_leave_type_screen.dart'
 import 'package:provider/provider.dart';
 
 class ApplyLeaveScreen extends StatefulWidget {
-  const ApplyLeaveScreen({super.key});
+  String? pkId;
+   ApplyLeaveScreen({super.key,this.pkId});
 
   @override
   State<ApplyLeaveScreen> createState() => _ApplyLeaveScreenState();
@@ -20,7 +22,7 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
   bool isLoading = false;
   String? userName;
   String? userId;
-  int? numberOfLeaves;
+  num numberOfLeaves =1;
   TextEditingController leaveStartDateController = TextEditingController();
   TextEditingController leaveEndDateController = TextEditingController();
   TextEditingController leaveReasonController = TextEditingController();
@@ -79,8 +81,7 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
                 child: GestureDetector(
                   onTap: () {
                     checkValidationAndSubmitForm(context);
-
-                  },
+                    },
                   child: AppUtils.commonTextWidget(
                       text: "Submit",
                       fontSize: 14,
@@ -167,7 +168,7 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
       AppUtils.showSnackBarWithColor(message: "Please Enter Leave Reason",context: context,giveColor: Colors.red);
     }else  {
       if(selectedStartDate != null && selectedEndDate != null){
-        numberOfLeaves = selectedEndDate!.difference(selectedStartDate).inDays;
+        numberOfLeaves  =selectedEndDate!.difference(selectedStartDate).inDays + 1;
       }
       AppUtils.showDialogBoxWithTwoButton(
         titleText: "Leave Apply",
@@ -190,7 +191,7 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
             submissionDate:  AppUtils.dateFormat(
                 date: DateTime.now(),
                 dateFormat: "yyyy-MM-dd"),
-            leaveDays: numberOfLeaves,
+            leaveDays: isFullDay == true ? numberOfLeaves : numberOfLeaves/2,
             leaveReason: leaveReasonController.text,
             onSuccess: () {
               Navigator.pop(context,{
@@ -328,8 +329,8 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
       // For end date picker, ensure initialDate is valid
       initialDate = selectedEndDate != null && selectedEndDate!.isAfter(selectedStartDate)
           ? selectedEndDate
-          : selectedStartDate.add(Duration(days: 1));
-      firstDate = selectedStartDate.add(Duration(days: 1));
+          : selectedStartDate;
+      firstDate = selectedStartDate;
     }
 
     DateTime? picked = await showDatePicker(
@@ -344,7 +345,7 @@ class _ApplyLeaveScreenState extends State<ApplyLeaveScreen> {
           return date.isAfter(DateTime.now().subtract(const Duration(days: 1)));
         } else {
           // For end date selection, allow dates after the selected start date
-          return date.isAfter(selectedStartDate);
+          return date.isAfter(selectedStartDate.subtract( Duration(days: 1)));
         }
       },
       builder: (BuildContext context, Widget? child) {

@@ -298,13 +298,13 @@ sendLastStatus(
 
 dayEndProccess(ServiceInstance service) async {
   final DatabaseService databaseService = DatabaseService();
-  PreferenceHelper.clear();
-  // PreferenceHelper.remove(PreferenceHelper.WAITING_START_TIME);
-  // PreferenceHelper.remove(PreferenceHelper.LAST_LAT);
-  // PreferenceHelper.remove(PreferenceHelper.LAST_LONG);
-  // PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_OFF_TIME);
-  // PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_OFF_LAT);
-  // PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_OFF_LONG);
+  PreferenceHelper.remove(PreferenceHelper.WAITING_START_TIME);
+  PreferenceHelper.remove(PreferenceHelper.LAST_LAT);
+  PreferenceHelper.remove(PreferenceHelper.LAST_LONG);
+  PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_OFF_TIME);
+  PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_OFF_LAT);
+  PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_OFF_LONG);
+  PreferenceHelper.remove(PreferenceHelper.LastActivity);
   await databaseService.deleteAllRoutes(db);
   await databaseService.deleteAllActivities(db);
   service.stopSelf();

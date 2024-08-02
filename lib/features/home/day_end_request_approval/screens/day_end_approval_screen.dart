@@ -92,9 +92,9 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
     // TODO: implement dispose
     myDayEndRequestController.dispose();
     employeeDayEndRequestController.dispose();
-    dayEndRequestProvider.isApproved == false;
-dayEndRequestProvider.employeeDayEndSelectedDate = null;
-dayEndRequestProvider.myDayEndSelectedDate = null;
+    dayEndRequestProvider.isApproved = null;
+    dayEndRequestProvider.employeeDayEndSelectedDate = null;
+    dayEndRequestProvider.myDayEndSelectedDate = null;
     super.dispose();
   }
 
@@ -191,6 +191,305 @@ dayEndRequestProvider.myDayEndSelectedDate = null;
         ),
       ),
     );
+  }
+
+
+
+  myDayEndRequests() {
+    return PagedListView<int, ListItem>(
+      pagingController: myDayEndRequestController,
+      builderDelegate: PagedChildBuilderDelegate<ListItem>(
+        animateTransitions: true,
+        firstPageProgressIndicatorBuilder: (context) {
+          return Center(
+            child: AppUtils.loaderWidget(),
+          );
+        },
+        noItemsFoundIndicatorBuilder: (context) {
+          return AppUtils.commonNoDataFound(
+            text: "No Request Found",
+            onPressed: () {
+              myDayEndRequestController.refresh();
+            },
+          );
+        },
+        newPageProgressIndicatorBuilder: (context) {
+          return Padding(
+            padding: EdgeInsets.only(top: 30),
+            child: AppUtils.loaderWidget(),
+          );
+        },
+        itemBuilder: (context, item, index) {
+          return AppUtils.commonContainer(
+            width: double.infinity,
+            margin:
+            const EdgeInsets.only(left: 10, right: 10, top: 20, bottom: 0),
+            padding:
+            const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 10),
+            decoration: BoxDecoration(
+                color: AppConstant.whiteColor,
+                borderRadius: AppUtils.borderRadiusAll(raduis: 10),
+                boxShadow: [
+                  BoxShadow(
+                      color: AppConstant.greyColor.withOpacity(0.3),
+                      blurRadius: 8,
+                      blurStyle: BlurStyle.solid,
+                      spreadRadius: 0.8),
+                ]),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppUtils.commonContainer(
+                  width: double.infinity,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        // mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              AppUtils.commonTextWidget(
+                                text: item.requestedBy ?? "",
+                                fontSize: 14,
+                                textColor:
+                                AppConstant.blackColor.withOpacity(0.9),
+                                fontWeight: FontWeight.w500,
+                              ),
+                              AppUtils.commonTextWidget(
+                                text: AppUtils.getDate(
+                                  date: item.attendanceDate ?? "",
+                                  format: "dd MMM yyyy hh:mm a",
+                                ),
+                                fontSize: 10,
+                                textColor:
+                                AppConstant.blackColor.withOpacity(0.9),
+                                fontWeight: FontWeight.w500,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      // SizedBox(width: 40),
+                      AppUtils.commonContainer(
+                          padding: AppUtils.edgeInsetsOnly(
+                              bottom: 3, top: 3, left: 10, right: 10),
+                          decoration: AppUtils.commonBoxDecoration(
+                            borderRadius: BorderRadius.circular(6),
+                            color: item.isApproved == false
+                                ? AppConstant.greyColor
+                                : Colors.green,
+                          ),
+                          child: AppUtils.commonTextWidget(
+                              text: item.isApproved == true
+                                  ? "Approved"
+                                  : "Pending",
+                              fontWeight: FontWeight.w400,
+                              textColor: AppConstant.whiteColor,
+                              fontSize: 10))
+                    ],
+                  ),
+                ),
+                AppUtils.commonSizedBox(height: 5),
+                Divider(
+                  color: AppConstant.greyColor.withOpacity(0.3),
+                ),
+                AppUtils.commonTextWidget(
+                    text: "Comment",
+                    fontSize: 14,
+                    textColor:
+                    AppConstant.blackColor.withOpacity(0.9),
+                    fontWeight: FontWeight.w500),
+                AppUtils.commonSizedBox(height: 5),
+                AppUtils.commonTextWidget(
+                    text: item.comment ?? "",
+                    fontSize: 12,
+                    textColor: AppConstant.blackColor.withOpacity(0.9),
+                    fontWeight: FontWeight.w400),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  allDayEndRequests() {
+    return PagedListView<int, ListItem>(
+        pagingController: employeeDayEndRequestController,
+        builderDelegate: PagedChildBuilderDelegate<ListItem>(
+            animateTransitions: true,
+            firstPageProgressIndicatorBuilder: (context) {
+              return Center(
+                child: AppUtils.loaderWidget(),
+              );
+            },
+            noItemsFoundIndicatorBuilder: (context) {
+              return AppUtils.commonNoDataFound(
+                text: "No Request Found",
+                onPressed: () {
+                  employeeDayEndRequestController.refresh();
+                },
+              );
+            },
+            firstPageErrorIndicatorBuilder: (context) {
+              return AppUtils.commonNoDataFound(
+                text: "No Request Found",
+                onPressed: () {
+                  employeeDayEndRequestController.refresh();
+                },
+              );
+            },
+            newPageProgressIndicatorBuilder: (context) {
+              return Padding(
+                padding: EdgeInsets.only(top: 30),
+                child: AppUtils.loaderWidget(),
+              );
+            },
+            itemBuilder: (context, item, index) {
+              return AppUtils.commonContainer(
+                width: double.infinity,
+                margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
+                padding: const EdgeInsets.only(
+                    left: 15, right: 15, top: 20, bottom: 0),
+                decoration: BoxDecoration(
+                    color: AppConstant.whiteColor,
+                    borderRadius: AppUtils.borderRadiusAll(raduis: 10),
+                    boxShadow: [
+                      BoxShadow(
+                          color: AppConstant.greyColor.withOpacity(0.3),
+                          blurRadius: 8,
+                          blurStyle: BlurStyle.solid,
+                          spreadRadius: 0.8),
+                    ]),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppUtils.commonContainer(
+                      width: double.infinity,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            // mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  AppUtils.commonTextWidget(
+                                    text: item.requestedBy ?? "",
+                                    fontSize: 14,
+                                    textColor:
+                                    AppConstant.blackColor.withOpacity(0.9),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  AppUtils.commonTextWidget(
+                                    text: AppUtils.getDate(
+                                      date: item.attendanceDate ?? "",
+                                      format: "dd MMM yyyy hh:mm a",
+                                    ),
+                                    fontSize: 10,
+                                    textColor:
+                                    AppConstant.blackColor.withOpacity(0.9),
+                                    fontWeight: FontWeight.w500,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          // SizedBox(width: 40),
+                          AppUtils.commonContainer(
+                              padding: AppUtils.edgeInsetsOnly(
+                                  bottom: 3, top: 3, left: 10, right: 10),
+                              decoration: AppUtils.commonBoxDecoration(
+                                borderRadius: BorderRadius.circular(6),
+                                color: item.isApproved == false
+                                    ? AppConstant.greyColor
+                                    : Colors.green,
+                              ),
+                              child: AppUtils.commonTextWidget(
+                                  text: item.isApproved == true
+                                      ? "Approved"
+                                      : "Pending",
+                                  fontWeight: FontWeight.w400,
+                                  textColor: AppConstant.whiteColor,
+                                  fontSize: 10))
+                        ],
+                      ),
+                    ),
+                    AppUtils.commonSizedBox(height: 5),
+                    Divider(
+                      color: AppConstant.greyColor.withOpacity(0.3),
+                    ),
+                    AppUtils.commonTextWidget(
+                        text: "Comment",
+                        fontSize: 14,
+                        textColor:
+                        AppConstant.blackColor.withOpacity(0.9),
+                        fontWeight: FontWeight.w500),
+                    AppUtils.commonSizedBox(height: 5),
+                    AppUtils.commonTextWidget(
+                        text: item.comment ?? "",
+                        fontSize: 12,
+                        textColor: AppConstant.blackColor.withOpacity(0.9),
+                        fontWeight: FontWeight.w400),
+                    AppUtils.commonSizedBox(height: 10),
+                    if(item.isApproved == false)
+                      Column(
+                        children: [
+                          Divider(
+                            color: AppConstant.greyColor.withOpacity(0.3),
+                          ),
+                          // AppUtils.commonSizedBox(height: 10),
+                          InkWell(
+                            onTap: () {
+                              AppUtils.showDialogBoxWithTwoButton(
+                                  onSuccess: () async {
+                                    await dayEndRequestProvider.apiCallApproveRequest(
+                                      userId: item.userId,
+                                      sessionId: item.sessionId,
+                                      sessionEndDateTime: item.requestedDate,
+                                    );
+                                  },
+                                  onCancel: () {},
+                                  context: context,
+                                  onSuccessString: "Approve",
+                                  onCancelString: "Cancel",
+                                  text:
+                                  "Do you want to approve Day end request ${"Kuldeep"} ",
+                                  titleText: "DayEnd Request");
+                            },
+                            child: AppUtils.commonContainer(
+                              padding: AppUtils.edgeInsetsOnly(top: 5, bottom: 15),
+                              color: Colors.white,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  AppUtils.commonTextWidget(
+                                      text: "Approve",
+                                      textColor: AppConstant.appPrimaryColor,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14),
+                                ],
+                              ),
+                            ),
+                          )
+                        ],
+                      )
+
+                  ],
+                ),
+              );
+            }));
   }
 
   Widget commonIconWidget(
@@ -331,415 +630,4 @@ dayEndRequestProvider.myDayEndSelectedDate = null;
     }
   }
 
-  myDayEndRequests() {
-    return PagedListView<int, ListItem>(
-      pagingController: myDayEndRequestController,
-      builderDelegate: PagedChildBuilderDelegate<ListItem>(
-        animateTransitions: true,
-        firstPageProgressIndicatorBuilder: (context) {
-          return Center(
-            child: AppUtils.loaderWidget(),
-          );
-        },
-        noItemsFoundIndicatorBuilder: (context) {
-          return AppUtils.commonNoDataFound(
-            text: "No Request Found",
-            onPressed: () {
-              myDayEndRequestController.refresh();
-            },
-          );
-        },
-        newPageProgressIndicatorBuilder: (context) {
-          return Padding(
-            padding: EdgeInsets.only(top: 30),
-            child: AppUtils.loaderWidget(),
-          );
-        },
-        itemBuilder: (context, item, index) {
-          return AppUtils.commonContainer(
-            width: double.infinity,
-            margin:
-                const EdgeInsets.only(left: 10, right: 10, top: 20, bottom: 0),
-            padding:
-                const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 20),
-            decoration: BoxDecoration(
-                color: AppConstant.whiteColor,
-                borderRadius: AppUtils.borderRadiusAll(raduis: 10),
-                boxShadow: [
-                  BoxShadow(
-                      color: AppConstant.greyColor.withOpacity(0.3),
-                      blurRadius: 8,
-                      blurStyle: BlurStyle.solid,
-                      spreadRadius: 0.8),
-                ]),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppUtils.commonContainer(
-                  width: double.infinity,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Flexible(
-                        flex: 2,
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.person,
-                              color: Colors.orangeAccent,
-                              size: 18,
-                            ),
-                            AppUtils.commonSizedBox(width: 5),
-                            Expanded(
-                              child: AppUtils.commonTextWidget(
-                                text: item.requestedBy ?? "",
-                                fontSize: 12,
-                                textColor:
-                                    AppConstant.blackColor.withOpacity(0.9),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(width: 40),
-                      Flexible(
-                        flex: 2,
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.timer_outlined,
-                              color: Colors.green,
-                              size: 15,
-                            ),
-                            AppUtils.commonSizedBox(width: 3),
-                            Expanded(
-                              child: AppUtils.commonTextWidget(
-                                text: AppUtils.getDate(
-                                  date: item.attendanceDate ?? "",
-                                  format: "dd MMM yyyy hh:mm a",
-                                ),
-                                fontSize: 12,
-                                textColor:
-                                    AppConstant.blackColor.withOpacity(0.9),
-                                fontWeight: FontWeight.w500,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                AppUtils.commonSizedBox(height: 5),
-                Divider(
-                  color: AppConstant.greyColor.withOpacity(0.3),
-                ),
-                AppUtils.commonSizedBox(height: 5),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.task_sharp,
-                          color: Colors.blue,
-                          size: 18,
-                        ),
-                        AppUtils.commonSizedBox(width: 5),
-                        AppUtils.commonTextWidget(
-                            text: "Approval Status",
-                            fontSize: 12,
-                            textColor: AppConstant.blackColor.withOpacity(0.9),
-                            fontWeight: FontWeight.w500)
-                      ],
-                    ),
-                    AppUtils.commonContainer(
-                        padding: AppUtils.edgeInsetsOnly(
-                            bottom: 3, top: 3, left: 10, right: 10),
-                        decoration: AppUtils.commonBoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          color: item.isApproved == true
-                              ? Colors.green
-                              : AppConstant.greyColor,
-                        ),
-                        child: AppUtils.commonTextWidget(
-                            text: item.isApproved == true
-                                ? "Approved"
-                                : "Pending",
-                            fontWeight: FontWeight.w400,
-                            textColor: AppConstant.whiteColor,
-                            fontSize: 10))
-                  ],
-                ),
-                AppUtils.commonSizedBox(height: 5),
-                Divider(
-                  color: AppConstant.greyColor.withOpacity(0.3),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.notes,
-                          color: Colors.purpleAccent,
-                          size: 18,
-                        ),
-                        AppUtils.commonSizedBox(width: 5),
-                        AppUtils.commonTextWidget(
-                            text: "Comment",
-                            fontSize: 12,
-                            textColor: AppConstant.blackColor.withOpacity(0.9),
-                            fontWeight: FontWeight.w500)
-                      ],
-                    ),
-                  ],
-                ),
-                AppUtils.commonSizedBox(height: 8),
-                AppUtils.commonTextWidget(
-                    text: item.comment ?? "",
-                    fontSize: 12,
-                    textColor: AppConstant.blackColor.withOpacity(0.9),
-                    fontWeight: FontWeight.w400),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  allDayEndRequests() {
-    return PagedListView<int, ListItem>(
-        pagingController: employeeDayEndRequestController,
-        builderDelegate: PagedChildBuilderDelegate<ListItem>(
-            animateTransitions: true,
-            firstPageProgressIndicatorBuilder: (context) {
-              return Center(
-                child: AppUtils.loaderWidget(),
-              );
-            },
-            noItemsFoundIndicatorBuilder: (context) {
-              return AppUtils.commonNoDataFound(
-                text: "No Request Found",
-                onPressed: () {
-                  employeeDayEndRequestController.refresh();
-                },
-              );
-            },
-            firstPageErrorIndicatorBuilder: (context) {
-              return AppUtils.commonNoDataFound(
-                text: "No Request Found",
-                onPressed: () {
-                  employeeDayEndRequestController.refresh();
-                },
-              );
-            },
-            newPageProgressIndicatorBuilder: (context) {
-              return Padding(
-                padding: EdgeInsets.only(top: 30),
-                child: AppUtils.loaderWidget(),
-              );
-            },
-            itemBuilder: (context, item, index) {
-              return AppUtils.commonContainer(
-                width: double.infinity,
-                margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
-                padding: const EdgeInsets.only(
-                    left: 15, right: 15, top: 20, bottom: 0),
-                decoration: BoxDecoration(
-                    color: AppConstant.whiteColor,
-                    borderRadius: AppUtils.borderRadiusAll(raduis: 10),
-                    boxShadow: [
-                      BoxShadow(
-                          color: AppConstant.greyColor.withOpacity(0.3),
-                          blurRadius: 8,
-                          blurStyle: BlurStyle.solid,
-                          spreadRadius: 0.8),
-                    ]),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AppUtils.commonContainer(
-                      width: double.infinity,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Flexible(
-                            flex: 2,
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.person,
-                                  color: Colors.orangeAccent,
-                                  size: 18,
-                                ),
-                                AppUtils.commonSizedBox(width: 5),
-                                Expanded(
-                                  child: AppUtils.commonTextWidget(
-                                    text: item.requestedBy ?? "",
-                                    fontSize: 12,
-                                    textColor:
-                                        AppConstant.blackColor.withOpacity(0.9),
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(width: 40),
-                          // Adjust the width as per your requirement
-                          Flexible(
-                            flex: 2,
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.timer_outlined,
-                                  color: Colors.green,
-                                  size: 15,
-                                ),
-                                AppUtils.commonSizedBox(width: 3),
-                                Expanded(
-                                  child: AppUtils.commonTextWidget(
-                                    text: AppUtils.getDate(
-                                      date: item.attendanceDate ?? "",
-                                      format: "dd MMM yyyy hh:mm a",
-                                    ),
-                                    fontSize: 12,
-                                    textColor:
-                                        AppConstant.blackColor.withOpacity(0.9),
-                                    fontWeight: FontWeight.w500,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    AppUtils.commonSizedBox(height: 5),
-                    Divider(
-                      color: AppConstant.greyColor.withOpacity(0.3),
-                    ),
-                    AppUtils.commonSizedBox(height: 5),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.task_sharp,
-                              color: Colors.blue,
-                              size: 18,
-                            ),
-                            AppUtils.commonSizedBox(width: 5),
-                            AppUtils.commonTextWidget(
-                                text: "Approval Status",
-                                fontSize: 12,
-                                textColor:
-                                    AppConstant.blackColor.withOpacity(0.9),
-                                fontWeight: FontWeight.w500)
-                          ],
-                        ),
-                        AppUtils.commonContainer(
-                            padding: AppUtils.edgeInsetsOnly(
-                                bottom: 3, top: 3, left: 10, right: 10),
-                            decoration: AppUtils.commonBoxDecoration(
-                              borderRadius: BorderRadius.circular(6),
-                              color: item.isApproved == false
-                                  ? AppConstant.greyColor
-                                  : Colors.green,
-                            ),
-                            child: AppUtils.commonTextWidget(
-                                text: item.isApproved == true
-                                    ? "Approved"
-                                    : "Pending",
-                                fontWeight: FontWeight.w400,
-                                textColor: AppConstant.whiteColor,
-                                fontSize: 10))
-                      ],
-                    ),
-                    AppUtils.commonSizedBox(height: 5),
-                    Divider(
-                      color: AppConstant.greyColor.withOpacity(0.3),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.notes,
-                              color: Colors.purpleAccent,
-                              size: 18,
-                            ),
-                            AppUtils.commonSizedBox(width: 5),
-                            AppUtils.commonTextWidget(
-                                text: "Comment",
-                                fontSize: 12,
-                                textColor:
-                                    AppConstant.blackColor.withOpacity(0.9),
-                                fontWeight: FontWeight.w500)
-                          ],
-                        ),
-                      ],
-                    ),
-                    AppUtils.commonSizedBox(height: 8),
-                    AppUtils.commonTextWidget(
-                        text: item.comment ?? "",
-                        fontSize: 12,
-                        textColor: AppConstant.blackColor.withOpacity(0.9),
-                        fontWeight: FontWeight.w400),
-                    AppUtils.commonSizedBox(height: 10),
-                    if(item.isApproved == false)
-                      Column(
-                        children: [
-                          Divider(
-                            color: AppConstant.greyColor.withOpacity(0.3),
-                          ),
-                          // AppUtils.commonSizedBox(height: 10),
-                          InkWell(
-                            onTap: () {
-                              AppUtils.showDialogBoxWithTwoButton(
-                                  onSuccess: () async {
-                                    await dayEndRequestProvider.apiCallApproveRequest(
-                                      userId: item.userId,
-                                      sessionId: item.sessionId,
-                                      sessionEndDateTime: item.requestedDate,
-                                    );
-                                  },
-                                  onCancel: () {},
-                                  context: context,
-                                  onSuccessString: "Approve",
-                                  onCancelString: "Cancel",
-                                  text:
-                                  "Do you want to approve Day end request ${"Kuldeep"} ",
-                                  titleText: "DayEnd Request");
-                            },
-                            child: AppUtils.commonContainer(
-                              padding: AppUtils.edgeInsetsOnly(top: 5, bottom: 15),
-                              color: Colors.white,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  AppUtils.commonTextWidget(
-                                      text: "Approve",
-                                      textColor: AppConstant.appPrimaryColor,
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 14),
-                                ],
-                              ),
-                            ),
-                          )
-                        ],
-                      )
-
-                  ],
-                ),
-              );
-            }));
-  }
 }

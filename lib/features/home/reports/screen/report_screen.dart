@@ -210,13 +210,14 @@ class _ReportScreenState extends State<ReportScreen>
                       child: SfCartesianChart(
                         tooltipBehavior: tooltipBehavior,
                         title: ChartTitle(
-                            text: "Monthly Track Reports of Employee"),
+                            text: "Daily Track Reports of Employee"),
                         legend: Legend(isVisible: true),
                         series: [
                           StackedColumnSeries<UserAttendenceReport, String>(
                               dataSource: userAttendenceReport,
                               enableTooltip: true,
                               name: "Internet",
+                              width: 0.05,
                               xValueMapper: (UserAttendenceReport data, _) =>
                                   data.datePeriod,
                               yValueMapper: (UserAttendenceReport data, _) =>
@@ -225,6 +226,7 @@ class _ReportScreenState extends State<ReportScreen>
                               dataSource: userAttendenceReport,
                               enableTooltip: true,
                               name: "Gps",
+                              width: 0.05,
                               xValueMapper: (UserAttendenceReport data, _) =>
                                   data.datePeriod,
                               yValueMapper: (UserAttendenceReport data, _) =>
@@ -233,6 +235,7 @@ class _ReportScreenState extends State<ReportScreen>
                               dataSource: userAttendenceReport,
                               enableTooltip: true,
                               name: "Waiting",
+                              width: 0.05,
                               xValueMapper: (UserAttendenceReport data, _) =>
                                   data.datePeriod,
                               yValueMapper: (UserAttendenceReport data, _) =>
@@ -241,10 +244,20 @@ class _ReportScreenState extends State<ReportScreen>
                               dataSource: userAttendenceReport,
                               enableTooltip: true,
                               name: "Traveling",
+                              width: 0.05,
                               xValueMapper: (UserAttendenceReport data, _) =>
                                   data.datePeriod,
                               yValueMapper: (UserAttendenceReport data, _) =>
-                                  data.sumAppOffTime),
+                                  data.sumTravellingMinutes),
+                          StackedColumnSeries<UserAttendenceReport, String>(
+                              dataSource: userAttendenceReport,
+                              enableTooltip: true,
+                              name: "Meeting",
+                              width: 0.05,
+                              xValueMapper: (UserAttendenceReport data, _) =>
+                              data.datePeriod,
+                              yValueMapper: (UserAttendenceReport data, _) =>
+                              data.sumMeetingMinutes),
                         ],
                         primaryXAxis: CategoryAxis(),
                       ),
@@ -311,24 +324,24 @@ class _ReportScreenState extends State<ReportScreen>
                                   CommonContainerOfReportData(
                                       title: "Attendance",
                                       value: userAttendenceReport
-                                                  ?.first.absentDays ==
+                                                  .first.absentDays ==
                                               0
                                           ? "P"
                                           : "A",
                                       valueColor: userAttendenceReport
-                                                  ?.first.absentDays ==
+                                                  .first.absentDays ==
                                               0
                                           ? Colors.green
                                           : Colors.red),
                                   CommonContainerOfReportData(
-                                      title: "App Off",
+                                      title: "Check in",
                                       value: userAttendenceReport
-                                          ?.first.sumAppOffTime
+                                          .first.meetingCount
                                           .toString()),
                                   CommonContainerOfReportData(
                                       title: "Km",
                                       value: userAttendenceReport
-                                          ?.first.sumTotalKm
+                                          .first.sumTotalKm
                                           .toString()),
                                 ],
                               ),
@@ -410,6 +423,7 @@ class _ReportScreenState extends State<ReportScreen>
                               dataSource: userAttendenceDetail,
                               enableTooltip: true,
                               name: "Internet",
+                              width: 0.05,
                               xValueMapper: (UserAttendenceDetail data, _) =>
                                   AppUtils.extractDay(data.reportDate ?? "" , "d/M/yyyy"),
                               yValueMapper: (UserAttendenceDetail data, _) =>
@@ -418,6 +432,7 @@ class _ReportScreenState extends State<ReportScreen>
                               dataSource: userAttendenceDetail,
                               enableTooltip: true,
                               name: "Gps",
+                              width: 0.05,
                               xValueMapper: (UserAttendenceDetail data, _) =>
                                   AppUtils.extractDay(data.reportDate ?? "" , "d/M/yyyy"),
                               yValueMapper: (UserAttendenceDetail data, _) =>
@@ -426,6 +441,7 @@ class _ReportScreenState extends State<ReportScreen>
                               dataSource: userAttendenceDetail,
                               enableTooltip: true,
                               name: "Waiting",
+                              width: 0.05,
                               xValueMapper: (UserAttendenceDetail data, _) =>
                                   AppUtils.extractDay(data.reportDate ?? "" , "d/M/yyyy"),
                               yValueMapper: (UserAttendenceDetail data, _) =>
@@ -434,10 +450,20 @@ class _ReportScreenState extends State<ReportScreen>
                               dataSource: userAttendenceDetail,
                               enableTooltip: true,
                               name: "Traveling",
+                              width: 0.05,
                               xValueMapper: (UserAttendenceDetail data, _) =>
                                   AppUtils.extractDay(data.reportDate ?? "" , "d/M/yyyy"),
                               yValueMapper: (UserAttendenceDetail data, _) =>
-                                  data.totalKm),
+                                  data.travellingMinutes),
+                          StackedColumnSeries<UserAttendenceDetail, String>(
+                              dataSource: userAttendenceDetail,
+                              enableTooltip: true,
+                              name: "Meeting",
+                              width: 0.05,
+                              xValueMapper: (UserAttendenceDetail data, _) =>
+                                  AppUtils.extractDay(data.reportDate ?? "" , "d/M/yyyy"),
+                              yValueMapper: (UserAttendenceDetail data, _) =>
+                              data.meetingMinutes),
                         ],
                         primaryXAxis: CategoryAxis(),
                       ),
@@ -534,9 +560,9 @@ class _ReportScreenState extends State<ReportScreen>
                                                       ? Colors.green
                                                       : Colors.red),
                                           CommonContainerOfReportData(
-                                              title: "App Off",
+                                              title: "Check in",
                                               value: userAttendenceDetail[index]
-                                                  .appOffTime
+                                                  .meetingCount
                                                   .toString()),
                                           CommonContainerOfReportData(
                                               title: "Km",

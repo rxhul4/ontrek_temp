@@ -77,7 +77,7 @@ class ListItem {
   String? submissionDate;
   String? leaveStartDate;
   String? leaveEndDate;
-  int? leaveDays;
+  num? leaveDays;
   String? approvedRejectedBy;
   String? approvedRejectedOn;
   bool? isApproved;

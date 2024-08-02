@@ -300,7 +300,7 @@ class _ExpenseScreenState extends State<ExpenseScreen>
             width: double.infinity,
             margin: const EdgeInsets.only(left: 10, right: 10, top: 20),
             padding:
-                const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 20),
+                const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 10),
             decoration: BoxDecoration(
                 color: AppConstant.whiteColor,
                 borderRadius: AppUtils.borderRadiusAll(raduis: 10),
@@ -318,55 +318,78 @@ class _ExpenseScreenState extends State<ExpenseScreen>
                   width: double.infinity,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Flexible(
-                        flex: 5,
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.person,
-                              color: Colors.orangeAccent,
-                              size: 18,
-                            ),
-                            AppUtils.commonSizedBox(width: 5),
-                            Expanded(
-                              child: AppUtils.commonTextWidget(
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        // mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              AppUtils.commonTextWidget(
                                 text: item.userName ?? "",
-                                fontSize: 12,
+                                fontSize: 14,
                                 textColor:
-                                    AppConstant.blackColor.withOpacity(0.9),
+                                AppConstant.blackColor.withOpacity(0.9),
                                 fontWeight: FontWeight.w500,
                               ),
-                            ),
-                          ],
-                        ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  AppUtils.commonTextWidget(
+                                    text:
+                                    AppUtils.formatDateString(
+                                        item.expenseDate ?? "", "dd-MM-yyyy"),
+                                    fontSize: 10,
+                                    textColor:
+                                    AppConstant.blackColor.withOpacity(0.9),
+                                    fontWeight: FontWeight.w400,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  AppUtils.commonSizedBox(width: 5),
+                                  CircleAvatar(
+                                    radius: 3,
+                                    backgroundColor:
+                                    AppConstant.blackColor.withOpacity(0.6),
+                                  ),
+                                  AppUtils.commonSizedBox(width: 5),
+                                  AppUtils.commonTextWidget(
+                                      text: item.submittedAmount.toString(),
+                                      fontWeight: FontWeight.w400,
+                                      textColor: AppConstant.blackColor
+                                          .withOpacity(0.9),
+                                      fontSize: 10),
+                                  AppUtils.commonSizedBox(width: 5),
+
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                       // SizedBox(width: 40),
-                      // Adjust the width as per your requirement
-                      Flexible(
-                        flex: 2,
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.timer_outlined,
-                              color: Colors.green,
-                              size: 15,
-                            ),
-                            AppUtils.commonSizedBox(width: 3),
-                            Expanded(
-                              child: AppUtils.commonTextWidget(
-                                text: AppUtils.formatDateString(
-                                    item.expenseDate ?? "", "dd-MM-yyyy"),
-                                fontSize: 12,
-                                textColor:
-                                    AppConstant.blackColor.withOpacity(0.9),
-                                fontWeight: FontWeight.w500,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      AppUtils.commonContainer(
+                          padding: AppUtils.edgeInsetsOnly(
+                              bottom: 3, top: 3, left: 10, right: 10),
+                          decoration: AppUtils.commonBoxDecoration(
+                            borderRadius: BorderRadius.circular(6),
+                            color: item.isApproved == null
+                                ? AppConstant.greyColor
+                                : item.isApproved == false
+                                ? Colors.red
+                                : Colors.green,
+                          ),
+                          child: AppUtils.commonTextWidget(
+                              text: item.isApproved == null
+                                  ? "Pending"
+                                  : item.isApproved == false
+                                  ? "Rejected"
+                                  : "Approved",
+                              fontWeight: FontWeight.w400,
+                              textColor: AppConstant.whiteColor,
+                              fontSize: 10))
                     ],
                   ),
                 ),
@@ -375,162 +398,28 @@ class _ExpenseScreenState extends State<ExpenseScreen>
                   color: AppConstant.greyColor.withOpacity(0.3),
                 ),
                 AppUtils.commonSizedBox(height: 5),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.task_sharp,
-                          color: Colors.blue,
-                          size: 18,
-                        ),
-                        AppUtils.commonSizedBox(width: 5),
-                        AppUtils.commonTextWidget(
-                            text: "Expense Status",
-                            fontSize: 12,
-                            textColor: AppConstant.blackColor.withOpacity(0.9),
-                            fontWeight: FontWeight.w500)
-                      ],
-                    ),
-                    AppUtils.commonContainer(
-                        padding: AppUtils.edgeInsetsOnly(
-                            bottom: 3, top: 3, left: 10, right: 10),
-                        decoration: AppUtils.commonBoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          color: item.isApproved == null
-                              ? Colors.grey
-                              : item.isApproved == true
-                                  ? Colors.green
-                                  : Colors.red,
-                        ),
-                        child: AppUtils.commonTextWidget(
-                            text: item.isApproved == null
-                                ? "Pending"
-                                : item.isApproved == true
-                                    ? "Approve"
-                                    : "Rejected",
-                            fontWeight: FontWeight.w400,
-                            textColor: AppConstant.whiteColor,
-                            fontSize: 10))
-                  ],
-                ),
-                AppUtils.commonSizedBox(height: 5),
-                Divider(
-                  color: AppConstant.greyColor.withOpacity(0.3),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.category_rounded,
-                          color: Colors.cyan,
-                          size: 18,
-                        ),
-                        AppUtils.commonSizedBox(width: 5),
-                        AppUtils.commonTextWidget(
-                            text: "Category",
-                            fontSize: 12,
-                            textColor: AppConstant.blackColor.withOpacity(0.9),
-                            fontWeight: FontWeight.w500)
-                      ],
-                    ),
-                  ],
-                ),
-                AppUtils.commonSizedBox(height: 8),
+
+                AppUtils.commonSizedBox(width: 5),
                 AppUtils.commonTextWidget(
-                    text: item.expenseCategoryName ?? "",
+                    text: "Category",
+                    fontSize: 14,
+                    textColor: AppConstant.blackColor.withOpacity(0.9),
+                    fontWeight: FontWeight.w500),
+                AppUtils.commonSizedBox(height: 5),
+                AppUtils.commonTextWidget(
+                    text: "${item.expenseCategoryName ?? ""}/${item.expenseSubCategoryName ?? ""} ",
                     fontSize: 12,
                     textColor: AppConstant.blackColor.withOpacity(0.9),
                     fontWeight: FontWeight.w400),
-                AppUtils.commonSizedBox(height: 5),
+
                 Divider(
                   color: AppConstant.greyColor.withOpacity(0.3),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                AppUtils.commonTextWidget(
-                                    text: "Sub Category",
-                                    fontSize: 12,
-                                    textColor:
-                                        AppConstant.blackColor.withOpacity(0.9),
-                                    fontWeight: FontWeight.w500)
-                              ],
-                            ),
-                          ],
-                        ),
-                        AppUtils.commonSizedBox(height: 5),
-                        AppUtils.commonTextWidget(
-                            text: item.expenseSubCategoryName ?? "",
-                            fontSize: 12,
-                            textColor: AppConstant.blackColor.withOpacity(0.9),
-                            fontWeight: FontWeight.w400),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                AppUtils.commonTextWidget(
-                                    text: "Expanse Amount",
-                                    fontSize: 12,
-                                    textColor:
-                                        AppConstant.blackColor.withOpacity(0.9),
-                                    fontWeight: FontWeight.w500)
-                              ],
-                            ),
-                          ],
-                        ),
-                        AppUtils.commonSizedBox(height: 5),
-                        AppUtils.commonTextWidget(
-                            text: item.submittedAmount.toString(),
-                            fontSize: 12,
-                            textColor: AppConstant.blackColor.withOpacity(0.9),
-                            fontWeight: FontWeight.w400),
-                      ],
-                    ),
-                  ],
-                ),
-                Divider(
-                  color: AppConstant.greyColor.withOpacity(0.3),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.notes,
-                          color: Colors.purpleAccent,
-                          size: 18,
-                        ),
-                        AppUtils.commonSizedBox(width: 5),
-                        AppUtils.commonTextWidget(
-                            text: "Comment",
-                            fontSize: 12,
-                            textColor: AppConstant.blackColor.withOpacity(0.9),
-                            fontWeight: FontWeight.w500)
-                      ],
-                    ),
-                  ],
-                ),
+                AppUtils.commonTextWidget(
+                    text: "Comment",
+                    fontSize: 14,
+                    textColor: AppConstant.blackColor.withOpacity(0.9),
+                    fontWeight: FontWeight.w500),
                 AppUtils.commonSizedBox(height: 5),
                 AppUtils.commonTextWidget(
                     text: item.expenseDescription ?? "",
@@ -589,55 +478,78 @@ class _ExpenseScreenState extends State<ExpenseScreen>
                   width: double.infinity,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Flexible(
-                        flex: 5,
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.person,
-                              color: Colors.orangeAccent,
-                              size: 18,
-                            ),
-                            AppUtils.commonSizedBox(width: 5),
-                            Expanded(
-                              child: AppUtils.commonTextWidget(
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        // mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              AppUtils.commonTextWidget(
                                 text: item.userName ?? "",
-                                fontSize: 12,
+                                fontSize: 14,
                                 textColor:
-                                    AppConstant.blackColor.withOpacity(0.9),
+                                AppConstant.blackColor.withOpacity(0.9),
                                 fontWeight: FontWeight.w500,
                               ),
-                            ),
-                          ],
-                        ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  AppUtils.commonTextWidget(
+                                    text:
+                                    AppUtils.formatDateString(
+                                        item.expenseDate ?? "", "dd-MM-yyyy"),
+                                    fontSize: 10,
+                                    textColor:
+                                    AppConstant.blackColor.withOpacity(0.9),
+                                    fontWeight: FontWeight.w400,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  AppUtils.commonSizedBox(width: 5),
+                                  CircleAvatar(
+                                    radius: 3,
+                                    backgroundColor:
+                                    AppConstant.blackColor.withOpacity(0.6),
+                                  ),
+                                  AppUtils.commonSizedBox(width: 5),
+                                  AppUtils.commonTextWidget(
+                                      text: item.submittedAmount.toString(),
+                                      fontWeight: FontWeight.w400,
+                                      textColor: AppConstant.blackColor
+                                          .withOpacity(0.9),
+                                      fontSize: 10),
+                                  AppUtils.commonSizedBox(width: 5),
+
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                       // SizedBox(width: 40),
-                      // Adjust the width as per your requirement
-                      Flexible(
-                        flex: 2,
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.timer_outlined,
-                              color: Colors.green,
-                              size: 15,
-                            ),
-                            AppUtils.commonSizedBox(width: 3),
-                            Expanded(
-                              child: AppUtils.commonTextWidget(
-                                text: AppUtils.formatDateString(
-                                    item.expenseDate ?? "", "dd-MM-yyyy"),
-                                fontSize: 12,
-                                textColor:
-                                    AppConstant.blackColor.withOpacity(0.9),
-                                fontWeight: FontWeight.w500,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      AppUtils.commonContainer(
+                          padding: AppUtils.edgeInsetsOnly(
+                              bottom: 3, top: 3, left: 10, right: 10),
+                          decoration: AppUtils.commonBoxDecoration(
+                            borderRadius: BorderRadius.circular(6),
+                            color: item.isApproved == null
+                                ? AppConstant.greyColor
+                                : item.isApproved == false
+                                ? Colors.red
+                                : Colors.green,
+                          ),
+                          child: AppUtils.commonTextWidget(
+                              text: item.isApproved == null
+                                  ? "Pending"
+                                  : item.isApproved == false
+                                  ? "Rejected"
+                                  : "Approved",
+                              fontWeight: FontWeight.w400,
+                              textColor: AppConstant.whiteColor,
+                              fontSize: 10))
                     ],
                   ),
                 ),
@@ -646,169 +558,34 @@ class _ExpenseScreenState extends State<ExpenseScreen>
                   color: AppConstant.greyColor.withOpacity(0.3),
                 ),
                 AppUtils.commonSizedBox(height: 5),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.task_sharp,
-                          color: Colors.blue,
-                          size: 18,
-                        ),
-                        AppUtils.commonSizedBox(width: 5),
-                        AppUtils.commonTextWidget(
-                            text: "Expense Status",
-                            fontSize: 12,
-                            textColor: AppConstant.blackColor.withOpacity(0.9),
-                            fontWeight: FontWeight.w500)
-                      ],
-                    ),
-                    AppUtils.commonContainer(
-                        padding: AppUtils.edgeInsetsOnly(
-                            bottom: 3, top: 3, left: 10, right: 10),
-                        decoration: AppUtils.commonBoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          color: item.isApproved == null
-                              ? Colors.grey
-                              : item.isApproved == true
-                                  ? Colors.green
-                                  : Colors.red,
-                        ),
-                        child: AppUtils.commonTextWidget(
-                            text: item.isApproved == null
-                                ? "Pending"
-                                : item.isApproved == true
-                                    ? "Approved"
-                                    : "Rejected",
-                            fontWeight: FontWeight.w400,
-                            textColor: AppConstant.whiteColor,
-                            fontSize: 10))
-                  ],
-                ),
-                AppUtils.commonSizedBox(height: 5),
-                Divider(
-                  color: AppConstant.greyColor.withOpacity(0.3),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.category_rounded,
-                          color: Colors.cyan,
-                          size: 18,
-                        ),
-                        AppUtils.commonSizedBox(width: 5),
-                        AppUtils.commonTextWidget(
-                            text: "Category",
-                            fontSize: 12,
-                            textColor: AppConstant.blackColor.withOpacity(0.9),
-                            fontWeight: FontWeight.w500)
-                      ],
-                    ),
-                  ],
-                ),
-                AppUtils.commonSizedBox(height: 8),
+
+                AppUtils.commonSizedBox(width: 5),
                 AppUtils.commonTextWidget(
-                    text: item.expenseCategoryName ?? "",
+                    text: "Category",
+                    fontSize: 14,
+                    textColor: AppConstant.blackColor.withOpacity(0.9),
+                    fontWeight: FontWeight.w500),
+                AppUtils.commonSizedBox(height: 5),
+                AppUtils.commonTextWidget(
+                    text: "${item.expenseCategoryName ?? ""}/${item.expenseSubCategoryName ?? ""} ",
                     fontSize: 12,
                     textColor: AppConstant.blackColor.withOpacity(0.9),
                     fontWeight: FontWeight.w400),
-                AppUtils.commonSizedBox(height: 5),
+
                 Divider(
                   color: AppConstant.greyColor.withOpacity(0.3),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                AppUtils.commonTextWidget(
-                                    text: "Sub Category",
-                                    fontSize: 12,
-                                    textColor:
-                                        AppConstant.blackColor.withOpacity(0.9),
-                                    fontWeight: FontWeight.w500)
-                              ],
-                            ),
-                          ],
-                        ),
-                        AppUtils.commonSizedBox(height: 5),
-                        AppUtils.commonTextWidget(
-                            text: item.expenseSubCategoryName ?? "",
-                            fontSize: 12,
-                            textColor: AppConstant.blackColor.withOpacity(0.9),
-                            fontWeight: FontWeight.w400),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                AppUtils.commonTextWidget(
-                                    text: "Expanse Amount",
-                                    fontSize: 12,
-                                    textColor:
-                                        AppConstant.blackColor.withOpacity(0.9),
-                                    fontWeight: FontWeight.w500)
-                              ],
-                            ),
-                          ],
-                        ),
-                        AppUtils.commonSizedBox(height: 5),
-                        AppUtils.commonTextWidget(
-                            text: item.submittedAmount.toString(),
-                            fontSize: 12,
-                            textColor: AppConstant.blackColor.withOpacity(0.9),
-                            fontWeight: FontWeight.w400),
-                      ],
-                    ),
-                  ],
-                ),
-                Divider(
-                  color: AppConstant.greyColor.withOpacity(0.3),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.notes,
-                          color: Colors.purpleAccent,
-                          size: 18,
-                        ),
-                        AppUtils.commonSizedBox(width: 5),
-                        AppUtils.commonTextWidget(
-                            text: "Comment",
-                            fontSize: 12,
-                            textColor: AppConstant.blackColor.withOpacity(0.9),
-                            fontWeight: FontWeight.w500)
-                      ],
-                    ),
-                  ],
-                ),
+                AppUtils.commonTextWidget(
+                    text: "Comment",
+                    fontSize: 14,
+                    textColor: AppConstant.blackColor.withOpacity(0.9),
+                    fontWeight: FontWeight.w500),
                 AppUtils.commonSizedBox(height: 5),
                 AppUtils.commonTextWidget(
                     text: item.expenseDescription ?? "",
                     fontSize: 12,
                     textColor: AppConstant.blackColor.withOpacity(0.9),
                     fontWeight: FontWeight.w400),
-                AppUtils.commonSizedBox(height: 5),
                 if (item.isApproved == null)
                   Column(
                     children: [

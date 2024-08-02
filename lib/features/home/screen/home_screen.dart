@@ -45,7 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
     "Reports",
     "DayEnd",
     "Leave",
-    "Expanse",
+    "Expense",
     "Holidays"
   ];
 
@@ -104,8 +104,6 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  AppUtils.commonSizedBox(height: 20),
-                  AppUtils.commonTextWidget(text: "Dashboard",fontSize: 22,textColor: AppConstant.appPrimaryColor,fontWeight: FontWeight.w500),
                   AppUtils.commonSizedBox(height: 20),
                   Column(
                     children: [

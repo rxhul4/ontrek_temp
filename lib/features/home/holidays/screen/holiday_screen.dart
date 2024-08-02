@@ -56,12 +56,14 @@ class _HolidayScreenState extends State<HolidayScreen> {
           : holidayProvider.getHolidayListModel?.data?.length == 0 ||
                   holidayProvider.getHolidayListModel?.data == [] ||
                   holidayProvider.getHolidayListModel?.data == null
-              ? AppUtils.commonNoDataFound(
-                  text: "No Holidays Found",
-                  onPressed: () async{
-                    await holidayProvider.apiCallGetDayEndRequestList();
-                  },
-                )
+              ? Center(
+                child: AppUtils.commonNoDataFound(
+                    text: "No Holidays Found",
+                    onPressed: () async{
+                      await holidayProvider.apiCallGetDayEndRequestList();
+                    },
+                  ),
+              )
               : ListView.builder(
                   shrinkWrap: true,
                   physics: const BouncingScrollPhysics(),
