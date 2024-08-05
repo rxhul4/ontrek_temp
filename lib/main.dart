@@ -12,6 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:ontrek/core/services/background_service.dart';
 import 'package:ontrek/core/services/background_service_ios.dart';
 import 'package:ontrek/core/services/local_notification.dart';
+import 'package:ontrek/core/services/push_notification_service.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/add_lead/provider/add_lead_provider.dart';
@@ -100,6 +101,7 @@ void main() async {
       return true;
     };
   }
+  await PushNotificationService().initializePushNotification();
 
   PreferenceHelper.load().then((value) async {
     String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
@@ -169,6 +171,19 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: navigatorKey,
+      builder: (context, child) {
+        final mediaQueryData = MediaQuery.of(context);
+        final scale = mediaQueryData.textScaler.clamp(
+          minScaleFactor: 1.0, // Minimum scale factor allowed.
+          maxScaleFactor: 1.1, // Maximum scale factor allowed.
+        );
+        return MediaQuery(
+          child: child!,
+          data: mediaQueryData.copyWith(
+            textScaler: scale,
+          ),
+        );
+      },
       title: 'On Trek',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: AppConstant.btnColor),

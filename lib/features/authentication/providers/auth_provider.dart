@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
+import 'package:ontrek/core/services/push_notification_service.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
@@ -194,7 +195,8 @@ class AuthenticationProvider extends ChangeNotifier {
             "deviceModel": androidInfo.model,
             "deviceOs ": androidInfo.version.release,
             "osVersion ": Platform.operatingSystemVersion,
-            "appVersion": AppConstant.appVersionAndroid
+            "appVersion": AppConstant.appVersionAndroid,
+            "firebaseDeviceKey" :fcmToken
           }
         };
       }
