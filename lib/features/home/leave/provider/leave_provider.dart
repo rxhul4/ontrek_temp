@@ -238,13 +238,13 @@ TextEditingController rejectionNotesController = TextEditingController();
       {String? pkId,
       String? orgId,
       String? userId,
-      String? approvedRejectedBy,
       String? approvedRejectedOn,
       String? approverNote,
       bool? isApproved,
         required Function() onSuccess
       }) async {
     var organizationId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
+    var approvedRejectedBy = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
     _isLoading = true;
     notifyListeners();
     Map<String, dynamic> body = {

@@ -183,6 +183,7 @@ class AuthenticationProvider extends ChangeNotifier {
             "deviceModel": iosInfo.model,
             "deviceOs ": iosInfo.systemName,
             "osVersion ": Platform.operatingSystemVersion,
+            "firebaseDeviceKey" :fcmToken
           }
         };
       } else {

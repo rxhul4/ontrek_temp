@@ -108,19 +108,24 @@ class _ExpenseScreenState extends State<ExpenseScreen>
           title: "Expense",
           isActionWidgetAvailable: true,
           actions: [
-            commonIconWidget(
-              iconData: Icons.add,
-              onTap: () {
-                Navigator.push(
-                    context,
-                    CupertinoPageRoute(
-                      builder: (context) => AddExpenseScreen(),
-                    )).then((value) {
-                  selectedIndex == 0
-                      ? myExpenseListController.refresh()
-                      : EmployeeExpenseListController.refresh();
-                    },);
-              },
+            AppUtils.commonContainer(
+              color: AppConstant.whiteColor,
+              padding: EdgeInsets.all(5),
+              child: commonIconWidget(
+                iconData: Icons.add,
+                iconColor: AppConstant.appPrimaryColor,
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      CupertinoPageRoute(
+                        builder: (context) => AddExpenseScreen(),
+                      )).then((value) {
+                    selectedIndex == 0
+                        ? myExpenseListController.refresh()
+                        : EmployeeExpenseListController.refresh();
+                  },);
+                },
+              ),
             ),
             AppUtils.commonSizedBox(width: 10),
             InkWell(

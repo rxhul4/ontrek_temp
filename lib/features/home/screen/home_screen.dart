@@ -43,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
     "Task",
     "Lead",
     "Reports",
-    "DayEnd",
+    "Day End",
     "Leave",
     "Expense",
     "Holidays"

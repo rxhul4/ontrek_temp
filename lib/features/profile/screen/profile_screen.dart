@@ -82,25 +82,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Stack(
-                    alignment: Alignment.topRight,
-                    children: [
-                      AppUtils.commonContainer(
-                        height: 80,
-                        width: 80,
-                        decoration: AppUtils.commonBoxDecoration(
-                            shape: BoxShape.circle,
-                            border:
-                                Border.all(color: AppConstant.appPrimaryColor)),
-                        child: ClipOval(
-                          child: AppUtils.commonCacheNetworkImage(
-                            imgUrl: profileImage
-                              ),
-                        ),
-                      ),
-
-
-                    ],
+                  AppUtils.commonContainer(
+                    height: 80,
+                    width: 80,
+                    decoration: AppUtils.commonBoxDecoration(
+                        shape: BoxShape.circle,
+                        border:
+                            Border.all(color: AppConstant.appPrimaryColor)),
+                    child: ClipOval(
+                      child: AppUtils.commonCacheNetworkImage(
+                        imgUrl: profileImage
+                          ),
+                    ),
                   ),
                   AppUtils.commonSizedBox(height: 10),
                   AppUtils.commonTextWidget(

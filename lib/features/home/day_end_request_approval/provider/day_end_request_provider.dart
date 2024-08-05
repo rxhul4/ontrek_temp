@@ -40,6 +40,8 @@ class DayEndRequestProvider extends ChangeNotifier{
   String? employeeDayEndSelectedDate;
   bool? isMyRequestApproved;
   bool? isEmployeeRequestApproved;
+  TextEditingController approveReasonController = TextEditingController();
+  TextEditingController dayEndTimeController = TextEditingController();
 
 
   filterDayEndRequest({bool? isApproved,int? index}){
@@ -190,6 +192,7 @@ class DayEndRequestProvider extends ChangeNotifier{
     Map<String, dynamic> body = {
       "userId": userId,
       "orgId": organizationId,
+      "approverComment": approveReasonController.text,
       "sessionId": sessionId,
       "sessionEndDateTime": sessionEndDateTime
     };

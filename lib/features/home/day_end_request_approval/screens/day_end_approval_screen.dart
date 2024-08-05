@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import 'package:interval_time_picker/interval_time_picker.dart';
+import 'package:interval_time_picker/models/visible_step.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
@@ -107,7 +109,7 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
           context: context,
           isBorder: true,
           isBack: true,
-          title: "Day-end",
+          title: "Day end",
           isActionWidgetAvailable: true,
           actions: [
             commonIconWidget(
@@ -155,6 +157,7 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
                     setState(() {
                       selectedIndex = value;
                     });
+                    selectedIndex == 0 ?  myDayEndRequestController.refresh() : employeeDayEndRequestController.refresh();
                   },
                   physics: const NeverScrollableScrollPhysics(),
                   isScrollable: false,
@@ -209,7 +212,15 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
           return AppUtils.commonNoDataFound(
             text: "No Request Found",
             onPressed: () {
-              myDayEndRequestController.refresh();
+              employeeDayEndRequestController.refresh();
+            },
+          );
+        },
+        firstPageErrorIndicatorBuilder: (context) {
+          return AppUtils.commonNoDataFound(
+            text: "No Request Found",
+            onPressed: () {
+              employeeDayEndRequestController.refresh();
             },
           );
         },
@@ -452,21 +463,15 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
                           // AppUtils.commonSizedBox(height: 10),
                           InkWell(
                             onTap: () {
-                              AppUtils.showDialogBoxWithTwoButton(
-                                  onSuccess: () async {
-                                    await dayEndRequestProvider.apiCallApproveRequest(
-                                      userId: item.userId,
-                                      sessionId: item.sessionId,
-                                      sessionEndDateTime: item.requestedDate,
-                                    );
-                                  },
-                                  onCancel: () {},
-                                  context: context,
-                                  onSuccessString: "Approve",
-                                  onCancelString: "Cancel",
-                                  text:
-                                  "Do you want to approve Day end request ${"Kuldeep"} ",
-                                  titleText: "DayEnd Request");
+                              AppUtils.showNotesForm(context: context, onSave: () async{
+                                await dayEndRequestProvider.apiCallApproveRequest(
+                                  userId: item.userId,
+                                  sessionId: item.sessionId,
+                                  sessionEndDateTime: item.requestedDate,
+
+                                );
+
+                              }, controller: dayEndRequestProvider.approveReasonController,title: "Day End",textFieldText: "Enter Approval Comment");
                             },
                             child: AppUtils.commonContainer(
                               padding: AppUtils.edgeInsetsOnly(top: 5, bottom: 15),
@@ -491,6 +496,153 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
               );
             }));
   }
+
+
+
+  //
+  // Widget showAmountAndNotesForm({required Function onSave}) {
+  //   return AlertDialog(
+  //     backgroundColor: AppConstant.whiteColor,
+  //     // contentPadding: AppUtils.edgeInsetsAll(allPadding: 0),
+  //     // insetPadding:
+  //     // AppUtils.edgeInsetsOnly(top: 0, bottom: 0, right: 0, left: 0),
+  //     titlePadding: AppUtils.edgeInsetsOnly(top: 30, bottom: 10),
+  //     title: AppUtils.commonTextWidget(
+  //         text: "Day End Approval",
+  //         textColor: AppConstant.appPrimaryColor,
+  //         fontWeight: FontWeight.w500,
+  //         fontSize: 14,
+  //         textAlign: TextAlign.center),
+  //
+  //     content: AppUtils.commonContainer(
+  //         width: MediaQuery.of(context).size.width - 30,
+  //         height: MediaQuery.of(context).size.height / 5,
+  //         child: Column(
+  //           mainAxisAlignment: MainAxisAlignment.center,
+  //           crossAxisAlignment: CrossAxisAlignment.center,
+  //           children: [
+  //             AppUtils.buildCommonTextField(
+  //                 readOnly: true,
+  //                 showCursor: false,
+  //                 onTap: () {
+  //
+  //                 },
+  //                 // maxLine: 1,
+  //                 text: "Enter Approval Amount",
+  //                 textInputType: TextInputType.number,
+  //                 controller:  dayEndRequestProvider.dayEndTimeController
+  //             ),
+  //             AppUtils.commonSizedBox(height: 10),
+  //             AppUtils.buildCommonTextField(
+  //                 readOnly: false,
+  //                 maxLine: 1,
+  //                 text: "Enter Approval Notes",
+  //                 textInputType: TextInputType.text,
+  //                 controller: dayEndRequestProvider.approveReasonController)
+  //           ],
+  //         )),
+  //     actionsPadding: AppUtils.edgeInsetsOnly(top: 0, bottom: 10, right: 20),
+  //     actions: [
+  //       TextButton(
+  //           onPressed: () {
+  //             Navigator.of(context).pop();
+  //           },
+  //           child: AppUtils.commonTextWidget(
+  //             text: "Cancel",
+  //             fontWeight: FontWeight.w500,
+  //             textColor: Colors.red,
+  //             fontSize: 14,
+  //           )),
+  //       TextButton(
+  //           onPressed: () async {
+  //             Navigator.of(context).pop();
+  //            onSave();
+  //           },
+  //           child: AppUtils.commonTextWidget(
+  //             text: "Save",
+  //             fontWeight: FontWeight.w500,
+  //             textColor: Colors.green,
+  //             fontSize: 14,
+  //           ))
+  //     ],
+  //   );
+  // }
+
+  // void _showTimePicker({
+  //   TimeOfDay? selectedTime,
+  //   required BuildContext context,
+  // }) async {
+  //   TimeOfDay _time = TimeOfDay(hour: 0, minute: 0);
+  //   VisibleStep _visibleStep = VisibleStep.fifths;
+  //
+  //   final TimeOfDay? result = await showIntervalTimePicker(
+  //     context: context,
+  //     initialTime: selectedTime ?? _time,
+  //     visibleStep: _visibleStep,
+  //
+  //     builder: (BuildContext context, Widget? child) {
+  //       return MediaQuery(
+  //         data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
+  //         child: child ?? SizedBox(),
+  //       );
+  //     },
+  //   );
+  //
+  //   if (result != null) {
+  //     print("Result: $result");
+  //
+  //     String startTime = AppUtils.getDate(
+  //       date: widget.sessionStartDate ?? "",
+  //       format: "hh:mm a",
+  //     );
+  //
+  //     // Debug prints
+  //     print("sessionStartDate: ${widget.sessionStartDate}");
+  //     print("Start Time: $startTime");
+  //
+  //     String selectedTime12Hr = DateFormat('hh:mm a').format(
+  //       DateTime(2020, 1, 1, result.hour, result.minute),
+  //     );
+  //
+  //     print("Selected Time (12-hour): $selectedTime12Hr");
+  //
+  //     try {
+  //       DateTime parsedStartTime = DateFormat('hh:mm a').parse(startTime);
+  //       DateTime parsedSelectedTime = DateFormat('hh:mm a').parse(selectedTime12Hr);
+  //
+  //       if (parsedSelectedTime.isBefore(parsedStartTime)) {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           SnackBar(
+  //             content: Text("Please select a time later than Day start time."),
+  //             backgroundColor: Colors.red,
+  //           ),
+  //         );
+  //       } else if (parsedSelectedTime.isAfter(parsedStartTime)) {
+  //         String selectedTime24Hr = DateFormat('HH:mm:ss').format(
+  //           DateTime(2020, 1, 1, result.hour, result.minute),
+  //         );
+  //
+  //         print("Formatted Time (12-hour): $selectedTime12Hr");
+  //         print("Formatted Time (24-hour): $selectedTime24Hr");
+  //
+  //         attendanceProvider.timeController.text = selectedTime12Hr;
+  //
+  //         String formatedDate = AppUtils.getDate(
+  //           date: widget.sessionStartDate ?? "",
+  //           format: "yyyy-MM-dd",
+  //         );
+  //         print("Formatted Date: $formatedDate");
+  //
+  //         dateFormatInto24Hour = selectedTime24Hr;
+  //         endDateTime = formatedDate + "T" + dateFormatInto24Hour;
+  //
+  //         print("End DateTime: $endDateTime");
+  //       }
+  //     } catch (e) {
+  //       print("Error parsing dates: $e");
+  //     }
+  //   }
+  // }
 
   Widget commonIconWidget(
       {Function()? onTap, IconData? iconData, Color? iconColor, double? size}) {

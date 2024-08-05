@@ -89,6 +89,7 @@ class _LeaveScreenState extends State<LeaveScreen>
     myLeaveListController.dispose();
     employeeLeaveListController.dispose();
     leaveProvider.ApprovalStatus = null;
+    leaveProvider.approvalNotesController.clear();
     super.dispose();
   }
 
@@ -104,21 +105,26 @@ class _LeaveScreenState extends State<LeaveScreen>
           title: "Leave",
           isActionWidgetAvailable: true,
           actions: [
-            commonIconWidget(
-              iconData: Icons.add,
-              onTap: () {
-                Navigator.push(
-                    context,
-                    CupertinoPageRoute(
-                      builder: (context) => ApplyLeaveScreen(),
-                    )).then(
-                  (value) {
-                    selectedIndex == 0
-                        ? myLeaveListController.refresh()
-                        : employeeLeaveListController.refresh();
-                  },
-                );
-              },
+            AppUtils.commonContainer(
+              color: AppConstant.whiteColor,
+              padding: EdgeInsets.all(5),
+              child: commonIconWidget(
+                iconData: Icons.add,
+                iconColor: AppConstant.appPrimaryColor,
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      CupertinoPageRoute(
+                        builder: (context) => ApplyLeaveScreen(),
+                      )).then(
+                    (value) {
+                      selectedIndex == 0
+                          ? myLeaveListController.refresh()
+                          : employeeLeaveListController.refresh();
+                    },
+                  );
+                },
+              ),
             ),
             AppUtils.commonSizedBox(width: 10),
             InkWell(
@@ -158,6 +164,7 @@ class _LeaveScreenState extends State<LeaveScreen>
                     setState(() {
                       selectedIndex = value;
                     });
+                    selectedIndex == 0 ? myLeaveListController.refresh() : employeeLeaveListController.refresh();
                   },
                   physics: const NeverScrollableScrollPhysics(),
                   isScrollable: false,
@@ -548,7 +555,7 @@ class _LeaveScreenState extends State<LeaveScreen>
                                                 .apiCallApplyRejectLeave(
                                               pkId: item.pkId,
                                               userId: item.userId,
-                                              approvedRejectedBy: userName,
+
                                               isApproved: false,
                                               approvedRejectedOn:
                                                   DateTime.now().toString(),
@@ -620,7 +627,6 @@ class _LeaveScreenState extends State<LeaveScreen>
                                                 .apiCallApplyRejectLeave(
                                               pkId: item.pkId,
                                               userId: item.userId,
-                                              approvedRejectedBy: userName,
                                               isApproved: true,
                                               approvedRejectedOn:
                                                   DateTime.now().toString(),
