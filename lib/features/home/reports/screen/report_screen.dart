@@ -216,7 +216,7 @@ class _ReportScreenState extends State<ReportScreen>
                           StackedColumnSeries<UserAttendenceReport, String>(
                               dataSource: userAttendenceReport,
                               enableTooltip: true,
-                              name: "Internet",
+                              name: "Internet off min",
                               width: 0.05,
                               xValueMapper: (UserAttendenceReport data, _) =>
                                   data.datePeriod,
@@ -225,7 +225,7 @@ class _ReportScreenState extends State<ReportScreen>
                           StackedColumnSeries<UserAttendenceReport, String>(
                               dataSource: userAttendenceReport,
                               enableTooltip: true,
-                              name: "Gps",
+                              name: "Gps off min",
                               width: 0.05,
                               xValueMapper: (UserAttendenceReport data, _) =>
                                   data.datePeriod,
@@ -234,7 +234,7 @@ class _ReportScreenState extends State<ReportScreen>
                           StackedColumnSeries<UserAttendenceReport, String>(
                               dataSource: userAttendenceReport,
                               enableTooltip: true,
-                              name: "Waiting",
+                              name: "Waiting min",
                               width: 0.05,
                               xValueMapper: (UserAttendenceReport data, _) =>
                                   data.datePeriod,
@@ -243,7 +243,7 @@ class _ReportScreenState extends State<ReportScreen>
                           StackedColumnSeries<UserAttendenceReport, String>(
                               dataSource: userAttendenceReport,
                               enableTooltip: true,
-                              name: "Traveling",
+                              name: "Traveling min",
                               width: 0.05,
                               xValueMapper: (UserAttendenceReport data, _) =>
                                   data.datePeriod,
@@ -252,7 +252,7 @@ class _ReportScreenState extends State<ReportScreen>
                           StackedColumnSeries<UserAttendenceReport, String>(
                               dataSource: userAttendenceReport,
                               enableTooltip: true,
-                              name: "Meeting",
+                              name: "Meeting min",
                               width: 0.05,
                               xValueMapper: (UserAttendenceReport data, _) =>
                               data.datePeriod,
@@ -334,12 +334,12 @@ class _ReportScreenState extends State<ReportScreen>
                                           ? Colors.green
                                           : Colors.red),
                                   CommonContainerOfReportData(
-                                      title: "Check in",
+                                      title: "CheckIn count",
                                       value: userAttendenceReport
                                           .first.meetingCount
                                           .toString()),
                                   CommonContainerOfReportData(
-                                      title: "Km",
+                                      title: "Travel Km",
                                       value: userAttendenceReport
                                           .first.sumTotalKm
                                           .toString()),
@@ -348,19 +348,19 @@ class _ReportScreenState extends State<ReportScreen>
                               Row(
                                 children: [
                                   CommonContainerOfReportData(
-                                      title: "Waiting",
+                                      title: "Waiting min",
                                       value: userAttendenceReport
-                                          ?.first.sumWaitingMinutes
+                                          .first.sumWaitingMinutes
                                           .toString()),
                                   CommonContainerOfReportData(
-                                      title: "Internet",
+                                      title: "Internet off min",
                                       value: userAttendenceReport
-                                          ?.first.sumInternetOffMinutes
+                                          .first.sumInternetOffMinutes
                                           .toString()),
                                   CommonContainerOfReportData(
-                                      title: "Gps",
+                                      title: "Gps off min",
                                       value: userAttendenceReport
-                                          ?.first.sumGpsOffMinutes
+                                          .first.sumGpsOffMinutes
                                           .toString()),
                                 ],
                               )
@@ -422,8 +422,8 @@ class _ReportScreenState extends State<ReportScreen>
                           StackedColumnSeries<UserAttendenceDetail, String>(
                               dataSource: userAttendenceDetail,
                               enableTooltip: true,
-                              name: "Internet",
-                              width: 0.05,
+                              name: "Internet off min",
+                              width: 0.09,
                               xValueMapper: (UserAttendenceDetail data, _) =>
                                   AppUtils.extractDay(data.reportDate ?? "" , "d/M/yyyy"),
                               yValueMapper: (UserAttendenceDetail data, _) =>
@@ -431,8 +431,8 @@ class _ReportScreenState extends State<ReportScreen>
                           StackedColumnSeries<UserAttendenceDetail, String>(
                               dataSource: userAttendenceDetail,
                               enableTooltip: true,
-                              name: "Gps",
-                              width: 0.05,
+                              name: "Gps off min",
+                              width: 0.09,
                               xValueMapper: (UserAttendenceDetail data, _) =>
                                   AppUtils.extractDay(data.reportDate ?? "" , "d/M/yyyy"),
                               yValueMapper: (UserAttendenceDetail data, _) =>
@@ -440,8 +440,8 @@ class _ReportScreenState extends State<ReportScreen>
                           StackedColumnSeries<UserAttendenceDetail, String>(
                               dataSource: userAttendenceDetail,
                               enableTooltip: true,
-                              name: "Waiting",
-                              width: 0.05,
+                              name: "Waiting min",
+                              width: 0.09,
                               xValueMapper: (UserAttendenceDetail data, _) =>
                                   AppUtils.extractDay(data.reportDate ?? "" , "d/M/yyyy"),
                               yValueMapper: (UserAttendenceDetail data, _) =>
@@ -449,8 +449,8 @@ class _ReportScreenState extends State<ReportScreen>
                           StackedColumnSeries<UserAttendenceDetail, String>(
                               dataSource: userAttendenceDetail,
                               enableTooltip: true,
-                              name: "Traveling",
-                              width: 0.05,
+                              name: "Traveling min",
+                              width: 0.09,
                               xValueMapper: (UserAttendenceDetail data, _) =>
                                   AppUtils.extractDay(data.reportDate ?? "" , "d/M/yyyy"),
                               yValueMapper: (UserAttendenceDetail data, _) =>
@@ -458,8 +458,8 @@ class _ReportScreenState extends State<ReportScreen>
                           StackedColumnSeries<UserAttendenceDetail, String>(
                               dataSource: userAttendenceDetail,
                               enableTooltip: true,
-                              name: "Meeting",
-                              width: 0.05,
+                              name: "Meeting min",
+                              width: 0.09,
                               xValueMapper: (UserAttendenceDetail data, _) =>
                                   AppUtils.extractDay(data.reportDate ?? "" , "d/M/yyyy"),
                               yValueMapper: (UserAttendenceDetail data, _) =>
@@ -560,12 +560,12 @@ class _ReportScreenState extends State<ReportScreen>
                                                       ? Colors.green
                                                       : Colors.red),
                                           CommonContainerOfReportData(
-                                              title: "Check in",
+                                              title: "CheckIn count",
                                               value: userAttendenceDetail[index]
                                                   .meetingCount
                                                   .toString()),
                                           CommonContainerOfReportData(
-                                              title: "Km",
+                                              title: "Travel Km",
                                               value: userAttendenceDetail[index]
                                                   .totalKm
                                                   .toString()),
@@ -574,17 +574,17 @@ class _ReportScreenState extends State<ReportScreen>
                                       Row(
                                         children: [
                                           CommonContainerOfReportData(
-                                              title: "Waiting",
+                                              title: "Waiting min ",
                                               value: userAttendenceDetail[index]
                                                   .waitingMinutes
                                                   .toString()),
                                           CommonContainerOfReportData(
-                                              title: "Internet",
+                                              title: "Internet off min",
                                               value: userAttendenceDetail[index]
                                                   .internetOffMinutes
                                                   .toString()),
                                           CommonContainerOfReportData(
-                                              title: "Gps",
+                                              title: "Gps off min",
                                               value: userAttendenceDetail[index]
                                                   .gpsOffMinutes
                                                   .toString()),
@@ -612,7 +612,7 @@ class _ReportScreenState extends State<ReportScreen>
         margin:
             AppUtils.edgeInsetsOnly(top: 10, bottom: 15, right: 10, left: 10),
         padding:
-            AppUtils.edgeInsetsOnly(top: 10, bottom: 15, right: 10, left: 10),
+            AppUtils.edgeInsetsOnly(top: 10, bottom: 15, right: 5, left: 5),
         decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: AppUtils.borderRadiusAll(raduis: 10),

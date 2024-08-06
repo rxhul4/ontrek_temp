@@ -226,8 +226,7 @@ void onStart(ServiceInstance service) async {
               bool developerMode =
                   await FlutterJailbreakDetection.developerMode;
               var locationAlwaysStatus = await Permission.locationAlways.status;
-              var ignoreBatteryOptimizationsStatus =
-                  await Permission.ignoreBatteryOptimizations.status;
+              var ignoreBatteryOptimizationsStatus = await Permission.ignoreBatteryOptimizations.status;
               if (locationAlwaysStatus.isGranted) {
                 isLocationAlwaysOn = true;
               }
@@ -546,14 +545,9 @@ registerEventsToListener(ServiceInstance service) {
 manualWaitingEndEvent() async {
   DatabaseService databaseService = DatabaseService();
   await databaseService.removeSyncedNotCompletedEvents(db);
-  PreferenceHelper.setString(
-      PreferenceHelper.WAITING_START_TIME,
-      AppUtils.getDate(
-          date: DateTime.now().toString(), format: AppConstant.dateFormat));
-  PreferenceHelper.setDouble(
-      PreferenceHelper.LAST_LAT, currentLatitude ?? (prevLatitude ?? 0));
-  PreferenceHelper.setDouble(
-      PreferenceHelper.LAST_LONG, currentLongitude ?? (prevLongitude ?? 0));
+  PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
+  PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT, currentLatitude ?? (prevLatitude ?? 0));
+  PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, currentLongitude ?? (prevLongitude ?? 0));
 }
 
 syncRouteHistory() async {
@@ -606,9 +600,9 @@ syncSqlData() async {
 
   try {
     DatabaseService databaseService = DatabaseService();
-    List<Activity>? listOfAllActivity =
-        await databaseService.getAllSyncedActivity(db);
+    List<Activity>? listOfAllActivity = await databaseService.getAllSyncedActivity(db);
     String currentSessionId = lastActivityData?.sessionId ?? "";
+    String? userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
 
     var listOfflineData = listOfAllActivity
         ?.where((element) =>
@@ -624,6 +618,7 @@ syncSqlData() async {
         int batteryLevel = await AppUtils.getBatteryLevel();
 
         var createActivityList = CreateActivityList(
+          loggedInUser: userName,
           pkId: activity.pkId,
           parentId: activity.parentId,
           userId: lastActivityData?.fieldUserId,
