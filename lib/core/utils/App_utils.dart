@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:app_settings/app_settings.dart';
 import 'package:battery_indicator/battery_indicator.dart';
 import 'package:battery_plus/battery_plus.dart';
@@ -128,6 +130,45 @@ class AppUtils {
       ),
     );
   }
+
+
+
+  static Widget openImageDialog(
+      {required BuildContext context,
+        String? imagePath,
+        double? height,
+        double? width,
+        Widget? child
+      }) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Align(
+              alignment: Alignment.topRight,
+              child: IconButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: Icon(
+                    Icons.cancel_outlined,
+                    color: AppConstant.whiteColor,
+                  )),
+            ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(5),
+              child: child
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
 
   static Widget commonAssetImageWidget(
       {String? path,
@@ -565,6 +606,7 @@ class AppUtils {
       {required BuildContext context, required Function() onSave,String? title,String? textFieldText,required TextEditingController controller}) {
     return AlertDialog(
       backgroundColor: AppConstant.whiteColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
       // contentPadding: AppUtils.edgeInsetsAll(allPadding: 0),
       // insetPadding:
       // AppUtils.edgeInsetsOnly(top: 0, bottom: 0, right: 0, left: 0),

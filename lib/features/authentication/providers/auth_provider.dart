@@ -250,8 +250,7 @@ class AuthenticationProvider extends ChangeNotifier {
     PreferenceHelper.setBool(PreferenceHelper.IS_LOGIN, true);
     PreferenceHelper.setString(
         PreferenceHelper.USER_ID, loginModel?.data?.appUserId ?? '');
-    PreferenceHelper.setString(
-        PreferenceHelper.USER_NAME, loginModel?.data?.userName ?? '');
+    PreferenceHelper.setString(PreferenceHelper.USER_NAME, loginModel?.data?.userName ?? '');
     PreferenceHelper.setInt(
         PreferenceHelper.COUNTRY_CODE, loginModel?.data?.countryCode ?? 0);
     PreferenceHelper.setString(

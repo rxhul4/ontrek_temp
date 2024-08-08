@@ -184,7 +184,7 @@ class DayEndRequestProvider extends ChangeNotifier{
 
 
   Future<ApproveRequestModel?> apiCallApproveRequest(
-      {String? userId, String? orgId,String? sessionId,String? sessionEndDateTime}) async {
+      {String? userId, String? orgId,String? sessionId,String? sessionEndDateTime,required Function()  onSuccess}) async {
     var organizationId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
     _isAdding = true;
 
@@ -202,7 +202,8 @@ class DayEndRequestProvider extends ChangeNotifier{
       approveRequestModel = ApproveRequestModel.fromJson(json.decode(response));
       print('response ${approveRequestModel?.toJson()}');
       if (approveRequestModel?.isError == false && approveRequestModel?.isValidationFailed == false) {
-        await apiCallGetDayEndRequestList();
+        // await apiCallGetDayEndRequestList();
+        onSuccess();
       } else {
         if (approveRequestModel?.isValidationFailed == true) {
           AppUtils.showDialogBoxWithOneButton(

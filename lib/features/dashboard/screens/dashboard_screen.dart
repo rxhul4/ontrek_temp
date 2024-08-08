@@ -123,6 +123,13 @@ class DashBoardState extends State<DashBoard> {
   }
 
   @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    dashBoardProvider.selectedIndex = 0;
+  }
+
+  @override
   Widget build(BuildContext context) {
     dashBoardProvider = Provider.of<DashBoardProvider>(context);
     return Scaffold(

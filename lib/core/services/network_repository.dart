@@ -16,25 +16,31 @@ import 'package:ontrek/main.dart';
 
 AndroidDeviceInfo? myDeviceInfo;
 
-String? userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
-Map<String, String> iosHeader = {
-  'Content-Type': 'application/json',
-  'Accept': 'application/json',
-  'current-User': userName ?? "",
-  'time-zone': DateTime.now().timeZoneOffset.inMinutes.toString(),
-  'app-version': AppConstant.appVersionIos,
-  'app-os': "Ios"
-};
-Map<String, String> androidHeader = {
-  'Content-Type': 'application/json',
-  'Accept': 'application/json',
-  'current-User': userName ?? "",
-  'time-zone': DateTime.now().timeZoneOffset.inMinutes.toString(),
-  'app-version': AppConstant.appVersionAndroid,
-  'app-os': "android"
-};
+
+Future<String?> getUserName() async {
+  return await PreferenceHelper.getString(PreferenceHelper.USER_NAME);
+}
 
 Future callPostMethod(String url, Map<String, dynamic> params) async {
+
+  String? userName = await getUserName();
+  Map<String, String> iosHeader = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'current-User': userName ?? "",
+    'time-zone': DateTime.now().timeZoneOffset.inMinutes.toString(),
+    'app-version': AppConstant.appVersionIos,
+    'app-os': "Ios"
+  };
+  Map<String, String> androidHeader = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'current-User':  userName ?? "",
+    'time-zone': DateTime.now().timeZoneOffset.inMinutes.toString(),
+    'app-version': AppConstant.appVersionAndroid,
+    'app-os': "android"
+  };
+
 //   if (Platform.isAndroid) {
 //     bool developerMode = await FlutterJailbreakDetection.developerMode;
 //     if (developerMode) {
@@ -102,6 +108,19 @@ Future callPostMethod(String url, Map<String, dynamic> params) async {
 }
 
 Future callPostMethodForDevmode(String url, Map<String, dynamic> params) async {
+
+  String? userName = await getUserName();
+  Map<String, String> androidHeader = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'current-User':  userName ?? "",
+    'time-zone': DateTime.now().timeZoneOffset.inMinutes.toString(),
+    'app-version': AppConstant.appVersionAndroid,
+    'app-os': "android"
+  };
+
+
+
   if (kDebugMode) {
     print("baseUrl--$url");
     print("params--${jsonEncode(params)}");

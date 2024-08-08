@@ -362,6 +362,7 @@ class AttendanceProvider extends ChangeNotifier {
   EventUpdateProcess(LastActivityData? lastActivityData) async {
     await SetUIButtons(lastActivityData);
     await SetPrefHelpeAndServiceManageEvents(lastActivityData);
+
   }
 
   SetUIButtons(LastActivityData? lastActivityData) async {
@@ -379,7 +380,7 @@ class AttendanceProvider extends ChangeNotifier {
     DateTime today = DateTime.now();
     DateTime todayWithoutTime = DateTime(today.year, today.month, today.day);
 
-    if (lastActivityData?.isSessionActive == false ||
+    if (lastActivityData.isSessionActive == false ||
         sessionStartDate.isBefore(todayWithoutTime)) {
       isDayStart.value = false;
       return;
@@ -469,7 +470,9 @@ class AttendanceProvider extends ChangeNotifier {
 
       if (liveLocationTracking == true) {
         if (Platform.isAndroid) {
+
           await service.startService();
+          PreferenceHelper.setBool("isRunning", true);
         } else {
           PreferenceHelper.setString(
               PreferenceHelper.WAITING_START_TIME,

@@ -1,9 +1,11 @@
 import 'package:intl/intl.dart';
 import 'package:ontrek/core/background_service_model/activity_model.dart';
+import 'package:ontrek/core/background_service_model/app_off_time_model.dart';
 import 'package:ontrek/core/background_service_model/offline_route_model.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:uuid/uuid.dart';
 
 class DatabaseService {
     // Database instance
@@ -30,6 +32,14 @@ class DatabaseService {
     ''');
 
     await db.execute('''
+      CREATE TABLE App_Off_Time (
+        pkId TEXT PRIMARY KEY,
+        startTime TEXT,
+        stopTime TEXT
+      );
+    ''');
+
+    await db.execute('''
       CREATE TABLE Activity (
         PkId INTEGER PRIMARY KEY,
         SessionId TEXT NOT NULL,
@@ -44,6 +54,74 @@ class DatabaseService {
       );
     ''');
   }
+
+
+
+  Future<void> insertOrUpdateAppOffTime(Database db, AppOffTime newAppOffTime) async {
+    final uuid = Uuid();
+    final newGuid = uuid.v4();
+    newAppOffTime.pkId = newGuid;
+
+    final latestAppOffTime = await getLatestAppOffTime(db);
+
+    if (latestAppOffTime != null) {
+      final previousEndTime = DateTime.parse(latestAppOffTime.stopTime);
+      final newStartTime = DateTime.parse(newAppOffTime.startTime);
+
+      final difference = newStartTime.difference(previousEndTime);
+
+      if (difference.inMinutes > 2) {
+        // Insert a new row with the new GUID
+        await db.insert(
+          'App_Off_Time',
+          newAppOffTime.toMap(),
+        );
+      } else {
+        // Update the existing row
+        await db.update(
+          'App_Off_Time',
+          {
+            'stopTime': newAppOffTime.stopTime,
+          },
+          where: 'pkId = ?',
+          whereArgs: [latestAppOffTime.pkId],
+        );
+      }
+    } else {
+      // Insert the first row if there is no previous entry, with the new GUID
+      await db.insert(
+        'App_Off_Time',
+        newAppOffTime.toMap(),
+      );
+    }
+  }
+
+
+
+  Future<AppOffTime?> getLatestAppOffTime(Database db) async {
+    final List<Map<String, dynamic>> maps = await db.query(
+      'App_Off_Time',
+      orderBy: 'PkId DESC',
+      limit: 1,
+    );
+
+    if (maps.isNotEmpty) {
+      return AppOffTime.fromMap(maps.first);
+    } else {
+      return null;
+    }
+  }
+
+  Future<List<AppOffTime>> getAllAppOffTime(Database db, ) async {
+    //final Database db = await initializeOnTrekDB();
+
+    final List<Map<String, dynamic>> maps = await db.query('App_Off_Time');
+
+    return maps.map((json) => AppOffTime.fromMap(json)).toList();
+  }
+
+
+
 
   Future<int> insertRoute(Database db, OfflineRouteModel route) async {
     //final Database db = await initializeOnTrekDB();
@@ -232,6 +310,10 @@ class DatabaseService {
   Future<int> deleteAllRoutes(Database db) async {
     //final Database db = await initializeOnTrekDB();
     return await db.delete('offline_routes');
+  }
+  Future<int> deleteAppOfTime(Database db) async {
+    //final Database db = await initializeOnTrekDB();
+    return await db.delete('App_Off_Time');
   }
 
   Future<int> deleteAllActivities(Database db) async {

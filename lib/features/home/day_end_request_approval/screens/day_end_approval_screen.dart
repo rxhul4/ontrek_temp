@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:interval_time_picker/interval_time_picker.dart';
 import 'package:interval_time_picker/models/visible_step.dart';
+import 'package:intl/intl.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/home/day_end_request_approval/model/day_end_approval_model.dart';
 import 'package:ontrek/features/home/day_end_request_approval/provider/day_end_request_provider.dart';
+import 'package:ontrek/features/home/expanse/screen/add_expense_screen.dart';
 import 'package:provider/provider.dart';
 
 class DayEndApprovalScreen extends StatefulWidget {
@@ -97,6 +99,8 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
     dayEndRequestProvider.isApproved = null;
     dayEndRequestProvider.employeeDayEndSelectedDate = null;
     dayEndRequestProvider.myDayEndSelectedDate = null;
+    dayEndRequestProvider.dayEndTimeController.clear();
+    dayEndRequestProvider.approveReasonController.clear();
     super.dispose();
   }
 
@@ -157,7 +161,9 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
                     setState(() {
                       selectedIndex = value;
                     });
-                    selectedIndex == 0 ?  myDayEndRequestController.refresh() : employeeDayEndRequestController.refresh();
+                    selectedIndex == 0
+                        ? myDayEndRequestController.refresh()
+                        : employeeDayEndRequestController.refresh();
                   },
                   physics: const NeverScrollableScrollPhysics(),
                   isScrollable: false,
@@ -196,8 +202,6 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
     );
   }
 
-
-
   myDayEndRequests() {
     return PagedListView<int, ListItem>(
       pagingController: myDayEndRequestController,
@@ -234,9 +238,9 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
           return AppUtils.commonContainer(
             width: double.infinity,
             margin:
-            const EdgeInsets.only(left: 10, right: 10, top: 20, bottom: 0),
+                const EdgeInsets.only(left: 10, right: 10, top: 20, bottom: 0),
             padding:
-            const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 10),
+                const EdgeInsets.only(left: 15, right: 15, top: 20, bottom: 10),
             decoration: BoxDecoration(
                 color: AppConstant.whiteColor,
                 borderRadius: AppUtils.borderRadiusAll(raduis: 10),
@@ -260,7 +264,6 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
                         crossAxisAlignment: CrossAxisAlignment.center,
                         // mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -268,7 +271,7 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
                                 text: item.requestedBy ?? "",
                                 fontSize: 14,
                                 textColor:
-                                AppConstant.blackColor.withOpacity(0.9),
+                                    AppConstant.blackColor.withOpacity(0.9),
                                 fontWeight: FontWeight.w500,
                               ),
                               AppUtils.commonTextWidget(
@@ -278,7 +281,7 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
                                 ),
                                 fontSize: 10,
                                 textColor:
-                                AppConstant.blackColor.withOpacity(0.9),
+                                    AppConstant.blackColor.withOpacity(0.9),
                                 fontWeight: FontWeight.w500,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -313,8 +316,7 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
                 AppUtils.commonTextWidget(
                     text: "Comment",
                     fontSize: 14,
-                    textColor:
-                    AppConstant.blackColor.withOpacity(0.9),
+                    textColor: AppConstant.blackColor.withOpacity(0.9),
                     fontWeight: FontWeight.w500),
                 AppUtils.commonSizedBox(height: 5),
                 AppUtils.commonTextWidget(
@@ -391,7 +393,6 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
                             crossAxisAlignment: CrossAxisAlignment.center,
                             // mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -399,7 +400,7 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
                                     text: item.requestedBy ?? "",
                                     fontSize: 14,
                                     textColor:
-                                    AppConstant.blackColor.withOpacity(0.9),
+                                        AppConstant.blackColor.withOpacity(0.9),
                                     fontWeight: FontWeight.w500,
                                   ),
                                   AppUtils.commonTextWidget(
@@ -409,7 +410,7 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
                                     ),
                                     fontSize: 10,
                                     textColor:
-                                    AppConstant.blackColor.withOpacity(0.9),
+                                        AppConstant.blackColor.withOpacity(0.9),
                                     fontWeight: FontWeight.w500,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -444,8 +445,7 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
                     AppUtils.commonTextWidget(
                         text: "Comment",
                         fontSize: 14,
-                        textColor:
-                        AppConstant.blackColor.withOpacity(0.9),
+                        textColor: AppConstant.blackColor.withOpacity(0.9),
                         fontWeight: FontWeight.w500),
                     AppUtils.commonSizedBox(height: 5),
                     AppUtils.commonTextWidget(
@@ -454,7 +454,7 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
                         textColor: AppConstant.blackColor.withOpacity(0.9),
                         fontWeight: FontWeight.w400),
                     AppUtils.commonSizedBox(height: 10),
-                    if(item.isApproved == false)
+                    if (item.isApproved == false)
                       Column(
                         children: [
                           Divider(
@@ -463,18 +463,34 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
                           // AppUtils.commonSizedBox(height: 10),
                           InkWell(
                             onTap: () {
-                              AppUtils.showNotesForm(context: context, onSave: () async{
-                                await dayEndRequestProvider.apiCallApproveRequest(
-                                  userId: item.userId,
-                                  sessionId: item.sessionId,
-                                  sessionEndDateTime: item.requestedDate,
-
-                                );
-
-                              }, controller: dayEndRequestProvider.approveReasonController,title: "Day End",textFieldText: "Enter Approval Comment");
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  dayEndRequestProvider
+                                          .dayEndTimeController.text =
+                                      AppUtils.getDate(
+                                          date: item.attendanceDate ?? "",
+                                          format: "hh:mm a");
+                                  return showAmountAndNotesForm(
+                                    item: item,
+                                    onSave: ()async {
+                                      await dayEndRequestProvider
+                                                .apiCallApproveRequest(
+                                              userId: item.userId,
+                                              sessionId: item.sessionId,
+                                              sessionEndDateTime: endDateTime,
+                                        onSuccess: () {
+                                          selectedIndex == 0 ? myDayEndRequestController.refresh() : employeeDayEndRequestController.refresh();
+                                        },
+                                            );
+                                    },
+                                  );
+                                },
+                              );
                             },
                             child: AppUtils.commonContainer(
-                              padding: AppUtils.edgeInsetsOnly(top: 5, bottom: 15),
+                              padding:
+                                  AppUtils.edgeInsetsOnly(top: 5, bottom: 15),
                               color: Colors.white,
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -490,159 +506,158 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
                           )
                         ],
                       )
-
                   ],
                 ),
               );
             }));
   }
 
+  Widget showAmountAndNotesForm({required Function() onSave, ListItem? item}) {
+    return AlertDialog(
+      backgroundColor: AppConstant.whiteColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+      // contentPadding: AppUtils.edgeInsetsAll(allPadding: 0),
+      // insetPadding:
+      // AppUtils.edgeInsetsOnly(top: 0, bottom: 0, right: 0, left: 0),
+      titlePadding: AppUtils.edgeInsetsOnly(top: 30, bottom: 10),
+      title: AppUtils.commonTextWidget(
+          text: "Day End Approval",
+          textColor: AppConstant.appPrimaryColor,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+          textAlign: TextAlign.center),
+
+      content: AppUtils.commonContainer(
+          width: MediaQuery.of(context).size.width - 30,
+          height: MediaQuery.of(context).size.height / 3.8,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              AppUtils.buildCommonTextField(
+                  readOnly: true,
+                  showCursor: false,
+                  onTap: () {
+                    _showTimePicker(
+                        context: context,
+                        selectedTime: TimeOfDay.now(),
+                        item: item);
+                  },
+                  // maxLine: 1,
+                  text: "Enter Approval Time",
+                  textInputType: TextInputType.number,
+                  controller: dayEndRequestProvider.dayEndTimeController),
+              AppUtils.commonSizedBox(height: 10),
+              AppUtils.buildCommonTextField(
+                  readOnly: false,
+                  maxLine: 3,
+                  maxLength: 200,
+                  text: "Enter Approval Notes",
+                  textInputType: TextInputType.text,
+                  controller: dayEndRequestProvider.approveReasonController)
+            ],
+          )),
+      actionsPadding: AppUtils.edgeInsetsOnly(top: 0, bottom: 10, right: 20),
+      actions: [
+        TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: AppUtils.commonTextWidget(
+              text: "Cancel",
+              fontWeight: FontWeight.w500,
+              textColor: Colors.red,
+              fontSize: 14,
+            )),
+        TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              onSave();
+            },
+            child: AppUtils.commonTextWidget(
+              text: "Save",
+              fontWeight: FontWeight.w500,
+              textColor: Colors.green,
+              fontSize: 14,
+            ))
+      ],
+    );
+  }
+  String dateFormatInto24Hour = "";
+  String? endDateTime;
 
 
-  //
-  // Widget showAmountAndNotesForm({required Function onSave}) {
-  //   return AlertDialog(
-  //     backgroundColor: AppConstant.whiteColor,
-  //     // contentPadding: AppUtils.edgeInsetsAll(allPadding: 0),
-  //     // insetPadding:
-  //     // AppUtils.edgeInsetsOnly(top: 0, bottom: 0, right: 0, left: 0),
-  //     titlePadding: AppUtils.edgeInsetsOnly(top: 30, bottom: 10),
-  //     title: AppUtils.commonTextWidget(
-  //         text: "Day End Approval",
-  //         textColor: AppConstant.appPrimaryColor,
-  //         fontWeight: FontWeight.w500,
-  //         fontSize: 14,
-  //         textAlign: TextAlign.center),
-  //
-  //     content: AppUtils.commonContainer(
-  //         width: MediaQuery.of(context).size.width - 30,
-  //         height: MediaQuery.of(context).size.height / 5,
-  //         child: Column(
-  //           mainAxisAlignment: MainAxisAlignment.center,
-  //           crossAxisAlignment: CrossAxisAlignment.center,
-  //           children: [
-  //             AppUtils.buildCommonTextField(
-  //                 readOnly: true,
-  //                 showCursor: false,
-  //                 onTap: () {
-  //
-  //                 },
-  //                 // maxLine: 1,
-  //                 text: "Enter Approval Amount",
-  //                 textInputType: TextInputType.number,
-  //                 controller:  dayEndRequestProvider.dayEndTimeController
-  //             ),
-  //             AppUtils.commonSizedBox(height: 10),
-  //             AppUtils.buildCommonTextField(
-  //                 readOnly: false,
-  //                 maxLine: 1,
-  //                 text: "Enter Approval Notes",
-  //                 textInputType: TextInputType.text,
-  //                 controller: dayEndRequestProvider.approveReasonController)
-  //           ],
-  //         )),
-  //     actionsPadding: AppUtils.edgeInsetsOnly(top: 0, bottom: 10, right: 20),
-  //     actions: [
-  //       TextButton(
-  //           onPressed: () {
-  //             Navigator.of(context).pop();
-  //           },
-  //           child: AppUtils.commonTextWidget(
-  //             text: "Cancel",
-  //             fontWeight: FontWeight.w500,
-  //             textColor: Colors.red,
-  //             fontSize: 14,
-  //           )),
-  //       TextButton(
-  //           onPressed: () async {
-  //             Navigator.of(context).pop();
-  //            onSave();
-  //           },
-  //           child: AppUtils.commonTextWidget(
-  //             text: "Save",
-  //             fontWeight: FontWeight.w500,
-  //             textColor: Colors.green,
-  //             fontSize: 14,
-  //           ))
-  //     ],
-  //   );
-  // }
+  void _showTimePicker({
+    TimeOfDay? selectedTime,
+    required BuildContext context,
+    required ListItem? item,
+  }) async {
+    TimeOfDay _time = TimeOfDay(hour: 0, minute: 0);
+    VisibleStep _visibleStep = VisibleStep.fifths;
 
-  // void _showTimePicker({
-  //   TimeOfDay? selectedTime,
-  //   required BuildContext context,
-  // }) async {
-  //   TimeOfDay _time = TimeOfDay(hour: 0, minute: 0);
-  //   VisibleStep _visibleStep = VisibleStep.fifths;
-  //
-  //   final TimeOfDay? result = await showIntervalTimePicker(
-  //     context: context,
-  //     initialTime: selectedTime ?? _time,
-  //     visibleStep: _visibleStep,
-  //
-  //     builder: (BuildContext context, Widget? child) {
-  //       return MediaQuery(
-  //         data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
-  //         child: child ?? SizedBox(),
-  //       );
-  //     },
-  //   );
-  //
-  //   if (result != null) {
-  //     print("Result: $result");
-  //
-  //     String startTime = AppUtils.getDate(
-  //       date: widget.sessionStartDate ?? "",
-  //       format: "hh:mm a",
-  //     );
-  //
-  //     // Debug prints
-  //     print("sessionStartDate: ${widget.sessionStartDate}");
-  //     print("Start Time: $startTime");
-  //
-  //     String selectedTime12Hr = DateFormat('hh:mm a').format(
-  //       DateTime(2020, 1, 1, result.hour, result.minute),
-  //     );
-  //
-  //     print("Selected Time (12-hour): $selectedTime12Hr");
-  //
-  //     try {
-  //       DateTime parsedStartTime = DateFormat('hh:mm a').parse(startTime);
-  //       DateTime parsedSelectedTime = DateFormat('hh:mm a').parse(selectedTime12Hr);
-  //
-  //       if (parsedSelectedTime.isBefore(parsedStartTime)) {
-  //         ScaffoldMessenger.of(context).showSnackBar(
-  //           SnackBar(
-  //             content: Text("Please select a time later than Day start time."),
-  //             backgroundColor: Colors.red,
-  //           ),
-  //         );
-  //       } else if (parsedSelectedTime.isAfter(parsedStartTime)) {
-  //         String selectedTime24Hr = DateFormat('HH:mm:ss').format(
-  //           DateTime(2020, 1, 1, result.hour, result.minute),
-  //         );
-  //
-  //         print("Formatted Time (12-hour): $selectedTime12Hr");
-  //         print("Formatted Time (24-hour): $selectedTime24Hr");
-  //
-  //         attendanceProvider.timeController.text = selectedTime12Hr;
-  //
-  //         String formatedDate = AppUtils.getDate(
-  //           date: widget.sessionStartDate ?? "",
-  //           format: "yyyy-MM-dd",
-  //         );
-  //         print("Formatted Date: $formatedDate");
-  //
-  //         dateFormatInto24Hour = selectedTime24Hr;
-  //         endDateTime = formatedDate + "T" + dateFormatInto24Hour;
-  //
-  //         print("End DateTime: $endDateTime");
-  //       }
-  //     } catch (e) {
-  //       print("Error parsing dates: $e");
-  //     }
-  //   }
-  // }
+    final TimeOfDay? result = await showIntervalTimePicker(
+      context: context,
+      initialTime: selectedTime ?? _time,
+      visibleStep: _visibleStep,
+      builder: (BuildContext context, Widget? child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
+          child: child ?? SizedBox(),
+        );
+      },
+    );
+
+    if (result != null) {
+      print("Result: $result");
+
+      String startTime = AppUtils.getDate(
+        date: item?.attendanceDate ?? "",
+        format: "hh:mm a",
+      );
+
+      print("StartTime$startTime");
+
+      String selectedTime = DateFormat('hh:mm a').format(
+        DateTime(2020, 1, 1, result.hour, result.minute),
+      );
+
+      print("selectedTime$selectedTime");
+
+      DateTime parsedStartTime = DateFormat('hh:mm a').parse(startTime);
+      DateTime parsedSelectedTime = DateFormat('hh:mm a').parse(selectedTime);
+
+      if(parsedStartTime.isBefore(parsedSelectedTime)){
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Please select a time smaller than Day end approval time."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }else{
+        String selectedTime24Hr = DateFormat('HH:mm:ss').format(
+          DateTime(2020, 1, 1, result.hour, result.minute),
+        );
+
+        print("Formatted Time (12-hour): $selectedTime");
+        print("Formatted Time (24-hour): $selectedTime24Hr");
+
+
+
+        dayEndRequestProvider.dayEndTimeController.text = selectedTime;
+
+        String formatedDate = AppUtils.getDate(
+          date: item?.attendanceDate ?? "",
+          format: "yyyy-MM-dd",
+        );
+        print("Formatted Date: $formatedDate");
+
+        dateFormatInto24Hour = selectedTime24Hr;
+        endDateTime = formatedDate + "T" + dateFormatInto24Hour;
+
+        print("End DateTime: $endDateTime");
+      }
+    }
+  }
 
   Widget commonIconWidget(
       {Function()? onTap, IconData? iconData, Color? iconColor, double? size}) {
@@ -691,7 +706,8 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
         picked != dayEndRequestProvider.myDayEndSelectedDate) {
       setState(() {
         myDayEndSelectedDate = picked;
-        dayEndRequestProvider.myDayEndSelectedDate = myDayEndSelectedDate.toString();
+        dayEndRequestProvider.myDayEndSelectedDate =
+            myDayEndSelectedDate.toString();
       });
       myDayEndRequestController.refresh();
     }
@@ -733,9 +749,9 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
       setState(() {
         dayEndRequestProvider.employeeDayEndSelectedDate = picked.toString();
       });
-      dayEndRequestProvider.manageSelectedDate(dayEndRequestProvider.employeeDayEndSelectedDate);
+      dayEndRequestProvider
+          .manageSelectedDate(dayEndRequestProvider.employeeDayEndSelectedDate);
       employeeDayEndRequestController.refresh();
-
     }
   }
 
@@ -781,5 +797,4 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
         message = "Unknown option";
     }
   }
-
 }

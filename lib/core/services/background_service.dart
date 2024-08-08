@@ -9,6 +9,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:ontrek/core/background_service_model/activity_model.dart';
+import 'package:ontrek/core/background_service_model/app_off_time_model.dart';
+import 'package:ontrek/core/background_service_model/app_off_time_response_model.dart';
 import 'package:ontrek/core/background_service_model/bulk_activity_request_moodel.dart';
 import 'package:ontrek/core/background_service_model/bulk_activity_response_model.dart';
 import 'package:ontrek/core/background_service_model/create_route_history_model.dart';
@@ -36,6 +38,7 @@ LastActivityData? lastActivityData;
 List<Activity>? listOfAllActivity;
 
 String physicalActivity = "";
+String? serviceStartTime;
 
 double? prevLatitude = null;
 double? prevLongitude = null;
@@ -99,6 +102,8 @@ class BackgroundService {
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
   db = await dbServiece.initializeOnTrekDB();
+  serviceStartTime = AppUtils.getDate(
+      date: DateTime.now().toString(), format: AppConstant.dateFormat);
 
   if (db == null) {
     print("Database object not created;");
@@ -223,8 +228,7 @@ void onStart(ServiceInstance service) async {
               bool isLocationAlwaysOn = false;
               bool isBatteryOptimizationDisabled = false;
               NotificationService notificationService = NotificationService();
-              bool developerMode =
-                  await FlutterJailbreakDetection.developerMode;
+              bool developerMode = await FlutterJailbreakDetection.developerMode;
               var locationAlwaysStatus = await Permission.locationAlways.status;
               var ignoreBatteryOptimizationsStatus = await Permission.ignoreBatteryOptimizations.status;
               if (locationAlwaysStatus.isGranted) {
@@ -250,10 +254,21 @@ void onStart(ServiceInstance service) async {
                 );
               }
 
+              if (serviceStartTime != null) {
+                await dbServiece.insertOrUpdateAppOffTime(
+                    db,
+                    AppOffTime(
+                        startTime: serviceStartTime ?? "",
+                        stopTime: AppUtils.dateFormat(
+                            date: DateTime.now(),
+                            dateFormat: AppConstant.dateFormat),
+                    ));
+              }
+
               if (isInternetAvailable) {
                 await syncRouteHistory();
                 await syncSqlData();
-                sendLastStatus(developerMode, isLocationAlwaysOn,
+                await sendLastStatus(developerMode, isLocationAlwaysOn,
                     isBatteryOptimizationDisabled);
               }
 
@@ -270,32 +285,43 @@ void onStart(ServiceInstance service) async {
     );
   });
 }
-
 sendLastStatus(
     bool developerMode,
     /*bool isFakeLocation*/
     bool isLocationAlwaysOn,
-    bool? isBatteryOptimizationDisabled) {
+    bool? isBatteryOptimizationDisabled) async {
+  DatabaseService databaseService = DatabaseService();
+  AppOffTimeResponseModel? appOffTimeResponseModel;
+
+  List<AppOffTime> appOffTimeList = await databaseService.getAllAppOffTime(db);
+
+  List<Map<String, dynamic>> appOffTimeListData = appOffTimeList.map((offTime) => offTime.toMap()).toList();
+
   Map<String, dynamic> body = {
     "userId": lastActivityData?.fieldUserId,
+    "sessionId": lastActivityData?.sessionId,
     "isGpsOn": isGpsAvailable,
     "isDevModeOn": developerMode,
     "isFakeLocation": false,
     "isLocationAlwaysOn": isLocationAlwaysOn,
-    "isBatteryOptimizationDisabled": isBatteryOptimizationDisabled
+    "isBatteryOptimizationDisabled": isBatteryOptimizationDisabled,
+    "listFieldUserAppStatus": appOffTimeListData,
   };
 
   if (body != null) {
     String endPoint = ApiConstants.sendLastStatus;
     try {
       callPostMethodForDevmode(endPoint, body);
+
     } catch (e) {
       print("Error during sendLastStatus: $e");
     }
   }
 }
 
+
 dayEndProccess(ServiceInstance service) async {
+  PreferenceHelper.setBool("isRunning", false);
   final DatabaseService databaseService = DatabaseService();
   PreferenceHelper.remove(PreferenceHelper.WAITING_START_TIME);
   PreferenceHelper.remove(PreferenceHelper.LAST_LAT);
@@ -305,6 +331,7 @@ dayEndProccess(ServiceInstance service) async {
   PreferenceHelper.remove(PreferenceHelper.LAST_INTERNET_OFF_LONG);
   PreferenceHelper.remove(PreferenceHelper.LastActivity);
   await databaseService.deleteAllRoutes(db);
+  await databaseService.deleteAppOfTime(db);
   await databaseService.deleteAllActivities(db);
   service.stopSelf();
 }
@@ -497,6 +524,7 @@ registerEventsToListener(ServiceInstance service) {
       });
 
       service.on('dayStart').listen((event) async {
+        PreferenceHelper.setBool("isRunning", true);
         Position position = await Geolocator.getCurrentPosition(
             desiredAccuracy: LocationAccuracy.best);
         if (position.latitude != 0.0 && position.longitude != 0.0) {
@@ -545,9 +573,14 @@ registerEventsToListener(ServiceInstance service) {
 manualWaitingEndEvent() async {
   DatabaseService databaseService = DatabaseService();
   await databaseService.removeSyncedNotCompletedEvents(db);
-  PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
-  PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT, currentLatitude ?? (prevLatitude ?? 0));
-  PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, currentLongitude ?? (prevLongitude ?? 0));
+  PreferenceHelper.setString(
+      PreferenceHelper.WAITING_START_TIME,
+      AppUtils.getDate(
+          date: DateTime.now().toString(), format: AppConstant.dateFormat));
+  PreferenceHelper.setDouble(
+      PreferenceHelper.LAST_LAT, currentLatitude ?? (prevLatitude ?? 0));
+  PreferenceHelper.setDouble(
+      PreferenceHelper.LAST_LONG, currentLongitude ?? (prevLongitude ?? 0));
 }
 
 syncRouteHistory() async {
@@ -600,7 +633,8 @@ syncSqlData() async {
 
   try {
     DatabaseService databaseService = DatabaseService();
-    List<Activity>? listOfAllActivity = await databaseService.getAllSyncedActivity(db);
+    List<Activity>? listOfAllActivity =
+        await databaseService.getAllSyncedActivity(db);
     String currentSessionId = lastActivityData?.sessionId ?? "";
     String? userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
 

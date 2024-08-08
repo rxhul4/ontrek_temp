@@ -225,8 +225,7 @@ class ExpenseProvider extends ChangeNotifier {
       "orgId": organizationId,
       "userId": userId,
       "approvedRejectedBy": userName,
-      "approveRejectDate":
-          AppUtils.formatDateString(approvedRejectedOn ?? "", "yyyy-MM-dd"),
+      "approveRejectDate": AppUtils.formatDateString(approvedRejectedOn ?? "", "yyyy-MM-dd"),
       "isApproved": isApproved,
       "approvedAmount": approvedAmount,
       "approverNotes":  approvedNotes
@@ -270,6 +269,7 @@ class ExpenseProvider extends ChangeNotifier {
 
   Future<ExpenseCategoryModel?> apiCallExpenseCategory() async {
     var organizationId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
+
     _isFetching = true;
     notifyListeners();
     Map<String, dynamic> body = {
