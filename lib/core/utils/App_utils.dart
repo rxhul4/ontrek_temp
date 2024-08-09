@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:app_settings/app_settings.dart';
 import 'package:battery_indicator/battery_indicator.dart';
 import 'package:battery_plus/battery_plus.dart';
@@ -9,6 +11,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:intl/intl.dart';
+import 'package:ontrek/core/common_widgets/textfield_widget.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/image_path.dart';
 import 'package:ontrek/main.dart';
@@ -44,14 +47,19 @@ class AppUtils {
 
   static PreferredSizeWidget? commonAppBar(
       {required BuildContext context,
-      String? title,
-      Color? textColor,
-      bool? isBack,
-      bool? isBorder}) {
+        String? title,
+        Color? textColor,
+        bool? isBack,
+        bool? isBorder,
+        bool? isCenter,
+        bool? isActionWidgetAvailable,
+        List<Widget>? actions
+      }) {
     return AppBar(
       surfaceTintColor: AppConstant.transparentColor,
       backgroundColor: Colors.white,
       elevation: 0,
+      actions: isActionWidgetAvailable == true ? actions : [],
       leading: isBack == false
           ? AppUtils.commonSizedBox()
           : InkWell(
@@ -68,7 +76,7 @@ class AppUtils {
           textColor: textColor ?? AppConstant.blackColor.withOpacity(0.7),
           fontSize: 16,
           fontWeight: FontWeight.w500),
-      centerTitle: true,
+      centerTitle: isCenter ?? true,
       bottom: isBorder == true
           ? PreferredSize(
               preferredSize: Size.zero,
@@ -122,6 +130,45 @@ class AppUtils {
       ),
     );
   }
+
+
+
+  static Widget openImageDialog(
+      {required BuildContext context,
+        String? imagePath,
+        double? height,
+        double? width,
+        Widget? child
+      }) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Align(
+              alignment: Alignment.topRight,
+              child: IconButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: Icon(
+                    Icons.cancel_outlined,
+                    color: AppConstant.whiteColor,
+                  )),
+            ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(5),
+              child: child
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
 
   static Widget commonAssetImageWidget(
       {String? path,
@@ -250,6 +297,9 @@ class AppUtils {
     Color? iconColor,
     bool? isFromTimeLine,
     int? batteryLevel,
+    double? borderRadius,
+    bool? isFromOthers,
+    Function()? leadingOnTap,
   }) {
     return Container(
       // height: height * 0.09,
@@ -261,7 +311,7 @@ class AppUtils {
             color: Colors.grey.withOpacity(0.5),
           ),
         ),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(borderRadius ?? 30)),
         color: Colors.white,
       ),
       child: Padding(
@@ -273,34 +323,37 @@ class AppUtils {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center, // Align vertically
               children: [
-                Container(
-                  margin: EdgeInsets.only(right: 10),
-                  height: 50,
-                  width: 50,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: backgroundColor ?? Colors.grey.withOpacity(0.5),
-                    border: Border.all(
-                      color: borderColor ?? Colors.grey.withOpacity(0.7),
-                      width: 2,
+                GestureDetector(
+                  onTap: isFromTimeLine == true ? (){} : leadingOnTap,
+                  child: Container(
+                    margin: EdgeInsets.only(right: 10),
+                    height: 50,
+                    width: 50,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: backgroundColor ?? Colors.grey.withOpacity(0.5),
+                      border: Border.all(
+                        color: isFromTimeLine  == true ? borderColor ?? Colors.grey.withOpacity(0.7) : isFromOthers ==true ? borderColor ?? Colors.grey.withOpacity(0.7) : AppConstant.transparentColor,
+                        width: 2,
+                      ),
                     ),
-                  ),
-                  child: Center(
-                    child: isFromTimeLine == true
-                        ? AppUtils.commonCacheNetworkImage(
-                      imgUrl: leadingImage,
-                      height: 50,
-                      width: 50,
-                      size: 20,
-                      errorIcon: Icons.person,
-                    )
-                        : AppUtils.commonAssetImageWidget(
-                      path: leadingImage ?? "",
-                      boxFit: BoxFit.cover,
-                      iconColor:
-                      iconColor ?? AppConstant.appPrimaryColor,
-                      height: 25,
-                      width: 25,
+                    child: Center(
+                      child: isFromTimeLine == true
+                          ? AppUtils.commonCacheNetworkImage(
+                        imgUrl: leadingImage,
+                        height: 50,
+                        width: 50,
+                        size: 20,
+                        errorIcon: Icons.person,
+                      )
+                          : isFromOthers == true ? AppUtils.commonAssetImageWidget(
+                        path: leadingImage ?? "",
+                        boxFit: BoxFit.cover,
+                        iconColor:
+                        iconColor ?? AppConstant.appPrimaryColor,
+                        height: 25,
+                        width: 25,
+                      ) : Icon(Icons.arrow_back_ios_new,size: 24,color: AppConstant.appPrimaryColor,)
                     ),
                   ),
                 ),
@@ -547,6 +600,107 @@ class AppUtils {
   //     },
   //   );
   // }
+
+
+  static Widget showNotesForm(
+      {required BuildContext context, required Function() onSave,String? title,String? textFieldText,required TextEditingController controller}) {
+    return AlertDialog(
+      backgroundColor: AppConstant.whiteColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+      // contentPadding: AppUtils.edgeInsetsAll(allPadding: 0),
+      // insetPadding:
+      // AppUtils.edgeInsetsOnly(top: 0, bottom: 0, right: 0, left: 0),
+      titlePadding: AppUtils.edgeInsetsOnly(top: 30, bottom: 10),
+      title: AppUtils.commonTextWidget(
+          text: title ?? "",
+          textColor: AppConstant.appPrimaryColor,
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+          textAlign: TextAlign.center),
+
+      content: AppUtils.commonContainer(
+          width: MediaQuery.of(context).size.width - 30,
+          height: MediaQuery.of(context).size.height / 6,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              AppUtils.buildCommonTextField(
+                  readOnly: false,
+                  maxLine: 3,
+                  text: textFieldText,
+                  maxLength: 200,
+                  textInputType: TextInputType.text,
+                  controller: controller)
+            ],
+          )),
+      actionsPadding: AppUtils.edgeInsetsOnly(top: 0, bottom: 10, right: 20),
+      actions: [
+        TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: AppUtils.commonTextWidget(
+              text: "Cancel",
+              fontWeight: FontWeight.w500,
+              textColor: Colors.red,
+              fontSize: 14,
+            )),
+        TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              onSave();
+            },
+            child: AppUtils.commonTextWidget(
+              text: "Save",
+              fontWeight: FontWeight.w500,
+              textColor: Colors.green,
+              fontSize: 14,
+            ))
+      ],
+    );
+  }
+
+  static Widget buildCommonTextField({
+    String? text,
+    int? maxLine,
+    Function()? onTap,
+    TextEditingController? controller,
+    bool? showCursor,
+    TextInputType? textInputType,
+    Widget? suffixIcon,
+    bool? readOnly,
+    int? maxLength,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppUtils.commonTextWidget(
+          text: text ?? "",
+          textColor: AppConstant.blackColor.withOpacity(0.6),
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+        ),
+        const SizedBox(height: 5),
+        AppTextField(
+          readOnly: readOnly,
+          suffixIcon: suffixIcon,
+          controller: controller,
+          hintText: text ?? "",
+          maxLines: maxLine ?? 1,
+          maxLength: maxLength,
+          cursorColor: AppConstant.appPrimaryColor.withOpacity(0.9),
+          allBorderRadius: 3,
+          fillColor: AppConstant.whiteColor,
+          hintTextColor: AppConstant.greyColor.withOpacity(0.3),
+          hintFontSize: 12,
+          textInputType: textInputType,
+          onTap: onTap,
+          showCursor: showCursor,
+        ),
+      ],
+    );
+  }
 
 
 
@@ -798,6 +952,21 @@ class AppUtils {
     }
     return parseDate;
   }
+  static String? getDateForDayEnd({required String date, required String format}) {
+    print("uuuuuuuuu $date");
+    String parseDate = '';
+    if (date != '') {
+      try {
+        parseDate = DateFormat(format).format(DateTime.parse(date));
+      } catch (e) {
+        return parseDate;
+      }
+    }else{
+      return null;
+    }
+    return parseDate;
+  }
+
 
   static String getDateTimeNow(){
     return AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat);
@@ -827,6 +996,39 @@ class AppUtils {
     return formattedDuration;
   }
 
+
+  static String extractDay(String serverDate, String inputFormat) {
+    try {
+      // Parse the date string using the custom format
+      DateTime parsedDate = DateFormat(inputFormat).parse(serverDate);
+
+      // Format the date to extract the day
+      String day = DateFormat('d').format(parsedDate);
+
+      return day;
+    } catch (e) {
+      // Handle any parsing or formatting errors
+      print("Error formatting date: $e");
+      return "";
+    }
+  }
+
+  static String formatDateString(String serverDate,String? format) {
+    try {
+      // Parse the date string
+      DateTime parsedDate = DateTime.parse(serverDate);
+
+      // Format the date
+      String formattedDate = DateFormat(format).format(parsedDate);
+
+      return formattedDate;
+    } catch (e) {
+      // Handle any parsing or formatting errors
+      print("Error formatting date: $e");
+      return "";
+    }
+  }
+
   static showDialogBoxWithTwoButton(
       {BuildContext? context,
       String? text,
@@ -839,13 +1041,18 @@ class AppUtils {
       context: context ?? navigatorKey.currentState!.context,
       builder: (context) {
         return CupertinoAlertDialog(
-          title: AppUtils.commonTextWidget(
-              text: titleText ?? "",
-              textColor: AppConstant.blackColor,
-              fontSize: 14,
-              textAlign: TextAlign.center,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.5),
+          insetAnimationDuration: Duration(milliseconds: 400),
+          insetAnimationCurve: Curves.bounceIn,
+          title: Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: AppUtils.commonTextWidget(
+                text: titleText ?? "",
+                textColor: AppConstant.blackColor,
+                fontSize: 14,
+                textAlign: TextAlign.center,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5),
+          ),
           actions: [
             CupertinoDialogAction(
               child: AppUtils.commonTextWidget(

@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ontrek/core/services/api_constants.dart';
 import 'package:ontrek/core/services/network_repository.dart';
+import 'package:ontrek/core/services/push_notification_service.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
@@ -182,6 +183,7 @@ class AuthenticationProvider extends ChangeNotifier {
             "deviceModel": iosInfo.model,
             "deviceOs ": iosInfo.systemName,
             "osVersion ": Platform.operatingSystemVersion,
+            "firebaseDeviceKey" :fcmToken
           }
         };
       } else {
@@ -194,7 +196,8 @@ class AuthenticationProvider extends ChangeNotifier {
             "deviceModel": androidInfo.model,
             "deviceOs ": androidInfo.version.release,
             "osVersion ": Platform.operatingSystemVersion,
-            "appVersion": AppConstant.appVersionAndroid
+            "appVersion": AppConstant.appVersionAndroid,
+            "firebaseDeviceKey" :fcmToken
           }
         };
       }
@@ -247,8 +250,7 @@ class AuthenticationProvider extends ChangeNotifier {
     PreferenceHelper.setBool(PreferenceHelper.IS_LOGIN, true);
     PreferenceHelper.setString(
         PreferenceHelper.USER_ID, loginModel?.data?.appUserId ?? '');
-    PreferenceHelper.setString(
-        PreferenceHelper.USER_NAME, loginModel?.data?.userName ?? '');
+    PreferenceHelper.setString(PreferenceHelper.USER_NAME, loginModel?.data?.userName ?? '');
     PreferenceHelper.setInt(
         PreferenceHelper.COUNTRY_CODE, loginModel?.data?.countryCode ?? 0);
     PreferenceHelper.setString(

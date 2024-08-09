@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:ontrek/core/common_widgets/custom_upgrader_message.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
@@ -12,8 +13,6 @@ import 'package:ontrek/features/task_list/model/task_model.dart';
 import 'package:ontrek/features/task_list/provider/task_provider.dart';
 import 'package:ontrek/features/view_task/screen/view_task_screen.dart';
 import 'package:provider/provider.dart';
-import 'package:sliding_up_panel/sliding_up_panel.dart';
-import 'package:upgrader/upgrader.dart';
 
 class TaskListScreen extends StatefulWidget {
   ScrollController? scrollController;
@@ -38,12 +37,11 @@ class _TaskListScreenState extends State<TaskListScreen>
     // TODO: implement initState
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
       taskProvider = Provider.of<TaskProvider>(context, listen: false);
-      taskProvider.panelController
-          .animatePanelToSnapPoint(duration: const Duration(milliseconds: 0));
       taskProvider.selectedDate = DateTime.now();
       await callCallGetTaskByIdListApi(taskProvider: taskProvider);
-      userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
+
     });
     tabController = TabController(length: 2, vsync: this);
   }
@@ -58,19 +56,40 @@ class _TaskListScreenState extends State<TaskListScreen>
     taskProvider = Provider.of<TaskProvider>(context);
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
-    return AppUtils.commonSlidePanel(
-      panelSnapping: true,
-      maxHeight: height,
-      minHeight: height * 0.083,
-      controller: taskProvider.panelController,
-      isDraggable: true,
-      snapPoint: 0.35,
-      panelBuilder: (p0) {
-        return Column(
+    return Scaffold(
+      backgroundColor: AppConstant.whiteColor,
+
+      // appBar: AppUtils.commonAppBar(
+      //   context: context,
+      //   title: "Task",
+      //   isBack: true,
+      //   isBorder: false,
+      //   isCenter: true,
+      //   isActionWidgetAvailable: true,
+      //   actions: [
+      //
+      //     commonIconWidget(
+      //             iconData: Icons.repeat,
+      //             iconColor: AppConstant.appPrimaryColor,
+      //             onTap: () {
+      //               callCallGetTaskByIdListApi(taskProvider: taskProvider);
+      //             },
+      //           ),
+      //     AppUtils.commonSizedBox(width: 15)
+      //
+      //   ]
+      // ),
+      body: SafeArea(
+        child: Column(
           children: [
+
             AppUtils.buildHeader(
                 height: height,
                 width: width,
+                borderRadius: 0,
+                leadingOnTap: () {
+                  Navigator.pop(context);
+                },
                 actionWidget: [
                   commonIconWidget(
                     iconData: Icons.calendar_month_rounded,
@@ -88,6 +107,7 @@ class _TaskListScreenState extends State<TaskListScreen>
                 subTitle: "Select a Task",
                 backgroundColor: AppConstant.whiteColor,
                 leadingImage: taskIconPath),
+
             AppUtils.commonContainer(
               height: 30,
               margin: EdgeInsets.only(top: 20, left: 30, right: 30, bottom: 20),
@@ -133,16 +153,17 @@ class _TaskListScreenState extends State<TaskListScreen>
             ),
             Expanded(
                 child: TabBarView(
-              physics: NeverScrollableScrollPhysics(),
-              controller: tabController,
-              children: [
-                assignedToMeTabBar(height, width, p0),
-                allTaskTabBar(height, width, p0)
-              ],
-            ))
+                  physics: NeverScrollableScrollPhysics(),
+                  controller: tabController,
+                  children: [
+                    assignedToMeTabBar(height, width),
+                    allTaskTabBar(height, width)
+                  ],
+                ))
+
           ],
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -160,160 +181,159 @@ class _TaskListScreenState extends State<TaskListScreen>
   }
 
   //assigned to me
-  Widget assignedToMeTabBar(height, width, p0) {
+  Widget assignedToMeTabBar(height, width) {
     return taskProvider.isFetching
         ? Column(
+      mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 80),
-                child: Align(
-                    alignment: Alignment.topCenter,
-                    child: AppUtils.loaderWidget()),
-              ),
+              Align(
+                  alignment: Alignment.center,
+                  child: AppUtils.loaderWidget()),
             ],
           )
-        : (taskProvider.getAllTaskModel?.data?.length ?? 0) <= 0 ||
-                    taskProvider.getAllTaskModel?.data == null
-                ? Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      AppUtils.commonSizedBox(height: 15),
-                      AppUtils.commonSizedBox(
-                        height: 100,
-                        child: const Image(
-                          image: AssetImage(noDataFound),
-                        ),
-                      ),
-                      AppUtils.commonTextWidget(
-                        text: 'No task assigned!',
-                        textColor: AppConstant.blackColor.withOpacity(0.6),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 0,
-                      ),
-                      AppUtils.commonTextWidget(
-                          letterSpacing: 0,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400,
-                          text: 'New task will be notified',
-                          textColor: AppConstant.blackColor.withOpacity(0.5)),
-                    ],
-                  )
-                : SingleChildScrollView(
-                    controller: p0,
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                          left: 10, right: 10, bottom: 100),
-                      child: taskListWidget(taskProvider.getAllTaskModel?.data
-                              ?.where((element) =>
-                                  element.assignedTo == userId &&
-                                  element.taskStatus != "Complete")
-                              .toList() ??
-                          []),
+        : (taskProvider.getAllTaskModel?.data?.where((element) => element.assignedTo == userId && element.taskStatus != "Complete",).toList().length ?? 0) <= 0 ||
+                taskProvider.getAllTaskModel?.data?.where((element) => element.assignedTo == userId && element.taskStatus != "Complete",).toList() == null
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // AppUtils.commonSizedBox(height: 15),
+                  AppUtils.commonSizedBox(
+                    height: 100,
+                    child: const Image(
+                      image: AssetImage(noDataFound),
                     ),
-                  );
+                  ),
+                  AppUtils.commonTextWidget(
+                    text: 'No task assigned!',
+                    textColor: AppConstant.blackColor.withOpacity(0.6),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0,
+                  ),
+                  AppUtils.commonTextWidget(
+                      letterSpacing: 0,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      text: 'New task will be notified',
+                      textColor: AppConstant.blackColor.withOpacity(0.5)),
+                ],
+              )
+            : SingleChildScrollView(
+                // controller: p0,
+      physics: BouncingScrollPhysics(),
+                child: Padding(
+                  padding:
+                  const EdgeInsets.only(left: 15, right: 15, bottom: 100 ,top: 0),
+                  child: taskListWidget(taskProvider.getAllTaskModel?.data
+                          ?.where((element) =>
+                              element.assignedTo == userId &&
+                              element.taskStatus != "Complete")
+                          .toList() ??
+                      []),
+                ),
+              );
   }
 
   //All Task
-  Widget allTaskTabBar(height, width, p0) {
+  Widget allTaskTabBar(
+    height,
+    width,
+  ) {
     return taskProvider.isFetching
         ? Column(
+      mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 80),
-                child: AppUtils.loaderWidget(),
-              ),
+              AppUtils.loaderWidget(),
             ],
           )
         : taskProvider.getAllTaskModel?.data?.length == null ||
-                    (taskProvider.getAllTaskModel?.data?.length ?? 0) <= 0
-                ? Column(
-                    children: [
-                      AppUtils.commonSizedBox(height: 15),
-                      AppUtils.commonSizedBox(
-                        height: 100,
-                        child: const Image(
-                          image: AssetImage(noDataFound),
-                        ),
-                      ),
-                      AppUtils.commonTextWidget(
-                        text: 'No task assigned!',
-                        textColor: AppConstant.blackColor.withOpacity(0.6),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 0,
-                      ),
-                      AppUtils.commonTextWidget(
-                          letterSpacing: 0,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400,
-                          text: 'New task will be notified',
-                          textColor: AppConstant.blackColor.withOpacity(0.5)),
-                    ],
-                  )
-                : SingleChildScrollView(
-                    controller: p0,
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                          left: 10, right: 10, bottom: 100),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          AppUtils.commonTextWidget(
-                              text: "Active Task",
-                              fontSize: 12,
-                              textColor:
-                                  AppConstant.blackColor.withOpacity(0.9),
-                              fontWeight: FontWeight.w500),
-                          taskListWidget(taskProvider.getAllTaskModel?.data
-                                  ?.where((element) =>
-                                      element.taskStatus != "Overdue")
-                                  .toList() ??
-                              []),
-                          AppUtils.commonSizedBox(height: 15),
-                          AppUtils.commonTextWidget(
-                              text: "Overdue Task",
-                              fontSize: 12,
-                              textColor:
-                                  AppConstant.blackColor.withOpacity(0.9),
-                              fontWeight: FontWeight.w500),
-                          taskListWidget(taskProvider.getAllTaskModel?.data
-                                  ?.where((element) =>
-                                      element.taskStatus == "Overdue")
-                                  .toList() ??
-                              []),
-                        ],
-                      ),
+                (taskProvider.getAllTaskModel?.data?.length ?? 0) <= 0
+            ? Column(
+                children: [
+                  AppUtils.commonSizedBox(height: 15),
+                  AppUtils.commonSizedBox(
+                    height: 100,
+                    child: const Image(
+                      image: AssetImage(noDataFound),
                     ),
-                  );
+                  ),
+                  AppUtils.commonTextWidget(
+                    text: 'No task assigned!',
+                    textColor: AppConstant.blackColor.withOpacity(0.6),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0,
+                  ),
+                  AppUtils.commonTextWidget(
+                      letterSpacing: 0,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      text: 'New task will be notified',
+                      textColor: AppConstant.blackColor.withOpacity(0.5)),
+                ],
+              )
+            : SingleChildScrollView(
+        physics: BouncingScrollPhysics(),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.only(left: 15, right: 15, bottom: 100 ,top: 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AppUtils.commonTextWidget(
+                          text: "Active Task",
+                          fontSize: 12,
+                          textColor: AppConstant.blackColor.withOpacity(0.9),
+                          fontWeight: FontWeight.w500),
+                      allTaskListWidget(taskProvider.getAllTaskModel?.data
+                              ?.where(
+                                  (element) => element.taskStatus != "Overdue")
+                              .toList() ??
+                          []),
+                      AppUtils.commonSizedBox(height: 15),
+                      AppUtils.commonTextWidget(
+                          text: "Overdue Task",
+                          fontSize: 12,
+                          textColor: AppConstant.blackColor.withOpacity(0.9),
+                          fontWeight: FontWeight.w500),
+                      allTaskListWidget(taskProvider.getAllTaskModel?.data
+                              ?.where(
+                                  (element) => element.taskStatus == "Overdue")
+                              .toList() ??
+                          []),
+                    ],
+                  ),
+                ),
+              );
   }
 
   Widget taskListWidget(List<Data> allTaskDataList) {
-    return (allTaskDataList.length ?? 0) <= 0
-        ? Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              AppUtils.commonSizedBox(height: 15),
-              Center(
-                child: AppUtils.commonSizedBox(
-                  height: 100,
-                  child: const Image(
-                    image: AssetImage(noDataFound),
-                  ),
-                ),
-              ),
-              AppUtils.commonTextWidget(
-                text: 'No task Found',
-                textColor: AppConstant.blackColor.withOpacity(0.6),
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0,
-              ),
-            ],
-          )
-        : ListView.builder(
+    // return (allTaskDataList.length ?? 0) <= 0
+    //     ? Column(
+    //         mainAxisAlignment: MainAxisAlignment.center,
+    //         crossAxisAlignment: CrossAxisAlignment.center,
+    //         children: [
+    //           AppUtils.commonSizedBox(height: 15),
+    //           Center(
+    //             child: AppUtils.commonSizedBox(
+    //               height: 100,
+    //               child: const Image(
+    //                 image: AssetImage(noDataFound),
+    //               ),
+    //             ),
+    //           ),
+    //           AppUtils.commonTextWidget(
+    //             text: 'No task Found',
+    //             textColor: AppConstant.blackColor.withOpacity(0.6),
+    //             fontSize: 14,
+    //             fontWeight: FontWeight.w500,
+    //             letterSpacing: 0,
+    //           ),
+    //         ],
+    //       )
+    //     :
+    return ListView.builder(
             physics: const NeverScrollableScrollPhysics(),
             shrinkWrap: true,
             itemCount: allTaskDataList.length,
@@ -467,6 +487,190 @@ class _TaskListScreenState extends State<TaskListScreen>
           );
   }
 
+  Widget allTaskListWidget(List<Data> allTaskDataList) {
+    return (allTaskDataList.length ?? 0) <= 0
+        ? Align(
+      alignment: Alignment.center,
+          child: Column(
+            children: [
+          AppUtils.commonSizedBox(height: 15),
+          AppUtils.commonSizedBox(
+            height: 100,
+            child: const Image(
+              image: AssetImage(noDataFound),
+            ),
+          ),
+          AppUtils.commonTextWidget(
+            text: 'No task assigned!',
+            textColor: AppConstant.blackColor.withOpacity(0.6),
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0,
+          ),
+          AppUtils.commonTextWidget(
+              letterSpacing: 0,
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
+              text: 'New task will be notified',
+              textColor: AppConstant.blackColor.withOpacity(0.5)),
+                ],
+              ),
+        )
+        :
+   ListView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      itemCount: allTaskDataList.length,
+      itemBuilder: (context, index) {
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+                context,
+                CupertinoPageRoute(
+                    builder: (context) => ViewTaskScreen(
+                      taskFormId: allTaskDataList[index].taskFormId,
+                      taskTitle: allTaskDataList[index].taskTitle,
+                      taskStatus: allTaskDataList[index].taskStatus,
+                    ))).then((value) {
+              callCallGetTaskByIdListApi(taskProvider: taskProvider);
+            });
+          },
+          child: AppUtils.commonContainer(
+              margin: AppUtils.edgeInsetsOnly(
+                top: 12,
+              ),
+              padding: AppUtils.edgeInsetsOnly(
+                  left: 10, right: 10, top: 10, bottom: 10),
+              width: double.infinity,
+              decoration: AppUtils.commonBoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: AppConstant.whiteColor,
+                  boxShadow: [
+                    BoxShadow(
+                        color: AppConstant.greyColor.withOpacity(0.2),
+                        blurRadius: 8,
+                        blurStyle: BlurStyle.solid,
+                        spreadRadius: 0.1),
+                  ]),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      commonIconWidget(
+                          iconData: Icons.calendar_month_rounded,
+                          size: 16,
+                          iconColor:
+                          AppConstant.greyColor.withOpacity(0.8)),
+                      AppUtils.commonSizedBox(width: 5),
+                      AppUtils.commonTextWidget(
+                          text: AppUtils.getDate(
+                              date:
+                              allTaskDataList[index].createdOn ?? "",
+                              format: "dd MMM yyyy"),
+                          textColor:
+                          AppConstant.greyColor.withOpacity(0.8),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500)
+                    ],
+                  ),
+                  AppUtils.commonSizedBox(height: 5),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                          child: AppUtils.commonTextWidget(
+                              text:
+                              "${allTaskDataList[index].taskTitle} - ${allTaskDataList[index].taskDescription} ",
+                              textColor:
+                              AppConstant.blackColor.withOpacity(0.9),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              overflow: TextOverflow.ellipsis,
+                              letterSpacing: -0.1)),
+                      AppUtils.commonSizedBox(width: 15),
+                      AppUtils.commonTextWidget(
+                        text: AppUtils.getDate(
+                            date: allTaskDataList[index].createdOn ?? "",
+                            format: "hh:mm a"),
+                        textColor:
+                        AppConstant.blackColor.withOpacity(0.9),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                  AppUtils.commonSizedBox(height: 5),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Expanded(
+                      //   child: Row(
+                      //     children: [
+                      //       Icon(
+                      //         Icons.location_on,
+                      //         size: 14,
+                      //         color: AppConstant.appPrimaryColor,
+                      //       ),
+                      //       Expanded(
+                      //           child: AppUtils.commonTextWidget(
+                      //               text: "Tomato's Restaurant uisadjfasfhg",
+                      //               textColor:
+                      //                   AppConstant.greyColor.withOpacity(0.8),
+                      //               fontSize: 10,
+                      //               fontWeight: FontWeight.w500,
+                      //               overflow: TextOverflow.ellipsis)),
+                      //       AppUtils.commonSizedBox(width: 10),
+                      //     ],
+                      //   ),
+                      // ),
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.person,
+                              size: 14,
+                              color: Colors.red,
+                            ),
+                            AppUtils.commonSizedBox(width: 5),
+                            Expanded(
+                                child: AppUtils.commonTextWidget(
+                                    text: allTaskDataList[index]
+                                        .createdBy ??
+                                        "",
+                                    textColor: AppConstant.greyColor
+                                        .withOpacity(0.8),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                    overflow: TextOverflow.ellipsis)),
+                            AppUtils.commonSizedBox(width: 30),
+                          ],
+                        ),
+                      ),
+                      AppUtils.commonContainer(
+                          padding: AppUtils.edgeInsetsOnly(
+                              bottom: 3, top: 3, left: 10, right: 10),
+                          decoration: AppUtils.commonBoxDecoration(
+                              borderRadius: BorderRadius.circular(6),
+                              color: AppUtils.switchCaseForTaskStatus(
+                                  allTaskDataList[index].taskStatus ??
+                                      "")),
+                          child: AppUtils.commonTextWidget(
+                              text:
+                              allTaskDataList[index].taskStatus ?? "",
+                              fontWeight: FontWeight.w400,
+                              textColor: AppConstant.whiteColor,
+                              fontSize: 10))
+                    ],
+                  )
+                ],
+              )),
+        );
+      },
+    );
+  }
+
   Future<void> openDatePicker() async {
     DateTime? picked = await showDatePicker(
       context: context,
@@ -482,12 +686,15 @@ class _TaskListScreenState extends State<TaskListScreen>
             textSelectionTheme: TextSelectionThemeData(
               selectionColor:
                   AppConstant.appPrimaryColor, // Selected date color
-            ), colorScheme: ColorScheme.light(
+            ),
+            colorScheme: ColorScheme.light(
               background: Colors.white,
               onBackground: AppConstant.greyColor.withOpacity(0.5),
               primary: AppConstant.appPrimaryColor, // Button color
               onPrimary: AppConstant.whiteColor, // Text color on button
-            ).copyWith(background: AppConstant.whiteColor).copyWith(background: AppConstant.whiteColor),
+            )
+                .copyWith(background: AppConstant.whiteColor)
+                .copyWith(background: AppConstant.whiteColor),
             // Other theme modifications as needed...
           ),
           child: child ?? Container(),

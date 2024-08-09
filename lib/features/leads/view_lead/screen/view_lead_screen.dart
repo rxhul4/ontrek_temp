@@ -67,7 +67,13 @@ class _ViewLeadScreenState extends State<ViewLeadScreen> {
         actions: [
           GestureDetector(
             onTap: () {
-              Navigator.push(context, CupertinoPageRoute(builder: (context) => AddLeadScreen(isEdit: true,leadId: widget.leadId,),));
+              Navigator.push(context, CupertinoPageRoute(builder: (context) => AddLeadScreen(isEdit: true,leadId: widget.leadId,),)).then((value) {
+                if(value != null){
+                  if(value["isSuccess"] == true) {
+                    leadProvider.apiCallGetLeadById(leadId: widget.leadId);
+                  }
+                }
+              },);
             },
             child: Icon(
               Icons.edit,
@@ -243,7 +249,7 @@ class _ViewLeadScreenState extends State<ViewLeadScreen> {
                               leadProvider.getLeadByIdModel?.data?.createdBy,
                           title: "Lead Owner",
                           subTitle:
-                              leadProvider.getLeadByIdModel?.data?.createdOn),
+                              AppUtils.getDate(date: leadProvider.getLeadByIdModel?.data?.createdOn ?? "", format: "dd MMM yyyy hh:mm a")),
                       AppUtils.commonContainer(
                         width: double.infinity,
                         margin:

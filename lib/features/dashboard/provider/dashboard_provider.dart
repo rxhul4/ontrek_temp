@@ -202,8 +202,8 @@ class DashBoardProvider extends ChangeNotifier {
 
   String? userId;
   String? userName;
-  double? userLat;
-  double? userLong;
+  num? userLat;
+  num? userLong;
   String? userProfilePic;
   bool? isPresent;
   List<LatLng> userLatLng = [];
@@ -222,12 +222,12 @@ class DashBoardProvider extends ChangeNotifier {
         userLat = element["userLastLat"];
         userLong = element["userLastLong"];
         isPresent = element["isPresent"];
-        userLatLng.add(LatLng(userLat ?? 0, userLong ?? 0));
+        userLatLng.add(LatLng(double.parse(userLat.toString()),double.parse(userLong.toString())));
         try {
           await markers.add(
             Marker(
               markerId: MarkerId("$userId"),
-              position: LatLng(userLat ?? 0, userLong ?? 0),
+              position: LatLng(double.parse(userLat.toString()),double.parse(userLong.toString())),
               infoWindow: InfoWindow(
                 title: userName ?? "",
               ),

@@ -78,6 +78,7 @@ class _TrackScreenState extends State<TrackScreen>
         return Column(
           children: [
             AppUtils.buildHeader(
+              isFromOthers: true,
                 height: height,
                 width: width,
                 actionWidget: [
@@ -244,124 +245,121 @@ class _TrackScreenState extends State<TrackScreen>
       bool? isAll,
       double? height,
       required SalesMenListProvider salesMenListProvider,
-      controller}) {
+      required ScrollController controller}) {
     String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
-    return Column(
-      children: [
-        (salesMenListProvider.isFetching)
+    return (salesMenListProvider.isFetching)
+        ? Padding(
+            padding: EdgeInsets.only(top: 80),
+            child: AppUtils.loaderWidget(),
+          )
+        : (getSalesMenListModelData?.length ?? 0) <= 0 || isInternetAvailable == false
             ? Padding(
-                padding: EdgeInsets.only(top: 80),
-                child: AppUtils.loaderWidget(),
+                padding: EdgeInsets.only(top: 50),
+                child: AppUtils.commonNoDataFound(
+                  text: "No Salesman Found",
+                  onPressed: () {
+                    refresh(salesMenListProvider);
+                  },
+                ),
               )
-            : (getSalesMenListModelData?.length ?? 0) <= 0 || isInternetAvailable == false
-                ? Padding(
-                    padding: EdgeInsets.only(top: 50),
-                    child: AppUtils.commonNoDataFound(
-                      text: "No Salesman Found!",
-                      onPressed: () {
-                        refresh(salesMenListProvider);
-                      },
-                    ),
-                  )
-                : GridView.builder(
-                    itemCount: getSalesMenListModelData?.length,
-                    shrinkWrap: true,
-                    controller: controller,
-                    padding: EdgeInsets.only(
-                        top: 20, bottom: 80, left: 20, right: 20),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 4, childAspectRatio: 4 / 4.5),
-                    itemBuilder: (BuildContext context, int index) {
-                      return AppUtils.commonInkWell(
-                        onTap: () {
-                          Navigator.push(
-                              context,
-                              CupertinoPageRoute(
-                                builder: (context) => TimeLineScreen(
-                                  index: index,
-                                  name:
-                                      getSalesMenListModelData?[index].userName,
-                                  phoneNumber:
-                                      getSalesMenListModelData?[index].phoneNo,
-                                  userId:
-                                      getSalesMenListModelData?[index].userId,
-                                  imageUrl: getSalesMenListModelData?[index]
-                                      .profilePic,
-                                ),
-                              ));
-                        },
-                        child: Column(
+            : GridView.builder(
+                itemCount: getSalesMenListModelData?.length,
+                shrinkWrap: true,
+                physics: BouncingScrollPhysics(),
+                controller: controller,
+                padding: EdgeInsets.only(
+                    top: 20, bottom: 80, left: 20, right: 20),
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 4, childAspectRatio: 4 / 4.5),
+                itemBuilder: (BuildContext context, int index) {
+                  return AppUtils.commonInkWell(
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                            builder: (context) => TimeLineScreen(
+                              index: index,
+                              name:
+                                  getSalesMenListModelData?[index].userName,
+                              phoneNumber:
+                                  getSalesMenListModelData?[index].phoneNo,
+                              userId:
+                                  getSalesMenListModelData?[index].userId,
+                              imageUrl: getSalesMenListModelData?[index]
+                                  .profilePic,
+                            ),
+                          ));
+                    },
+                    child: Column(
+                      children: [
+                        Stack(
                           children: [
-                            Stack(
-                              children: [
-                                AppUtils.commonContainer(
-                                  width: 60,
-                                  height: 60,
-                                  decoration: AppUtils.commonBoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                          width: 2,
-                                          color: AppConstant.greyColor
-                                              .withOpacity(0.5)),
+                            AppUtils.commonContainer(
+                              width: 60,
+                              height: 60,
+                              decoration: AppUtils.commonBoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                      width: 2,
                                       color: AppConstant.greyColor
-                                          .withOpacity(0.3)),
-                                  child: ClipOval(
-                                    child: CachedNetworkImage(
-                                      imageUrl: getSalesMenListModelData?[index]
-                                              .profilePic ??
-                                          "",
-                                      imageBuilder: (context, imageProvider) =>
-                                          Container(
-                                        decoration: BoxDecoration(
-                                          image: DecorationImage(
-                                              image: imageProvider,
-                                              fit: BoxFit.cover),
-                                        ),
-                                      ),
-                                      placeholder: (context, url) => Center(
-                                          child: CircularProgressIndicator(
-                                        color: AppConstant.appPrimaryColor,
-                                        strokeWidth: 0.5,
-                                      )),
-                                      errorWidget: (context, url, error) =>
-                                          Icon(Icons.person,
-                                              size: 24,
-                                              color: AppConstant.blackColor),
+                                          .withOpacity(0.5)),
+                                  color: AppConstant.greyColor
+                                      .withOpacity(0.3)),
+                              child: ClipOval(
+                                child: CachedNetworkImage(
+                                  imageUrl: getSalesMenListModelData?[index]
+                                          .profilePic ??
+                                      "",
+                                  imageBuilder: (context, imageProvider) =>
+                                      Container(
+                                    decoration: BoxDecoration(
+                                      image: DecorationImage(
+                                          image: imageProvider,
+                                          fit: BoxFit.cover),
                                     ),
                                   ),
+                                  placeholder: (context, url) => Center(
+                                      child: CircularProgressIndicator(
+                                    color: AppConstant.appPrimaryColor,
+                                    strokeWidth: 0.5,
+                                  )),
+                                  errorWidget: (context, url, error) =>
+                                      Icon(Icons.person,
+                                          size: 24,
+                                          color: AppConstant.blackColor),
                                 ),
-                                getSalesMenListModelData?[index].isPresent ==
-                                        true
-                                    ? Positioned(
-                                        bottom: 4,
-                                        right: 5,
-                                        child: CircleAvatar(
-                                          radius: 5,
-                                          backgroundColor: Colors.green,
-                                        ),
-                                      )
-                                    : AppUtils.commonSizedBox()
-                              ],
+                              ),
                             ),
-                            AppUtils.commonSizedBox(height: 5),
-                            AppUtils.commonTextWidget(
-                                text: userId ==
-                                        getSalesMenListModelData?[index].userId
-                                    ? "You"
-                                    : getSalesMenListModelData?[index]
-                                            .userName ??
-                                        "",
-                                textColor: AppConstant.blackColor,
-                                fontSize: 11,
-                                textAlign: TextAlign.center),
+                            getSalesMenListModelData?[index].isPresent ==
+                                    true
+                                ? Positioned(
+                                    bottom: 4,
+                                    right: 5,
+                                    child: CircleAvatar(
+                                      radius: 5,
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  )
+                                : AppUtils.commonSizedBox()
                           ],
                         ),
-                      );
-                    },
-                  ),
-      ],
-    );
+                        AppUtils.commonSizedBox(height: 5),
+                        AppUtils.commonTextWidget(
+                            text: userId ==
+                                    getSalesMenListModelData?[index].userId
+                                ? "You"
+                                : getSalesMenListModelData?[index]
+                                        .userName ??
+                                    "",
+                            textColor: AppConstant.blackColor,
+                            fontSize: 11,
+                            textAlign: TextAlign.center),
+                      ],
+                    ),
+                  );
+                },
+              );
   }
 
   checkInternet() async {

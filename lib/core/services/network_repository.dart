@@ -16,92 +16,111 @@ import 'package:ontrek/main.dart';
 
 AndroidDeviceInfo? myDeviceInfo;
 
-String? userName = PreferenceHelper.getString(PreferenceHelper.USER_NAME);
-Map<String, String> iosHeader = {
-  'Content-Type': 'application/json',
-  'Accept': 'application/json',
-  'current-User': userName ?? "",
-  'time-zone': DateTime.now().timeZoneOffset.inMinutes.toString(),
-  'app-version': AppConstant.appVersionIos,
-  'app-os': "Ios"
-};
-Map<String, String> androidHeader = {
-  'Content-Type': 'application/json',
-  'Accept': 'application/json',
-  'current-User': userName ?? "",
-  'time-zone': DateTime.now().timeZoneOffset.inMinutes.toString(),
-  'app-version': AppConstant.appVersionAndroid,
-  'app-os': "android"
-};
 
-Future callPostMethod(String url, Map<String, dynamic> params) async {
-  if (Platform.isAndroid) {
-    bool developerMode = await FlutterJailbreakDetection.developerMode;
-    if (developerMode) {
-      AppUtils.showDialogBoxWithOneButton(
-        context: navigatorKey.currentState!.context,
-        text: "Please disable Developer Options to run the smoothly.",
-        titleText: "Developer Option",
-        btnColor: Colors.red,
-        btnText: "Open Settings",
-        onTap: () {
-          AppSettings.openAppSettings(type: AppSettingsType.developer);
-        },
-      );
-    } else {
-      if (kDebugMode) {
-        print("baseUrl--$url");
-        print("params--${jsonEncode(params)}");
-        print("header----${androidHeader}");
-      }
-
-      return await http
-          .post(
-        Uri.parse(url),
-        body: utf8.encode(json.encode(params)),
-        headers: androidHeader,
-      )
-          .then((http.Response response) {
-        return getResponse(response);
-      });
-    }
-  } else {
-    if (kDebugMode) {
-      print("baseUrl--$url");
-      print("params--${jsonEncode(params)}");
-      print("header----${iosHeader}");
-    }
-
-    return await http
-        .post(
-      Uri.parse(url),
-      body: utf8.encode(json.encode(params)),
-      headers: iosHeader,
-    )
-        .then((http.Response response) {
-      return getResponse(response);
-    });
-  }
+Future<String?> getUserName() async {
+  return await PreferenceHelper.getString(PreferenceHelper.USER_NAME);
 }
 
-//   if (kDebugMode) {
-//     print("baseUrl--$url");
-//     print("params--${jsonEncode(params)}");
-//     print("header----${androidHeader}");
-//   }
+Future callPostMethod(String url, Map<String, dynamic> params) async {
+
+  String? userName = await getUserName();
+  Map<String, String> iosHeader = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'current-User': userName ?? "",
+    'time-zone': DateTime.now().timeZoneOffset.inMinutes.toString(),
+    'app-version': AppConstant.appVersionIos,
+    'app-os': "Ios"
+  };
+  Map<String, String> androidHeader = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'current-User':  userName ?? "",
+    'time-zone': DateTime.now().timeZoneOffset.inMinutes.toString(),
+    'app-version': AppConstant.appVersionAndroid,
+    'app-os': "android"
+  };
+
+//   if (Platform.isAndroid) {
+//     bool developerMode = await FlutterJailbreakDetection.developerMode;
+//     if (developerMode) {
+//       AppUtils.showDialogBoxWithOneButton(
+//         context: navigatorKey.currentState!.context,
+//         text: "Please disable Developer Options to run the smoothly.",
+//         titleText: "Developer Option",
+//         btnColor: Colors.red,
+//         btnText: "Open Settings",
+//         onTap: () {
+//           AppSettings.openAppSettings(type: AppSettingsType.developer);
+//         },
+//       );
+//     } else {
+//       if (kDebugMode) {
+//         print("baseUrl--$url");
+//         print("params--${jsonEncode(params)}");
+//         print("header----${androidHeader}");
+//       }
 //
-//   return await http
-//       .post(
-//     Uri.parse(url),
-//     body: utf8.encode(json.encode(params)),
-//     headers: androidHeader,
-//   )
-//       .then((http.Response response) {
-//     return getResponse(response);
-//   });
+//       return await http
+//           .post(
+//         Uri.parse(url),
+//         body: utf8.encode(json.encode(params)),
+//         headers: androidHeader,
+//       )
+//           .then((http.Response response) {
+//         return getResponse(response);
+//       });
+//     }
+//   } else {
+//     if (kDebugMode) {
+//       print("baseUrl--$url");
+//       print("params--${jsonEncode(params)}");
+//       print("header----${iosHeader}");
+//     }
+//
+//     return await http
+//         .post(
+//       Uri.parse(url),
+//       body: utf8.encode(json.encode(params)),
+//       headers: iosHeader,
+//     )
+//         .then((http.Response response) {
+//       return getResponse(response);
+//     });
+//   }
 // }
 
+  if (kDebugMode) {
+    print("baseUrl--$url");
+    print("params--${jsonEncode(params)}");
+    print("header----${androidHeader}");
+  }
+
+  return await http
+      .post(
+    Uri.parse(url),
+    body: utf8.encode(json.encode(params)),
+    headers: androidHeader,
+  )
+      .then((http.Response response) {
+    return getResponse(response);
+  });
+}
+
 Future callPostMethodForDevmode(String url, Map<String, dynamic> params) async {
+
+  String? userName = await getUserName();
+  Map<String, String> androidHeader = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'current-User':  userName ?? "",
+    'time-zone': DateTime.now().timeZoneOffset.inMinutes.toString(),
+    'app-version': AppConstant.appVersionAndroid,
+    'app-os': "android"
+  };
+
+
+
   if (kDebugMode) {
     print("baseUrl--$url");
     print("params--${jsonEncode(params)}");

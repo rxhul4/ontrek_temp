@@ -601,7 +601,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
     )
         .then((value) {
       if (value?.isError == false && value?.isValidationFailed == false) {
-        Navigator.pop(context);
+        Navigator.pop(context ,{"isSuccess" :  true});
       } else {
         if(value?.isError == true){
           AppUtils.showDialogBoxWithOneButton(text: "Something went wrong!",context: context);

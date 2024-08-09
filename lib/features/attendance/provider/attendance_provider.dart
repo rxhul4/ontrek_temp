@@ -55,7 +55,8 @@ class AttendanceProvider extends ChangeNotifier {
   bool isBiometricAvailable = false;
   AnimationController? controller;
   FlutterBackgroundService service = FlutterBackgroundService();
-  BackgroundServiceIos iosService = BackgroundServiceIos();
+
+  // BackgroundServiceIos iosService = BackgroundServiceIos();
   bool? isInternetAvailable;
   TextEditingController dateController = TextEditingController();
   TextEditingController timeController = TextEditingController();
@@ -149,6 +150,7 @@ class AttendanceProvider extends ChangeNotifier {
     }
     return position;
   }
+
   Future<CreateActivityModel?> apiCallCreateActivity({
     bool? isFromCheckOut = false,
     String? checkOutSessionId,
@@ -163,45 +165,51 @@ class AttendanceProvider extends ChangeNotifier {
     String? visitTypeCode,
   }) async {
     loaderFnc(true);
-    // print("sessionIdAtCreateActivity$sessionId");
     String? userid = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     String? sessionId = PreferenceHelper.getString(PreferenceHelper.SESSION_ID);
     position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.best);
-    Map<String, dynamic> checkOutDataBody = {
-      "customerName": customerName,
-      "picturePath": picturePath,
-      "visitDiscussion": visitDiscussion,
-      "companyName": companyName,
-      "customerPhoneNo": customerPhoneNumber,
-      "totVisitTypeId": visitTypeCode,
-    };
-
-    Map<String, dynamic> body = {
-      "createActivity": {
-        "userId": userid ?? "",
-        "longitude": isFromCheckOut == true
-            ? positionData?.longitude ?? 0
-            : position?.longitude,
-        "lattitude": isFromCheckOut == true
-            ? positionData?.latitude ?? 0
-            : position?.latitude,
-        "sessionId": sessionId == null || sessionId == "" ? null :sessionId,
-        "totTrackingEventId": totTrackingEventCode,
-        "activityDateTime": activityDateTime ??
-            AppUtils.dateFormat(
-                date: DateTime.now(), dateFormat: AppConstant.dateFormat),
-        "batteryLevel": battery,
-        "visitNoteRequestForm":
-            isFromCheckOut ?? false ? checkOutDataBody : null
-      }
-    };
     try {
-      String endPoint = ApiConstants.createActivity;
-      final response = await callPostMethod(endPoint, body);
-      createActivityModel = CreateActivityModel.fromJson(json.decode(response));
-      print("response : ${response}");
+      if (position?.latitude != 0 ||
+          position?.longitude != 0 && position?.latitude != null ||
+          position?.longitude != null) {
+        Map<String, dynamic> checkOutDataBody = {
+          "customerName": customerName,
+          "picturePath": picturePath,
+          "visitDiscussion": visitDiscussion,
+          "companyName": companyName,
+          "customerPhoneNo": customerPhoneNumber,
+          "totVisitTypeId": visitTypeCode,
+        };
+        Map<String, dynamic> body = {
+          "createActivity": {
+            "userId": userid ?? "",
+            "longitude":  position?.longitude,
+            "lattitude":  position?.latitude,
+            "sessionId":
+                sessionId == null || sessionId == "" ? null : sessionId,
+            "totTrackingEventId": totTrackingEventCode,
+            "activityDateTime": activityDateTime ??
+                AppUtils.dateFormat(
+                    date: DateTime.now(), dateFormat: AppConstant.dateFormat),
+            "batteryLevel": battery,
+            "visitNoteRequestForm":
+                isFromCheckOut ?? false ? checkOutDataBody : null
+          }
+        };
 
+        String endPoint = ApiConstants.createActivity;
+        final response = await callPostMethod(endPoint, body);
+        createActivityModel =
+            CreateActivityModel.fromJson(json.decode(response));
+        print("response : ${response}");
+      }else{
+        AppUtils.showDialogBoxWithOneButton(
+            titleText: "Error",
+            text:
+            "Error while Fetching your location please try again!",
+            context: navigatorKey.currentState!.context);
+      }
     } catch (e) {
       if (isInternetAvailable == false) {
         AppUtils.showDialogBoxWithOneButton(
@@ -215,36 +223,49 @@ class AttendanceProvider extends ChangeNotifier {
     return createActivityModel;
   }
 
-    callGetLastActivity({bool? isDayEnd,bool? DayStart}) async {
+  callGetLastActivity({bool? isDayEnd, bool? DayStart}) async {
     loaderFnc(true);
     String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
-    Map<String, dynamic> body = { "userId": userId,"currentDate": AppUtils.dateFormat(date: DateTime.now(), dateFormat: AppConstant.dateFormat)};
+    Map<String, dynamic> body = {
+      "userId": userId,
+      "currentDate": AppUtils.dateFormat(
+          date: DateTime.now(), dateFormat: AppConstant.dateFormat)
+    };
 
-    try
-    {
+    try {
       String endPoint = ApiConstants.getLastActivity;
       final response = await callPostMethod(endPoint, body);
 
-      getLastActivityModel = GetLastActivityModel.fromJson(json.decode(response));
+      getLastActivityModel =
+          GetLastActivityModel.fromJson(json.decode(response));
 
-      if (getLastActivityModel?.isError == false && getLastActivityModel?.isValidationFailed == false)
-      {
-
+      if (getLastActivityModel?.isError == false &&
+          getLastActivityModel?.isValidationFailed == false) {
         EventUpdateProcess(getLastActivityModel?.data);
 
-        String? sessionStartDateStr = AppUtils.getDate(date: getLastActivityModel?.data?.sessionStartDateTime ?? "", format: "dd-MM-yyyy");
-        DateTime sessionStartDate = DateFormat("dd-MM-yyyy").parse(sessionStartDateStr);
+        String? sessionStartDateStr = AppUtils.getDate(
+            date: getLastActivityModel?.data?.sessionStartDateTime ?? "",
+            format: "dd-MM-yyyy");
+        DateTime sessionStartDate =
+            DateFormat("dd-MM-yyyy").parse(sessionStartDateStr);
         DateTime today = DateTime.now();
-        DateTime todayWithoutTime = DateTime(today.year, today.month, today.day);
+        DateTime todayWithoutTime =
+            DateTime(today.year, today.month, today.day);
 
         if (sessionStartDate.isBefore(todayWithoutTime)) {
-            if (getLastActivityModel?.data?.alreadyRequested == false && getLastActivityModel?.data?.isSessionActive == true) {
-              dateController.text = sessionStartDateStr;
-              dayStartTimeController.text = AppUtils.getDate(date: getLastActivityModel?.data?.sessionStartDateTime ?? "",format: "hh:mm a");
-              navigatePushFnc(PendingDayEndScreen(sessionId: getLastActivityModel?.data?.sessionId,sessionStartDate:getLastActivityModel?.data?.sessionStartDateTime ?? "",));
-            }
+          if (getLastActivityModel?.data?.alreadyRequested == false &&
+              getLastActivityModel?.data?.isSessionActive == true) {
+            dateController.text = sessionStartDateStr;
+            dayStartTimeController.text = AppUtils.getDate(
+                date: getLastActivityModel?.data?.sessionStartDateTime ?? "",
+                format: "hh:mm a");
+            navigatePushFnc(PendingDayEndScreen(
+              sessionId: getLastActivityModel?.data?.sessionId,
+              sessionStartDate:
+                  getLastActivityModel?.data?.sessionStartDateTime ?? "",
+            ));
+          }
         }
-
       } else {
         if (getLastActivityModel?.isError == true) {
           AppUtils.showDialogBoxWithOneButton(
@@ -261,7 +282,7 @@ class AttendanceProvider extends ChangeNotifier {
         AppUtils.showDialogBoxWithOneButton(
             titleText: "Internet Off Alert",
             text:
-            "Internet is not available. Please Enable Mobile data or wifi.",
+                "Internet is not available. Please Enable Mobile data or wifi.",
             context: navigatorKey.currentState!.context);
       }
     }
@@ -338,34 +359,34 @@ class AttendanceProvider extends ChangeNotifier {
     reasonController.clear();
   }
 
-  EventUpdateProcess(LastActivityData? lastActivityData) async
-  {
+  EventUpdateProcess(LastActivityData? lastActivityData) async {
     await SetUIButtons(lastActivityData);
     await SetPrefHelpeAndServiceManageEvents(lastActivityData);
+
   }
 
-  SetUIButtons(LastActivityData? lastActivityData) async
-  {
-    if(lastActivityData == null)
-    {
-      isDayStart.value=false;
+  SetUIButtons(LastActivityData? lastActivityData) async {
+    if (lastActivityData == null) {
+      isDayStart.value = false;
       return;
     }
 
     String? totEventCode = lastActivityData.trackingEventId;
-    String? sessionStartDateStr = AppUtils.getDate(date: lastActivityData.sessionStartDateTime ?? "", format: "dd-MM-yyyy");
-    DateTime sessionStartDate = DateFormat("dd-MM-yyyy").parse(sessionStartDateStr);
+    String? sessionStartDateStr = AppUtils.getDate(
+        date: lastActivityData.sessionStartDateTime ?? "",
+        format: "dd-MM-yyyy");
+    DateTime sessionStartDate =
+        DateFormat("dd-MM-yyyy").parse(sessionStartDateStr);
     DateTime today = DateTime.now();
     DateTime todayWithoutTime = DateTime(today.year, today.month, today.day);
 
-    if(lastActivityData?.isSessionActive==false || sessionStartDate.isBefore(todayWithoutTime))
-    {
-      isDayStart.value=false;
+    if (lastActivityData.isSessionActive == false ||
+        sessionStartDate.isBefore(todayWithoutTime)) {
+      isDayStart.value = false;
       return;
     }
 
-    switch (totEventCode)
-    {
+    switch (totEventCode) {
       case AppConstant.dayStartEvent:
         isDayStart.value = true;
         break;
@@ -401,60 +422,70 @@ class AttendanceProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  SetPrefHelpeAndServiceManageEvents(LastActivityData? lastActivityData) async
-  {
+  SetPrefHelpeAndServiceManageEvents(LastActivityData? lastActivityData) async {
+    if (lastActivityData == null) {
+      PreferenceHelper.setObject<LastActivityData>(
+          PreferenceHelper.LastActivity, null);
+      PreferenceHelper.setString(PreferenceHelper.SESSION_ID, "");
+      if (Platform.isAndroid) {
+        service.invoke("stopService");
+      } else {
+        // await iosService.stop();
+      }
+      return;
+    }
 
-     if(lastActivityData==null) {
-       PreferenceHelper.setObject<LastActivityData>(PreferenceHelper.LastActivity, null);
-       PreferenceHelper.setString(PreferenceHelper.SESSION_ID, "");
-       if(Platform.isAndroid){
-         service.invoke("stopService");
+    String? totEventCode = lastActivityData?.trackingEventId;
+    String? sessionStartDateStr = AppUtils.getDate(
+        date: lastActivityData?.sessionStartDateTime ?? "",
+        format: "dd-MM-yyyy");
+    DateTime sessionStartDate =
+        DateFormat("dd-MM-yyyy").parse(sessionStartDateStr);
+    DateTime today = DateTime.now();
+    DateTime todayWithoutTime = DateTime(today.year, today.month, today.day);
 
-       }else{
-         await iosService.stop();
-       }
-       return;
-     }
+    if (lastActivityData?.isSessionActive == false ||
+        sessionStartDate.isBefore(todayWithoutTime)) {
+      PreferenceHelper.setObject<LastActivityData>(
+          PreferenceHelper.LastActivity, null);
+      PreferenceHelper.setString(PreferenceHelper.SESSION_ID, "");
+      if (Platform.isAndroid) {
+        service.invoke("stopService");
+      } else {
+        // await iosService.stop();
+      }
+      return;
+    }
 
-     String? totEventCode = lastActivityData?.trackingEventId;
-     String? sessionStartDateStr = AppUtils.getDate(date: lastActivityData?.sessionStartDateTime ?? "", format: "dd-MM-yyyy");
-     DateTime sessionStartDate = DateFormat("dd-MM-yyyy").parse(sessionStartDateStr);
-     DateTime today = DateTime.now();
-     DateTime todayWithoutTime = DateTime(today.year, today.month, today.day);
+    if (sessionStartDateStr ==
+            AppUtils.getDate(
+                date: DateTime.now().toString(), format: "dd-MM-yyyy") &&
+        lastActivityData?.isSessionActive == true) {
+      PreferenceHelper.setObject<LastActivityData>(
+          PreferenceHelper.LastActivity, lastActivityData);
+      PreferenceHelper.setString(
+          PreferenceHelper.SESSION_ID, lastActivityData.sessionId ?? "");
+      bool? liveLocationTracking =
+          PreferenceHelper.getBool(PreferenceHelper.LIVE_LOCATION_TRACKING);
 
-     if(lastActivityData?.isSessionActive==false || sessionStartDate.isBefore(todayWithoutTime))
-     {
-       PreferenceHelper.setObject<LastActivityData>(PreferenceHelper.LastActivity, null);
-       PreferenceHelper.setString(PreferenceHelper.SESSION_ID, "");
-       if(Platform.isAndroid){
-         service.invoke("stopService");
+      if (liveLocationTracking == true) {
+        if (Platform.isAndroid) {
 
-       }else{
-         await iosService.stop();
-       }
-       return;
-     }
-
-    if (sessionStartDateStr == AppUtils.getDate(date: DateTime.now().toString(), format: "dd-MM-yyyy") && lastActivityData?.isSessionActive==true )
-    {
-
-        PreferenceHelper.setObject<LastActivityData>(PreferenceHelper.LastActivity, lastActivityData);
-        PreferenceHelper.setString(PreferenceHelper.SESSION_ID, lastActivityData.sessionId ?? "");
-        bool? liveLocationTracking = PreferenceHelper.getBool(PreferenceHelper.LIVE_LOCATION_TRACKING);
-
-
-         if (liveLocationTracking == true) {
-           if(Platform.isAndroid){
-             await service.startService();
-           }else{
-             PreferenceHelper.setString(PreferenceHelper.WAITING_START_TIME, AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
-             PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT, lastActivityData.lastActivityLat ?? 0);
-             PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, lastActivityData.lastActivityLong ?? 0);
-             iosService.start();
-
-           }
-
+          await service.startService();
+          PreferenceHelper.setBool("isRunning", true);
+        } else {
+          PreferenceHelper.setString(
+              PreferenceHelper.WAITING_START_TIME,
+              AppUtils.getDate(
+                  date: DateTime.now().toString(),
+                  format: AppConstant.dateFormat));
+          PreferenceHelper.setDouble(
+              PreferenceHelper.LAST_LAT, lastActivityData.lastActivityLat ?? 0);
+          PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG,
+              lastActivityData.lastActivityLong ?? 0);
+          // iosService.start();
         }
+      }
     }
   }
 
@@ -549,42 +580,41 @@ class AttendanceProvider extends ChangeNotifier {
         PreferenceHelper.getInt(PreferenceHelper.RESTRICTED_LOCATION_METER);
   }
 
-
-  //
-  // offlineBtnChangeFnc(LastActivityData lastActivityData)async{
-  //   isActiveSession = lastActivityData.isSessionActive;
-  //   print("isActiveSession${isActiveSession}");
-  //   print("totEvent${lastActivityData.trackingEventId}");
-  //   String? totEventCode = lastActivityData.trackingEventId;
-  //   String? sessionStartDateStr = AppUtils.getDate(
-  //       date: lastActivityData.sessionStartDateTime ?? "",
-  //       format: "dd-MM-yyyy");
-  //   print("startDate$sessionStartDateStr");
-  //
-  //   if (lastActivityData == null) {
-  //     print("data_is_null");
-  //     setDataAccordingToLastActivity("");
-  //   }
-  //   if (sessionStartDateStr ==
-  //       AppUtils.getDate(
-  //           date: DateTime.now().toString(), format: "dd-MM-yyyy")) {
-  //     sessionId = lastActivityData.sessionId;
-  //     print("sessionId$sessionId");
-  //     PreferenceHelper.setString(
-  //         PreferenceHelper.SESSION_ID, sessionId ?? "");
-  //
-  //     setDataAccordingToLastActivity(totEventCode);
-  //     if (isDayStart.value == true) {
-  //       bool? liveLocationTracking = PreferenceHelper.getBool(
-  //           PreferenceHelper.LIVE_LOCATION_TRACKING);
-  //
-  //       if (liveLocationTracking == true) {
-  //         await service.startService();
-  //         print("dtaaadasd${lastActivityData.toJson()}");
-  //         // PreferenceHelper.setObject<LastActivityData>("last_activity", getLastActivityModel?.data?.toJson());
-  //         // service.invoke("appLoad", getLastActivityModel?.data?.toJson());
-  //       }
-  //     }
-  //   }
-  // }
+//
+// offlineBtnChangeFnc(LastActivityData lastActivityData)async{
+//   isActiveSession = lastActivityData.isSessionActive;
+//   print("isActiveSession${isActiveSession}");
+//   print("totEvent${lastActivityData.trackingEventId}");
+//   String? totEventCode = lastActivityData.trackingEventId;
+//   String? sessionStartDateStr = AppUtils.getDate(
+//       date: lastActivityData.sessionStartDateTime ?? "",
+//       format: "dd-MM-yyyy");
+//   print("startDate$sessionStartDateStr");
+//
+//   if (lastActivityData == null) {
+//     print("data_is_null");
+//     setDataAccordingToLastActivity("");
+//   }
+//   if (sessionStartDateStr ==
+//       AppUtils.getDate(
+//           date: DateTime.now().toString(), format: "dd-MM-yyyy")) {
+//     sessionId = lastActivityData.sessionId;
+//     print("sessionId$sessionId");
+//     PreferenceHelper.setString(
+//         PreferenceHelper.SESSION_ID, sessionId ?? "");
+//
+//     setDataAccordingToLastActivity(totEventCode);
+//     if (isDayStart.value == true) {
+//       bool? liveLocationTracking = PreferenceHelper.getBool(
+//           PreferenceHelper.LIVE_LOCATION_TRACKING);
+//
+//       if (liveLocationTracking == true) {
+//         await service.startService();
+//         print("dtaaadasd${lastActivityData.toJson()}");
+//         // PreferenceHelper.setObject<LastActivityData>("last_activity", getLastActivityModel?.data?.toJson());
+//         // service.invoke("appLoad", getLastActivityModel?.data?.toJson());
+//       }
+//     }
+//   }
+// }
 }
