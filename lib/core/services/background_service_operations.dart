@@ -17,6 +17,7 @@ import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sqflite/sqflite.dart';
 
 class BackgroundServiceOperations{
@@ -142,6 +143,27 @@ isWithinRadius(
     print("isWithinRadius");
   }
 }
+
+  sendLastStatus(LastActivityData lastActivityData, bool isLocationAlwaysOn,bool isGpsAvailable ){
+    Map<String,dynamic> body =
+    {
+      "userId": lastActivityData.fieldUserId,
+      "isGpsOn": isLocationAlwaysOn,
+      "isDevModeOn": false,
+      "isFakeLocation": false,
+      "isLocationAlwaysOn": isLocationAlwaysOn,
+      "isBatteryOptimizationDisabled" : true
+    };
+
+    if (body != null) {
+      String endPoint = ApiConstants.sendLastStatus;
+      try {
+        callPostMethodForDevmode(endPoint, body);
+      } catch (e) {
+        print("Error during sendLastStatus: $e");
+      }
+    }
+  }
 
 syncSqlData(Database db,LastActivityData lastActivityData) async {
 

@@ -112,7 +112,7 @@ Future callPostMethodForDevmode(String url, Map<String, dynamic> params) async {
       .post(
     Uri.parse(requestUrl),
     body:  utf8.encode(json.encode(params)),
-    headers: androidHeader,
+    headers: iosHeader,
   )
       .then((http.Response response) {
     return getResponse(response);

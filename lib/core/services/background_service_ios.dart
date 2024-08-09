@@ -9,6 +9,7 @@ import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/features/attendance/model/get_last_activity_model.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sqflite/sqflite.dart';
 
 bool isInternetAvailable = false;
@@ -34,7 +35,7 @@ class BackgroundServiceIos {
         stopOnTerminate: false, // Keep tracking even if the app is terminated
         startOnBoot: false, // Don't start on boot
         foregroundService: true, // Run as a foreground service
-        debug: true, // Enable debugging
+        debug: false, // Enable debugging
         autoSync: false, // Disable automatic syncing
         showsBackgroundLocationIndicator: true, // Show location indicator
         stationaryRadius: 50, // Radius to define the stationary state
@@ -163,7 +164,9 @@ class BackgroundServiceIos {
       lastActivityData = LastActivityData.fromJson(lastActivityDataMap);
       isInternetAvailable = PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
       bool isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+      bool isGpsAvailable = PreferenceHelper.getBool(PreferenceHelper.GPS_BOOL);
       bool? isWaitingAllowed = PreferenceHelper.getBool(PreferenceHelper.ALLOW_WAITING);
+      bool isAlwaysOnLocation = await Permission.locationAlways.isGranted;
       // bool? isCheckInGeoFenceExit = PreferenceHelper.getBool("isCheckInGeoFenceExit");
       // bool? isCheckOutReminder = PreferenceHelper.getBool(PreferenceHelper.CHECKOUT_REMINDER);
       // int? checkOutReminderMtr = PreferenceHelper.getInt(PreferenceHelper.CHECKOUT_REMINDER_METER);
@@ -174,6 +177,7 @@ class BackgroundServiceIos {
       if (isInternetAvailable && lastActivityData != null) {
         print("syncSqlDataStart");
         await bgOps.syncSqlData(db,lastActivityData!);
+        await bgOps.sendLastStatus(lastActivityData!,isAlwaysOnLocation,isGpsAvailable);
         print("syncSqlDataEnd");
         // await bgOps.syncRouteHistory(db,lastActivityData!);
       }
