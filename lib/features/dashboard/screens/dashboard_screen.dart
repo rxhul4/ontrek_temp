@@ -82,7 +82,7 @@ class DashBoardState extends State<DashBoard> {
       }
       if (!mounted) {}
       dashBoardProvider.initialIndex();
-      dashBoardProvider.checkPermission(context);
+      await dashBoardProvider.checkPermission(context);
       if(Platform.isAndroid){
         await checkPermissionOfBatteryOptimization();
       }

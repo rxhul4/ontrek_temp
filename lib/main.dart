@@ -122,8 +122,8 @@ void main() async {
   if (Platform.isAndroid) {
     await backgroundService.initializeService();
   } else {
-    // BackgroundServiceIos backgroundServiceIos = BackgroundServiceIos();
-    // await backgroundServiceIos.initialize();
+    BackgroundServiceIos backgroundServiceIos = BackgroundServiceIos();
+    await backgroundServiceIos.initialize();
   }
 }
 

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:ontrek/core/services/network_repository.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
@@ -100,7 +102,7 @@ class _ReportScreenState extends State<ReportScreen>
           )),
           AppUtils.commonContainer(
             height: 50,
-            margin: EdgeInsets.only(top: 0, left: 0, right: 0, bottom: 0),
+            margin: EdgeInsets.only(top: 0, left: 0, right: 0, bottom: Platform.isIOS ?  15 : 0),
             decoration: AppUtils.commonBoxDecoration(
               color: AppConstant.greyColor.withOpacity(0.2),
             ),

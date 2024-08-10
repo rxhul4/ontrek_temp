@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:interval_time_picker/interval_time_picker.dart';
@@ -137,67 +139,65 @@ class _DayEndApprovalScreenState extends State<DayEndApprovalScreen>
               ),
             )
           ]),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-                child: TabBarView(
-              physics: NeverScrollableScrollPhysics(),
-              controller: tabController,
-              children: [
-                myDayEndRequests(),
-                allDayEndRequests(),
-              ],
-            )),
-            AppUtils.commonContainer(
-              height: 50,
-              margin: EdgeInsets.only(top: 0, left: 0, right: 0, bottom: 0),
-              decoration: AppUtils.commonBoxDecoration(
-                color: AppConstant.greyColor.withOpacity(0.2),
-                // borderRadius: AppUtils.borderRadiusAll(raduis: 5),
-              ),
-              child: TabBar.secondary(
-                  onTap: (value) async {
-                    setState(() {
-                      selectedIndex = value;
-                    });
-                    selectedIndex == 0
-                        ? myDayEndRequestController.refresh()
-                        : employeeDayEndRequestController.refresh();
-                  },
-                  physics: const NeverScrollableScrollPhysics(),
-                  isScrollable: false,
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  controller: tabController,
-                  // padding: AppUtils.edgeInsetsAll(allPadding: 2),
-                  labelColor: Colors.white,
-                  unselectedLabelStyle: const TextStyle(
-                    fontFamily: "Poppins",
-                    letterSpacing: 0.2,
-                    fontWeight: FontWeight.w400,
-                    fontSize: 12,
-                  ),
-                  indicatorWeight: 0,
-                  dividerHeight: 0,
-                  labelStyle: const TextStyle(
-                    fontFamily: "Poppins",
-                    letterSpacing: 0.2,
-                    fontWeight: FontWeight.w500,
-                    fontSize: 12,
-                  ),
-                  automaticIndicatorColorAdjustment: true,
-                  indicator: BoxDecoration(
-                    color: AppConstant.appPrimaryColor,
-                    // borderRadius: AppUtils.borderRadiusAll(raduis: 5)
-                  ),
-                  tabs: const [
-                    // Tab(text: 'All'),
-                    Tab(text: 'My Request'),
-                    Tab(text: 'Employee Request'),
-                  ]),
+      body: Column(
+        children: [
+          Expanded(
+              child: TabBarView(
+            physics: NeverScrollableScrollPhysics(),
+            controller: tabController,
+            children: [
+              myDayEndRequests(),
+              allDayEndRequests(),
+            ],
+          )),
+          AppUtils.commonContainer(
+            height: 50,
+            margin: EdgeInsets.only(top: 0, left: 0, right: 0, bottom:  Platform.isIOS ?  15 : 00),
+            decoration: AppUtils.commonBoxDecoration(
+              color: AppConstant.greyColor.withOpacity(0.2),
+              // borderRadius: AppUtils.borderRadiusAll(raduis: 5),
             ),
-          ],
-        ),
+            child: TabBar.secondary(
+                onTap: (value) async {
+                  setState(() {
+                    selectedIndex = value;
+                  });
+                  selectedIndex == 0
+                      ? myDayEndRequestController.refresh()
+                      : employeeDayEndRequestController.refresh();
+                },
+                physics: const NeverScrollableScrollPhysics(),
+                isScrollable: false,
+                indicatorSize: TabBarIndicatorSize.tab,
+                controller: tabController,
+                // padding: AppUtils.edgeInsetsAll(allPadding: 2),
+                labelColor: Colors.white,
+                unselectedLabelStyle: const TextStyle(
+                  fontFamily: "Poppins",
+                  letterSpacing: 0.2,
+                  fontWeight: FontWeight.w400,
+                  fontSize: 12,
+                ),
+                indicatorWeight: 0,
+                dividerHeight: 0,
+                labelStyle: const TextStyle(
+                  fontFamily: "Poppins",
+                  letterSpacing: 0.2,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 12,
+                ),
+                automaticIndicatorColorAdjustment: true,
+                indicator: BoxDecoration(
+                  color: AppConstant.appPrimaryColor,
+                  // borderRadius: AppUtils.borderRadiusAll(raduis: 5)
+                ),
+                tabs: const [
+                  // Tab(text: 'All'),
+                  Tab(text: 'My Request'),
+                  Tab(text: 'Employee Request'),
+                ]),
+          ),
+        ],
       ),
     );
   }

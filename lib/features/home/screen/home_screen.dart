@@ -74,6 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
         appBar: AppBar(
           surfaceTintColor: AppConstant.whiteColor,
           forceMaterialTransparency: true,
+          centerTitle: false,
           title: Column(crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               AppUtils.commonTextWidget(text: username ?? "",textColor: AppConstant.blackColor,fontSize: 16),

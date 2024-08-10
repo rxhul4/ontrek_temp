@@ -83,12 +83,18 @@ class AuthenticationProvider extends ChangeNotifier {
 
     if (Platform.isIOS) {
       var iosInfo = await deviceInfo.iosInfo;
+      print("IosData${iosInfo.identifierForVendor}");
+      print("IosData${iosInfo.name}");
+      print("IosData${iosInfo.model}");
+      print("IosData${iosInfo.utsname}");
+      print("IosData${iosInfo.localizedModel}");
+      print("IosData${iosInfo.data}");
       body = {
         "countryCode": isFromOtpScreen == true ? countryCodeFromOtp : countryCode,
         "phoneNumber": isFromOtpScreen == true ? phoneNumber :mobileNumberController.text,
         "deviceInfo": {
           "deviceId": iosInfo.identifierForVendor,
-          "deviceModel": iosInfo.model,
+          "deviceModel": iosInfo.name,
           "deviceOs ": iosInfo.systemName,
           "osVersion ": iosInfo.systemVersion,
         }
@@ -180,7 +186,7 @@ class AuthenticationProvider extends ChangeNotifier {
           "otp": otpText,
           "deviceInfo": {
             "deviceId": iosInfo.identifierForVendor,
-            "deviceModel": iosInfo.model,
+            "deviceModel": iosInfo.name,
             "deviceOs ": iosInfo.systemName,
             "osVersion ": Platform.operatingSystemVersion,
             "firebaseDeviceKey" :fcmToken

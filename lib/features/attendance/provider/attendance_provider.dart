@@ -56,7 +56,7 @@ class AttendanceProvider extends ChangeNotifier {
   AnimationController? controller;
   FlutterBackgroundService service = FlutterBackgroundService();
 
-  // BackgroundServiceIos iosService = BackgroundServiceIos();
+  BackgroundServiceIos iosService = BackgroundServiceIos();
   bool? isInternetAvailable;
   TextEditingController dateController = TextEditingController();
   TextEditingController timeController = TextEditingController();
@@ -430,7 +430,7 @@ class AttendanceProvider extends ChangeNotifier {
       if (Platform.isAndroid) {
         service.invoke("stopService");
       } else {
-        // await iosService.stop();
+        await iosService.stop();
       }
       return;
     }
@@ -452,7 +452,7 @@ class AttendanceProvider extends ChangeNotifier {
       if (Platform.isAndroid) {
         service.invoke("stopService");
       } else {
-        // await iosService.stop();
+        await iosService.stop();
       }
       return;
     }
@@ -483,7 +483,7 @@ class AttendanceProvider extends ChangeNotifier {
               PreferenceHelper.LAST_LAT, lastActivityData.lastActivityLat ?? 0);
           PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG,
               lastActivityData.lastActivityLong ?? 0);
-          // iosService.start();
+          iosService.start();
         }
       }
     }

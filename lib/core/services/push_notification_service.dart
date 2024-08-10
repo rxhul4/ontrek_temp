@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:ontrek/core/services/local_notification.dart';
 
@@ -27,11 +29,15 @@ Future<void> initPushNotification() async {
   FirebaseMessaging.onMessageOpenedApp.listen(handleMessage);
   FirebaseMessaging.onBackgroundMessage(handleBackgroundMessage);
   FirebaseMessaging.onMessage.listen((event) {
-    NotificationService().showNotification(
-      id: event.notification.hashCode,
-      title: event.notification?.title ?? "",
-      body: event.notification?.body ?? "",
-    );
+    print("dataaaaaaaaaaaaaaa");
+    if(Platform.isAndroid){
+      NotificationService().showNotification(
+        id: event.notification.hashCode,
+        title: event.notification?.title ?? "",
+        body: event.notification?.body ?? "",
+      );
+    }
+
   });
 }
 
@@ -40,7 +46,12 @@ class PushNotificationService {
 
   Future<void> initializePushNotification() async {
     await firebaseMessaging.requestPermission();
-    fcmToken = await firebaseMessaging.getToken();
+    if(Platform.isAndroid){
+      fcmToken = await firebaseMessaging.getToken();
+    }else{
+      fcmToken = await firebaseMessaging.getToken();
+    }
+
     print("fcmToken: $fcmToken");
     await initPushNotification();
   }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:ontrek/core/background_service_model/app_off_time_model.dart';
 import 'package:ontrek/core/services/background_service_operations.dart';
 import 'package:ontrek/core/services/local_notification.dart';
 import 'package:ontrek/core/storage/db_service.dart';
@@ -15,6 +16,7 @@ import 'package:sqflite/sqflite.dart';
 bool isInternetAvailable = false;
 bool isGpsAvailable = false;
 LastActivityData? lastActivityData;
+String? serviceStartTime;
 BackgroundServiceOperations bgOps =BackgroundServiceOperations();
 DatabaseService dbServiece = new DatabaseService();
 late Database db;
@@ -47,7 +49,8 @@ class BackgroundServiceIos {
         logLevel: bg.Config.LOG_LEVEL_VERBOSE, // Verbose logging for debugging
         preventSuspend: true // Prevent the app from suspending
     )).then((bg.State state) async {
-
+      serviceStartTime = AppUtils.getDate(
+          date: DateTime.now().toString(), format: AppConstant.dateFormat);
     });
     listenGeofenceEvents();
 
@@ -121,6 +124,8 @@ class BackgroundServiceIos {
       PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, location.coords.longitude);
       bool isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
       isInternetAvailable = PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
+      bool isAlwaysOnLocation = await Permission.locationAlways.isGranted;
+
       // bool? isCheckInGeoFenceExit = PreferenceHelper.getBool("isCheckInGeoFenceExit");
       // bool? isCheckOutReminder = PreferenceHelper.getBool(PreferenceHelper.CHECKOUT_REMINDER);
       // int? checkOutReminderMtr = PreferenceHelper.getInt(PreferenceHelper.CHECKOUT_REMINDER_METER);
@@ -135,10 +140,22 @@ class BackgroundServiceIos {
         print("ManageRouteHistoryStart");
         await bgOps.ManageRouteHistory(db,location);
         print("ManageRouteHistoryEnd");
+
+        if (serviceStartTime != null) {
+          await dbServiece.insertOrUpdateAppOffTime(
+              db,
+              AppOffTime(
+                startTime: serviceStartTime ?? "",
+                stopTime: AppUtils.dateFormat(
+                    date: DateTime.now(),
+                    dateFormat: AppConstant.dateFormat),
+              ));
+        }
       }
 
       print("syncDataStart");
       await SyncData(lastActivityData);
+      await bgOps.sendLastStatus(lastActivityData!,isAlwaysOnLocation,isGpsAvailable);
       print("syncDataEnd");
 
       if(isCheckIn == true ){
@@ -172,6 +189,17 @@ class BackgroundServiceIos {
       // int? checkOutReminderMtr = PreferenceHelper.getInt(PreferenceHelper.CHECKOUT_REMINDER_METER);
       if(lastActivityData == null) {
         return;
+      }
+
+      if (serviceStartTime != null) {
+        await dbServiece.insertOrUpdateAppOffTime(
+            db,
+            AppOffTime(
+              startTime: serviceStartTime ?? "",
+              stopTime: AppUtils.dateFormat(
+                  date: DateTime.now(),
+                  dateFormat: AppConstant.dateFormat),
+            ));
       }
 
       if (isInternetAvailable && lastActivityData != null) {

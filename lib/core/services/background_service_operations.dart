@@ -5,6 +5,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:ontrek/core/background_service_model/activity_model.dart';
+import 'package:ontrek/core/background_service_model/app_off_time_model.dart';
+import 'package:ontrek/core/background_service_model/app_off_time_response_model.dart';
 import 'package:ontrek/core/background_service_model/bulk_activity_request_moodel.dart';
 import 'package:ontrek/core/background_service_model/bulk_activity_response_model.dart';
 import 'package:ontrek/core/background_service_model/create_route_history_model.dart';
@@ -144,21 +146,30 @@ isWithinRadius(
   }
 }
 
-  sendLastStatus(LastActivityData lastActivityData, bool isLocationAlwaysOn,bool isGpsAvailable ){
-    Map<String,dynamic> body =
-    {
+  sendLastStatus(
+  LastActivityData lastActivityData, bool isLocationAlwaysOn,bool isGpsAvailable ) async {
+    DatabaseService databaseService = DatabaseService();
+
+    List<AppOffTime> appOffTimeList = await databaseService.getAllAppOffTime(db);
+
+    List<Map<String, dynamic>> appOffTimeListData = appOffTimeList.map((offTime) => offTime.toMap()).toList();
+
+    Map<String, dynamic> body = {
       "userId": lastActivityData.fieldUserId,
-      "isGpsOn": isLocationAlwaysOn,
+      "sessionId": lastActivityData.sessionId,
+      "isGpsOn": isGpsAvailable,
       "isDevModeOn": false,
       "isFakeLocation": false,
       "isLocationAlwaysOn": isLocationAlwaysOn,
-      "isBatteryOptimizationDisabled" : true
+      "isBatteryOptimizationDisabled": true,
+      "listFieldUserAppStatus": appOffTimeListData,
     };
 
     if (body != null) {
       String endPoint = ApiConstants.sendLastStatus;
       try {
         callPostMethodForDevmode(endPoint, body);
+
       } catch (e) {
         print("Error during sendLastStatus: $e");
       }
