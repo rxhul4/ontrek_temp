@@ -38,7 +38,7 @@ class BackgroundServiceIos {
         stopOnTerminate: false, // Keep tracking even if the app is terminated
         startOnBoot: false, // Don't start on boot
         foregroundService: true, // Run as a foreground service
-        debug: false, // Enable debugging
+        debug: true, // Enable debugging
         autoSync: false, // Disable automatic syncing
         showsBackgroundLocationIndicator: true, // Show location indicator
         stationaryRadius: 50, // Radius to define the stationary state
@@ -126,11 +126,11 @@ class BackgroundServiceIos {
         stop();
         return;
       }
-      DateTime lastActivityDate = DateTime.parse(lastActivityData.sessionStartDateTime ?? "");
-
-      String formattedTodayDate = AppUtils.dateFormat(date: DateTime.now(), dateFormat: "yyyy-MM-dd");
-
-      String formatLastActivityDate = AppUtils.getDate(date: lastActivityDate.toString(), format: "yyyy-MM-dd");
+      // DateTime lastActivityDate = DateTime.parse(lastActivityData.sessionStartDateTime ?? "");
+      //
+      // String formattedTodayDate = AppUtils.dateFormat(date: DateTime.now(), dateFormat: "yyyy-MM-dd");
+      //
+      // String formatLastActivityDate = AppUtils.getDate(date: lastActivityDate.toString(), format: "yyyy-MM-dd");
 
       PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT, location.coords.latitude);
       PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, location.coords.longitude);
@@ -148,7 +148,7 @@ class BackgroundServiceIos {
       print("OnLocationActivity${location.activity.type.toString()}");
 
 
-      if(location.isMoving == true && (location.activity.type == "in_vehicle" || location.activity.type == "on_bicycle") && location.activity.confidence == 100)
+      if(location.isMoving == true && (location.activity.type == "in_vehicle" || location.activity.type == "on_bicycle" || location.activity.type == "on_foot") && location.activity.confidence == 100)
       {
         print("ManageRouteHistoryStart");
         await bgOps.ManageRouteHistory(db,location);
@@ -167,14 +167,16 @@ class BackgroundServiceIos {
         }
       }
 
-      if(isInternetAvailable == true && lastActivityData.fieldUserId != null && lastActivityData.sessionId  != null && formatLastActivityDate == formattedTodayDate){
+      if(isInternetAvailable == true /*&& lastActivityData.fieldUserId != null && lastActivityData.sessionId  != null && formatLastActivityDate == formattedTodayDate*/){
         print("syncDataStart");
         await SyncData(lastActivityData);
         await bgOps.sendLastStatus(lastActivityData,isAlwaysOnLocation,isGpsAvailable);
         print("syncDataEnd");
-      }else{
-        await dayEndProcess();
       }
+
+      /*else{
+        await dayEndProcess();
+      }*/
 
 
       if(isCheckIn == true ){
