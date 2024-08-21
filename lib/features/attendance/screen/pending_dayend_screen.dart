@@ -65,8 +65,11 @@ class _PendingDayEndScreenState extends State<PendingDayEndScreen> {
                         : () {
                       attendanceProvider.checkValidationOfRequestNote(
                           sessionId: widget.sessionId,
-                          sessionEndDate:
-                          endDateTime);
+                          sessionEndDate: endDateTime,
+                          onSuccess: (){
+                            Navigator.pop(context);
+                          }
+                      );
                     },
                     child: AppUtils.commonTextWidget(
                         text: "Submit",
@@ -117,6 +120,7 @@ class _PendingDayEndScreenState extends State<PendingDayEndScreen> {
                         readOnly: true,
                         text: "Day end",
                         showCursor: false,
+
                         controller: attendanceProvider.timeController,
                         onTap: () {
                           _showTimePicker(
@@ -127,7 +131,9 @@ class _PendingDayEndScreenState extends State<PendingDayEndScreen> {
                       commonTextField(
                           text: "Reason",
                           controller: attendanceProvider.reasonController,
-                          maxLine: 3,),
+                          maxLine: 3,
+                          maxLength: 200
+                      ),
                       AppUtils.commonSizedBox(height: 20),
                     ],
                   ),
@@ -151,7 +157,8 @@ class _PendingDayEndScreenState extends State<PendingDayEndScreen> {
     bool? showCursor,
     TextInputType? textInputType,
     Widget? suffixIcon,
-    bool? readOnly
+    bool? readOnly,
+    int? maxLength
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,7 +177,7 @@ class _PendingDayEndScreenState extends State<PendingDayEndScreen> {
           controller: controller,
           hintText: text ?? "",
           maxLines: maxLine ?? 1,
-          maxLength: 200,
+          maxLength: maxLength,
           cursorColor: AppConstant.appPrimaryColor.withOpacity(0.9),
           allBorderRadius: 3,
           fillColor: AppConstant.whiteColor,

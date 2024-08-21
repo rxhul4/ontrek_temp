@@ -4,12 +4,14 @@ class AppOffTime {
   String? pkId;
   String startTime;
   String stopTime;
+  String? createdOn;
 
 
   AppOffTime({
-     this.pkId,
+    this.pkId,
     required this.startTime,
     required this.stopTime,
+    this.createdOn
 
   });
 
@@ -19,15 +21,17 @@ class AppOffTime {
       'pkId': pkId,
       'startTime': startTime,
       'stopTime': stopTime,
+      'createdOn' :  createdOn
     };
   }
 
   // Extract a AppOffTime object from a Map object
   factory AppOffTime.fromMap(Map<String, dynamic> map) {
     return AppOffTime(
-      pkId: map['pkId'],
-      startTime: map['startTime'],
-      stopTime: map['stopTime'],
+        pkId: map['pkId'],
+        startTime: map['startTime'],
+        stopTime: map['stopTime'],
+        createdOn: map['createdOn']
     );
   }
 }

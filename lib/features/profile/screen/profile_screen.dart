@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +10,6 @@ import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/app_constant.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/features/authentication/screens/login_with_phone_number.dart';
-import 'package:ontrek/features/profile/screen/testScreen.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:upgrader/upgrader.dart';
 
@@ -54,7 +55,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     "Privacy Policy",
     "App Settings",
     "Sign Out",
-    "test Screen"
   ];
   List<IconData> profileOptionsListIcons = [
     Icons.chat,
@@ -63,7 +63,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     Icons.privacy_tip,
     Icons.app_settings_alt,
     Icons.logout,
-    Icons.add
   ];
 
   @override
@@ -110,7 +109,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       fontSize: 12),
                   AppUtils.commonSizedBox(height: 10),
                   AppUtils.commonTextWidget(
-                      text: "App Version : ${AppConstant.appVersionAndroid}",
+                      text: "App Version : ${Platform.isAndroid ? AppConstant.appVersionAndroid : AppConstant.appVersionIos}",
                       textColor: AppConstant.blackColor.withOpacity(0.6),
                       fontSize: 10),
                 ],
@@ -319,9 +318,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           },
           onCancel: () {},
         );
-        break;
-      case 6:
-        Navigator.push(context, CupertinoPageRoute(builder: (context) => Testscreen(),));
         break;
       default:
         break;

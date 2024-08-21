@@ -98,6 +98,9 @@ class AttendanceProvider extends ChangeNotifier {
       builder: (context) => screen,
     ));
   }
+  void navigatorPop() {
+    navigatorKey.currentState!.pop();
+  }
 
   // Future<bool?> getWaitingValue() async {
   //   isWaiting.value =
@@ -137,7 +140,7 @@ class AttendanceProvider extends ChangeNotifier {
 
   Future<Position?> getCurrentLocation() async {
     bool isLocationServiceAvailable =
-        await AppUtils.checkLocationServiceAvailability();
+    await AppUtils.checkLocationServiceAvailability();
     if (isLocationServiceAvailable) {
       try {
         position = await Geolocator.getCurrentPosition(
@@ -167,8 +170,7 @@ class AttendanceProvider extends ChangeNotifier {
     loaderFnc(true);
     String? userid = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     String? sessionId = PreferenceHelper.getString(PreferenceHelper.SESSION_ID);
-    position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.best);
+    position = await Geolocator.getCurrentPosition();
     try {
       if (position?.latitude != 0 ||
           position?.longitude != 0 && position?.latitude != null ||
@@ -187,14 +189,14 @@ class AttendanceProvider extends ChangeNotifier {
             "longitude":  position?.longitude,
             "lattitude":  position?.latitude,
             "sessionId":
-                sessionId == null || sessionId == "" ? null : sessionId,
+            sessionId == null || sessionId == "" ? null : sessionId,
             "totTrackingEventId": totTrackingEventCode,
             "activityDateTime": activityDateTime ??
                 AppUtils.dateFormat(
                     date: DateTime.now(), dateFormat: AppConstant.dateFormat),
             "batteryLevel": battery,
             "visitNoteRequestForm":
-                isFromCheckOut ?? false ? checkOutDataBody : null
+            isFromCheckOut ?? false ? checkOutDataBody : null
           }
         };
 
@@ -215,7 +217,7 @@ class AttendanceProvider extends ChangeNotifier {
         AppUtils.showDialogBoxWithOneButton(
             titleText: "Internet Off Alert",
             text:
-                "Internet is not available. Please Enable Mobile data or wifi.",
+            "Internet is not available. Please Enable Mobile data or wifi.",
             context: navigatorKey.currentState!.context);
       }
     }
@@ -247,10 +249,10 @@ class AttendanceProvider extends ChangeNotifier {
             date: getLastActivityModel?.data?.sessionStartDateTime ?? "",
             format: "dd-MM-yyyy");
         DateTime sessionStartDate =
-            DateFormat("dd-MM-yyyy").parse(sessionStartDateStr);
+        DateFormat("dd-MM-yyyy").parse(sessionStartDateStr);
         DateTime today = DateTime.now();
         DateTime todayWithoutTime =
-            DateTime(today.year, today.month, today.day);
+        DateTime(today.year, today.month, today.day);
 
         if (sessionStartDate.isBefore(todayWithoutTime)) {
           if (getLastActivityModel?.data?.alreadyRequested == false &&
@@ -262,7 +264,7 @@ class AttendanceProvider extends ChangeNotifier {
             navigatePushFnc(PendingDayEndScreen(
               sessionId: getLastActivityModel?.data?.sessionId,
               sessionStartDate:
-                  getLastActivityModel?.data?.sessionStartDateTime ?? "",
+              getLastActivityModel?.data?.sessionStartDateTime ?? "",
             ));
           }
         }
@@ -282,7 +284,7 @@ class AttendanceProvider extends ChangeNotifier {
         AppUtils.showDialogBoxWithOneButton(
             titleText: "Internet Off Alert",
             text:
-                "Internet is not available. Please Enable Mobile data or wifi.",
+            "Internet is not available. Please Enable Mobile data or wifi.",
             context: navigatorKey.currentState!.context);
       }
     }
@@ -291,7 +293,7 @@ class AttendanceProvider extends ChangeNotifier {
   }
 
   Future<DayEndManualRequestModel?> apiCallDayEndManualRequest(
-      {String? sessionId, String? sessionEndDate}) async {
+      {String? sessionId, String? sessionEndDate,required Function onSuccess}) async {
     String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
     String? orgId = PreferenceHelper.getString(PreferenceHelper.ORG_ID);
 
@@ -310,7 +312,7 @@ class AttendanceProvider extends ChangeNotifier {
           DayEndManualRequestModel.fromJson(json.decode(response));
       print("response : ${response}");
       if (dayEndManualRequestModel?.data == true) {
-        navigatePushReplacementFnc(DashBoard());
+        onSuccess();
       }
     } catch (e) {
       AppUtils.showDialogBoxWithOneButton(
@@ -323,7 +325,7 @@ class AttendanceProvider extends ChangeNotifier {
         AppUtils.showDialogBoxWithOneButton(
             titleText: "Internet Off Alert",
             text:
-                "Internet is not available. Please Enable Mobile data or wifi.",
+            "Internet is not available. Please Enable Mobile data or wifi.",
             context: navigatorKey.currentState!.context);
       } else {
         AppUtils.showDialogBoxWithOneButton(
@@ -337,7 +339,7 @@ class AttendanceProvider extends ChangeNotifier {
   }
 
   checkValidationOfRequestNote(
-      {String? sessionId, String? sessionEndDate}) async {
+      {String? sessionId, String? sessionEndDate,required Function onSuccess}) async {
     if (timeController.text.isEmpty) {
       AppUtils.showSnackBarWithColor(
           message: "Please select day end Time",
@@ -350,7 +352,7 @@ class AttendanceProvider extends ChangeNotifier {
           giveColor: AppConstant.appPrimaryColor);
     } else {
       await apiCallDayEndManualRequest(
-          sessionId: sessionId, sessionEndDate: sessionEndDate);
+          sessionId: sessionId, sessionEndDate: sessionEndDate,onSuccess: onSuccess);
     }
   }
 
@@ -376,7 +378,7 @@ class AttendanceProvider extends ChangeNotifier {
         date: lastActivityData.sessionStartDateTime ?? "",
         format: "dd-MM-yyyy");
     DateTime sessionStartDate =
-        DateFormat("dd-MM-yyyy").parse(sessionStartDateStr);
+    DateFormat("dd-MM-yyyy").parse(sessionStartDateStr);
     DateTime today = DateTime.now();
     DateTime todayWithoutTime = DateTime(today.year, today.month, today.day);
 
@@ -440,7 +442,7 @@ class AttendanceProvider extends ChangeNotifier {
         date: lastActivityData?.sessionStartDateTime ?? "",
         format: "dd-MM-yyyy");
     DateTime sessionStartDate =
-        DateFormat("dd-MM-yyyy").parse(sessionStartDateStr);
+    DateFormat("dd-MM-yyyy").parse(sessionStartDateStr);
     DateTime today = DateTime.now();
     DateTime todayWithoutTime = DateTime(today.year, today.month, today.day);
 
@@ -458,15 +460,15 @@ class AttendanceProvider extends ChangeNotifier {
     }
 
     if (sessionStartDateStr ==
-            AppUtils.getDate(
-                date: DateTime.now().toString(), format: "dd-MM-yyyy") &&
+        AppUtils.getDate(
+            date: DateTime.now().toString(), format: "dd-MM-yyyy") &&
         lastActivityData?.isSessionActive == true) {
       PreferenceHelper.setObject<LastActivityData>(
           PreferenceHelper.LastActivity, lastActivityData);
       PreferenceHelper.setString(
           PreferenceHelper.SESSION_ID, lastActivityData.sessionId ?? "");
       bool? liveLocationTracking =
-          PreferenceHelper.getBool(PreferenceHelper.LIVE_LOCATION_TRACKING);
+      PreferenceHelper.getBool(PreferenceHelper.LIVE_LOCATION_TRACKING);
 
       if (liveLocationTracking == true) {
         if (Platform.isAndroid) {

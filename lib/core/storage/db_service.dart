@@ -8,7 +8,7 @@ import 'package:path/path.dart';
 import 'package:uuid/uuid.dart';
 
 class DatabaseService {
-    // Database instance
+  // Database instance
   Future<Database> initializeOnTrekDB() async {
     String path = await getDatabasesPath();
     return openDatabase(
@@ -35,9 +35,11 @@ class DatabaseService {
       CREATE TABLE App_Off_Time (
         pkId TEXT PRIMARY KEY,
         startTime TEXT,
-        stopTime TEXT
+        stopTime TEXT,
+        createdOn TEXT
       );
     ''');
+
 
     await db.execute('''
       CREATE TABLE Activity (
@@ -58,9 +60,7 @@ class DatabaseService {
 
 
   Future<void> insertOrUpdateAppOffTime(Database db, AppOffTime newAppOffTime) async {
-    final uuid = Uuid();
-    final newGuid = uuid.v4();
-    newAppOffTime.pkId = newGuid;
+
 
     final latestAppOffTime = await getLatestAppOffTime(db);
 
@@ -71,6 +71,9 @@ class DatabaseService {
       final difference = newStartTime.difference(previousEndTime);
 
       if (difference.inMinutes > 2) {
+        final uuid = Uuid();
+        final newGuid = uuid.v4();
+        newAppOffTime.pkId = newGuid;
         // Insert a new row with the new GUID
         await db.insert(
           'App_Off_Time',
@@ -88,6 +91,9 @@ class DatabaseService {
         );
       }
     } else {
+      final uuid = Uuid();
+      final newGuid = uuid.v4();
+      newAppOffTime.pkId = newGuid;
       // Insert the first row if there is no previous entry, with the new GUID
       await db.insert(
         'App_Off_Time',
@@ -101,16 +107,29 @@ class DatabaseService {
   Future<AppOffTime?> getLatestAppOffTime(Database db) async {
     final List<Map<String, dynamic>> maps = await db.query(
       'App_Off_Time',
-      orderBy: 'PkId DESC',
+      orderBy: 'createdOn DESC',
       limit: 1,
     );
-
     if (maps.isNotEmpty) {
       return AppOffTime.fromMap(maps.first);
     } else {
       return null;
     }
   }
+
+
+  Future<List<AppOffTime>> getLastTwoAppOffTime(Database db) async {
+    // Query to get the last two rows, ordered by primary key (or created_on) in descending order
+    final List<Map<String, dynamic>> maps = await db.query(
+      'App_Off_Time',
+      orderBy: 'createdOn DESC', // Change 'pkId' to 'created_on' if you prefer ordering by timestamp
+      limit: 2,
+    );
+
+    // Convert the list of maps to a list of AppOffTime objects
+    return maps.map((json) => AppOffTime.fromMap(json)).toList();
+  }
+
 
   Future<List<AppOffTime>> getAllAppOffTime(Database db, ) async {
     //final Database db = await initializeOnTrekDB();
@@ -140,12 +159,12 @@ class DatabaseService {
   Future<void> insertGpsActivity(Database db, Activity activity) async {
     //final Database db = await initializeOnTrekDB();
 
-     List<Map<String, dynamic>> gpsOff;
+    List<Map<String, dynamic>> gpsOff;
 
-     gpsOff = await db.query(
-      'Activity',
-      where: 'IsEventCompleted = ? AND EventCode = ?',
-      whereArgs: [0, AppConstant.gpsOffEvent]
+    gpsOff = await db.query(
+        'Activity',
+        where: 'IsEventCompleted = ? AND EventCode = ?',
+        whereArgs: [0, AppConstant.gpsOffEvent]
     );
 
     List<Activity> gpsOffActivity = gpsOff.map((json) => Activity.fromJson(json)).toList();
@@ -262,17 +281,17 @@ class DatabaseService {
 
       if (waitingStop.isEmpty && waitingStart.length == 1) {
 
-          final result = await db.rawQuery('SELECT MAX(PkId) AS max_pkid FROM Activity');
-          final maxPkid = (result.first['max_pkid'] as int?) ?? 0;
+        final result = await db.rawQuery('SELECT MAX(PkId) AS max_pkid FROM Activity');
+        final maxPkid = (result.first['max_pkid'] as int?) ?? 0;
 
-          waitingStartActivity[0].isEventCompleted = true;
+        waitingStartActivity[0].isEventCompleted = true;
 
-          activity.parentId =  waitingStartActivity[0].pkId;
-          activity.isEventCompleted = true;
-          activity.pkId = maxPkid + 1;
+        activity.parentId =  waitingStartActivity[0].pkId;
+        activity.isEventCompleted = true;
+        activity.pkId = maxPkid + 1;
 
-          await db.rawQuery('update Activity set IsEventCompleted=1 where PkId=' + waitingStartActivity[0].pkId.toString() + '');
-          await db.insert('Activity', activity.toJson());
+        await db.rawQuery('update Activity set IsEventCompleted=1 where PkId=' + waitingStartActivity[0].pkId.toString() + '');
+        await db.insert('Activity', activity.toJson());
 
       }
     }
@@ -280,7 +299,7 @@ class DatabaseService {
 
   Future<void> removeSyncedNotCompletedEvents(Database db, ) async
   {
-   // final Database db = await initializeOnTrekDB();
+    // final Database db = await initializeOnTrekDB();
     await db.rawQuery("delete from Activity where IsSync=1 AND IsEventCompleted=0");
   }
 
@@ -300,9 +319,9 @@ class DatabaseService {
     final List<Map<String, Object?>> queryResult = await db.query('Activity', where: "IsSync = ?", whereArgs: [0]);
 
     if(queryResult != null && queryResult.length > 0)
-      {
-        return queryResult.map((json) => Activity.fromJson(json)).toList();
-      }
+    {
+      return queryResult.map((json) => Activity.fromJson(json)).toList();
+    }
 
     return null;
   }

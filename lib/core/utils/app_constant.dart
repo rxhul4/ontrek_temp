@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class AppConstant {
 
   static const String appVersionAndroid = "1.1.2" ;
-  static const String appVersionIos = "1.0.1" ;
+  static const String appVersionIos = "1.0.2" ;
   static const String androidAppLink = "https://play.google.com/store/apps/details?id=com.ontrek" ;
   static const String iosAppLink = "https://apps.apple.com/in/app/on-trek-sales-men-tracking/id6499426655" ;
   //tot tracking events

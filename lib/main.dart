@@ -101,7 +101,7 @@ void main() async {
       return true;
     };
   }
-  await PushNotificationService().initializePushNotification();
+
 
   PreferenceHelper.load().then((value) async {
     String? userId = PreferenceHelper.getString(PreferenceHelper.USER_ID);
@@ -116,8 +116,7 @@ void main() async {
   });
   BackgroundService backgroundService = BackgroundService();
 
-  NotificationService notificationService = NotificationService();
-  await notificationService.initNotification();
+
 
   if (Platform.isAndroid) {
     await backgroundService.initializeService();
@@ -125,6 +124,9 @@ void main() async {
     BackgroundServiceIos backgroundServiceIos = BackgroundServiceIos();
     await backgroundServiceIos.initialize();
   }
+  NotificationService notificationService = NotificationService();
+  await notificationService.initNotification();
+
 }
 
 Future<void> setCrashlyticsUserAndDeviceInfo(

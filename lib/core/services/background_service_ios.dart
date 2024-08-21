@@ -32,6 +32,7 @@ class BackgroundServiceIos {
 
     bg.BackgroundGeolocation.setConfig(bg.Config(
         desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH,
+        // forceReloadOnHeartbeat: true,
         heartbeatInterval: PreferenceHelper.getInt(PreferenceHelper.LIVE_LOCATION_INTERVAL),// Minimal accuracy to avoid frequent updates
         distanceFilter: 50, // Only get updates when the user moves more than 100 meters
         stopOnTerminate: false, // Keep tracking even if the app is terminated
@@ -118,12 +119,24 @@ class BackgroundServiceIos {
     });
 
     bg.BackgroundGeolocation.onLocation((bg.Location location) async {
-      var lastActivityDataMap = PreferenceHelper.getObject(PreferenceHelper.LastActivity);
+      var lastActivityDataMap = await PreferenceHelper.getObject(PreferenceHelper.LastActivity);
       LastActivityData lastActivityData = LastActivityData.fromJson(lastActivityDataMap);
+
+      if(lastActivityData == null) {
+        stop();
+        return;
+      }
+      DateTime lastActivityDate = DateTime.parse(lastActivityData.sessionStartDateTime ?? "");
+
+      String formattedTodayDate = AppUtils.dateFormat(date: DateTime.now(), dateFormat: "yyyy-MM-dd");
+
+      String formatLastActivityDate = AppUtils.getDate(date: lastActivityDate.toString(), format: "yyyy-MM-dd");
+
       PreferenceHelper.setDouble(PreferenceHelper.LAST_LAT, location.coords.latitude);
       PreferenceHelper.setDouble(PreferenceHelper.LAST_LONG, location.coords.longitude);
       bool isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
       isInternetAvailable = PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
+      isGpsAvailable = PreferenceHelper.getBool(PreferenceHelper.GPS_BOOL);
       bool isAlwaysOnLocation = await Permission.locationAlways.isGranted;
 
       // bool? isCheckInGeoFenceExit = PreferenceHelper.getBool("isCheckInGeoFenceExit");
@@ -149,14 +162,20 @@ class BackgroundServiceIos {
                 stopTime: AppUtils.dateFormat(
                     date: DateTime.now(),
                     dateFormat: AppConstant.dateFormat),
+                createdOn: DateTime.now().toIso8601String(),
               ));
         }
       }
 
-      print("syncDataStart");
-      await SyncData(lastActivityData);
-      await bgOps.sendLastStatus(lastActivityData!,isAlwaysOnLocation,isGpsAvailable);
-      print("syncDataEnd");
+      if(isInternetAvailable == true && lastActivityData.fieldUserId != null && lastActivityData.sessionId  != null && formatLastActivityDate == formattedTodayDate){
+        print("syncDataStart");
+        await SyncData(lastActivityData);
+        await bgOps.sendLastStatus(lastActivityData,isAlwaysOnLocation,isGpsAvailable);
+        print("syncDataEnd");
+      }else{
+        await dayEndProcess();
+      }
+
 
       if(isCheckIn == true ){
         bgOps.manualWaitingEndEvent(db, location);
@@ -178,63 +197,84 @@ class BackgroundServiceIos {
       if(lastActivityDataMap == null || lastActivityDataMap == {}){
         return;
       }
+
       lastActivityData = LastActivityData.fromJson(lastActivityDataMap);
-      isInternetAvailable = PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
-      bool isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
-      bool isGpsAvailable = PreferenceHelper.getBool(PreferenceHelper.GPS_BOOL);
-      bool? isWaitingAllowed = PreferenceHelper.getBool(PreferenceHelper.ALLOW_WAITING);
-      bool isAlwaysOnLocation = await Permission.locationAlways.isGranted;
-      // bool? isCheckInGeoFenceExit = PreferenceHelper.getBool("isCheckInGeoFenceExit");
-      // bool? isCheckOutReminder = PreferenceHelper.getBool(PreferenceHelper.CHECKOUT_REMINDER);
-      // int? checkOutReminderMtr = PreferenceHelper.getInt(PreferenceHelper.CHECKOUT_REMINDER_METER);
+
       if(lastActivityData == null) {
+        dayEndProcess();
         return;
       }
+      DateTime lastActivityDate = DateTime.parse(lastActivityData?.sessionStartDateTime ?? "");
 
-      if (serviceStartTime != null) {
-        await dbServiece.insertOrUpdateAppOffTime(
-            db,
-            AppOffTime(
-              startTime: serviceStartTime ?? "",
-              stopTime: AppUtils.dateFormat(
-                  date: DateTime.now(),
-                  dateFormat: AppConstant.dateFormat),
-            ));
-      }
+      // Get the current date and time as a DateTime object
+      DateTime now = DateTime.now();
 
-      if (isInternetAvailable && lastActivityData != null) {
-        print("syncSqlDataStart");
-        await bgOps.syncSqlData(db,lastActivityData!);
-        await bgOps.sendLastStatus(lastActivityData!,isAlwaysOnLocation,isGpsAvailable);
-        print("syncSqlDataEnd");
-        // await bgOps.syncRouteHistory(db,lastActivityData!);
-      }
+      // If you need a formatted date as a String for comparison or display
+      String formattedTodayDate = AppUtils.dateFormat(
+          date: now, dateFormat: "yyyy-MM-dd");
 
-      if(isWaitingAllowed == true){
-        if(heart.location?.activity.type =="still" && !isCheckIn){
-          await setDynamicGeofence(heart.location?.coords.latitude ?? 0, heart.location?.coords.longitude ?? 0,"waitingGeoFence",100.0);
+      String formatLastActivityDate = AppUtils.getDate(
+          date: lastActivityDate.toString(), format: "yyyy-MM-dd");
+
+      if(lastActivityData?.fieldUserId != null && lastActivityData?.sessionId != null &&  formattedTodayDate == formatLastActivityDate){
+        isInternetAvailable = PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
+        bool isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+        isGpsAvailable = PreferenceHelper.getBool(PreferenceHelper.GPS_BOOL);
+        bool? isWaitingAllowed = PreferenceHelper.getBool(PreferenceHelper.ALLOW_WAITING);
+        bool isAlwaysOnLocation = await Permission.locationAlways.isGranted;
+        // bool? isCheckInGeoFenceExit = PreferenceHelper.getBool("isCheckInGeoFenceExit");
+        // bool? isCheckOutReminder = PreferenceHelper.getBool(PreferenceHelper.CHECKOUT_REMINDER);
+        // int? checkOutReminderMtr = PreferenceHelper.getInt(PreferenceHelper.CHECKOUT_REMINDER_METER);
+
+        if (serviceStartTime != null) {
+          await dbServiece.insertOrUpdateAppOffTime(
+              db,
+              AppOffTime(
+                startTime: serviceStartTime ?? "",
+                stopTime: AppUtils.dateFormat(
+                    date: DateTime.now(),
+                    dateFormat: AppConstant.dateFormat),
+                createdOn: DateTime.now().toIso8601String(),
+              ));
         }
-      }
+
+        if (isInternetAvailable && lastActivityData != null) {
+          print("syncSqlDataStart");
+          await bgOps.syncSqlData(db,lastActivityData!);
+          await bgOps.sendLastStatus(lastActivityData!,isAlwaysOnLocation,isGpsAvailable);
+          print("syncSqlDataEnd");
+          // await bgOps.syncRouteHistory(db,lastActivityData!);
+        }
+
+        if(isWaitingAllowed == true){
+          if(heart.location?.activity.type =="still" && !isCheckIn){
+            await setDynamicGeofence(heart.location?.coords.latitude ?? 0, heart.location?.coords.longitude ?? 0,"waitingGeoFence",100.0);
+          }
+        }
 
 
-      if(isCheckIn == false)
-      {
-        // PreferenceHelper.setBool("isCheckInGeoFenceExit", false);
-        // await bg.BackgroundGeolocation.removeGeofence("checkInGeoFence");
-      }else{
-        bgOps.manualWaitingEndEvent(db, heart.location);
-        await bg.BackgroundGeolocation.removeGeofence("waitingGeoFence");
-        // if(isCheckOutReminder == true){
-        //   if(isCheckInGeoFenceExit == false || isCheckInGeoFenceExit == null ){
-        //     await setDynamicGeofence( heart.location?.coords.latitude ?? 0,  heart.location?.coords.longitude ?? 0, "checkInGeoFence",checkOutReminderMtr?.toDouble() ?? 100.0);
-        //   }
+        if(isCheckIn == false)
+        {
+          // PreferenceHelper.setBool("isCheckInGeoFenceExit", false);
+          // await bg.BackgroundGeolocation.removeGeofence("checkInGeoFence");
+        }else{
+          bgOps.manualWaitingEndEvent(db, heart.location);
+          await bg.BackgroundGeolocation.removeGeofence("waitingGeoFence");
+          // if(isCheckOutReminder == true){
+          //   if(isCheckInGeoFenceExit == false || isCheckInGeoFenceExit == null ){
+          //     await setDynamicGeofence( heart.location?.coords.latitude ?? 0,  heart.location?.coords.longitude ?? 0, "checkInGeoFence",checkOutReminderMtr?.toDouble() ?? 100.0);
+          //   }
+          // }
+        }
+
+        // if(isCheckIn == true && isCheckInGeoFenceExit){
+        //   NotificationService  notificationService = NotificationService();
+        //   notificationService.showNotification(id: 3, title: "Check Out Reminder", body: "Please perform check out as soon as possible.");
         // }
+      }else{
+        dayEndProcess();
       }
 
-      // if(isCheckIn == true && isCheckInGeoFenceExit){
-      //   NotificationService  notificationService = NotificationService();
-      //   notificationService.showNotification(id: 3, title: "Check Out Reminder", body: "Please perform check out as soon as possible.");
-      // }
 
     });
   }
@@ -322,6 +362,11 @@ class BackgroundServiceIos {
     lastActivityData = LastActivityData.fromJson(lastActivity);
   }
    stop() async{
+    await dayEndProcess();
+  }
+
+
+  dayEndProcess()async{
     await bg.BackgroundGeolocation.removeGeofence("waitingGeoFence");
     await bg.BackgroundGeolocation.removeGeofence("checkInGeoFence");
     await bgOps.stopServiceOperations(db);
@@ -337,6 +382,8 @@ class BackgroundServiceIos {
 
     await bg.BackgroundGeolocation.stop();
   }
+
+
   SyncData(LastActivityData lastActivityData) async
   {
     int liveLocationIntervalTime = PreferenceHelper.getInt(PreferenceHelper.LIVE_LOCATION_INTERVAL) ?? 0;
@@ -344,9 +391,9 @@ class BackgroundServiceIos {
       return;
     }
     String? lastSyncTime = PreferenceHelper.getString("lastSyncTime");
-    bool isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
+    // bool isCheckIn = PreferenceHelper.getBool(PreferenceHelper.checkIn);
     isInternetAvailable = PreferenceHelper.getBool(PreferenceHelper.INTERNET_BOOL);
-    bool? isCheckInGeoFenceExit = PreferenceHelper.getBool("isCheckInGeoFenceExit");
+    // bool? isCheckInGeoFenceExit = PreferenceHelper.getBool("isCheckInGeoFenceExit");
     if (lastSyncTime == null) {
       PreferenceHelper.setString("lastSyncTime", AppUtils.getDate(
           date: DateTime.now().toString(), format: AppConstant.dateFormat));
@@ -357,10 +404,10 @@ class BackgroundServiceIos {
           await bgOps.syncRouteHistory(db,lastActivityData);
         }
 
-        if(isCheckIn == true && isCheckInGeoFenceExit){
-          NotificationService  notificationService = NotificationService();
-          notificationService.showNotification(id: 3, title: "Check Out Reminder", body: "Please Perform CheckOut.");
-        }
+        // if(isCheckIn == true && isCheckInGeoFenceExit){
+        //   NotificationService  notificationService = NotificationService();
+        //   notificationService.showNotification(id: 3, title: "Check Out Reminder", body: "Please Perform CheckOut.");
+        // }
 
         PreferenceHelper.setString("lastSyncTime", AppUtils.getDate(date: DateTime.now().toString(), format: AppConstant.dateFormat));
       }

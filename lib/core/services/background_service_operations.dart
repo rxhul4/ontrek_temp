@@ -32,6 +32,7 @@ class BackgroundServiceOperations{
   stopServiceOperations(Database db)async{
     DatabaseService dbService = new DatabaseService();
     await dbService.deleteAllRoutes(db);
+    await dbService.deleteAppOfTime(db);
     await dbService.deleteAllActivities(db);
   }
 
@@ -150,7 +151,7 @@ isWithinRadius(
   LastActivityData lastActivityData, bool isLocationAlwaysOn,bool isGpsAvailable ) async {
     DatabaseService databaseService = DatabaseService();
 
-    List<AppOffTime> appOffTimeList = await databaseService.getAllAppOffTime(db);
+    List<AppOffTime> appOffTimeList = await databaseService.getLastTwoAppOffTime(db);
 
     List<Map<String, dynamic>> appOffTimeListData = appOffTimeList.map((offTime) => offTime.toMap()).toList();
 

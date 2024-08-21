@@ -3,6 +3,7 @@ import 'package:disable_battery_optimization/disable_battery_optimization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:ontrek/core/services/push_notification_service.dart';
 import 'package:ontrek/core/storage/preference_helper.dart';
 import 'package:ontrek/core/utils/App_utils.dart';
 import 'package:ontrek/core/utils/UserPermission.dart';
@@ -34,6 +35,7 @@ class _SplashScreenState extends State<SplashScreen> {
     isLogIn = PreferenceHelper.getBool(PreferenceHelper.IS_LOGIN);
     bool isPermissionGranted = await userPermission.isAllPermissionsGranted();
     Timer(const Duration(milliseconds: 5000), ()async {
+      await PushNotificationService().initializePushNotification();
       if(isPermissionGranted == true){
         if(isLogIn == true){
           Navigator.pushReplacement(
