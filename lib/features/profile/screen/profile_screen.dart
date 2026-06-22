@@ -275,20 +275,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
       case 0:
         AppUtils.showDialogBoxWithOneButton(
           titleText: "Help",
-          text: "Kindly send your queries on support@ontrek.io",
+          text: "Kindly send your queries on support@ontrek.in",
           context: context,
         );
         break;
       case 1:
-        Navigator.push(context, CupertinoPageRoute(builder: (context) => CommonWebViewWidget(title: "FAQ",url:"https://ontrek.io/faq" ),));
+        Navigator.push(context, CupertinoPageRoute(builder: (context) => CommonWebViewWidget(title: "FAQ",url:"https://ontrek.in/faq" ),));
         break;
       case 2:
-        Navigator.push(context, CupertinoPageRoute(builder: (context) => CommonWebViewWidget(title: "Terms & Conditions",url:"https://ontrek.io/terms-conditions" ),));
+        Navigator.push(context, CupertinoPageRoute(builder: (context) => CommonWebViewWidget(title: "Terms & Conditions",url:"https://ontrek.in/terms-conditions" ),));
         break;
       case 3:
-        Navigator.push(context, CupertinoPageRoute(builder: (context) => CommonWebViewWidget(title: "Privacy Policy",url:"https://ontrek.io/privacy-policy" ),));
-        // AppUtils.launchToBrowser(Uri.parse("https://ontrek.io/privacy-policy"));
-        // https://ontrek.io/terms-conditions
+        Navigator.push(context, CupertinoPageRoute(builder: (context) => CommonWebViewWidget(title: "Privacy Policy",url:"https://ontrek.in/privacy-policy" ),));
+        // AppUtils.launchToBrowser(Uri.parse("https://ontrek.in/privacy-policy"));
+        // https://ontrek.in/terms-conditions
         break;
       case 4:
         AppSettings.openAppSettings();

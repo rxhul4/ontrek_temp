@@ -1,7 +1,7 @@
 class ApiConstants{
 
    // encrypted url
-   static const String baseUrl = "https://api.ontrek.io";
+   static const String baseUrl = "https://api.ontrek.in";
 
    //testing Url
    // static const String baseUrl = "http://ontrek_v1api.epistic.net";

@@ -54,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
           actions: [
             GestureDetector(
               onTap: () {
-                AppUtils.launchToBrowser(Uri.parse("https://ontrek.io/privacy-policy"));
+                AppUtils.launchToBrowser(Uri.parse("https://ontrek.in/privacy-policy"));
               },
               child: Padding(
                 padding: const EdgeInsets.only(right: 10),
