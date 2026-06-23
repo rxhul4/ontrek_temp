@@ -46,6 +46,8 @@ post_install do |installer|
 
     target.build_configurations.each do |config|
         config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+        # Fix for non-modular header include error in firebase_crashlytics/firebase_messaging
+        config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
       # You can remove unused permissions here
       # for more information: https://github.com/BaseflowIT/flutter-permission-handler/blob/master/permission_handler/ios/Classes/PermissionHandlerEnums.h
       # e.g. when you don't need camera permission, just add 'PERMISSION_CAMERA=0'
