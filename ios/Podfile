@@ -1,5 +1,5 @@
 # Uncomment this line to define a global platform for your project
-platform :ios, '14.0'
+platform :ios, '15.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -44,23 +44,7 @@ post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
 
-    # Fix for non-modular header include error in firebase_crashlytics/firebase_messaging with Xcode 26
-    if ['firebase_messaging', 'firebase_crashlytics', 'firebase_core', 'Firebase', 'FirebaseCore', 'FirebaseMessaging', 'FirebaseCrashlytics'].include?(target.name) || target.name.start_with?('firebase')
-      target.build_configurations.each do |config|
-        # Downgrade non-modular include error to warning
-        config.build_settings['OTHER_CFLAGS'] ||= ['$(inherited)']
-        config.build_settings['OTHER_CFLAGS'] << '-Wno-error=non-modular-include-in-framework-module'
-        config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'NO'
-      end
-    end
-
     target.build_configurations.each do |config|
-        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
-        # Fix for non-modular header include error
-        config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
-        # Additional fix: downgrade non-modular include error to warning for all pods
-        config.build_settings['OTHER_CFLAGS'] ||= ['$(inherited)']
-        config.build_settings['OTHER_CFLAGS'] << '-Wno-error=non-modular-include-in-framework-module'
       # You can remove unused permissions here
       # for more information: https://github.com/BaseflowIT/flutter-permission-handler/blob/master/permission_handler/ios/Classes/PermissionHandlerEnums.h
       # e.g. when you don't need camera permission, just add 'PERMISSION_CAMERA=0'
