@@ -53,7 +53,7 @@ dependencies:
   widget_to_marker: ^1.0.5
   webview_flutter: ^4.10.0
   flutter_local_notifications: ^18.0.1
-  interval_time_picker: ^3.0.0+6
+  interval_time_picker: ^4.0.0+13
   battery_indicator: ^0.1.2
   sqflite: ^2.4.1
   flutter_jailbreak_detection: ^1.10.0
