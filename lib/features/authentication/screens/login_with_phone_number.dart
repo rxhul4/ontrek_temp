@@ -101,7 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             Theme(
                               data: ThemeData(
                                 dialogBackgroundColor: Colors.white,
-                                dialogTheme: DialogTheme(
+                                dialogTheme: DialogThemeData(
                                   backgroundColor: Colors.white,
                                   surfaceTintColor: Colors.white,
                                 ),
