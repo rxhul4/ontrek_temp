@@ -38,7 +38,7 @@ class BackgroundServiceIos {
         stopOnTerminate: false, // Keep tracking even if the app is terminated
         startOnBoot: false, // Don't start on boot
         foregroundService: true, // Run as a foreground service
-        debug: true, // Enable debugging
+        debug: false, // Enable debugging
         autoSync: false, // Disable automatic syncing
         showsBackgroundLocationIndicator: true, // Show location indicator
         stationaryRadius: 50, // Radius to define the stationary state
